@@ -1,0 +1,8 @@
+#
+#About: This will install Nginx
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - common
