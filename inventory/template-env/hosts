@@ -7,3 +7,12 @@ timezone=Asia/Calcutta
 
 #Define private key
 ansible_ssh_private_key_file=
+
+#Define datacenter environment
+dc_env=
+
+#Define Intrusion Detection System alerts emailID
+ids_alerts=
+
+[local]
+localhost ansible_connection=local

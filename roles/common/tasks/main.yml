@@ -1,0 +1,15 @@
+---
+- name: Gather ec2 facts
+  ec2_facts:
+  when: dc_env == "aws"
+
+- name: Update cache
+  apt: update_cache=yes
+
+- include: set-hostname.yml
+- include: install-ntp.yml
+- include: hosts.yml
+- include: install-psad.yml
+- include: install-rootkits-scanners.yml
+- include: install-tiger.yml
+- include: install-logrotate.yml
