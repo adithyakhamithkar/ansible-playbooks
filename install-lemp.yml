@@ -1,5 +1,5 @@
 #
-#About: This will install Nginx
+#About: This will install Nginx, Php
 #
 ---
 - hosts: '{{inventory}}'
@@ -8,4 +8,4 @@
   - common
   - nginx
   - php
-  - mysql
+  - nginx-php

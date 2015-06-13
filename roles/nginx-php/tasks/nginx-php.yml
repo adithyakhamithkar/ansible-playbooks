@@ -1,0 +1,4 @@
+---
+- name: Configure Nginx virtualhost for Php
+  template: src=virtualhost.j2 dest=/etc/nginx/sites-available/default
+  notify: Restart nginx

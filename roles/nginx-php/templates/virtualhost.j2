@@ -1,0 +1,24 @@
+# Server Block for Virtual host start
+server {
+        listen  80;
+        root /usr/share/nginx/html;
+        index index.php index.html index.htm;
+        server_name {{hostname}};
+  location / {
+		try_files $uri $uri/ /index.php?q=$request_uri;
+        }
+        #pass the PHP scripts to FastCGI server listening on 127.0.0.1:9$
+        location ~ \.php$ {
+                try_files $uri =404;
+                fastcgi_pass unix:/var/run/php5-fpm.sock;
+                fastcgi_index index.php;
+                fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+                include fastcgi_params;
+                }
+  client_max_body_size 80m;
+  location ~* .(jpg|jpeg|png|gif|ico|css|js)$ {
+    expires 365d;
+  }
+}
+
+# Server Block for Virtual host end
