@@ -1,0 +1,5 @@
+---
+- name: Install Tiger
+  apt: name={{ item }} state=present
+  with_items:
+  - tiger

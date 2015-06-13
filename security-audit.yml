@@ -1,0 +1,33 @@
+#
+#This will update the psad signature file
+#Security Audit Runs CHKRootKit, RKHunter and Tiger
+#Task to run every 24 hours
+#
+---
+- hosts: all
+  sudo: yes
+
+  tasks:
+  - name: Update the signature file
+    shell: sudo psad --sig-update
+    changed_when: False
+
+  - name: restart psad
+    service: name=psad state=restarted
+    changed_when: False
+
+  - name: Run CHKRootKit
+    shell: cd /var/log/chkrootkit && sudo chkrootkit >> chkrootkit.{{hostname}}.{{ansible_date_time["date"]}}.log
+
+  - name: Update RKHunter
+    shell: sudo rkhunter --update
+
+  - name: Check RKHunter versions
+    shell: sudo rkhunter --propupd
+
+  - name: Run RKHunter
+    shell: cd /var/log/rkhunter && sudo rkhunter --check --skip-keypress >> rkhunter.{{hostname}}.{{ansible_date_time["date"]}}.log
+    ignore_errors: yes
+
+  - name: Run Tiger
+    shell: sudo tiger

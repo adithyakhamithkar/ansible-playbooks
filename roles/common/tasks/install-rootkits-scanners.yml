@@ -1,0 +1,9 @@
+---
+- name: Install RKHunter and CHKRootKit
+  apt: name={{ item }} state=present
+  with_items:
+  - rkhunter
+  - chkrootkit
+
+- name: Create directory for RKHunter
+  file: path=/var/log/rkhunter state=directory 

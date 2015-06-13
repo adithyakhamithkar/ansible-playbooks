@@ -1,0 +1,9 @@
+---
+- name: Intrusion Detection - psad
+  apt: name={{ item }} state=present
+  with_items:
+  - psad
+
+- name: Configure psad
+  template: src=psad.conf dest=/etc/psad/psad.conf
+  notify: Restart psad
