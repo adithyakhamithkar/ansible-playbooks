@@ -6,4 +6,10 @@
   - chkrootkit
 
 - name: Create directory for RKHunter
-  file: path=/var/log/rkhunter state=directory 
+  file: path=/var/log/rkhunter state=directory
+
+- name: Configure logrotate for RKHunter
+  template: src=rkhunter.j2 dest=/etc/logrotate.d/rkhunter
+
+- name: Configure logrotate for CHKRootKit
+  template: src=chkrootkit.j2 dest=/etc/logrotate.d/chkrootkit

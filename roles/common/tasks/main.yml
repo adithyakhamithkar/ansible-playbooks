@@ -9,7 +9,8 @@
 - include: set-hostname.yml
 - include: install-ntp.yml
 - include: hosts.yml
+- include: install-logrotate.yml
 - include: install-psad.yml
 - include: install-rootkits-scanners.yml
 - include: install-tiger.yml
-- include: install-logrotate.yml
+- shell: sudo logrotate --force /etc/logrotate.conf
