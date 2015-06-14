@@ -1,6 +1,6 @@
 ---
 - name: Install Php
-  apt: name={{ item }} state=present
+  apt: name={{item}} state=present
   with_items:
    - php5
    - php5-cli

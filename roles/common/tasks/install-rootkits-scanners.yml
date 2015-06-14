@@ -1,6 +1,6 @@
 ---
 - name: Install RKHunter and CHKRootKit
-  apt: name={{ item }} state=present
+  apt: name={{item}} state=present
   with_items:
   - rkhunter
   - chkrootkit

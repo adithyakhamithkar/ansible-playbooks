@@ -1,0 +1,8 @@
+---
+- name: Install automysqlbackup
+  apt: name={{item}} state=present
+  with_items:
+  - automysqlbackup
+
+- name: Configure automysqlbackup
+  template: src=automysqlbackup.j2 dest=/etc/default/automysqlbackup

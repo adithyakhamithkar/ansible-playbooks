@@ -3,7 +3,7 @@
   apt_repository: repo="ppa:nginx/stable" state=present
 
 - name: Install Nginx
-  apt: name={{ item }} state=present update_cache=yes
+  apt: name={{item}} state=present update_cache=yes
   with_items:
    - nginx
    - nginx-extras
