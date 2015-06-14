@@ -1,3 +1,4 @@
 ---
 - name: Restart nginx
-  service: name=nginx state=restarted
+  service: name=nginx state=stopped
+  service: name=nginx state=started

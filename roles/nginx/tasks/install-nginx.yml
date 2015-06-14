@@ -3,11 +3,40 @@
   apt_repository: repo="ppa:nginx/stable" state=present
 
 - name: Install Nginx
-  apt: name={{ item }} state=latest update_cache=yes
+  apt: name={{ item }} state=present update_cache=yes
   with_items:
    - nginx
    - nginx-extras
 
+- name: Create deployment-info
+  file: path=/usr/share/nginx/deployment-info state=directory
+
+- name: Stop Nginx
+  service: name=nginx state=stopped
+
 - name: Configure Nginx
   template: src=nginx.j2 dest=/etc/nginx/nginx.conf
-  notify: Restart nginx
+
+- name: Create SSL directory for Nginx
+  file: path=/etc/nginx/ssl state=directory
+
+- name: Copy nginx.crt to /etc/nginx/ssl
+  copy: src={{nginx_crt_file}} dest=/etc/nginx/ssl/nginx.pem
+
+- name: Copy nginx.key to /etc/nginx/ssl
+  copy: src={{nginx_key_file}} dest=/etc/nginx/ssl/nginx.key
+
+- name: Configure Nginx virtualhost
+  template: src=virtualhost.j2 dest=/etc/nginx/sites-available/default
+
+- name: Configure Nginx virtualhost
+  template: src=virtualhost.j2 dest=/etc/nginx/sites-enabled/default
+
+- name: Configure Nginx virtualhost with SSL
+  template: src=virtualhost_ssl.j2 dest=/etc/nginx/sites-available/default-ssl
+
+- name: Configure Nginx virtualhost with SSL
+  template: src=virtualhost_ssl.j2 dest=/etc/nginx/sites-enabled/default-ssl
+
+- name: Start Nginx
+  service: name=nginx state=started

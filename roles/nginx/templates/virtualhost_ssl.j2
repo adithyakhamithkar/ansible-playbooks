@@ -1,9 +1,11 @@
-# Server Block for Virtual host start
+# Server Block for Virtual host with SSL start.
 server {
-        listen  80;
+        listen  443 ssl spdy;
         root /usr/share/nginx/html;
         index index.php index.html index.htm;
         server_name {{hostname}};
+        ssl_certificate /etc/nginx/ssl/nginx.pem;
+        ssl_certificate_key /etc/nginx/ssl/nginx.key;
   location / {
 		try_files $uri $uri/ /index.php?q=$request_uri;
         }
@@ -20,5 +22,4 @@ server {
     expires 365d;
   }
 }
-
-# Server Block for Virtual host end
+# Server Block for Virtual host with SSL end.

@@ -1,3 +1,7 @@
+#
+#Force logrotate - logrotate --force /etc/logrotate.conf
+#Check logrotate status - cat /var/lib/logrotate/status
+#
 ---
 - name: Install logrotate
   apt: name={{ item }} state=present
