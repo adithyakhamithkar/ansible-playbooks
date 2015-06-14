@@ -5,7 +5,6 @@
 - hosts: '{{inventory}}'
   sudo: yes
   roles:
-  - common
   - nginx
   - php
   - mysql

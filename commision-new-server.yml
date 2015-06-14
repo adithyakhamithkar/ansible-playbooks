@@ -1,0 +1,8 @@
+#
+#About: This must be run on all new servers
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - common

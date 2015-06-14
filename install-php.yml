@@ -1,0 +1,8 @@
+#
+#About: This will install Php
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - php

@@ -1,0 +1,8 @@
+#
+#This will update ssh banner on all server.
+#
+---
+- hosts: all
+  sudo: yes
+  roles:
+  - ssh-banner

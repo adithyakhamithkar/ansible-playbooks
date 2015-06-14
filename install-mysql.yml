@@ -1,0 +1,8 @@
+#
+#About: This will install MySql
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - mysql

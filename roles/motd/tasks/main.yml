@@ -1,0 +1,6 @@
+---
+- name: Adding motd
+  template: src=motd.j2 dest=/var/motd
+
+- name: Adding 00-header
+  template: src=00-header.j2 dest=/etc/update-motd.d/00-header

@@ -14,6 +14,9 @@
 - name: Create deployment-info
   file: path=/usr/share/nginx/error_pages state=directory
 
+- name: Copy default index.html
+  copy: src={{default_index}} dest={{doc_root}}
+
 - name: Copy error-page-404.html
   copy: src={{error_page_404}} dest=/usr/share/nginx/error_pages
 

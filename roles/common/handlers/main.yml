@@ -4,3 +4,6 @@
 
 - name: Restart psad
   service: name=psad state=restarted
+
+- name: Restart newrelic-sysmond
+  service: name=newrelic-sysmond state=restarted

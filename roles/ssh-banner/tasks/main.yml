@@ -1,0 +1,3 @@
+---
+- name: Update ssh banner
+  template: src=ssh-banner.j2 dest=/etc/issue.net
