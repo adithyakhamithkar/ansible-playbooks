@@ -4,8 +4,8 @@ server {
         root /usr/share/nginx/html;
         index index.php index.html index.htm;
         server_name {{hostname}};
-        ssl_certificate /etc/nginx/ssl/nginx.pem;
-        ssl_certificate_key /etc/nginx/ssl/nginx.key;
+        ssl_certificate /etc/nginx/ssl/ssl_crt.pem;
+        ssl_certificate_key /etc/nginx/ssl/ssl_key.key;
   location / {
 		try_files $uri $uri/ /index.php?q=$request_uri;
         }

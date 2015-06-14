@@ -1,18 +1,28 @@
 [all:vars]
-#Define global ssh user
-ansible_ssh_user=
 
+##System variables
 #Define Time Zone
 timezone=Asia/Calcutta
+#Define global ssh user
+ansible_ssh_user=
 
 #Define private key
 ansible_ssh_private_key_file=
 
+##Web server variables
+#Define nginx.pem file path
+nginx_crt_file=
+#Define nginx.key file path
+nginx_key_file=
+#Define default document root
+doc_root=
+
 #Define datacenter environment
 dc_env=
 
+##Alert information variables
 #Define Intrusion Detection System alerts emailID
 ids_alerts=
 
-[local]
-localhost ansible_connection=local
+#[local]
+#localhost ansible_ssh_host=localhost ansible_connection=local

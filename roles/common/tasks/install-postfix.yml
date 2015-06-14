@@ -1,0 +1,24 @@
+---
+- name: Install postfix
+  apt: name={{ item }} state=present
+  with_items:
+  - postfix
+  - mailutils
+
+- name: Stop postfix
+  service: name=postfix state=stopped
+
+- name: Create SSL directory for postfix
+  file: path=/etc/postfix/ssl state=directory
+
+- name: Copy ssl_crt_file to /etc/postfix/ssl
+  copy: src={{ssl_crt_file}} dest=/etc/postfix/ssl/ssl_crt.pem
+
+- name: Copy ssl_key_file to /etc/postfix/ssl
+  copy: src={{ssl_key_file}} dest=/etc/postfix/ssl/ssl_key.key
+
+- name: Configure postfix
+  template: src=postfix.j2 dest=/etc/postfix/main.cf
+
+- name: Start postfix
+  service: name=postfix state=started
