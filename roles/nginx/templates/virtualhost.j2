@@ -1,11 +1,11 @@
 # Server Block for Virtual host start
 server {
         listen  80;
-        root /usr/share/nginx/html;
+        root {{doc_root}};
         index index.php index.html index.htm;
         server_name {{hostname}}.{{domain_name}};
-  location / {
-		try_files $uri $uri/ /index.php?q=$request_uri;
+        location / {
+		            try_files $uri $uri/ /index.php?q=$request_uri;
         }
         #pass the PHP scripts to FastCGI server listening on 127.0.0.1:9$
         location ~ \.php$ {
@@ -14,10 +14,22 @@ server {
                 fastcgi_index index.php;
                 fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
                 include fastcgi_params;
-                }
-  client_max_body_size 80m;
-  location ~* .(jpg|jpeg|png|gif|ico|css|js)$ {
-    expires 365d;
-  }
+        }
+        #Define expiry
+        client_max_body_size 80m;
+                location ~* .(jpg|jpeg|png|gif|ico|css|js)$ {
+                expires 365d;
+        }
+        #Define custom error pages
+        error_page 404 /error-page-404.html;
+        location = /error-page-404.html {
+                root /usr/share/nginx/error_pages;
+                internal;
+        }
+        error_page 500 502 503 504 /error-page-50x.html;
+        location = /error-page-50x.html {
+                root /usr/share/nginx/error_pages;
+                internal;
+        }
 }
 # Server Block for Virtual host end

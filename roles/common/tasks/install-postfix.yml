@@ -21,4 +21,4 @@
   template: src=postfix.j2 dest=/etc/postfix/main.cf
 
 - name: Start postfix
-  service: name=postfix state=started
+  service: name=postfix state=restarted

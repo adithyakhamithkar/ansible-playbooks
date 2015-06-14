@@ -9,13 +9,16 @@
    - nginx-extras
 
 - name: Create deployment-info
-  file: path=/usr/share/nginx/deployment-info state=directory
+  file: path=/usr/share/nginx/deployment_info state=directory
 
-- name: Stop Nginx
-  service: name=nginx state=stopped
+- name: Create deployment-info
+  file: path=/usr/share/nginx/error_pages state=directory
 
-- name: Configure Nginx
-  template: src=nginx.j2 dest=/etc/nginx/nginx.conf
+- name: Copy error-page-404.html
+  copy: src={{error_page_404}} dest=/usr/share/nginx/error_pages
+
+- name: Copy error-page-50x.html
+  copy: src={{error_page_50x}} dest=/usr/share/nginx/error_pages
 
 - name: Create SSL directory for Nginx
   file: path=/etc/nginx/ssl state=directory
@@ -25,6 +28,12 @@
 
 - name: Copy ssl_key_file to /etc/nginx/ssl
   copy: src={{ssl_key_file}} dest=/etc/nginx/ssl/ssl_key.key
+
+- name: Stop Nginx
+  service: name=nginx state=stopped
+
+- name: Configure Nginx
+  template: src=nginx.j2 dest=/etc/nginx/nginx.conf
 
 - name: Configure Nginx virtualhost
   template: src=virtualhost.j2 dest=/etc/nginx/sites-available/default
