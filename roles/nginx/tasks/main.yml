@@ -1,2 +1,6 @@
 ---
+- name: Gather ec2 facts
+  ec2_facts:
+  when: dc_env == "aws"
+  
 - include: install-nginx.yml

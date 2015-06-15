@@ -1,0 +1,7 @@
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+
+  tasks:
+  - name: Enalbe shard allocation
+    shell: curl -XPUT localhost:9200/_all/_settings -d '{"index.routing.allocation.disable_allocation":"false" }'

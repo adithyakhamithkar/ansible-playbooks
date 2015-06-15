@@ -42,4 +42,4 @@
   notify: Restart Php
 
 - name: Restart newrelic
-  server: name=newrelic-sysmond state=restarted
+  service: name=newrelic-sysmond state=restarted

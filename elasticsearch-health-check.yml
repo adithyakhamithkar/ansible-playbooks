@@ -1,0 +1,11 @@
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+
+  tasks:
+  - name: Health check
+    shell: curl -XGET 'http://localhost:9200/_cluster/health?pretty=true'
+    register: health
+
+  - name: Print Health check
+    debug: var=health.stdout_lines
