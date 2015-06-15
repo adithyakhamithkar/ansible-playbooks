@@ -5,6 +5,6 @@
 - hosts: '{{inventory}}'
   sudo: yes
   roles:
-  - java
+  - jdk
   - elasticsearch
   - elasticsearch-master
