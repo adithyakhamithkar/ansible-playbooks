@@ -1,0 +1,10 @@
+#
+#About: This will install elasticsearch-master
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - java
+  - elasticsearch
+  - elasticsearch-master
