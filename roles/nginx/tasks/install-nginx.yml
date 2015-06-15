@@ -30,7 +30,7 @@
   copy: src={{ssl_crt_file}} dest=/etc/nginx/ssl/ssl_crt.pem
 
 - name: Copy ssl_key_file to /etc/nginx/ssl
-  copy: src={{ssl_key_file}} dest=/etc/nginx/ssl/ssl_key.key
+  copy: src={{ssl_key_file}} dest=/etc/nginx/ssl/ssl_key.pem
 
 - name: Stop Nginx
   service: name=nginx state=stopped

@@ -5,7 +5,7 @@ server {
         index index.php index.html index.htm;
         server_name {{hostname}}.{{domain_name}};
         ssl_certificate /etc/nginx/ssl/ssl_crt.pem;
-        ssl_certificate_key /etc/nginx/ssl/ssl_key.key;
+        ssl_certificate_key /etc/nginx/ssl/ssl_key.pem;
         location / {
                 try_files $uri $uri/ /index.php?q=$request_uri;
         }
