@@ -27,7 +27,11 @@
    - php-apc
    - memcached
    - mcrypt
+   - newrelic-php5
 
 - name: Configure Php
   template: src=php.ini dest=/etc/php5/fpm/php.ini
   notify: Restart Php
+
+- name: Run new relic install-tiger
+  shell: sudo newrelic-install install

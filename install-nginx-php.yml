@@ -1,0 +1,9 @@
+#
+#About: This will install Nginx, Php
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - nginx
+  - php
