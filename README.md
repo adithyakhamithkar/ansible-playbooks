@@ -1,10 +1,5 @@
 #Project Ansible
 ##Index
-+ Getting started
-    - [What is Ansible](#what_is_ansible)
-    - How it works
-    - Installing Ansible
-    - Creating SSH Keys
 + List of Ansible scripts
     - commission-new-server.yml
     - elasticsearch-enable-shard.yml
@@ -41,14 +36,3 @@
     - sensu-master
     - ssh-banner
     - tomcat
-
-
-###Getting started
-<a name="what_is_ansible"/>
-####What is Ansible
-    Ansible
-####How it works
-    How it works
-####Installing Ansible
-    Installing Ansible
-####Creating SSH Keys
