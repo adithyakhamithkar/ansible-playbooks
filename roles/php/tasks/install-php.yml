@@ -27,19 +27,7 @@
    - php-apc
    - memcached
    - mcrypt
-   - newrelic-php5
 
 - name: Configure Php
   template: src=php.ini dest=/etc/php5/fpm/php.ini
   notify: Restart Php
-
-- name: Setup newrelic application-name
-  shell: sudo echo newrelic-php5 newrelic-php5/application-name string "PHP Application" | debconf-set-selections
-  notify: Restart Php
-
-- name: Setup newrelic license-key
-  shell: sudo echo newrelic-php5 newrelic-php5/license-key string "{{new_relic_license_key}}" | debconf-set-selections
-  notify: Restart Php
-
-- name: Restart newrelic
-  service: name=newrelic-sysmond state=restarted

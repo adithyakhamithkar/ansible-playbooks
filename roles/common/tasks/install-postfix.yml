@@ -4,10 +4,7 @@
   with_items:
   - postfix
   - mailutils
-
-- name: Stop postfix
-  service: name=postfix state=stopped
-
+  
 - name: Create SSL directory for postfix
   file: path=/etc/postfix/ssl state=directory
 
@@ -16,6 +13,9 @@
 
 - name: Copy ssl_key_file to /etc/postfix/ssl
   copy: src={{ssl_key_file}} dest=/etc/postfix/ssl/ssl_key.key
+
+- name: Stop postfix
+  service: name=postfix state=stopped
 
 - name: Configure postfix
   template: src=postfix.j2 dest=/etc/postfix/main.cf
