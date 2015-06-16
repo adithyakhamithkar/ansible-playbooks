@@ -1,0 +1,17 @@
+{
+    "sensu": [
+        {
+            "name": "Data-center-1",
+            "host": "{{ansible_eth0["ipv4"]["address"]}}",
+            "ssl": false,
+            "port": 4567,
+            "path": "",
+            "timeout": 5000
+        }
+    ],
+    "uchiwa": {
+        "port": 3000,
+        "stats": 10,
+        "refresh": 10000
+    }
+}

@@ -1,0 +1,21 @@
+---
+- name: Create a RabbitMQ virtual host
+  shell: rabbitmqctl add_vhost /sensu
+  ignore_errors: True
+  register: error1
+
+- debug: var=error1
+
+- name: Create a user for Sensu
+  shell: rabbitmqctl add_user {{rabbitmq_user}} {{rabbitmq_password}}
+  ignore_errors: True
+  register: error2
+
+- debug: var=error2
+
+- name: Set permissions Sensu user
+  shell: rabbitmqctl set_permissions -p /sensu {{rabbitmq_user}} ".*" ".*" ".*"
+  changed_when: False
+
+- name: Restart RabbitMQ
+  service: name=rabbitmq-server state=restarted

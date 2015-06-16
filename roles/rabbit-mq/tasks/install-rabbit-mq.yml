@@ -1,0 +1,35 @@
+---
+- name: Add the RabbitMQ APT key
+  apt_key: url=http://www.rabbitmq.com/rabbitmq-signing-key-public.asc state=present
+
+- name: Add the RabbitMQ source to the APT source list
+  apt_repository: repo="deb http://www.rabbitmq.com/debian/ testing main" state=present
+
+- name: Install RabbitMQ
+  apt: name={{item}} state=present
+  with_items:
+   - erlang-nox
+   - rabbitmq-server
+
+- name: Enable RabbitMQ management
+  shell: rabbitmq-plugins enable rabbitmq_management
+
+- name: Create SSL directory for RabbitMQ
+  file: path=/etc/rabbitmq/ssl state=directory
+
+- name: Copy cert.pem to /etc/rabbitmq/ssl
+  copy: src={{ssl_crt_file}} dest=/etc/rabbitmq/ssl/ssl_crt.pem
+
+- name: Copy cacert.pem to /etc/rabbitmq/ssl
+  copy: src={{ssl_ca_crt_file}} dest=/etc/rabbitmq/ssl/ssl_ca_crt.pem
+
+- name: Copy key.pem to /etc/rabbitmq/ssl
+  copy: src={{ssl_key_file}} dest=/etc/rabbitmq/ssl/ssl_key.pem
+
+- name: Configure RabbitMQ
+  template: src=rabbitmq.conf dest=/etc/rabbitmq/rabbitmq.config
+  notify: restart rabbitmq-server
+
+- name: Enable the RabbitMQ services to start automatically
+  shell: update-rc.d rabbitmq-server defaults
+  changed_when: False
