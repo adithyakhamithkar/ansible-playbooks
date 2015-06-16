@@ -1,7 +1,7 @@
 #Project Ansible
 ##Index
 + Getting started
-    - [What is Ansible](####What is ansible)
+    - [What is Ansible](what_is_ansible)
     - How it works
     - Installing Ansible
     - Creating SSH Keys
@@ -44,6 +44,7 @@
 
 
 ###Getting started
+<a name="what_is_ansible"/>
 ####What is Ansible
     Ansible
 ####How it works
