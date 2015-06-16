@@ -44,7 +44,7 @@
 
 
 ###Getting started
-####What is Ansible <a id="what_is_ansible"></a>
+####What is Ansible <a id="what_is_ansible"/>
     Ansible
 ####How it works
     How it works
