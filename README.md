@@ -9,6 +9,7 @@
     - install-jenkins.yml
     - install-lemp.yml
     - install-mysql.yml
+    - install-new-relic-agent.yml
     - install-nginx-php.yml
     - install-nginx.yml
     - install-php.yml

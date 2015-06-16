@@ -1,28 +1,65 @@
 [all:vars]
 
-##System variables
+##Define Domain name (Can't be blank)
+domain_name=
+
+#Define datacenter environment (Can't be blank)
+dc_env=
+env=
+
+##System variables (Can't be blank)
 #Define Time Zone
 timezone=Asia/Calcutta
-#Define global ssh user
+#Define global ssh user (Can't be blank)
 ansible_ssh_user=
 
 #Define private key
 ansible_ssh_private_key_file=
 
-##Web server variables
+##Web server variables (Can't be blank)
 #Define nginx.pem file path
-nginx_crt_file=
+ssl_crt_file=
 #Define nginx.key file path
-nginx_key_file=
+ssl_key_file=
 #Define default document root
-doc_root=
+doc_root=/usr/share/nginx/html
+default_index=
+#Define error page path
+error_page_404=
+error_page_50x=
 
-#Define datacenter environment
-dc_env=
+##MySql server variables (Can't be blank)
+mysql_backup=/var/log/mysql_backup
+
+##Tools
+#New relic (Can't be blank)
+new_relic_license_key=
 
 ##Alert information variables
 #Define Intrusion Detection System alerts emailID
 ids_alerts=
+#Define Mysql alerts emailID
+mysql_back_email=
+#Define web-master emailID
+web_master=
+
 
 #[local]
 #localhost ansible_ssh_host=localhost ansible_connection=local
+
+[web-server]
+web-01 ansible_ssh_host= hostname=web-01
+web-02 ansible_ssh_host= hostname=web-02
+
+[elasticsearch:children]
+elasticsearch-master
+elasticsearch-data
+
+[elasticsearch:vars]
+cluster=elasticsearch
+
+[elasticsearch-master]
+elasticsearch-master-01 ansible_ssh_host= hostname=elasticsearch-master-01
+
+[elasticsearch-data]
+elasticsearch-data-01 ansible_ssh_host= hostname=elasticsearch-data-01

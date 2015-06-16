@@ -1,0 +1,8 @@
+#
+#About: This will install new-relic-agent
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - new-relic-agent
