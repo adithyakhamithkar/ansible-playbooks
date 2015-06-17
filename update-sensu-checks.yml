@@ -1,0 +1,8 @@
+#
+#This will update sensu checks on all servers.
+#
+---
+- hosts: all
+  sudo: yes
+  roles:
+  - sensu-checks

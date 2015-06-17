@@ -1,0 +1,10 @@
+{
+  "client": {
+    "name": "{{hostname}}",
+    "address": "{{ansible_eth0["ipv4"]["address"]}}",
+    "subscriptions": ["ALL"],
+    "safe_mode": true,
+    "distribution": "{{ansible_distribution}}",
+    "os_version": "{{ansible_distribution_release}}"
+  }
+}

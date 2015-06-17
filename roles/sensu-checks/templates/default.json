@@ -1,0 +1,53 @@
+{
+ "checks": {
+
+      "disk_check": {
+      "handlers": ["default"],
+      "command": "/opt/sensu/embedded/bin/ruby /etc/sensu/plugins/check-disk.rb -i / -w :::params.disk.warning|75::: -c :::params.disk.critical|85:::",
+      "interval": 30,
+      "subscribers": ["ALL"]
+       },
+
+      "disk_check_root": {
+            "handlers": ["default"],
+            "command": "/opt/sensu/embedded/bin/ruby /etc/sensu/plugins/check-disk.rb -L /dev/xvda,/dev/sda,/dev/xvde,/dev/sde,/dev/vda -w 80 -c 85",
+            "interval": 10,
+            "subscribers": ["ALL"]
+       },
+
+     "load_check": {
+            "handlers": ["default"],
+            "command": "/opt/sensu/embedded/bin/ruby /etc/sensu/plugins/check-load.rb -w :::params.load.warning|15,13,11::: -c :::params.load.critical|16,14,12:::",
+            "interval": 60,
+            "subscribers": ["ALL"]
+        },
+
+     "swap_check": {
+                "handlers": ["default"],
+                "command": "/etc/sensu/plugins/check-swap-percentage.sh -w 70 -c 90",
+                "interval": 60,
+                "subscribers": ["ALL"]
+        },
+
+     "ntp_check": {
+            "handlers": ["default"],
+            "command": "/opt/sensu/embedded/bin/ruby /etc/sensu/plugins/check-ntp.rb -w 50 -c 100",
+            "interval": 180,
+            "subscribers": ["ALL"]
+        },
+
+     "ssh_check": {
+                "handlers": ["default"],
+                "command": "/opt/sensu/embedded/bin/ruby /etc/sensu/plugins/check-procs.rb -p sshd -C 1",
+                "interval": 300,
+                "subscribers": ["ALL"]
+        },
+
+     "ntp_process_check": {
+                "handlers": ["default"],
+                "command": "/opt/sensu/embedded/bin/ruby /etc/sensu/plugins/check-procs.rb -p ntpd -C 1",
+                "interval": 120,
+                "subscribers": ["ALL"]
+        }
+   }
+}

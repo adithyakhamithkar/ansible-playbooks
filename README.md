@@ -31,8 +31,12 @@
     - mysql
     - new-relic-agent
     - nginx
+    - nginx-sensu-master
     - php
+    - rabbit-mq
+    - redis
     - roles-template
+    - sensu-checks
     - sensu-client
     - sensu-master
     - ssh-banner
