@@ -1,0 +1,8 @@
+#Increase disk space:
+dd if=/dev/zero of=/tmp/tempFiller.deleteMe bs=1M count=300000
+
+#To check if spdy is running execute this on the server
+openssl s_client -connect localhost:443 -nextprotoneg ''
+
+#Create SSH key:
+ssh-keygen -t rsa -C "your_email@example.com”

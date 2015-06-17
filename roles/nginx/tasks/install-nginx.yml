@@ -1,6 +1,6 @@
 ---
-#- name: Add the Nginx source to the APT source list
-#  apt_repository: repo="ppa:nginx/stable" state=present
+- name: Add the Nginx source to the APT source list
+  apt_repository: repo="ppa:nginx/stable" state=present
 
 - name: Install Nginx
   apt: name={{item}} state=present update_cache=yes

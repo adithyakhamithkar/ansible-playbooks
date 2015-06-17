@@ -18,6 +18,7 @@
     - install-tomcat.yml
     - security-audit.yml
     - update-motd.yml
+    - update-sensu-checks.yml
     - update-ssh-banner.yml
 + List of Roles
     - common
