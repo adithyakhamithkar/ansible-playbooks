@@ -29,13 +29,6 @@
                 "subscribers": ["ALL"]
         },
 
-     "ntp_check": {
-            "handlers": ["default"],
-            "command": "/opt/sensu/embedded/bin/ruby /etc/sensu/plugins/check-ntp.rb -w 50 -c 100",
-            "interval": 180,
-            "subscribers": ["ALL"]
-        },
-
      "ssh_check": {
                 "handlers": ["default"],
                 "command": "/opt/sensu/embedded/bin/ruby /etc/sensu/plugins/check-procs.rb -p sshd -C 1",

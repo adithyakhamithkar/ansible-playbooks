@@ -4,8 +4,6 @@
       "handlers": ["default"],
       "command": "/opt/sensu/embedded/bin/ruby /etc/sensu/plugins/check-procs.rb -p nginx -C 1",
       "interval": 60,
-      "subscribers": [
-        "nginx",
-      ]
+      "subscribers": ["nginx"]
     }
   }
