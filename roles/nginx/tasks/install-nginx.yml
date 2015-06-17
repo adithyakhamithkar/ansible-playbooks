@@ -23,6 +23,9 @@
 - name: Copy error-page-50x.html
   copy: src={{error_page_50x}} dest=/usr/share/nginx/error_pages
 
+- name: Copy error-page-403.html
+  copy: src={{error_page_403}} dest=/usr/share/nginx/error_pages
+
 - name: Create SSL directory for Nginx
   file: path=/etc/nginx/ssl state=directory
 
