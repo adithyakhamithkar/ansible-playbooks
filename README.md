@@ -43,9 +43,9 @@
     - ssh-banner
     - tomcat
 
-###commission-new-server.yml
+##commission-new-server.yml
 When a new server is launched this script can be used to install common tools and services on the server.
-+ This is lined to the role common which installs the following:
++ This is linked to the role common which installs the following:
     - setting the hostname
     - install and configure ntp
     - update /etc/hosts
@@ -65,6 +65,5 @@ When a new server is launched this script can be used to install common tools an
        - This will update the default motd
     - ssh-banner
        - This will update the default ssh-baner
-
 
 Note: One can install new-relic-agent and sensu-client, sensu-checks as well in the script.
