@@ -17,3 +17,4 @@
 
 - name: Sysctl configuration
   shell: sysctl vm.overcommit_memory=1
+  notify: Restart Redis
