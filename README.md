@@ -44,24 +44,27 @@
     - tomcat
 
 ###commission-new-server.yml
-      When a new server is launched this script can be used to install common tools and services on the server.
-      This is lined to the role common which installs the following:
-      1. setting the hostname
-      2. install and configure ntp
-      3. update /etc/hosts
-      4. install and configure postfix mail server
-      5. install and configure logrotate
-      6. install psad
-          psad is an Intrusion Detection System
-      7. install rootkits scanners
-          install RKHunter and CHKRootKit
-      8. install tiger
-          again this is a security audit and intrusion detection system
-      9. install ufw
-      10. install misc softwares
-          like git curl etc..
-      After completing the common role it is linked to:
-      1. motd
-          This will update the default motd
-      2. ssh-banner
-          This will update the default ssh-baner
+  When a new server is launched this script can be used to install common tools and services on the server.
+  + This is lined to the role common which installs the following:
+    - setting the hostname
+    - install and configure ntp
+    - update /etc/hosts
+    - install and configure postfix mail server
+    - install and configure logrotate
+    - install psad
+      - psad is an Intrusion Detection System
+    - install rootkits scanners
+      - install RKHunter and CHKRootKit
+    - install tiger
+      - again this is a security audit and intrusion detection system
+    - install ufw
+    - install misc softwares
+      - like git curl etc..
+    + After completing the common role it is linked to:
+      - motd
+       - This will update the default motd
+      - ssh-banner
+       - This will update the default ssh-baner
+
+
+   Note: One can install new-relic-agent and sensu-client, sensu-checks as well in the script.
