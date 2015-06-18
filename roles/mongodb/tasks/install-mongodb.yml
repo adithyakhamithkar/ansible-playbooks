@@ -1,0 +1,15 @@
+---
+- name: Add the mongodb APT key
+  apt_key: keyserver=hkp://keyserver.ubuntu.com:80 id=7F0CEB10 state=present
+
+- name: Add the mongodb source to the APT source list
+  apt_repository: repo='deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' state=present
+
+- name: Install mongodb
+  apt: name={{item}} state=latest update_cache=yes
+  with_items:
+   - mongodb-org
+
+- name: Configure mongodb
+  template: src=mongod.j2 dest=/etc/mongod.conf
+  notify: Restart mongod

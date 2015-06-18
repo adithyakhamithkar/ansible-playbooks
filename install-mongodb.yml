@@ -1,0 +1,8 @@
+#
+#About: This will install mongodb
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - mongodb
