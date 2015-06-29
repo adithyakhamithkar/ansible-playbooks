@@ -1,6 +1,6 @@
 ---
-- name: Adding default.json
-  template: src=default.json dest=/etc/sensu/conf.d/default.json
+#- name: Adding default.json
+#  template: src=default.json dest=/etc/sensu/conf.d/default.json
 
 - name: Adding check-disk.rb
   template: src=check-disk.rb dest=/etc/sensu/plugins/check-disk.rb
