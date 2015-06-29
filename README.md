@@ -8,6 +8,7 @@
     - install-elasticsearch-master.yml
     - install-jenkins.yml
     - install-lemp.yml
+    - install-mongodb.yml
     - install-mysql.yml
     - install-new-relic-agent.yml
     - install-nginx-php.yml
@@ -17,8 +18,10 @@
     - install-sensu-master.yml
     - install-tomcat.yml
     - security-audit.yml
+    - set-mysqlpassword.yml
     - update-motd.yml
-    - update-sensu-checks.yml
+    - update-sensu-client-checks.yml
+    - update-sensu-master-checks.yml
     - update-ssh-banner.yml
 + List of Roles
     - common
@@ -28,6 +31,7 @@
     - glassfish
     - jdk
     - jenkins
+    - mongodb
     - motd
     - mysql
     - new-relic-agent
@@ -37,9 +41,10 @@
     - rabbit-mq
     - redis
     - roles-template
-    - sensu-checks
     - sensu-client
+    - sensu-client-checks
     - sensu-master
+    - sensu-master-checks
     - ssh-banner
     - tomcat
 
