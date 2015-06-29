@@ -36,6 +36,13 @@
                 "subscribers": ["ALL"]
         },
 
+    "timezone_check": {
+                   "handlers": ["default"],
+                   "command": "/opt/sensu/embedded/bin/ruby /etc/sensu/plugins/check-timezone.sh",
+                   "interval": 300,
+                   "subscribers": ["ALL"]
+       },
+
      "ntp_process_check": {
                 "handlers": ["default"],
                 "command": "/opt/sensu/embedded/bin/ruby /etc/sensu/plugins/check-procs.rb -p ntpd -C 1",
