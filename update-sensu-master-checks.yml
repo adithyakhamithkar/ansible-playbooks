@@ -2,7 +2,7 @@
 #This will update sensu checks on sensu-master.
 #
 ---
-- hosts: all
+- hosts: sensu-master
   sudo: yes
   roles:
   - sensu-master-checks

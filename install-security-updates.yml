@@ -1,0 +1,15 @@
+#
+#This will update and install only the security updates
+#
+---
+- hosts: all
+  sudo: yes
+
+  tasks:
+  - name: Update cache
+    apt: update_cache=yes
+
+  - name: Install security updates
+    apt: name={{item}} state=present
+    with_items:
+    - unattended-upgrades
