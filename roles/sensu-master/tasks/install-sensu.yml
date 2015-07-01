@@ -33,10 +33,10 @@
   file: path=/etc/sensu/ssl state=directory
 
 - name: Copy cert.pem to /etc/sensu/ssl
-  copy: src={{ssl_crt_file}} dest=/etc/sensu/ssl/ssl_crt.pem
+  copy: src={{sensu_ssl_crt_file}} dest=/etc/sensu/ssl/ssl_crt.pem
 
 - name: Copy key.pem to /etc/sensu/ssl
-  copy: src={{ssl_key_file}} dest=/etc/sensu/ssl/ssl_key.pem
+  copy: src={{sensu_ssl_key_file}} dest=/etc/sensu/ssl/ssl_key.pem
 
 - name: Enable the Sensu services to start automatically
   shell: update-rc.d {{item}} defaults

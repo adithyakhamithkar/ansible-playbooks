@@ -18,13 +18,13 @@
   file: path=/etc/rabbitmq/ssl state=directory
 
 - name: Copy cert.pem to /etc/rabbitmq/ssl
-  copy: src={{ssl_crt_file}} dest=/etc/rabbitmq/ssl/ssl_crt.pem
+  copy: src={{sensu_ssl_crt_file}} dest=/etc/rabbitmq/ssl/ssl_crt.pem
 
 - name: Copy cacert.pem to /etc/rabbitmq/ssl
-  copy: src={{ssl_ca_crt_file}} dest=/etc/rabbitmq/ssl/ssl_ca_crt.pem
+  copy: src={{sensu_ssl_ca_crt_file}} dest=/etc/rabbitmq/ssl/ssl_ca_crt.pem
 
 - name: Copy key.pem to /etc/rabbitmq/ssl
-  copy: src={{ssl_key_file}} dest=/etc/rabbitmq/ssl/ssl_key.pem
+  copy: src={{sensu_ssl_key_file}} dest=/etc/rabbitmq/ssl/ssl_key.pem
 
 - name: Configure RabbitMQ
   template: src=rabbitmq.conf dest=/etc/rabbitmq/rabbitmq.config

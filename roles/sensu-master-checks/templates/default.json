@@ -38,12 +38,26 @@
 
     "timezone_check": {
                    "handlers": ["default"],
-                   "command": "/opt/sensu/embedded/bin/ruby /etc/sensu/plugins/check-timezone.sh",
+                   "command": "/etc/sensu/plugins/check-timezone.sh",
                    "interval": 300,
                    "subscribers": ["ALL"]
        },
 
-     "ntp_process_check": {
+    "psad_check": {
+                  "handlers": ["default"],
+                  "command": "/opt/sensu/embedded/bin/ruby /etc/sensu/plugins/check-procs.rb -p psad -C 1",
+                  "interval": 120,
+                  "subscribers": ["ALL"]
+      },
+
+      "postfix_check": {
+                    "handlers": ["default"],
+                    "command": "/opt/sensu/embedded/bin/ruby /etc/sensu/plugins/check-procs.rb -p postfix -C 1",
+                    "interval": 120,
+                    "subscribers": ["ALL"]
+        },
+
+     "ntp_check": {
                 "handlers": ["default"],
                 "command": "/opt/sensu/embedded/bin/ruby /etc/sensu/plugins/check-procs.rb -p ntpd -C 1",
                 "interval": 120,

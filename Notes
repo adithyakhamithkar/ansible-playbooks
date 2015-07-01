@@ -15,3 +15,7 @@ mkdir .ssh && echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDoVR2N6/L0eiPxV3HZNwjD
 
 #Passowrdless sudo
 sudo su && sudo echo "$USER ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers
+
+#Validate ssl certificate
+openssl s_client -showcerts -connect localhost:443
+penssl s_client -CApath /etc/nginx/ssl -connect localhost:443

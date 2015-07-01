@@ -17,8 +17,14 @@
 - name: Adding check-swap-percentage.sh
   template: src=check-swap-percentage.sh  dest=/etc/sensu/plugins/check-swap-percentage.sh
 
+- name: Adding check-timezone.sh
+  template: src=check-timezone.j2  dest=/etc/sensu/plugins/check-timezone.sh
+
 - name: Set +x permissions
   shell: chmod +x /etc/sensu/plugins/check-swap-percentage.sh
+
+- name: Set +x permissions
+  shell: chmod +x /etc/sensu/plugins/check-timezone.sh
 
 - name: restart sensu
   service: name={{item}} state=restarted
