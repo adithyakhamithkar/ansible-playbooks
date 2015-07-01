@@ -1,0 +1,12 @@
+#
+#About: This will instlal jenkins
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - jdk
+  - jenkins
+  - ansible
+  - nginx
+  - nginx-jenkins

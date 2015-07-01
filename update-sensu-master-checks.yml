@@ -1,8 +1,0 @@
-#
-#This will update sensu checks on sensu-master.
-#
----
-- hosts: sensu-master
-  sudo: yes
-  roles:
-  - sensu-master-checks

@@ -1,0 +1,14 @@
+---
+- name: Install python packages
+  apt: name={{item}} state=present force=yes
+  with_items:
+  - git
+  - python-software-properties
+
+- name: Adding Ansible repository
+  apt_repository: repo="ppa:rquillo/ansible"
+
+- name: Install Ansible
+  apt: name={{item}} state=present
+  with_items:
+  - ansible

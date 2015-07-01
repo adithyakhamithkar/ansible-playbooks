@@ -1,7 +1,7 @@
 {
     "sensu": [
         {
-            "name": "Data-center-1",
+            "name": "{{env}}",
             "host": "{{ansible_eth0["ipv4"]["address"]}}",
             "ssl": false,
             "port": 4567,
