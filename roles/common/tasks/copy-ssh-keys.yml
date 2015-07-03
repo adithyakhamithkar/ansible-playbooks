@@ -1,0 +1,9 @@
+---
+- name: Create SSH directory for root
+  file: path=/root/.ssh state=directory
+
+- name: Copy ssh key
+  copy: src={{id_rsa}} dest=/root/.ssh/id_rsa mode=600
+
+- name: Copy ssh key
+  copy: src={{id_rsa_pub}} dest=/root/.ssh/id_rsa.pub mode=600

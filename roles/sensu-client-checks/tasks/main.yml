@@ -1,24 +1,9 @@
 ---
-- name: Adding check-disk.rb
-  template: src=check-disk.rb dest=/etc/sensu/plugins/check-disk.rb
-
-- name: Adding check-load.rb
-  template: src=check-load.rb  dest=/etc/sensu/plugins/check-load.rb
-
-- name: Adding check-ntp.rb
-  template: src=check-ntp.rb  dest=/etc/sensu/plugins/check-ntp.rb
-
-- name: Adding check-procs.rb
-  template: src=check-procs.rb  dest=/etc/sensu/plugins/check-procs.rb
-
-- name: Adding check-swap-percentage.sh
-  template: src=check-swap-percentage.sh  dest=/etc/sensu/plugins/check-swap-percentage.sh
+- name: Get sensu community-plugins
+  git: repo=git@github.com:sensu/sensu-community-plugins.git dest=/etc/sensu-community-plugins accept_hostkey=yes
 
 - name: Adding check-timezone.sh
   template: src=check-timezone.j2  dest=/etc/sensu/plugins/check-timezone.sh
-
-- name: Set +x permissions
-  shell: chmod +x /etc/sensu/plugins/check-swap-percentage.sh
 
 - name: Set +x permissions
   shell: chmod +x /etc/sensu/plugins/check-timezone.sh

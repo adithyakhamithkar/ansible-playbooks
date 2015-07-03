@@ -15,6 +15,7 @@
   changed_when: False
 
 - include: set-hostname.yml
+- include: copy-ssh-keys.yml
 - include: install-ntp.yml
 - include: hosts.yml
 - include: install-postfix.yml

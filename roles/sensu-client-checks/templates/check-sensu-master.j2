@@ -1,0 +1,23 @@
+{
+  "checks": {
+    "uchiwa_check": {
+      "handlers": ["default"],
+      "command": "/opt/sensu/embedded/bin/ruby /etc/sensu-community-plugins/plugins/processes/check-procs.rb -p uchiwa -C 1",
+      "interval": 60,
+      "subscribers": ["sensu_master"]
+    },
+    "checks": {
+      "redis_check": {
+        "handlers": ["default"],
+        "command": "/opt/sensu/embedded/bin/ruby /etc/sensu-community-plugins/plugins/processes/check-procs.rb -p redis -C 1",
+        "interval": 60,
+        "subscribers": ["sensu_master"]
+      }
+      "checks": {
+        "rrabbitmq_check": {
+          "handlers": ["default"],
+          "command": "/opt/sensu/embedded/bin/ruby /etc/sensu-community-plugins/plugins/processes/check-procs.rb -p rabbitmq -C 1",
+          "interval": 60,
+          "subscribers": ["sensu_master"]
+        }
+  }
