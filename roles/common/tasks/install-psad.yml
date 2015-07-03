@@ -7,9 +7,3 @@
 - name: Configure psad
   template: src=psad.conf dest=/etc/psad/psad.conf
   notify: Restart psad
-
-- name: Configure firewall
-  shell: sudo iptables -A INPUT -j LOG
-
-- name: Configure firewall
-  shell: sudo iptables -A FORWARD -j LOG
