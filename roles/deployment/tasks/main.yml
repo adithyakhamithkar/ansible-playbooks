@@ -1,3 +1,21 @@
 ---
+- name: Stop Nginx
+  service: name=nginx state=stopped
+
 - name: Deploy
-  git: repo={{ansible_project}} dest=/home/adithya/ansible accept_hostkey=yes
+  git: repo={{project_repo}} dest={{project_doc_root}} accept_hostkey=yes
+
+- name: Configure Nginx virtualhost
+  template: src=virtualhost.j2 dest=/etc/nginx/sites-available/default
+
+- name: Configure Nginx virtualhost
+  template: src=virtualhost.j2 dest=/etc/nginx/sites-enabled/default
+
+- name: Configure Nginx virtualhost with SSL
+  template: src=virtualhost_ssl.j2 dest=/etc/nginx/sites-available/default-ssl
+
+- name: Configure Nginx virtualhost with SSL
+  template: src=virtualhost_ssl.j2 dest=/etc/nginx/sites-enabled/default-ssl
+
+- name: Start Nginx
+  service: name=nginx state=started
