@@ -1,0 +1,14 @@
+---
+- name: Add the bittorrentsync source to the APT source list
+  apt_repository: repo="ppa:tuxpoldo/btsync" state=present
+
+- name: Install bittorrentsync
+  apt: name={{item}} state=present update_cache=yes
+  with_items:
+  - btsync
+
+- name: Configure bittorrentsync
+  template: src=btconfig.j2 dest=/etc/btsync/debconf-default.conf
+
+- name: Restart bittorrentsync
+  service: name=btsync state=restarted
