@@ -24,18 +24,23 @@
     - update-sensu-master-checks.yml
     - update-ssh-banner.yml
 + List of Roles
+    - ansible
+    - bittorrentsync
     - common
+    - deploy
     - elasticsearch
     - elasticsearch-data
     - elasticsearch-master
     - glassfish
     - jdk
     - jenkins
+    - jenkins-configure
     - mongodb
     - motd
     - mysql
     - new-relic-agent
     - nginx
+    - nginx-jenkins
     - nginx-sensu-master
     - php
     - rabbit-mq
@@ -44,7 +49,6 @@
     - sensu-client
     - sensu-client-checks
     - sensu-master
-    - sensu-master-checks
     - ssh-banner
     - tomcat
 
@@ -70,5 +74,4 @@
        - This will update the default motd
     - ssh-banner
        - This will update the default ssh-baner
-
 Note: One can install new-relic-agent and sensu-client, sensu-checks as well in the script.
