@@ -1,91 +1,24 @@
+[all]
+
 [all:vars]
-
-##Define Domain name (Can't be blank)
-domain_name=adithyakhamithkar.in
-
-##Project repo
-project_repo=
-project_doc_root=
-
-#Define datacenter environment (Can't be blank)
-dc_env=
-env=
-
-##System variables (Can't be blank)
-#Define Time Zone
-timezone=Asia/Calcutta
-
-#Define global ssh user (Can't be blank)
-ansible_ssh_user=adithya
-
-##Nginx
-#Define ssl certificate file path
-ssl_crt_file=~/Personal/Projects/ansible/inventory/test-env/keys/ssl_crt.pem
-#Define ssl key file path
-ssl_key_file=~/Personal/Projects/ansible/inventory/test-env/keys/ssl_key.pem
-
-##Sensu
-#Define ssl certificate file path
-sensu_ssl_crt_file=~/Personal/Projects/ansible/inventory/test-env/keys/sensu_ssl_crt.pem
-#Define ssl key file path
-sensu_ssl_key_file=~/Personal/Projects/ansible/inventory/test-env/keys/sensu_ssl_key.pem
-#Define ssl ca certificate file path
-sensu_ssl_ca_crt_file=~/Personal/Projects/ansible/inventory/test-env/keys/sensu_ssl_ca_crt.pem
-
-#MySql
-setmysqlrootpassword=123
-
-#Define private key
-ansible_ssh_private_key_file=~/Personal/Projects/ansible/inventory/test-env/keys/ansible.pem
-id_rsa=~/Personal/Projects/ansible/inventory/test-env/keys/id_rsa
-id_rsa_pub=~/Personal/Projects/ansible/inventory/test-env/keys/id_rsa.pub
-
-##Web server variables (Can't be blank)
-#Define default document root
-doc_root=/usr/share/nginx/html
-default_index=~/Personal/Projects/ansible/inventory/test-env/files/nginx/index.html
-#Define error page path
-error_page_404=~/Personal/Projects/ansible/inventory/test-env/files/nginx/error-page-404.html
-error_page_50x=~/Personal/Projects/ansible/inventory/test-env/files/nginx/error-page-50x.html
-error_page_403=~/Personal/Projects/ansible/inventory/test-env/files/nginx/error-page-403.html
-
-##MySql server variables (Can't be blank)
-mysql_backup=/var/log/mysql_backup
-
-##Tools
-#New relic (Can't be blank)
-new_relic_license_key=
-#Sensu Master
-sensu_master=192.168.44.153
-rabbitmq_user=sensu
-rabbitmq_password=sensu
-
-##Alert information variables
-#Define Intrusion Detection System alerts emailID
-ids_alerts=
-#Define Mysql alerts emailID
-mysql_back_email=
-#Define web-master emailID
-web_master=
-#Sensu alerts
-alert_email=
-
-[sensu-master:vars]
-smtp_username=sensu@sensu-master
-
-[sensu-master]
-sensu-master-prod ansible_ssh_host=192.168.44.153 hostname=sensu-master-prod
 
 #[local]
 #localhost ansible_ssh_host=127.0.0.1 ansible_connection=local
 
+[sensu-master]
+sensu-master-test-evn ansible_ssh_host=192.168.0.107 hostname=sensu-master-test-evn
+
 [web-server:vars]
 
 [web-server]
-web-01 ansible_ssh_host=192.168.44.150 hostname=web-01
+web-01 ansible_ssh_host=192.168.0.108 hostname=web-01
+web-02 ansible_ssh_host=192.168.0.109 hostname=web-02
 
-#[jenkins]
-#jenkins-01 ansible_ssh_host=192.168.44.148 hostname=jenkins-01
+[db-server]
+db-01 ansible_ssh_host=192.168.0.111 hostname=db-01
+
+[jenkins]
+jenkins-01 ansible_ssh_host=192.168.0.110 hostname=jenkins-01
 
 [elasticsearch:children]
 elasticsearch-master

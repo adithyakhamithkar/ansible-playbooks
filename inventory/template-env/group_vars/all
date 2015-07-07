@@ -1,0 +1,67 @@
+##Define Domain name
+domain_name : adithyakhamithkar.in
+
+#Define datacenter environment
+dc_env :
+env : test-env
+
+##System variables
+#Define Time Zone
+timezone : Asia/Calcutta
+#Define global ssh user
+ansible_ssh_user :
+#Define private key
+ansible_ssh_private_key_file :
+id_rsa :
+id_rsa_pub :
+
+##Sensu
+#Define ssl certificate file path
+sensu_ssl_crt_file :
+#Define ssl key file path
+sensu_ssl_key_file :
+#Define ssl ca certificate file path
+sensu_ssl_ca_crt_file :
+#Sensu smtp username
+smtp_username :
+
+##Nginx
+#Define ssl certificate file path
+ssl_crt_file :
+#Define ssl key file path
+ssl_key_file :
+#Define default document root
+doc_root :
+default_index :
+#Define error page path
+error_page_404 :
+error_page_50x :
+error_page_403 :
+
+
+##MySql server variables (Can't be blank)
+mysql_backup : /var/log/mysql_backup
+#MySql password
+setmysqlrootpassword : 123
+
+##Project repo
+project_repo :
+project_doc_root :
+
+##Tools
+#New relic
+new_relic_license_key :
+#Sensu Master
+sensu_master :
+rabbitmq_user :
+rabbitmq_password :
+
+##Alert information variables
+#Define Intrusion Detection System alerts emailID
+ids_alerts :
+#Define Mysql alerts emailID
+mysql_back_email :
+#Define web-master emailID
+web_master :
+#Sensu alerts
+alert_email : 

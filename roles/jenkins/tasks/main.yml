@@ -16,18 +16,3 @@
   apt: name={{item}} state=present update_cache=yes
   with_items:
   - jenkins
-
-- name: Create Jenkins directory
-  file: path=/home/jenkins/cli state=directory
-
-- name: Download Jenkins CLI
-  get_url: url=http://localhost:8080/jnlpJars/jenkins-cli.jar dest=/home/jenkins/cli/jenkins-cli.jar
-
-- name: Install Git plugin
-  shell: java -jar /home/jenkins/cli/jenkins-cli.jar -s http://localhost:8080/ install-plugin git -deploy
-
-- name: Install categorized-view plugin
-  shell: java -jar /home/jenkins/cli/jenkins-cli.jar -s http://localhost:8080/ install-plugin categorized-view -deploy
-
-- name: Restart Jenkins
-  shell: java -jar /home/jenkins/cli/jenkins-cli.jar -s http://localhost:8080 safe-restart
