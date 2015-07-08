@@ -1,0 +1,9 @@
+#
+#About: This will install glassfish
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - jdk
+  - glassfish

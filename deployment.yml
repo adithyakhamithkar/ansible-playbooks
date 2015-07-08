@@ -1,9 +1,0 @@
-#
-#About:
-#
----
-- hosts: '{{inventory}}'
-  sudo: yes
-  serial: 1
-  roles:
-  - deployment

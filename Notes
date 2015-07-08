@@ -19,3 +19,12 @@ sudo su && sudo echo "$USER ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers &
 #Validate ssl certificate
 openssl s_client -showcerts -connect localhost:443
 openssl s_client -CApath /etc/nginx/ssl -connect localhost:443
+
+#Youtrack url
+http://download-cf.jetbrains.com/charisma/youtrack-6.0.12634.zip
+#Upsourse url
+http://download-cf.jetbrains.com/upsource/upsource-2.0.3554.zip
+#TeamCity url
+http://download-cf.jetbrains.com/teamcity/TeamCity-9.0.5.tar.gz
+#Glassfish url
+http://download.java.net/glassfish/4.1/release/glassfish-4.1.zip

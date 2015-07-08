@@ -1,0 +1,40 @@
+---
+- name: Add a glassfish group
+  group: name=glassfish state=present
+
+- name: Add a glassfish user
+  user: name=glassfish shell=/bin/bash groups=glassfish
+
+- name: Download glassfish
+  get_url: url={{glassfish_url}} dest=/opt
+
+- name: Extract glassfish
+  unarchive: src=/opt/glassfish-4.1.zip dest=/opt owner=glassfish group=glassfish copy=no
+
+- name: Copy init.d script
+  template: src=glassfish.j2 dest=/etc/init.d/glassfish owner=root group=root
+
+- name: Chmod +x
+  shell: sudo chmod +x /etc/init.d/glassfish
+
+- name: Configure glassfish
+  shell: sudo ln -s /usr/lib/insserv/insserv /sbin/insserv
+  ignore_errors: True
+
+- name: Configure glassfish
+  shell: sudo insserv glassfish
+  ignore_errors: True
+
+- name: update-rc
+  shell: sudo update-rc.d -f glassfish enable
+
+- name: Get rid of http header field value "server" (Glassfish obfuscation)
+  shell: sudo /opt/glassfish4/bin/asadmin create-jvm-options -Dproduct.name=""
+
+#disable sending x-powered-by in http header (Glassfish obfuscation)
+- shell: sudo /opt/glassfish4/bin/asadmin set server.network-config.protocols.protocol.http-listener-1.http.xpowered-by=false
+- shell: sudo /opt/glassfish4/bin/asadmin set server.network-config.protocols.protocol.http-listener-2.http.xpowered-by=false
+- shell: sudo /opt/glassfish4/bin/asadmin set server.network-config.protocols.protocol.admin-listener.http.xpowered-by=false
+
+- name: Start glassfish
+  shell: sudo /etc/init.d/glassfish restart

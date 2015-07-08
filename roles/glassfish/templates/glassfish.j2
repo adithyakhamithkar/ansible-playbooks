@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# description: Glassfish start/stop/restart
+# processname: glassfish
+# chkconfig: 2445 20 80
+JAVA_HOME=/usr/lib/jvm/java-8-oracle
+export JAVA_HOME
+PATH=$JAVA_HOME/bin:$PATH
+export PATH
+GLASSFISH_HOME=/opt/glassfish4/glassfish/
+GLASSFISH_USER=glassfish
+
+case $1 in
+start)
+    sudo $GLASSFISH_HOME/bin/asadmin start-domain domain1
+;;
+stop)
+    sudo  $GLASSFISH_HOME/bin/asadmin stop-domain domain1
+;;
+restart)
+    sudo $GLASSFISH_HOME/bin/asadmin stop-domain domain1 && sudo $GLASSFISH_HOME/bin/asadmin start-domain domain1
+;;
+esac
+exit 0
