@@ -1,0 +1,28 @@
+---
+- name: Install tomcat packages
+  apt: name={{item}} state=present
+  with_items:
+  - tomcat7
+  - tomcat7-admin
+
+- name: Setup up JAVA_HOME for tomcat7
+  template: src=tomcat7.j2 dest=/etc/default/tomcat7
+  notify: start tomcat7
+
+- name: Copy keystore
+  file: src=keystore dest=/etc/tomcat7/keystore state=touch owner=tomcat7 group=tomcat7
+
+- name: Configure server.xml
+  template: src=server.j2 dest=/etc/tomcat7/server.xml
+  notify: restart tomcat7
+
+- name: Port configuration
+  file: path=/etc/authbind/byport/{{item}} state=touch owner=tomcat7 group=tomcat7 mode=0500
+  with_items:
+  - 80
+  - 443
+  notify: restart tomcat7
+
+- name: Create users on tomcat
+  template: src=tomcat-users.j2 dest=/etc/tomcat7/tomcat-users.xml
+  notify: restart tomcat7

@@ -1,0 +1,6 @@
+---
+- name: start tomcat7
+  service: name=tomcat7 state=started
+
+- name: restart tomcat7
+  service: name=tomcat7 state=restarted

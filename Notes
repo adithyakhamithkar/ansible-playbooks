@@ -26,5 +26,11 @@ http://download-cf.jetbrains.com/charisma/youtrack-6.0.12634.zip
 http://download-cf.jetbrains.com/upsource/upsource-2.0.3554.zip
 #TeamCity url
 http://download-cf.jetbrains.com/teamcity/TeamCity-9.0.5.tar.gz
+
+
 #Glassfish url
 http://download.java.net/glassfish/4.1/release/glassfish-4.1.zip
+#Set glassfish admin password
+sudo /opt/glassfish4/bin/asadmin  --port 4848 change-admin-password
+#Enable glassfish admin
+sudo /opt/glassfish4/bin/asadmin  --port 4848 enable-secure-admin

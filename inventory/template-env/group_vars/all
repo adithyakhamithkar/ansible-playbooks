@@ -4,6 +4,8 @@ domain_name : adithyakhamithkar.in
 #Define datacenter environment
 dc_env :
 env : test-env
+aws_access_key:
+aws_secret_key:
 
 ##System variables
 #Define Time Zone
@@ -64,4 +66,14 @@ mysql_back_email :
 #Define web-master emailID
 web_master :
 #Sensu alerts
-alert_email : 
+alert_email :
+
+##URLs
+#Youtrack url
+youtrack : http://download-cf.jetbrains.com/charisma/youtrack-6.0.12634.zip
+#Upsourse url
+upsourse_url : http://download-cf.jetbrains.com/upsource/upsource-2.0.3554.zip
+#TeamCity url
+teamcity_url : http://download-cf.jetbrains.com/teamcity/TeamCity-9.0.5.tar.gz
+#Glassfish url
+glassfish_url : http://download.java.net/glassfish/4.1/release/glassfish-4.1.zip

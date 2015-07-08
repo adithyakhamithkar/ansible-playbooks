@@ -1,0 +1,9 @@
+#
+#About: This will install tomcat
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - jdk
+  - tomcat
