@@ -10,3 +10,6 @@
   apt: name={{item}} state=present force=yes
   with_items:
   - oracle-java8-installer
+
+- name: Set JAVA_HOME
+  shell: sudo echo "export JAVA_HOME=/usr/lib/jvm/java-8-oracle" >> ~/.bashrc

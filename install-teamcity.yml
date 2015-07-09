@@ -1,0 +1,9 @@
+#
+#About: This will instlal teamcity
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - jdk
+  - teamcity

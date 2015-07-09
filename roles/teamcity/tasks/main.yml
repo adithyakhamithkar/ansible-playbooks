@@ -1,0 +1,15 @@
+---
+- name: Download TeamCity
+  get_url: url={{teamcity_url}} dest=/opt
+
+- name: Extract TeamCity
+  unarchive: src=/opt/TeamCity-9.0.5.tar.gz dest=/opt copy=no
+
+- name: Create logs folder
+  file: path=/opt/TeamCity/logs state=directory
+
+- name: Configure TeamCity
+  template: src=server.j2 dest=/opt/TeamCity/conf/server.xml
+
+- name: Start TeamCity
+  shell: sudo nohup /opt/TeamCity/bin/startup.sh
