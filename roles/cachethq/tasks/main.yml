@@ -1,0 +1,24 @@
+---
+- name: Stop Nginx
+  service: name=nginx state=stopped
+
+- name: Create cachethq
+  file: path=/usr/share/nginx/html/cachethq state=directory
+
+- name: Deploy cachethq
+  git: repo=git@github.com:cachethq/Cachet.git dest=/usr/share/nginx/html/cachethq accept_hostkey=yes
+
+- name: Configure Nginx virtualhost
+  template: src=virtualhost_cachethq.j2 dest=/etc/nginx/sites-available/default
+
+- name: Configure Nginx virtualhost
+  template: src=virtualhost_cachethq.j2 dest=/etc/nginx/sites-enabled/default
+
+- name: Configure Nginx virtualhost with SSL
+  template: src=virtualhost_cachethq_ssl.j2 dest=/etc/nginx/sites-available/default-ssl
+
+- name: Configure Nginx virtualhost with SSL
+  template: src=virtualhost_cachethq_ssl.j2 dest=/etc/nginx/sites-enabled/default-ssl
+
+- name: Start Nginx
+  service: name=nginx state=started

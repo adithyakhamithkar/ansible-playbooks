@@ -1,0 +1,10 @@
+#
+#About: This will install Nginx, Php and deploy cachethq
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - nginx
+  - php
+  - cachethq

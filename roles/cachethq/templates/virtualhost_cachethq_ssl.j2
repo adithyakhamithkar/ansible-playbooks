@@ -1,0 +1,48 @@
+# Server Block for Virtual host with SSL start
+upstream php {
+          server unix:/tmp/php-cgi.socket;
+          server 127.0.0.1:9000;
+}
+server {
+        listen  443 ssl spdy;
+        root /usr/share/nginx/html/cachethq/public;
+        index index.php index.html index.htm;
+        server_name {{hostname}}.{{domain_name}};
+        ssl_certificate /etc/nginx/ssl/ssl_crt.pem;
+        ssl_certificate_key /etc/nginx/ssl/ssl_key.pem;
+        location / {
+                add_header Strict-Transport-Security max-age=15768000;
+                try_files $uri /index.php$is_args$args;
+        }
+        #pass the PHP scripts to FastCGI server listening on 127.0.0.1:9$
+        location ~ \.php$ {
+                include fastcgi_params;
+                fastcgi_pass unix:/var/run/php5-fpm.sock;
+                fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+                fastcgi_index index.php;
+                fastcgi_keep_conn on;
+                add_header Strict-Transport-Security max-age=15768000;
+        }
+        #Define expiry
+                client_max_body_size 80m;
+                location ~* .(jpg|jpeg|png|gif|ico|css|js)$ {
+                expires 365d;
+        }
+        #Define custom error pages
+        error_page 404 /error-page-404.html;
+        location = /error-page-404.html {
+                root /usr/share/nginx/error_pages;
+                internal;
+        }
+        error_page 403 /error-page-403.html;
+        location = /error-page-403.html {
+                root /usr/share/nginx/error_pages;
+                internal;
+        }
+        error_page 500 502 503 504 /error-page-50x.html;
+        location = /error-page-50x.html {
+                root /usr/share/nginx/error_pages;
+                internal;
+        }
+}
+# Server Block for Virtual host with SSL end
