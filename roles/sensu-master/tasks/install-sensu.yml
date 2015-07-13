@@ -74,6 +74,12 @@
 - name: Adding mailer.json
   template: src=mailer-json.j2 dest=/etc/sensu/conf.d/mailer.json
 
+- name: Adding slack-handler.json
+  template: src=slack-handler.j2 dest=/etc/sensu/conf.d/slack.json
+
+- name: Adding slack.rb
+  template: src=slack.j2 dest=/etc/sensu/handlers/slack.rb
+
 - name: Restart all services
   service: name={{item}} state=restarted
   with_items:
