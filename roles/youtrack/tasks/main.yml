@@ -1,0 +1,12 @@
+---
+- name: Download Youtrack
+  get_url: url={{youtrack_url}} dest=/opt
+
+- name: Create logs folder
+  file: path=/opt/youtrack state=directory
+
+- name: Extract Youtrack
+  unarchive: src=/opt/youtrack-6.0.12634.zip dest=/opt/youtrack copy=no
+
+- name: Start youtrack
+  shell: sudo sh /opt/youtrack/bin/youtrack.sh start
