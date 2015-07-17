@@ -27,7 +27,6 @@
    - php-apc
    - memcached
    - mcrypt
-   - openssl
 
 - name: Configure Php
   template: src=php.ini dest=/etc/php5/fpm/php.ini

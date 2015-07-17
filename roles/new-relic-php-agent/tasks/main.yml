@@ -1,0 +1,17 @@
+---
+- name: Install New Relic agent
+  apt: name={{item}} state=present
+  with_items:
+  - newrelic-php5
+
+- name: Configure New Relic agent php
+  template: src=new_relic_php.j2 dest=/etc/php5/fpm/conf.d/newrelic.ini
+
+- name: Configure New Relic agent php
+  template: src=new_relic_php.j2 dest=/etc/php5/cli/conf.d/newrelic.ini
+
+- name: Restart
+  service: name={{item}} state=restarted
+  with_items:
+  - php5-fpm
+  - nginx

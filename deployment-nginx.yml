@@ -4,6 +4,6 @@
 ---
 - hosts: '{{inventory}}'
   sudo: yes
-  serial: {{serial}}
+  serial: '{{serial}}'
   roles:
   - deployment-nginx

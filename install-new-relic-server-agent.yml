@@ -5,4 +5,4 @@
 - hosts: '{{inventory}}'
   sudo: yes
   roles:
-  - new-relic-agent
+  - new-relic-server-agent
