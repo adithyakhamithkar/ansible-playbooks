@@ -1,4 +1,10 @@
 ---
+- name: Add New Relic APT key
+  apt_key: url=https://download.newrelic.com/548C16BF.gpg state=present
+
+- name: Add New Relic repo
+  apt_repository: repo="deb http://apt.newrelic.com/debian/ newrelic non-free" state=present
+
 - name: Install New Relic agent
   apt: name={{item}} state=present
   with_items:
