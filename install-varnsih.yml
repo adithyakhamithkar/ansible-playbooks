@@ -1,0 +1,8 @@
+#
+#About: This will install Varnish
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - varnish

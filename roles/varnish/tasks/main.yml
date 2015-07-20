@@ -1,0 +1,23 @@
+---
+- name: Add the Varnish APT key
+  apt_key: url=http://repo.varnish-cache.org/debian/GPG-key.txt state=present
+
+- name: Add the Varnish source to the APT source list
+  apt_repository: repo="deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.0" state=present
+
+- name: Install Varnish
+  apt: name={{item}} state=present
+  with_items:
+  - varnish
+
+- name: Stop Varnish
+  service: name=varnish state=stopped
+
+- name: Configure Varnish
+  template: src=varnish.j2 dest=/etc/default/varnish
+
+- name: Configure default_vcl
+  template: src=default_vcl.j2 dest=/etc/varnish/default.vcl
+
+- name: Start Varnish
+  service: name=varnish state=started
