@@ -1,0 +1,8 @@
+#
+#About: This will install datadog-agent
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - datadog-agent

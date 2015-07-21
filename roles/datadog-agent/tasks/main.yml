@@ -1,0 +1,17 @@
+---
+- name: Add the Datadog APT key
+  apt_key: keyserver=keyserver.ubuntu.com id=C7A7DA52
+
+- name: Add the Datadog source to the APT source list
+  apt_repository: repo='deb http://apt.datadoghq.com/ stable main' state=present
+
+- name: Install Datadog agent
+  apt: name={{item}} state=present update_cache=yes
+  with_items:
+   - datadog-agent
+
+- name: Configute datadog-agent
+  template: src=datadog.j2 dest=/etc/dd-agent/datadog.conf
+
+- name: Start datadog-agent
+  service: name=datadog-agent state=restarted
