@@ -1,0 +1,34 @@
+# Server Block for Virtual host start
+upstream app_server_ssl {
+    server 192.168.44.167;
+    server 192.168.44.169;
+}
+
+server {
+        listen  443 ssl spdy;
+        server_name {{hostname}}.{{domain_name}};
+        ssl_certificate /etc/nginx/ssl/ssl_crt.pem;
+        ssl_certificate_key /etc/nginx/ssl/ssl_key.pem;
+        location / {
+            proxy_cache my_zone;
+            add_header X-Proxy-Cache $upstream_cache_status;
+            proxy_pass http://app_server_ssl;
+        }
+        #Define custom error pages
+        error_page 404 /error-page-404.html;
+        location = /error-page-404.html {
+                root /usr/share/nginx/error_pages;
+                internal;
+        }
+        error_page 403 /error-page-403.html;
+        location = /error-page-403.html {
+                root /usr/share/nginx/error_pages;
+                internal;
+        }
+        error_page 500 502 503 504 /error-page-50x.html;
+        location = /error-page-50x.html {
+                root /usr/share/nginx/error_pages;
+                internal;
+        }
+}
+# Server Block for Virtual host with SSL end

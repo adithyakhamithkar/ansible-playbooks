@@ -17,10 +17,28 @@ server {
                 fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
                 include fastcgi_params;
         }
-        #Define expiry
-        client_max_body_size 80m;
-                location ~* .(jpg|jpeg|png|gif|ico|css|js)$ {
-                expires 365d;
+        # Expire rules for static content
+        # cache.appcache, your document html and data
+        location ~* \.(?:manifest|appcache|html?|xml|json)$ {
+                expires -1;
+              # access_log logs/static.log; # I don't usually include a static log
+        }
+        # Feed
+        location ~* \.(?:rss|atom)$ {
+                expires 1h;
+                add_header Cache-Control "public";
+        }
+        # Media: images, icons, video, audio, HTC
+                location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc)$ {
+                expires 1M;
+                access_log off;
+                add_header Cache-Control "public";
+        }
+        # CSS and Javascript
+        location ~* \.(?:css|js)$ {
+                expires 1y;
+                access_log off;
+                add_header Cache-Control "public";
         }
         #Define custom error pages
         error_page 404 /error-page-404.html;

@@ -1,0 +1,9 @@
+#
+#About: This will install Nginx
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - nginx
+  - nginx-load-balancer

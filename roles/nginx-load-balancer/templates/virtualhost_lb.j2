@@ -1,0 +1,37 @@
+# Server Block for Virtual host start
+proxy_cache_path /tmp/nginx levels=1:2 keys_zone=my_zone:10m inactive=60m;
+proxy_cache_key "$scheme$request_method$host$request_uri";
+
+upstream app_server {
+    server 192.168.44.167;
+    server 192.168.44.169;
+}
+
+server {
+        listen  80;
+        server_name {{hostname}}.{{domain_name}};
+        #Uncomment the below line to force rediret to https
+        #rewrite ^ https://$http_host$request_uri? permanent;
+        location / {
+            proxy_cache my_zone;
+            add_header X-Proxy-Cache $upstream_cache_status;
+            proxy_pass http://app_server;
+        }
+        #Define custom error pages
+        error_page 404 /error-page-404.html;
+        location = /error-page-404.html {
+                root /usr/share/nginx/error_pages;
+                internal;
+        }
+        error_page 403 /error-page-403.html;
+        location = /error-page-403.html {
+                root /usr/share/nginx/error_pages;
+                internal;
+        }
+        error_page 500 502 503 504 /error-page-50x.html;
+        location = /error-page-50x.html {
+                root /usr/share/nginx/error_pages;
+                internal;
+        }
+}
+# Server Block for Virtual host end
