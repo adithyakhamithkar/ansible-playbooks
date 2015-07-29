@@ -12,7 +12,7 @@ server {
         location / {
             proxy_cache my_zone;
             add_header X-Proxy-Cache $upstream_cache_status;
-            proxy_pass http://app_server_ssl;
+            proxy_pass http://app_server;
         }
         #Define custom error pages
         error_page 404 /error-page-404.html;

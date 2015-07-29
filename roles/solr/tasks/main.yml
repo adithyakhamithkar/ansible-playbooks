@@ -5,11 +5,11 @@
 - name: Extract Solr
   unarchive: src=/opt/solr-5.2.1.tgz dest=/opt copy=no
 
-- name: Create solr-webapp folder
-  file: path=/opt/solr/server/solr-webapp/webapp state=directory
-
 - name: Install Solr
   shell: cd /opt && sudo tar xzf solr-5.2.1.tgz solr-5.2.1/bin/install_solr_service.sh --strip-components=2
 
 - name: Configure Solr
   shell: cd /opt && sudo bash ./install_solr_service.sh solr-5.2.1.tgz
+
+- name: Create solr-webapp folder
+  file: path=/opt/solr/server/solr-webapp/webapp state=directory
