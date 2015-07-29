@@ -1,0 +1,166 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          zookeeper
+# Required-Start:    $remote_fs
+# Required-Stop:     $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: centralized coordination service
+# Description:       ZooKeeper is a centralized service for maintaining
+#                    configuration information, naming, providing distributed
+#                    synchronization, and providing group services.
+### END INIT INFO
+
+# Author: Foo Bar <foobar@baz.org>
+#
+# Please remove the "Author" lines above and replace them
+# with your own name if you copy and modify this script.
+
+# Do NOT "set -e"
+
+# Exit if the package is not installed
+# Test that libzookeeper-java is installed
+[ -r "/usr/share/java/zookeeper.jar" ] || exit 0
+# Test that zookeeper is installed and not purged
+[ -r "/etc/zookeeper/conf/environment" ] || exit 0
+. /etc/zookeeper/conf/environment
+
+# PATH should only include /usr/* if it runs after the mountnfs.sh script
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+DESC="centralized coordination service"
+SCRIPTNAME=/etc/init.d/$NAME
+
+# Read configuration variable file if it is present
+[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+# Load the VERBOSE setting and other rcS variables
+. /lib/init/vars.sh
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
+. /lib/lsb/init-functions
+
+is_running()
+{
+	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $JAVA --user $USER --test > /dev/null \
+		|| return 1
+    return 0
+}
+
+#
+# Function that starts the daemon/service
+#
+do_start()
+{
+	# Return
+	#   0 if daemon has been started
+	#   1 if daemon was already running
+	#   2 if daemon could not be started
+    is_running || return 1
+
+    if [ ! -d $PIDDIR ]
+    then
+      mkdir -p $PIDDIR
+    fi
+    chown $USER:$GROUP $PIDDIR
+
+    if [ ! -d  $ZOO_LOG_DIR ]
+    then
+      mkdir -p $ZOO_LOG_DIR
+    fi
+    chown $USER:$GROUP $ZOO_LOG_DIR
+
+	start-stop-daemon --start --quiet \
+               --pidfile $PIDFILE \
+               --make-pidfile \
+               --chuid $USER:$GROUP \
+               --background \
+               --exec $JAVA -- \
+                 -cp $CLASSPATH \
+                 $JAVA_OPTS \
+                 -Dzookeeper.log.dir=${ZOO_LOG_DIR} \
+                 -Dzookeeper.root.logger=${ZOO_LOG4J_PROP} \
+                 $ZOOMAIN $ZOOCFG \
+		|| return 2
+}
+
+#
+# Function that stops the daemon/service
+#
+do_stop()
+{
+	# Return
+	#   0 if daemon has been stopped
+	#   1 if daemon was already stopped
+	#   2 if daemon could not be stopped
+	#   other if a failure occurred
+	is_running && return 1
+
+	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE
+	RETVAL="$?"
+	[ "$RETVAL" = 2 ] && return 2
+	# Many daemons don't delete their pidfiles when they exit.
+	[ "$RETVAL" = 0 ] && rm -f $PIDFILE
+	return "$RETVAL"
+}
+
+case "$1" in
+  start)
+        if [ "x$JMXDISABLE" = "x" ]
+        then
+            [ "$VERBOSE" != no ] && log_action_msg "$NAME: JMX enabled by default"
+            # for some reason these two options are necessary on jdk6 on Ubuntu
+            #   accord to the docs they are not necessary, but otw jconsole cannot
+            #   do a local attach
+            JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=$JMXLOCALONLY"
+        else
+            [ "$VERBOSE" != no ] && log_action_msg "$NAME: JMX disabled by user request"
+        fi
+
+	[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
+	do_start
+	case "$?" in
+		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+	esac
+	;;
+  stop)
+	[ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
+	do_stop
+	case "$?" in
+		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+	esac
+	;;
+  status)
+       status_of_proc -p $PIDFILE "$NAME" "$NAME" && exit 0 || exit $?
+       ;;
+  restart|force-reload)
+	#
+	# If the "reload" option is implemented then remove the
+	# 'force-reload' alias
+	#
+	log_daemon_msg "Restarting $DESC" "$NAME"
+	do_stop
+	case "$?" in
+	  0|1)
+		do_start
+		case "$?" in
+			0) log_end_msg 0 ;;
+			1) log_end_msg 1 ;; # Old process is still running
+			*) log_end_msg 1 ;; # Failed to start
+		esac
+		;;
+	  *)
+	  	# Failed to stop
+		log_end_msg 1
+		;;
+	esac
+	;;
+  *)
+	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
+	exit 3
+	;;
+esac
+
+:

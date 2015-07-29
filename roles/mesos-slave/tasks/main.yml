@@ -1,0 +1,25 @@
+---
+- name: Make sure Zookeeper is not installed
+  apt: name={{item}} state=absent
+  with_items:
+   - zookeeper
+
+- name: Disable the Mesos Master service
+  template: src=zookeeper.j2 dest=/etc/init/zookeeper.override
+
+- name: Disable the Mesos Master service
+  template: src=mesos-master.j2 dest=/etc/init/mesos-master.override
+
+- name: Configure Mesos mesos-slave
+  template: src=mesos-slave.j2 dest=/etc/mesos-slave/ip
+
+- name: Configure zookeeper for mesos
+  template: src=zk.j2 dest=/etc/mesos/zk
+
+- name: Configure mesos hostname
+  template: src=hostname.j2 dest=/etc/mesos-master/hostname
+
+- name: Restart all services
+  service: name={{item}} state=restarted
+  with_items:
+   - mesos-slave

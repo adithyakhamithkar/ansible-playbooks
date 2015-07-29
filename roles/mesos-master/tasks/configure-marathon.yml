@@ -1,0 +1,12 @@
+---
+- name: Create marathon directory
+  file: path=/etc/marathon state=directory
+
+- name: Create marathon conf directory
+  file: path=/etc/marathon/conf state=directory
+
+- name: Configure marathon hostname
+  template: src=hostname.j2 dest=/etc/marathon/conf/hostname
+
+- name: Configure zookeeper for marathon
+  template: src=zk-marathon.j2 dest=/etc/marathon/conf/zk

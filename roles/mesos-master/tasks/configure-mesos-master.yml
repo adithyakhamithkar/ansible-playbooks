@@ -1,0 +1,18 @@
+---
+- name: Stop mesos-slave
+  service: name=mesos-slave state=stopped
+
+- name: Disable the Mesos Slave service
+  template: src=mesos-slave.j2 dest=/etc/init/mesos-slave.override
+
+- name: Configure Mesos mesos-master
+  template: src=mesos-master.j2 dest=/etc/mesos-master/ip
+
+- name: Configure zookeeper for mesos
+  template: src=zk.j2 dest=/etc/mesos/zk
+
+- name: Configure mesos cluster name
+  template: src=cluster.j2 dest=/etc/mesos-master/cluster
+
+- name: Configure mesos hostname
+  template: src=hostname.j2 dest=/etc/mesos-master/hostname

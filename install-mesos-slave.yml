@@ -1,0 +1,9 @@
+#
+#About: This will install mesos-slave
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - mesos
+  - mesos-slave

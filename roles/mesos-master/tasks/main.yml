@@ -1,0 +1,10 @@
+---
+- include: configure-mesos-master.yml
+- include: configure-marathon.yml
+
+- name: Restart all services
+  service: name={{item}} state=restarted
+  with_items:
+   - zookeeper
+   - mesos-master
+   - marathon

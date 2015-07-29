@@ -1,0 +1,22 @@
+---
+- name: Install Zookeeper
+  apt: name={{item}} state=present
+  with_items:
+   - zookeeper
+
+- name: Set zookeeper_id
+  template: src=myid.j2 dest=/etc/zookeeper/conf/myid
+
+- name: Configure zookeeper
+  template: src=zoo.j2 dest=/etc/zookeeper/conf/zoo.cfg
+
+- name: Configure zookeeper service
+  template: src=zookeeper.j2 dest=/etc/init.d/zookeeper
+
+- name: Configure zookeeper service
+  shell: sudo chmod +x /etc/init.d/zookeeper
+- name: Restart zookeeper
+  service: name=zookeeper state=restarted
+
+#- name: Restart zookeeper
+#  shell: sudo /usr/share/zookeeper/bin/zkServer.sh restart
