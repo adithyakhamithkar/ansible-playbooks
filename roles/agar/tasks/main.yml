@@ -1,0 +1,23 @@
+---
+- name: Install nodejs
+  apt: name={{item}} state=present
+  with_items:
+    - nodejs
+    - nodejs-legacy
+    - git
+    - npm
+
+- name: Create folder for agar
+  file: path=/var/www/agar state=directory
+
+- name: Clone agar
+  git: repo=git@github.com:huytd/agar.io-clone.git dest=/var/www/agar accept_hostkey=yes
+
+- name: Install gulp
+  npm: name=gulp path=/var/www/agar state=present
+
+- name: Run npm install
+  npm: path=/var/www/agar
+
+- name: Start agar
+  shell: cd /var/www/agar && sudo nohup npm start &
