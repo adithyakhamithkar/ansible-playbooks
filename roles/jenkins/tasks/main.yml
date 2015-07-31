@@ -6,6 +6,9 @@
   shell: sudo echo "jenkins ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers
   changed_when: False
 
+- name: Set JAVA_HOME
+  shell: sudo echo "export JAVA_HOME=/usr/lib/jvm/java-8-oracle" >> /home/jenkins/.bashrc
+
 - name: Add the Jenkins APT repository key
   apt_key: url=http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key state=present
 
