@@ -1,0 +1,8 @@
+#
+#About: This will install ntp
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - ntp

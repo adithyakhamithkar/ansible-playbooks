@@ -28,7 +28,7 @@ if [ -z "$DISTRIB_DESCRIPTION" ] && [ -x /usr/bin/lsb_release ]; then
         DISTRIB_DESCRIPTION=$(lsb_release -s -d)
 fi
 
-printf "Welcome on board {{hostname}}.{{domain_name}}"
+printf "Welcome on board {{hostname}}"
 printf "\n"
 FILE="/var/motd"
 cat $FILE
