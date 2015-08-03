@@ -6,14 +6,6 @@
 - name: Update cache
   apt: update_cache=yes
 
-- name: Adding banner info in sshd.conf
-  shell: sudo echo "Banner /etc/issue.net" >> /etc/ssh/sshd_config
-  changed_when: False
-
-- name: Restart ssh
-  service: name=ssh state=restarted
-  changed_when: False
-
 - include: set-hostname.yml
 - include: copy-ssh-keys.yml
 - include: install-ntp.yml

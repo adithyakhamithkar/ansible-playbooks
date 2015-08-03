@@ -1,3 +1,11 @@
 ---
+- name: Adding banner info in sshd.conf
+  shell: sudo echo "Banner /etc/issue.net" >> /etc/ssh/sshd_config
+  changed_when: False
+
+- name: Restart ssh
+  service: name=ssh state=restarted
+  changed_when: False  
+
 - name: Update ssh banner
   template: src=ssh-banner.j2 dest=/etc/issue.net
