@@ -6,5 +6,11 @@
   sudo: yes
   roles:
   - common
+  - hostname
+  - postfix
+  - ntp
   - motd
   - ssh-banner
+  - psad
+  - rootkit-scanners
+  - tiger

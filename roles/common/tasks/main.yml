@@ -6,14 +6,5 @@
 - name: Update cache
   apt: update_cache=yes
 
-- include: set-hostname.yml
-- include: copy-ssh-keys.yml
-- include: install-ntp.yml
 - include: hosts.yml
-- include: install-postfix.yml
-- include: install-logrotate.yml
-- include: install-psad.yml
-- include: install-rootkits-scanners.yml
-- include: install-tiger.yml
-- include: install-ufw.yml
 - include: install-misc.yml

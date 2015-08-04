@@ -1,0 +1,8 @@
+#
+#About: This will install psad
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - psad

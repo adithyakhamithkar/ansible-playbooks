@@ -1,0 +1,8 @@
+#
+#About: This will install rootkit-scanners
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - rootkit-scanners

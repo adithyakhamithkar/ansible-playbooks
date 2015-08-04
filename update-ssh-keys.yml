@@ -1,0 +1,8 @@
+#
+#About: This will update ssh-keys for root
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - ssh-keys
