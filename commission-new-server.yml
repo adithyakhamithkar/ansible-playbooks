@@ -5,12 +5,12 @@
 - hosts: '{{inventory}}'
   sudo: yes
   roles:
-  - common
   - hostname
-  - postfix
+  - common
   - ntp
   - motd
   - ssh-banner
+  - postfix
   - psad
   - rootkit-scanners
   - tiger

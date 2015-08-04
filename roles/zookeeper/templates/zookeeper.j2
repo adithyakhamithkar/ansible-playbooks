@@ -1,166 +1,159 @@
-#! /bin/sh
+#!/bin/bash
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Starts a Zookeeper server
+#
+# chkconfig: 35 85 15
+# description: Zookeeper
+#
 ### BEGIN INIT INFO
 # Provides:          zookeeper
-# Required-Start:    $remote_fs
-# Required-Stop:     $remote_fs
-# Default-Start:     2 3 4 5
+# Short-Description: Zookeeper Service
+# Default-Start:     3 5
 # Default-Stop:      0 1 6
-# Short-Description: centralized coordination service
-# Description:       ZooKeeper is a centralized service for maintaining
-#                    configuration information, naming, providing distributed
-#                    synchronization, and providing group services.
+# Required-Start:    $syslog $remote_fs
+# Required-Stop:     $syslog $remote_fs
+# Should-Start:
+# Should-Stop:
 ### END INIT INFO
 
-# Author: Foo Bar <foobar@baz.org>
-#
-# Please remove the "Author" lines above and replace them
-# with your own name if you copy and modify this script.
-
-# Do NOT "set -e"
-
-# Exit if the package is not installed
-# Test that libzookeeper-java is installed
-[ -r "/usr/share/java/zookeeper.jar" ] || exit 0
-# Test that zookeeper is installed and not purged
-[ -r "/etc/zookeeper/conf/environment" ] || exit 0
-. /etc/zookeeper/conf/environment
-
-# PATH should only include /usr/* if it runs after the mountnfs.sh script
-PATH=/sbin:/usr/sbin:/bin:/usr/bin
-DESC="centralized coordination service"
-SCRIPTNAME=/etc/init.d/$NAME
-
-# Read configuration variable file if it is present
-[ -r /etc/default/$NAME ] && . /etc/default/$NAME
-
-# Load the VERBOSE setting and other rcS variables
-. /lib/init/vars.sh
-
-# Define LSB log_* functions.
-# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
 . /lib/lsb/init-functions
 
-is_running()
-{
-	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $JAVA --user $USER --test > /dev/null \
-		|| return 1
-    return 0
+RETVAL_SUCCESS=0
+STATUS_RUNNING=0
+STATUS_DEAD=1
+STATUS_DEAD_AND_LOCK=2
+STATUS_NOT_RUNNING=3
+STATUS_OTHER_ERROR=102
+
+ERROR_PROGRAM_NOT_INSTALLED=5
+ERROR_PROGRAM_NOT_CONFIGURED=6
+
+RETVAL=0
+SLEEP_TIME=3
+PROC_NAME="java"
+PIDFILE="/var/run/zookeeper/zookeeper-server.pid"
+EXEC_PATH="/usr/share/zookeeper//bin/zkServer.sh"
+
+DAEMON="zookeeper"
+DESC="Zookeeper Server"
+SVC_USER="zookeeper"
+LOCKDIR="/var/lock/subsys"
+LOCKFILE="$LOCKDIR/$DAEMON"
+
+[ -d "$LOCKDIR" ] || install -d -m 0755 $LOCKDIR 1>/dev/null 2>&1 || :
+
+start() {
+  [ -x $EXEC_PATH ] || exit $ERROR_PROGRAM_NOT_INSTALLED
+  [ -d $CONF_DIR ] || exit $ERROR_PROGRAM_NOT_CONFIGURED
+  log_success_msg "Starting ${DESC}: "
+
+  su -s /bin/bash $SVC_USER -c "$EXEC_PATH start"
+
+  # Some processes are slow to start
+  sleep $SLEEP_TIME
+  checkstatusofproc
+  RETVAL=$?
+
+  [ $RETVAL -eq $RETVAL_SUCCESS ] && touch $LOCKFILE
+  return $RETVAL
 }
 
-#
-# Function that starts the daemon/service
-#
-do_start()
-{
-	# Return
-	#   0 if daemon has been started
-	#   1 if daemon was already running
-	#   2 if daemon could not be started
-    is_running || return 1
+stop() {
+  log_success_msg "Stopping ${DESC}: "
+  start_daemon $EXEC_PATH stop
+  RETVAL=$?
 
-    if [ ! -d $PIDDIR ]
-    then
-      mkdir -p $PIDDIR
-    fi
-    chown $USER:$GROUP $PIDDIR
-
-    if [ ! -d  $ZOO_LOG_DIR ]
-    then
-      mkdir -p $ZOO_LOG_DIR
-    fi
-    chown $USER:$GROUP $ZOO_LOG_DIR
-
-	start-stop-daemon --start --quiet \
-               --pidfile $PIDFILE \
-               --make-pidfile \
-               --chuid $USER:$GROUP \
-               --background \
-               --exec $JAVA -- \
-                 -cp $CLASSPATH \
-                 $JAVA_OPTS \
-                 -Dzookeeper.log.dir=${ZOO_LOG_DIR} \
-                 -Dzookeeper.root.logger=${ZOO_LOG4J_PROP} \
-                 $ZOOMAIN $ZOOCFG \
-		|| return 2
+  [ $RETVAL -eq $RETVAL_SUCCESS ] && rm -f $LOCKFILE $PIDFILE
 }
 
-#
-# Function that stops the daemon/service
-#
-do_stop()
-{
-	# Return
-	#   0 if daemon has been stopped
-	#   1 if daemon was already stopped
-	#   2 if daemon could not be stopped
-	#   other if a failure occurred
-	is_running && return 1
-
-	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE
-	RETVAL="$?"
-	[ "$RETVAL" = 2 ] && return 2
-	# Many daemons don't delete their pidfiles when they exit.
-	[ "$RETVAL" = 0 ] && rm -f $PIDFILE
-	return "$RETVAL"
+restart() {
+  stop
+  start
 }
 
-case "$1" in
-  start)
-        if [ "x$JMXDISABLE" = "x" ]
-        then
-            [ "$VERBOSE" != no ] && log_action_msg "$NAME: JMX enabled by default"
-            # for some reason these two options are necessary on jdk6 on Ubuntu
-            #   accord to the docs they are not necessary, but otw jconsole cannot
-            #   do a local attach
-            JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=$JMXLOCALONLY"
-        else
-            [ "$VERBOSE" != no ] && log_action_msg "$NAME: JMX disabled by user request"
-        fi
+checkstatusofproc(){
+  pidofproc -p $PIDFILE $PROC_NAME > /dev/null
+}
 
-	[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
-	do_start
-	case "$?" in
-		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
-	esac
-	;;
-  stop)
-	[ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
-	do_stop
-	case "$?" in
-		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
-	esac
-	;;
-  status)
-       status_of_proc -p $PIDFILE "$NAME" "$NAME" && exit 0 || exit $?
-       ;;
-  restart|force-reload)
-	#
-	# If the "reload" option is implemented then remove the
-	# 'force-reload' alias
-	#
-	log_daemon_msg "Restarting $DESC" "$NAME"
-	do_stop
-	case "$?" in
-	  0|1)
-		do_start
-		case "$?" in
-			0) log_end_msg 0 ;;
-			1) log_end_msg 1 ;; # Old process is still running
-			*) log_end_msg 1 ;; # Failed to start
-		esac
-		;;
-	  *)
-	  	# Failed to stop
-		log_end_msg 1
-		;;
-	esac
-	;;
-  *)
-	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
-	exit 3
-	;;
-esac
+checkstatus(){
+  checkstatusofproc
+  status=$?
 
-:
+  case "$status" in
+    $STATUS_RUNNING)
+      log_success_msg "${DESC} is running"
+      ;;
+    $STATUS_DEAD)
+      log_failure_msg "${DESC} is dead and pid file exists"
+      ;;
+    $STATUS_DEAD_AND_LOCK)
+      log_failure_msg "${DESC} is dead and lock file exists"
+      ;;
+    $STATUS_NOT_RUNNING)
+      log_failure_msg "${DESC} is not running"
+      ;;
+    *)
+      log_failure_msg "${DESC} status is unknown"
+      ;;
+  esac
+  return $status
+}
+
+condrestart(){
+  [ -e $LOCKFILE ] && restart || :
+}
+
+check_for_root() {
+  if [ $(id -ur) -ne 0 ]; then
+    echo 'Error: root user required'
+    echo
+    exit 1
+  fi
+}
+
+service() {
+  case "$1" in
+    start)
+      check_for_root
+      start
+      ;;
+    stop)
+      check_for_root
+      stop
+      ;;
+    status)
+      checkstatus
+      RETVAL=$?
+      ;;
+    restart)
+      check_for_root
+      restart
+      ;;
+    condrestart|try-restart)
+      check_for_root
+      condrestart
+      ;;
+    *)
+      echo $"Usage: $0 {start|stop|status|restart|try-restart|condrestart}"
+      exit 1
+  esac
+}
+
+service "$1"
+
+exit $RETVAL
