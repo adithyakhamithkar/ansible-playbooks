@@ -1,4 +1,9 @@
 ---
+- name: Install mesosphere
+  apt: name={{item}} state=present
+  with_items:
+  - mesosphere
+
 - name: Create marathon directory
   file: path=/etc/marathon state=directory
 

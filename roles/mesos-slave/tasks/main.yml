@@ -4,11 +4,14 @@
   with_items:
    - zookeeper
 
-- name: Disable the Mesos Master service
+- name: Disable the Zookeeper service
   template: src=zookeeper.j2 dest=/etc/init/zookeeper.override
 
 - name: Disable the Mesos Master service
   template: src=mesos-master.j2 dest=/etc/init/mesos-master.override
+
+- name: Disable the Marathon service
+  template: src=marathon.j2 dest=/etc/init/marathon.override
 
 - name: Configure Mesos mesos-slave
   template: src=mesos-slave.j2 dest=/etc/mesos-slave/ip
