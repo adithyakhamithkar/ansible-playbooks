@@ -3,14 +3,13 @@
   apt_key: keyserver=keyserver.ubuntu.com id=E56151BF
 
 - name: Add the Mesos repo
-  apt_repository: repo="deb http://repos.mesosphere.com/ubuntu trusty main" state=present
-  ignore_errors: True
+  apt_repository: repo="deb http://repos.mesosphere.com/ubuntu {{ansible_distribution_release}} main" state=present
+#  ignore_errors: True
 
-- name: Add the Mesos repo
-  template: src=mesos_repo.j2 dest=/etc/apt/sources.list.d/mesosphere.list
+#- name: Add the Mesos repo
+#  template: src=mesos_repo.j2 dest=/etc/apt/sources.list.d/mesosphere.list
 
 - name: Install Mesos
   apt: name={{item}} state=present
   with_items:
    - mesos
-   - marathon
