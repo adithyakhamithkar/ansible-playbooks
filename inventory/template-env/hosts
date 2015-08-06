@@ -5,6 +5,9 @@
 #[local]
 #localhost ansible_ssh_host=127.0.0.1 ansible_connection=local
 
+[test]
+test ansible_ssh_host=192.168.44.181
+
 [sensu-master]
 sensu-master-test-evn ansible_ssh_host=192.168.0.107 hostname=sensu-master-test-evn
 
