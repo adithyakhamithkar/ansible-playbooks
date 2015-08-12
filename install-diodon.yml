@@ -1,0 +1,13 @@
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+
+  tasks:
+  - name: Add diodon repository
+    apt_repository: repo=ppa:diodon-team/stable
+
+  - name: Install diodon text editor
+    apt: name={{item}} state=present
+    with_items:
+    - diodon
+    - unity-scope-diodon
