@@ -1,0 +1,5 @@
+Host *
+CheckHostIP no
+Compression yes
+Protocol 2
+ProxyCommand connect -4 -S localhost:9050 $(tor-resolve %h localhost:9050) %p

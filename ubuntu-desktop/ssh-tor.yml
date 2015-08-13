@@ -1,0 +1,5 @@
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - ssh-tor

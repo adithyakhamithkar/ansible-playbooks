@@ -1,0 +1,18 @@
+---
+- name: Add the tor APT repository
+  apt_key: keyserver=subkeys.pgp.net id=0x94C09C7F state=present
+
+- name: Add tor repository
+  apt_repository: repo="deb http://mirror.noreply.org/pub/tor lenny main" state=present
+
+- name: Install tor
+  apt: name={{item}} state=present
+  with_items:
+  - tor
+  - connect-proxy
+
+- name: Configure tor
+  template: src=torrc.j2 dest=/etc/tor/torrc
+
+- name: Configure ssh-tor
+  template: src=ssh.j2 dest=/home/{{ansible_ssh_user}}/.ssh/config owner={{ansible_ssh_user}} group={{ansible_ssh_user}}
