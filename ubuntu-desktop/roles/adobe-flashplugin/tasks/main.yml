@@ -1,0 +1,8 @@
+---
+- name: Add canonical partner repository
+  apt_repository: repo="deb http://archive.canonical.com/ubuntu trusty partner" state=present
+
+- name: Install adobe-flashplugin
+  apt: name={{item}} state=present
+  with_items:
+  - adobe-flashplugin

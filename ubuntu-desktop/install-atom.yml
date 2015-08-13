@@ -1,12 +1,5 @@
 ---
 - hosts: '{{inventory}}'
   sudo: yes
-
-  tasks:
-  - name: Add atom repository
-    apt_repository: repo=ppa:webupd8team/atom
-
-  - name: Install atom text editor
-    apt: name={{item}} state=present
-    with_items:
-    - atom
+  roles:
+  - atom
