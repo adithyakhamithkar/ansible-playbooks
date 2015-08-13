@@ -1,0 +1,17 @@
+---
+- name: Install essensuals packages
+  apt: name={{item}} state=present
+  with_items:
+  - curl
+  - rar
+  - git
+  - ubuntu-restricted-extras
+  - p7zip-rar
+  - p7zip-full
+  - unrar
+  - zip
+  - unzip
+  - openssh-server
+  - chromium-browser
+  - unity-tweak-tool
+  - bleachbit
