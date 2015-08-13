@@ -1,0 +1,12 @@
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - essensuals
+  - jdk
+  - adobe-flashplugin
+  - indicator-multiload
+  - keepassx
+  - moka
+  - shutter
+  
