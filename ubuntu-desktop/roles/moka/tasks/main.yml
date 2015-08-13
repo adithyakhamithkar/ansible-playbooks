@@ -1,0 +1,11 @@
+---
+- name: Add moka repository
+  apt_repository: repo="ppa:moka/stable" state=present
+
+- name: Install moka
+  apt: name={{item}} state=present
+  with_items:
+  - faba-mono-icons
+  - faba-colors
+  - moka-icon-theme
+  - moka-gtk-theme
