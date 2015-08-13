@@ -1,8 +1,8 @@
 ---
-  - name: Add atom repository
-    apt_repository: repo="ppa:webupd8team/atom" state=present
+- name: Add atom repository
+  apt_repository: repo="ppa:webupd8team/atom" state=present
 
-  - name: Install atom text editor
-    apt: name={{item}} state=present
-    with_items:
-    - atom
+- name: Install atom text editor
+  apt: name={{item}} state=present
+  with_items:
+  - atom
