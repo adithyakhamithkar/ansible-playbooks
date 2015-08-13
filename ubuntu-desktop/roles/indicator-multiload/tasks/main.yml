@@ -1,0 +1,8 @@
+---
+- name: Add indicator-multiload repository
+  apt_repository: repo="ppa:indicator-multiload/stable-daily" state=present
+
+- name: Install indicator-multiload
+  apt: name={{item}} state=present
+  with_items:
+  - indicator-multiload
