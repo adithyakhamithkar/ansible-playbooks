@@ -2,10 +2,11 @@
 ZooKeeper is a centralized service for maintaining configuration information, naming, providing distributed synchronization, and providing group services. All of these kinds of services are used in some form or another by distributed applications.
 
 ###Variable format
+```
 [mesos:children]
 mesos-master
 mesos-slave
-```
+
 [mesos:vars]
 mesos_cluster_name=Mymesos
 zk_mesos_string=zk://192.168.44.182:2181,192.168.44.183:2181,192.168.44.184:2181/mesos
