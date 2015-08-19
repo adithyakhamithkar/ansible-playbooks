@@ -2,7 +2,7 @@
 - name: Install Zookeeper
   apt: name={{item}} state=present
   with_items:
-   - zookeeper
+   - zookeeperd
 
 - name: Set zookeeper_id
   template: src=myid.j2 dest=/etc/zookeeper/conf/myid
@@ -15,6 +15,7 @@
 
 - name: Configure zookeeper service
   shell: sudo chmod +x /etc/init.d/zookeeper
+
 - name: Restart zookeeper
   service: name=zookeeper state=restarted
 
