@@ -1,0 +1,21 @@
+---
+- name: Adding Kafka user
+  user: name=kafka groups=sudo,shadow shell=/bin/bash append=yes generate_ssh_key=yes ssh_key_file=.ssh/id_rsa
+
+- name: Download Kafka
+  get_url: url={{kafka_url}} dest=/opt
+
+- name: Extract Kafka
+  unarchive: src=/opt/kafka-0.8.2.0-src.tgz dest=/opt copy=no
+
+- name: Configure Kafka
+  template: src=kafka.j2 dest=/opt/kafka-0.8.2.0-src/config/server.properties
+
+- name: Configure Kafka
+  template: src=kafka-run.j2 dest=/opt/kafka-0.8.2.0-src/bin/kafka-run-class.sh
+
+- name: Create kafka logs directory
+  file: path=/var/log/kafka-logs state=directory
+
+- name: Start kafka
+  shell: sudo nohup /opt/kafka-0.8.2.0-src/bin/kafka-server-start.sh /opt/kafka-0.8.2.0-src/config/server.properties > /opt/kafka-0.8.2.0-src/kafka.log 2>&1 &

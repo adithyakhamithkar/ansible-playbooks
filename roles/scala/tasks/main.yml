@@ -1,0 +1,6 @@
+---
+- name: Download Scala
+  get_url: url=http://www.scala-lang.org/files/archive/scala-2.10.4.deb dest=/tmp
+
+- name: Install Scala
+  apt: deb=/tmp/scala-2.10.4.deb
