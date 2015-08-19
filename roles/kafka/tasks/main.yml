@@ -6,16 +6,16 @@
   get_url: url={{kafka_url}} dest=/opt
 
 - name: Extract Kafka
-  unarchive: src=/opt/kafka-0.8.2.0-src.tgz dest=/opt copy=no
+  unarchive: src=/opt/kafka_2.11-0.8.2.1.tgz dest=/opt copy=no
 
 - name: Configure Kafka
-  template: src=kafka.j2 dest=/opt/kafka-0.8.2.0-src/config/server.properties
+  template: src=kafka.j2 dest=/opt/kafka_2.11-0.8.2.1/config/server.properties
 
 - name: Configure Kafka
-  template: src=kafka-run.j2 dest=/opt/kafka-0.8.2.0-src/bin/kafka-run-class.sh
+  template: src=kafka-run.j2 dest=/opt/kafka_2.11-0.8.2.1/bin/kafka-run-class.sh
 
 - name: Create kafka logs directory
   file: path=/var/log/kafka-logs state=directory
 
 - name: Start kafka
-  shell: sudo nohup /opt/kafka-0.8.2.0-src/bin/kafka-server-start.sh /opt/kafka-0.8.2.0-src/config/server.properties > /opt/kafka-0.8.2.0-src/kafka.log 2>&1 &
+  shell: sudo nohup /opt/kafka_2.11-0.8.2.1/bin/kafka-server-start.sh /opt/kafka_2.11-0.8.2.1/config/server.properties > /opt/kafka_2.11-0.8.2.1/kafka.log 2>&1 &
