@@ -4,3 +4,14 @@
 
 - name: Install Scala
   apt: deb=/tmp/scala-2.10.4.deb
+
+- name: Add sbt repository
+  apt_repository: repo="deb https://dl.bintray.com/sbt/debian /" state=present
+
+- name: Add the sbt APT key
+  apt_key: keyserver="hkp://keyserver.ubuntu.com:80" id=642AC823
+
+- name: Install sbt
+  apt: name={{item}} state=present update_cache=yes
+  with_items:
+   - sbt
