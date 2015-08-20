@@ -17,5 +17,14 @@
 - name: Create kafka logs directory
   file: path=/var/log/kafka-logs state=directory
 
-- name: Start kafka
-  shell: sudo nohup /opt/kafka_2.11-0.8.2.1/bin/kafka-server-start.sh /opt/kafka_2.11-0.8.2.1/config/server.properties > /opt/kafka_2.11-0.8.2.1/kafka.log 2>&1 &
+- name: Kafka init.d script
+  template: src=kafka-script.j2 dest=/etc/init.d/kafka
+
+- name: File permission
+  shell: sudo chmod +x /etc/init.d/kafka
+
+- name: Restart kafka
+  service: name=kafka state=restarted
+
+#- name: Start kafka
+#  shell: sudo nohup /opt/kafka_2.11-0.8.2.1/bin/kafka-server-start.sh /opt/kafka_2.11-0.8.2.1/config/server.properties > /opt/kafka_2.11-0.8.2.1/kafka.log 2>&1 &
