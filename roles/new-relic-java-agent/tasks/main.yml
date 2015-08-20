@@ -1,0 +1,3 @@
+---
+- name: Download the new-relic-agent
+  get_url: http://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java-3.19.2.zip dest=/opt
