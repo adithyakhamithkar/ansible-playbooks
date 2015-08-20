@@ -1,53 +1,97 @@
 #Project Ansible
 ##Index
-+ List of Ansible scripts
-    - commission-new-server.yml
-    - elasticsearch-enable-shard.yml
-    - elasticsearch-health-check.yml
-    - install-elasticsearch-data.yml
-    - install-elasticsearch-master.yml
-    - install-jenkins.yml
-    - install-lemp.yml
-    - install-mongodb.yml
-    - install-mysql.yml
-    - install-new-relic-agent.yml
-    - install-nginx-php.yml
-    - install-nginx.yml
-    - install-php.yml
-    - install-sensu-client.yml
-    - install-sensu-master.yml
-    - install-tomcat.yml
-    - security-audit.yml
-    - set-mysqlpassword.yml
-    - update-motd.yml
-    - update-sensu-client-checks.yml
-    - update-sensu-master-checks.yml
-    - update-ssh-banner.yml
 + List of Roles
+    - agar
     - ansible
     - bittorrentsync
+    - cachethq
     - common
-    - deploy
+    - datadog-agent
+    - deployment-nginx
     - elasticsearch
     - elasticsearch-data
     - elasticsearch-master
     - glassfish
+    - hostname
     - jdk
     - jenkins
     - jenkins-configure
+    - mesos
+    - mesos-master
+    - mesos-slave
     - mongodb
     - motd
     - mysql
-    - new-relic-agent
+    - new-relic-php-agent
+    - new-relic-server-agent
     - nginx
     - nginx-jenkins
+    - nginx-load-balancer
     - nginx-sensu-master
+    - ntp
     - php
+    - postfix
+    - psad
     - rabbit-mq
     - redis
     - roles-template
+    - rootkit-scanners
+    - scala
     - sensu-client
     - sensu-client-checks
     - sensu-master
+    - solr
     - ssh-banner
+    - ssh-keys
+    - teamcity
+    - tiger
     - tomcat
+    - varnish
+    - youtrack
+    - zookeeper
+
+
++ List of Ansible scripts
+    - cleanup.yml - Runs a clean up of deb package manager
+    - commission-new-server.yml - Helps commission a new server by install common packages
+    - deploy-cachethq.yml - Deploys a cachethq application(currently not working)
+    - elasticsearch-enable-shard.yml - Enables share allocation for a ElasticSearch cluster
+    - elasticsearch-health-check.yml - ElasticSearch health check
+    - install-agar.yml - Install an agar.io server
+    - install-bittorrentsync.yml - Installs and configure bittorrentsync
+    - install-datadog.yml - Installs the datadog-agent
+    - install-elasticsearch-data.yml - Installs an ElasticSearch data node
+    - install-elasticsearch-master.yml - Installs an ElasticSearch master node
+    - install-glassfish.yml - Installs glassfish
+    - install-jenkins.yml - Install Jenkins
+    - install-kafka.yml - Installs Kafka
+    - install-lemp.yml - Installs a LEMP stack
+    - install-mesos-master.yml - Installs a mesos master node
+    - install-mesos-slave.yml - Installs a mesos slave node
+    - install-mongodb.yml - Installs a stand alone mongodb
+    - install-mysql.yml - Installs a mysql server
+    - install-new-relic-php-agent.yml - Install a new-relic-php-agent
+    - install-new-relic-server-agent - Installs a new-relic-server-agent
+    - install-nginx-load-balancer.yml - Installs and configures nginx as a load balancer
+    - install-nginx-php.yml - Installs nginx with php
+    - install-nginx.yml - Installs nginx
+    - install-ntp.yml - Install NTP
+    - install-php.yml - Installs php
+    - install-postfix.yml - Installs postfix
+    - install-psad.yml - Installs psad
+    - install-rootkit-scanner.yml - Installs rkhunter and chkrootkit
+    - install-security-updates.yml - Installs only security updates on ubuntu
+    - install-sensu-client.yml - Installs a sensu-client
+    - install-sensu-master.yml - Installs a sensu-master
+    - install-solr.yml - Installs Solr
+    - install-teamcity.yml - Installs teamcity
+    - install-tomcat.yml - Installs tomcat
+    - install-varnish.yml - Installs varnish
+    - install-youtrack.yml - Installs youtrack
+    - security-audit.yml - Runs several audit tools
+    - set-hostname.yml - Sets the hostname
+    - set-mysqlpassword.yml - Sets the mysql password
+    - update-motd.yml - Updates the MOTD
+    - update-sensu-client-checks.yml - Updates the sensu client checks
+    - update-ssh-banner.yml - Updates the SSH banner
+    - update-ssh-keys.yml - Updates the ssh-keys
