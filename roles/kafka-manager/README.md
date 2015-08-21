@@ -16,4 +16,4 @@ It supports the following :
 - Optionally enable JMX polling for broker level and topic level metrics.
 
 
-Compiled version of yahoo's (kafka-manager) [https://github.com/yahoo/kafka-manager]
+Compiled version of yahoo's [kafka-manager] (https://github.com/yahoo/kafka-manager)
