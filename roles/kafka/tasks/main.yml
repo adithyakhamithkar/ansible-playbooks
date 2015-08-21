@@ -17,6 +17,9 @@
 - name: Create kafka logs directory
   file: path=/var/log/kafka-logs state=directory
 
+- name: Configure logrotate for kafka
+  template: src=kafka-log.j2 dest=/etc/logrotate.d/kafka
+
 - name: Kafka init.d script
   template: src=kafka-script.j2 dest=/etc/init.d/kafka
 
