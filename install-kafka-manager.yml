@@ -1,0 +1,10 @@
+#
+#About: This will install kafka
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  #- jdk
+  #- scala
+  - kafka-manager

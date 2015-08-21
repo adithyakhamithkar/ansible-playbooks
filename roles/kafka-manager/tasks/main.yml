@@ -1,0 +1,18 @@
+---
+- name: Copy Kafka-Manager
+  copy: src=kafka-manager-1.2.7.zip dest=/opt
+
+- name: Extract Kafka-Manager
+  unarchive: src=/opt/kafka-manager-1.2.7.zip dest=/opt copy=no
+
+- name: Copy application configuration
+  template: src=app.j2 dest=/opt/kafka-manager-1.2.7/conf/application.conf
+
+- name: Kafka-manager init.d script
+  template: src=kafka-manager.j2 dest=/etc/init.d/kafka-manager
+
+- name: File permission
+  shell: sudo chmod +x /etc/init.d/kafka-manager
+
+- name: Restart kafka
+  service: name=kafka-manager state=restarted
