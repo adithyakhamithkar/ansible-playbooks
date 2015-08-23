@@ -1,0 +1,11 @@
+#
+#About: This will install Nginx, Php for Phabricator
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - nginx
+  - php
+  - mysql
+  - phabricator

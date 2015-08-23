@@ -1,0 +1,30 @@
+---
+- name: Create Phabricator directory
+  file: path={{phabricator_directory}}/phabricator state=directory
+
+- name: clone libphutil
+  git: repo=https://github.com/phacility/libphutil.git dest={{phabricator_directory}}/phabricator/libphutil accept_hostkey=yes
+
+- name: Install arcanist
+  git: repo=https://github.com/phacility/arcanist.git dest={{phabricator_directory}}/phabricator/arcanist accept_hostkey=yes
+
+- name: Install phabricator
+  git: repo=https://github.com/phacility/phabricator.git dest={{phabricator_directory}}/phabricator/phabricator accept_hostkey=yes
+
+- name: Create a mysql_user for phabricator
+  mysql_user: name={{phabricator_user}} password={{phabricator_password}} priv=*.*:ALL,GRANT state=present
+
+- name: Set mysql db host
+  shell: sudo {{phabricator_directory}}/phabricator/phabricator/bin/config set mysql.host localhost
+
+- name: Set mysql db port
+  shell: sudo {{phabricator_directory}}/phabricator/phabricator/bin/config set mysql.port 3306
+
+- name: Set mysql db user
+  shell: sudo {{phabricator_directory}}/phabricator/phabricator/bin/config set mysql.user {{phabricator_user}}
+
+- name: Set mysql db password
+  shell: sudo {{phabricator_directory}}/phabricator/phabricator/bin/config set mysql.pass {{phabricator_password}}
+
+#- name: Storage upgrade
+#  shell: sudo {{phabricator_directory}}/phabricator/phabricator/bin/storage upgrade
