@@ -2,7 +2,7 @@ server
 {
   listen  80;
   #Uncomment the below line to force rediret to https
-  #rewrite ^ https://$http_host$request_uri? permanent;
+  rewrite ^ https://$http_host$request_uri? permanent;
 
 	# Change to your real subdomain, e.g. phabricator.mysite.com
 	server_name {{hostname}}.{{domain_name}};
