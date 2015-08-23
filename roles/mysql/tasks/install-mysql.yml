@@ -4,6 +4,7 @@
   with_items:
    - mysql-server
    - mysql-client
+   - python-mysqldb
   notify: Start mysql
 
 - name: Configure MySql
