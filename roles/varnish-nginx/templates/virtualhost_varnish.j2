@@ -1,0 +1,39 @@
+# Server Block for Virtual host start
+
+upstream app_server {
+    server 127.0.0.1:6081 fail_timeout=0;
+}
+
+server {
+        listen  80;
+        server_name {{hostname}}.{{domain_name}};
+        #Uncomment the below line to force rediret to https
+        rewrite ^ https://$http_host$request_uri? permanent;
+        location / {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+
+        if (!-f $request_filename) {
+            proxy_pass http://app_server;
+            break;
+          }
+        }
+        #Define custom error pages
+        error_page 404 /error-page-404.html;
+        location = /error-page-404.html {
+                root /usr/share/nginx/error_pages;
+                internal;
+        }
+        error_page 403 /error-page-403.html;
+        location = /error-page-403.html {
+                root /usr/share/nginx/error_pages;
+                internal;
+        }
+        error_page 500 502 503 504 /error-page-50x.html;
+        location = /error-page-50x.html {
+                root /usr/share/nginx/error_pages;
+                internal;
+        }
+}
+# Server Block for Virtual host end

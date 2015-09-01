@@ -1,0 +1,18 @@
+---
+- name: Stop Nginx
+  service: name=nginx state=stopped
+
+- name: Configure virtual host for varnish
+  template: src=virtualhost_varnish.j2 dest=/etc/nginx/sites-available/default
+
+- name: Configure Nginx virtualhost
+  template: src=virtualhost_varnish.j2 dest=/etc/nginx/sites-enabled/default
+
+- name: Configure Nginx virtualhost with SSL
+  template: src=virtualhost_ssl_varnish.j2 dest=/etc/nginx/sites-available/default-ssl
+
+- name: Configure Nginx virtualhost with SSL
+  template: src=virtualhost_ssl_varnish.j2 dest=/etc/nginx/sites-enabled/default-ssl
+
+- name: Start Nginx
+  service: name=nginx state=started
