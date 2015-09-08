@@ -1,0 +1,8 @@
+#
+#About: This will install salt-minion
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - salt-minion
