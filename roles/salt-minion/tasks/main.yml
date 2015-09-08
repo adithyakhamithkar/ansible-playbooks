@@ -2,7 +2,10 @@
 - name: Add the Salt source to the APT source list
   apt_repository: repo="deb http://www.rabbitmq.com/debian/ testing main" state=present
 
-- name: Install salt-master
+- name: Install salt-minion
   apt: name={{item}} state=present
   with_items:
    - salt-minion
+
+- name: Configure salt-minion
+  template: src=minion.j2 dest=/etc/salt/minion
