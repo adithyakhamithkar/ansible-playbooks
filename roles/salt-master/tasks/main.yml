@@ -1,0 +1,8 @@
+---
+- name: Add the Salt source to the APT source list
+  apt_repository: repo="deb http://www.rabbitmq.com/debian/ testing main" state=present
+
+- name: Install salt-master
+  apt: name={{item}} state=present
+  with_items:
+   - salt-master
