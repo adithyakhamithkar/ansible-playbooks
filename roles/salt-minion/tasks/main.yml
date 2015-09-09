@@ -1,6 +1,6 @@
 ---
 - name: Add the Salt source to the APT source list
-  apt_repository: repo="deb http://www.rabbitmq.com/debian/ testing main" state=present
+  apt_repository: repo="ppa:saltstack/salt" state=present
 
 - name: Install salt-minion
   apt: name={{item}} state=present
@@ -9,6 +9,9 @@
 
 - name: Configure salt-minion
   template: src=minion.j2 dest=/etc/salt/minion
+
+- name: Configure salt-minion hostname
+  template: src=minion_id.j2 dest=/etc/salt/minion_id
 
 - name: Create pki directory
   file: path=/etc/salt/pki/minion/ state=directory
