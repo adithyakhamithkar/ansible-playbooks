@@ -9,3 +9,15 @@
 
 - name: Configure salt-minion
   template: src=minion.j2 dest=/etc/salt/minion
+
+- name: Create pki directory
+  file: path=/etc/salt/pki state=directory
+
+- name: Copy pki keys
+  copy: src={{salt_pem}} dest=/etc/salt/pki/salt.pem
+
+- name: Copy pki keys
+  copy: src={{salt_pub}} dest=/etc/salt/pki/salt.pub
+
+- name: Restart salt-minion
+  service: name=salt-minion state=restarted
