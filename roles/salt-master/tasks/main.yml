@@ -11,10 +11,13 @@
   template: src=master.j2 dest=/etc/salt/master
 
 - name: Create pki directory
-  file: path=/etc/salt/pki state=directory
+  file: path=/etc/salt/pki/master/minions state=directory
 
-- name: Copy pki keys
-  copy: src={{salt_pem}} dest=/etc/salt/pki/salt.pem
+#- name: Copy pki keys
+#  copy: src={{salt_pem}} dest=/etc/salt/pki/master/minions/salt.pem
 
-- name: Copy pki keys
-  copy: src={{salt_pub}} dest=/etc/salt/pki/salt.pub
+#- name: Copy pki keys
+#  copy: src={{salt_pub}} dest=/etc/salt/pki/master/minions/salt.pub
+
+- name: Restart salt-master
+  service: name=salt-master state=restarted
