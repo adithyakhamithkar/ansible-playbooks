@@ -1,0 +1,24 @@
+---
+- name: Install ldap
+  apt: name={{item}} state=present
+  with_items:
+   - slapd
+   - ldap-utils
+
+- name: Create SSL directory for ldap
+  file: path=/etc/ldap/ssl/certs state=directory
+
+- name: Copy cert.pem
+  copy: src={{sensu_ssl_crt_file}} dest=/etc/ldap/ssl/certs/ssl_crt.pem
+
+- name: Copy key.pem
+  copy: src={{sensu_ssl_key_file}} dest=/etc/ldap/ssl/certs/ssl_key.pem
+
+- name: Stop ldap
+  service: name=slapd state=stopped
+
+- name: Configure ldap
+  template: src=ldap.j2 dest=/etc/ldap/ldap.conf
+
+- name: Restart ldap
+  service: name=slapd state=restarted
