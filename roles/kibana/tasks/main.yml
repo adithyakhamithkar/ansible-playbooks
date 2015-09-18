@@ -1,0 +1,18 @@
+---
+- name: Download Kibana
+  get_url: url={{kibana_url}} dest=/opt
+
+- name: Extract Kibana
+  unarchive: src=/opt/kibana-4.1.2-linux-x64.tar.gz dest=/opt copy=no
+
+- name: Configure Kibana
+  template: src=kibana.j2 dest=/opt/kibana-4.1.2-linux-x64/config/kibana.yml
+
+- name: Configure Kibana
+  template: src=kibana_service.j2 dest=/etc/init.d/kibana
+
+- name: Chmod +x
+  shell: sudo chmod +x /etc/init.d/kibana
+
+- name: Start Kibana
+  service: name=kibana state=restarted
