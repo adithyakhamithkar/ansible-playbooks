@@ -14,5 +14,8 @@
 - name: Chmod +x
   shell: sudo chmod +x /etc/init.d/kibana
 
+- name: Put Kibana on startup
+  shell: sudo update-rc.d kibana defaults 96 9
+
 - name: Start Kibana
   service: name=kibana state=restarted
