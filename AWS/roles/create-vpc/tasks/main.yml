@@ -1,0 +1,29 @@
+---
+ec2_vpc:
+  state: present
+  cidr_block: {{cidr_block}}
+  resource_tags: {{resource_tags}}
+  subnets:
+    - cidr: {{cidr_web}}
+      az: {{az_web}}
+      resource_tags: {{resource_tags_web}}
+          #- cidr: 172.22.2.0/24
+          #  az: us-west-2b
+          #  resource_tags: { "Environment":"Dev", "Tier" : "App" }
+          #- cidr: 172.22.3.0/24
+          #  az: us-west-2a
+          #  resource_tags: { "Environment":"Dev", "Tier" : "DB" }
+      internet_gateway: True
+      route_tables:
+      - subnets:
+          - {{cidr_web}}
+          #- 172.22.3.0/24
+      - routes:
+          - dest: 0.0.0.0/0
+            gw: igw
+          #- subnets:
+          #    - 172.22.1.0/24
+          #  routes:
+          #    - dest: 0.0.0.0/0
+          #      gw: igw
+  region: us-west-2

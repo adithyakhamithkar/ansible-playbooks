@@ -1,8 +1,0 @@
-#
-#About: This will install solr
-#
----
-- hosts: '{{inventory}}'
-  sudo: yes
-  roles:
-  - create-vpc
