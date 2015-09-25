@@ -1,10 +1,16 @@
 ---
 ec2_vpc:
   state: present
-  cidr_block: {{cidr_block}}
-  resource_tags: {{resource_tags}}
+  cidr_block: name={{item}}
+  with_items:
+  - "{{cidr_block}}"
+  resource_tags: name={{item}}
+  with_items:
+  - "{{resource_tags}}"
   subnets:
-    - cidr: {{cidr_web}}
+      cidr: name={{item}}
+      with_items:
+      - {{cidr_web}}
       az: {{az_web}}
       resource_tags: {{resource_tags_web}}
           #- cidr: 172.22.2.0/24
@@ -15,10 +21,10 @@ ec2_vpc:
           #  resource_tags: { "Environment":"Dev", "Tier" : "DB" }
       internet_gateway: True
       route_tables:
-      - subnets:
+        - subnets:
           - {{cidr_web}}
           #- 172.22.3.0/24
-      - routes:
+        - routes:
           - dest: 0.0.0.0/0
             gw: igw
           #- subnets:
@@ -26,4 +32,4 @@ ec2_vpc:
           #  routes:
           #    - dest: 0.0.0.0/0
           #      gw: igw
-  region: us-west-2
+      region: us-west-2

@@ -2,7 +2,7 @@
 #This will update sensu checks on all servers.
 #
 ---
-- hosts: all
+- hosts: '{{inventory}}'
   sudo: yes
   roles:
   - sensu-client-checks

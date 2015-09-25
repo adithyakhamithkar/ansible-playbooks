@@ -2,7 +2,7 @@
 #This will update motd on all server, This can be used to broadcast important information
 #
 ---
-- hosts: all
+- hosts: '{{inventory}}'
   sudo: yes
   roles:
   - motd

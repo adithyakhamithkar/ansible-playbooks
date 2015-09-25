@@ -1,0 +1,152 @@
+---
+# Based on the documentation found at:
+# http://docs.ansible.com/ec2_vpc_module.html
+- name: "Provision VPC in {{ aws_region }}"
+  local_action:
+        module: ec2_vpc
+        state: present
+        cidr_block: 10.1.0.0/16
+        subnets:
+                - cidr: 10.1.1.0/24
+                  az: "{{ aws_zone1 }}"
+                - cidr: 10.1.2.0/24
+                  az: "{{ aws_zone2 }}"
+        internet_gateway: True
+        route_tables:
+                - subnets:
+                        - 10.1.1.0/24
+                        - 10.1.2.0/24
+                  routes:
+                        - dest: 0.0.0.0/0
+                          gw: igw
+        region: "{{ aws_region }}"
+        wait: yes # Important if you're going to deploy into it now!
+  register: vpc
+
+- name: Provision ec2 security group
+  local_action:
+        module: ec2_group
+        state: present
+        name: ansibleDeployedDefault
+        description: "Default ansible security group - ssh,http"
+        vpc_id: "{{ vpc.vpc_id }}"
+        region: "{{ aws_region }}"
+        rules:
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+
+- name: Provision ec2 rds security group
+  local_action:
+        module: ec2_group
+        state: present
+        name: ansibleRDSDefault
+        description: "Default ansible security group - postgres"
+        vpc_id: "{{ vpc.vpc_id }}"
+        region: "{{ aws_region }}"
+        rules:
+          - proto: udp
+            from_port: 5432
+            to_port: 5432
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 5432
+            to_port: 5432
+            cidr_ip: 0.0.0.0/0
+  register: rdsvpc
+
+- name: Provision EC2 instances - zone 1
+  local_action:
+        module: ec2
+        state: present
+        id: "{{ aws_region }}.{{ aws_instanceType }}.01"
+        region: "{{ aws_region }}"
+        keypair: "{{ aws_keypair }}"
+        group: ansibleDeployedDefault
+        instance_type: "{{ aws_instanceType }}"
+        image: "{{ aws_image }}"
+        count: 1
+        vpc_subnet_id: "{{ vpc.subnets[0].id }}"
+        assign_public_ip: True
+        wait: yes
+  register: ec2_instances_zone1
+
+- name: Provision EC2 instances - zone 2
+  local_action:
+        module: ec2
+        state: present
+        id: "{{ aws_region }}.{{ aws_instanceType }}.02"
+        region: "{{ aws_region }}"
+        keypair: "{{ aws_keypair }}"
+        group: ansibleDeployedDefault
+        instance_type: "{{ aws_instanceType }}"
+        image: "{{ aws_image }}"
+        count: 1
+        vpc_subnet_id: "{{ vpc.subnets[1].id }}"
+        assign_public_ip: True
+        wait: yes
+  register: ec2_instances_zone2
+
+
+- name: Add new zone 1 instances to host group
+  local_action: add_host hostname="{{ item.public_ip }}" groupname=launched
+  with_items: ec2_instances_zone1.instances
+
+- name: Add zone new 2 instances to host group
+  local_action: add_host hostname="{{ item.public_ip }}" groupname=launched
+  with_items: ec2_instances_zone2.instances
+
+- name: Provision RDS
+  local_action:
+        module: rds
+        command: create
+        region: "{{ aws_region }}"
+        multi_zone: yes
+        subnet: "{{ aws_db_subnetgroup }}"
+        vpc_security_groups: "{{ rdsvpc.group_id }}"
+        instance_name: "{{ aws_db_name }}"
+        db_engine: "{{ aws_db_engine }}"
+        size: "{{ aws_db_size }}"
+        instance_type: "{{ aws_db_instanceType }}"
+        username: "{{ aws_db_username }}"
+        password: "{{ aws_db_password }}"
+  register: rds
+
+- name: Provision LB
+  local_action:
+    module: ec2_elb_lb
+    name: DemoLB
+    state: present
+    region: "{{ aws_region }}"
+    zones:
+        - "{{ aws_zone1 }}"
+        - "{{ aws_zone2 }}"
+    listeners:
+      - protocol: http # options are http, https, ssl, tcp
+        load_balancer_port: 80
+        instance_port: 80
+    health_check:
+        ping_protocol: http # options are http, https, ssl, tcp
+        ping_port: 80
+        ping_path: "/index.html" # not required for tcp or ssl
+        response_timeout: 5 # seconds
+        interval: 30 # seconds
+        unhealthy_threshold: 2
+        healthy_threshold: 10
+
+- name: Add instances to ELB
+  local_action:
+        module: ec2_elb
+        state: present
+        region: "{{ aws_region }}"
+        instance_id: "{{ item }}"
+        ec2_elbs: DemoLB
+        wait: False
+  with_flattened:
+        - ec2_instances_zone1.instance_ids
+        - ec2_instances_zone2.instance_ids

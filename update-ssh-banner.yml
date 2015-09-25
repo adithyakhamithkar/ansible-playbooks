@@ -2,7 +2,7 @@
 #This will update ssh banner on all server.
 #
 ---
-- hosts: all
+- hosts: '{{inventory}}'
   sudo: yes
   roles:
   - ssh-banner
