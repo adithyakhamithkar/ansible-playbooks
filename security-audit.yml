@@ -6,7 +6,7 @@
 ---
 - hosts: '{{inventory}}'
   sudo: yes
-
+  
   tasks:
   - name: Update the signature file
     shell: sudo psad --sig-update
