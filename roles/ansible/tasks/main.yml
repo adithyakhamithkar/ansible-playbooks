@@ -12,3 +12,8 @@
   apt: name={{item}} state=present
   with_items:
   - ansible
+
+- name: Install pip modules
+  pip: name={{item}} state=present
+  with_items:
+  - boto
