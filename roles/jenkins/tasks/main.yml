@@ -19,3 +19,6 @@
   apt: name={{item}} state=present update_cache=yes
   with_items:
   - jenkins
+
+- name: Configure Jenkins
+  template: src=jenkins.j2 dest=/etc/default/jenkins

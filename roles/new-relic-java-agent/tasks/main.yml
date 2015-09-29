@@ -1,3 +1,12 @@
 ---
 - name: Download the new-relic-agent
-  get_url: http://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java-3.19.2.zip dest=/opt
+  get_url: url={{new_relic_java_agent_url}} dest={{java_app}}
+
+- name: Extract newrelic-java-3
+  unarchive: src={{java_app}}/{{new_relic_java_agent_version}} dest={{java_app}} copy=no
+
+- name: Configure newrelic-java-3
+  template: src=newrelic_java.j2 dest={{java_app}}/newrelic/newrelic.yml
+
+#- name: Install newrelic-java-3
+#  shell: sudo java -jar {{java_app}}/newrelic/newrelic.jar
