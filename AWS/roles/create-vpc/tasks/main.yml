@@ -11,7 +11,9 @@ ec2_vpc:
       cidr: name={{item}}
       with_items:
       - {{cidr_web}}
-      az: {{az_web}}
+      az: name={{item}}
+      with_items:
+      - {{az_web}}
       resource_tags: {{resource_tags_web}}
           #- cidr: 172.22.2.0/24
           #  az: us-west-2b
@@ -21,8 +23,7 @@ ec2_vpc:
           #  resource_tags: { "Environment":"Dev", "Tier" : "DB" }
       internet_gateway: True
       route_tables:
-        - subnets:
-          - {{cidr_web}}
+        - subnets: name {{cidr_web}}
           #- 172.22.3.0/24
         - routes:
           - dest: 0.0.0.0/0
