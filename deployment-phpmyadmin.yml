@@ -1,0 +1,9 @@
+#
+#About: This will deploy on nginx using a git repo
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  serial: '{{serial}}'
+  roles:
+  - deployment-phpmyadmin

@@ -1,0 +1,52 @@
+---
+- name: Gather ec2 facts
+  ec2_facts:
+  when: dc_env == "aws"
+
+- name: Remove instance from ELB
+  local_action:
+    module: ec2_elb
+    instance_id: "{{ansible_ec2_instance_id}}"
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+    region: "{{ansible_ec2_placement_region}}"
+    state: absent
+  when: dc_env == "aws"
+
+- name: Download phpmyadmin
+  get_url: url={{phpmyadmin_url}} dest=/opt validate_certs=False
+
+- name: Extract phpmyadmin
+  unarchive: src=/opt/{{phpmyadmin_version}}.zip dest=/opt copy=no
+
+- name: Stop Nginx
+  service: name=nginx state=stopped
+
+- name: Configure Nginx virtualhost
+  template: src=virtualhost_phpmyadmin.j2 dest=/etc/nginx/sites-available/virtualhost_phpmyadmin
+
+- name: Configure Nginx virtualhost
+  template: src=virtualhost_phpmyadmin.j2 dest=/etc/nginx/sites-enabled/virtualhost_phpmyadmin
+
+- name: Configure Nginx virtualhost with SSL
+  template: src=virtualhost_phpmyadmin_ssl.j2 dest=/etc/nginx/sites-available/virtualhost_phpmyadmin-ssl
+
+- name: Configure Nginx virtualhost with SSL
+  template: src=virtualhost_phpmyadmin_ssl.j2 dest=/etc/nginx/sites-enabled/virtualhost_phpmyadmin-ssl
+
+- name: Start Nginx
+  service: name=nginx state=started
+
+- name: Attach instance from ELB
+  local_action:
+    module: ec2_elb
+    instance_id: "{{ansible_ec2_instance_id}}"
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+    region: "{{ansible_ec2_placement_region}}"
+    ec2_elbs: "{{item}}"
+    wait: yes
+    wait_timeout: 60
+    state: present
+  when: dc_env == "aws"
+  with_items: ec2_elbs
