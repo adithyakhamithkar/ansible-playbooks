@@ -1,0 +1,3 @@
+---
+- name: Dump Database
+  mysql_db: name={{database_name}} login_host={{hostname}} login_user={{mysql_user}} login_password={{mysql_password}} state=dump target=/tmp/{{database_name}}.sql.gz

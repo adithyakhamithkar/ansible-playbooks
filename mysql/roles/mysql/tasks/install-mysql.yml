@@ -1,0 +1,12 @@
+---
+- name: Install MySql
+  apt: name={{item}} state=present
+  with_items:
+   - mysql-server
+   - mysql-client
+   - python-mysqldb
+  notify: Start mysql
+
+- name: Configure MySql
+  template: src=my.j2 dest=/etc/mysql/my.cnf
+  notify: Restart mysql
