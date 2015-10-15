@@ -1,7 +1,8 @@
 Objective: To transfer one database from one server to another.
 By running the shell script mysql-db-transfer.sh we can take the dump of the database, transfer and import the dump on another server.
 The shell script in turn will execute ansible playbooks defined below.
-Taking this further we can execute the shell script from jenkins and pass the parameters to make it more user friendly and extend.  
+Taking this further we can execute the shell script from jenkins and pass the parameters to make it more user friendly and extend.
+```  
 .
 ├── README.md                                       - You are here
 ├── install-mysql.yml                               - This is a playbook to install mysql
@@ -58,3 +59,4 @@ Taking this further we can execute the shell script from jenkins and pass the pa
 │       └── templates
 ├── scripts
 └── set-mysqlpassword.yml                         - This playbook will set the mysql root password
+```
