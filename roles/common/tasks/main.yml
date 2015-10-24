@@ -5,6 +5,5 @@
 
 - name: Update cache
   apt: update_cache=yes
-
-- include: hosts.yml
+  
 - include: install-misc.yml
