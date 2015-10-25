@@ -8,29 +8,27 @@
     aws_secret_key: "{{aws_secret_key}}"
     tags: { "Name":"{{hostname}}", "ansible_groups":"{{group_names|join(',')}}" }
 
-#- name: Update aws server name tags
-#  ec2_tag: resource="{{ansible_ec2_instance_id}}" state=present region="{{region}}" aws_access_key="{{aws_access_key}}" aws_secret_key="{{aws_secret_key}}"
-#  args:
-#    tags:
-#      Name: "{{hostname}}"
-#      ansible_groups: "{{group_names}}"
+#- name: list the volumes for the instance
+#  ec2_vol:
+#    instance: "{{ansible_ec2_instance_id}}"
+#    region: "{{aws_region}}"
+#    state: list
+#    aws_access_key: "{{aws_access_key}}"
+#    aws_secret_key: "{{aws_secret_key}}"
+#  with_items: ec2.tagged_instances
+#  register: ec2_vol
 
-#- name: Update aws server name tags
-#  local_action: ec2_tag resource="{{ansible_ec2_instance_id}}" state=present region="{{region}}" aws_access_key="{{aws_access_key}}" aws_secret_key="{{aws_secret_key}}"
-#  args:
-#    tags:
-#      Name: "{{hostname}}"
-#      ansible_groups: "{{group_names}}"
+#- name: Display list of volumes
+#  debug: ec2_vol.stdout_lines
 
-#- name: Get attached volumes
-#  local_action: shell ec2-describe-volumes --aws-access-key aws_access_key="{{aws_access_key}}" aws_secret_key="{{aws_secret_key}}" --region="{{region}}" --filter "attachment.instance-id={{ansible_ec2_instance_id}}" | grep "ATTACHMENT" | awk '{print $2}' | head -6
-#  register: ec2_vol_list
-#  tags:
-#    - add_tag_volume
-
-#- name: Tag volumes
-#  local_action: ec2_tag resource={{item}} state=present region="{{region}}" aws_access_key="{{aws_access_key}}" aws_secret_key="{{aws_secret_key}}"
-#  args:
-#    tags:
-#      Name: "{{hostname}}"
-#  with_items: ec2_vol_list.stdout_lines
+#- name: tag the volumes
+#  ec2_tag:
+#    region: "{{aws_region}}"
+#    resource: "{{items}}"
+#    state: present
+#    aws_access_key: "{{aws_access_key}}"
+#    aws_secret_key: "{{aws_secret_key}}"
+#    tags: { "Name":"{{hostname}}", "ansible_groups":"{{group_names|join(',')}}" }
+#  with_subelements:
+#    - ec2_vol.results
+#    - volumes
