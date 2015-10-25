@@ -31,5 +31,5 @@
           #  routes:
           #    - dest: 0.0.0.0/0
           #      gw: igw
-        region: us-west-2
+        region: "{{aws_region}}"
         wait: yes

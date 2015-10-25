@@ -2,7 +2,7 @@
 ```
 ##Environment variables
 vpc_name : Staging-VPC
-region : us-west-2
+aws_region : us-west-2
 resource_tags : { "Name":"Staging-VPC" }
 cidr_block : 10.0.0.0/16
 #Subnet-web
