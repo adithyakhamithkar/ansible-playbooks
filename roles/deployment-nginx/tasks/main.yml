@@ -4,8 +4,7 @@
   when: dc_env == "aws"
 
 - name: Remove instance from ELB
-  local_action:
-    module: ec2_elb
+  ec2_elb:
     instance_id: "{{ansible_ec2_instance_id}}"
     aws_access_key: "{{aws_access_key}}"
     aws_secret_key: "{{aws_secret_key}}"
@@ -38,8 +37,7 @@
   service: name=nginx state=started
 
 - name: Attach instance from ELB
-  local_action:
-    module: ec2_elb
+  ec2_elb:
     instance_id: "{{ansible_ec2_instance_id}}"
     aws_access_key: "{{aws_access_key}}"
     aws_secret_key: "{{aws_secret_key}}"
