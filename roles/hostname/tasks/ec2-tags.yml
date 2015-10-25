@@ -1,15 +1,12 @@
 ---
 - name: Tag a resource
-  local_action:
-    module: ec2_tag
-    region: "{{region}}"
+  ec2_tag:
+    region: "{{aws_region}}"
     resource: "{{ansible_ec2_instance_id}}"
     state: present
     aws_access_key: "{{aws_access_key}}"
     aws_secret_key: "{{aws_secret_key}}"
-    tags:
-      Name: "{{hostname}}"
-      ansible_groups: "{{group_names}}"
+    tags: { "Name":"{{hostname}}", "ansible_groups":"{{group_names|join(',')}}" }
 
 #- name: Update aws server name tags
 #  ec2_tag: resource="{{ansible_ec2_instance_id}}" state=present region="{{region}}" aws_access_key="{{aws_access_key}}" aws_secret_key="{{aws_secret_key}}"
