@@ -4,7 +4,8 @@
   when: dc_env == "aws"
 
 - name: Remove instance from ELB
-  ec2_elb:
+  local_action:
+    module: ec2_elb
     instance_id: "{{ansible_ec2_instance_id}}"
     aws_access_key: "{{aws_access_key}}"
     aws_secret_key: "{{aws_secret_key}}"
@@ -16,7 +17,7 @@
   service: name=nginx state=stopped
 
 - name: Deploy
-  git: repo={{project_repo}} dest={{project_doc_root}} accept_hostkey=yes
+  git: repo={{project_repo}} dest={{project_doc_root}} accept_hostkey=yes force=yes
 
 #- name: Update deployment_info
 #  template: src=deployment_info.j2 dest=/usr/share/nginx/deployment_info/deployment_info.json
@@ -37,7 +38,8 @@
   service: name=nginx state=started
 
 - name: Attach instance from ELB
-  ec2_elb:
+  local_action:
+    module: ec2_elb
     instance_id: "{{ansible_ec2_instance_id}}"
     aws_access_key: "{{aws_access_key}}"
     aws_secret_key: "{{aws_secret_key}}"

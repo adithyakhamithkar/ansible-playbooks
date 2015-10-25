@@ -9,27 +9,19 @@
         dns_hostnames: yes
         dns_support: yes
         subnets:
-          - cidr: "{{cidr_web}}"
-            az: "{{az_web}}"
-            resource_tags: "{{resource_tags_web_us_west_2c}}"
-          #- cidr: 172.22.2.0/24
-          #  az: us-west-2b
-          #  resource_tags: { "Environment":"Dev", "Tier" : "App" }
-          #- cidr: 172.22.3.0/24
-          #  az: us-west-2a
-          #  resource_tags: { "Environment":"Dev", "Tier" : "DB" }
+          - cidr: "{{cidr_web_1}}"
+            az: "{{az_web_1}}"
+            resource_tags: "{{resource_tags_web_1}}"
+          - cidr: "{{cidr_web_2}}"
+            az: "{{az_web_2}}"
+            resource_tags: "{{resource_tags_web_2}}"
         internet_gateway: True
         route_tables:
           - subnets:
-              - "{{cidr_web}}"
-              #- 172.22.3.0/24
+              - "{{cidr_web_1}}"
+              - "{{cidr_web_2}}"
             routes:
               - dest: 0.0.0.0/0
                 gw: igw
-          #- subnets:
-          #    - 172.22.1.0/24
-          #  routes:
-          #    - dest: 0.0.0.0/0
-          #      gw: igw
         region: "{{aws_region}}"
         wait: yes
