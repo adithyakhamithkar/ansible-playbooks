@@ -1,0 +1,23 @@
+---
+- name: Create ec2 security group
+  ec2_group:
+        state: present
+        aws_access_key: "{{aws_access_key}}"
+        aws_secret_key: "{{aws_secret_key}}"
+        name: "SG-Web"
+        description: "Web security group - ssh,http, https"
+        vpc_id: "{{vpc_id}}"
+        region: "{{aws_region}}"
+        rules:
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 443
+            to_port: 443
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0

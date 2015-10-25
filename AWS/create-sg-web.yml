@@ -1,0 +1,9 @@
+#
+#About: This will install solr
+#
+---
+- hosts: localhost
+  connection: local
+  gather_facts: True
+  roles:
+  - create-sg-web
