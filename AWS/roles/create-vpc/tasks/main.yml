@@ -1,36 +1,35 @@
 ---
-ec2_vpc:
-  state: present
-  cidr_block: name={{item}}
-  with_items:
-  - "{{cidr_block}}"
-  resource_tags: name={{item}}
-  with_items:
-  - "{{resource_tags}}"
-  subnets:
-      cidr: name={{item}}
-      with_items:
-      - {{cidr_web}}
-      az: name={{item}}
-      with_items:
-      - {{az_web}}
-      resource_tags: {{resource_tags_web}}
+- name: Create VPC
+  ec2_vpc:
+        state: present
+        aws_access_key: "{{aws_access_key}}"
+        aws_secret_key: "{{aws_secret_key}}"
+        cidr_block: "{{cidr_block}}"
+        resource_tags: "{{resource_tags}}"
+        dns_hostnames: yes
+        dns_support: yes
+        subnets:
+          - cidr: "{{cidr_web}}"
+            az: "{{az_web}}"
+            resource_tags: "{{resource_tags_web_us_west_2c}}"
           #- cidr: 172.22.2.0/24
           #  az: us-west-2b
           #  resource_tags: { "Environment":"Dev", "Tier" : "App" }
           #- cidr: 172.22.3.0/24
           #  az: us-west-2a
           #  resource_tags: { "Environment":"Dev", "Tier" : "DB" }
-      internet_gateway: True
-      route_tables:
-        - subnets: name {{cidr_web}}
-          #- 172.22.3.0/24
-        - routes:
-          - dest: 0.0.0.0/0
-            gw: igw
+        internet_gateway: True
+        route_tables:
+          - subnets:
+              - "{{cidr_web}}"
+              #- 172.22.3.0/24
+            routes:
+              - dest: 0.0.0.0/0
+                gw: igw
           #- subnets:
           #    - 172.22.1.0/24
           #  routes:
           #    - dest: 0.0.0.0/0
           #      gw: igw
-      region: us-west-2
+        region: us-west-2
+        wait: yes
