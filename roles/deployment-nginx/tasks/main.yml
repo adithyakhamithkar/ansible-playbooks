@@ -19,8 +19,8 @@
 - name: Deploy
   git: repo={{project_repo}} dest={{project_doc_root}} accept_hostkey=yes version={{branch_name}} force=yes
 
-#- name: Update deployment_info
-#  template: src=deployment_info.j2 dest=/usr/share/nginx/deployment_info/deployment_info.json
+- name: Update deployment_info
+  template: src=deployment_info.j2 dest=/usr/share/nginx/deployment_info/deployment_info.json
 
 - name: Configure Nginx virtualhost
   template: src=virtualhost.j2 dest=/etc/nginx/sites-available/default
