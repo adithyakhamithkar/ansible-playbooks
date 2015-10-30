@@ -1,0 +1,8 @@
+#
+#About: This will install logstash
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - logstash-forwarder
