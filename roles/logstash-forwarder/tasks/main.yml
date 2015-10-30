@@ -9,3 +9,9 @@
   apt: name={{item}} state=present force=yes
   with_items:
   - logstash-forwarder
+
+- name: Configure logstash-forwarder
+  template: src=logstash_forwarder.j2 dest=/etc/logstash-forwarder.conf
+
+- name: Restart logstash-forwarder
+  service: name=logstash-forwarder state=restarted

@@ -1,18 +1,29 @@
 ---
-- name: Download Kibana
-  get_url: url={{kibana_url}} dest=/opt
+- name: Add the elasticsearch APT repository key
+  apt_key: url=https://packages.elasticsearch.org/GPG-KEY-elasticsearch state=present
 
-- name: Extract Kibana
-  unarchive: src=/opt/kibana-4.1.2-linux-x64.tar.gz dest=/opt copy=no
+- name: Add the Kibana APT repository
+  apt_repository: repo="deb http://packages.elastic.co/kibana/4.1/debian stable main" state=present
+
+- name: Install kibana
+  apt: name={{item}} state=present force=yes
+  with_items:
+  - kibana
+
+#- name: Download Kibana
+#  get_url: url={{kibana_url}} dest=/opt
+
+#- name: Extract Kibana
+#  unarchive: src=/opt/kibana-4.1.2-linux-x64.tar.gz dest=/opt copy=no
 
 - name: Configure Kibana
-  template: src=kibana.j2 dest=/opt/kibana-4.1.2-linux-x64/config/kibana.yml
+  template: src=kibana.j2 dest=/opt/kibana/config/kibana.yml
 
-- name: Configure Kibana
-  template: src=kibana_service.j2 dest=/etc/init.d/kibana
-
-- name: Chmod +x
-  shell: sudo chmod +x /etc/init.d/kibana
+#- name: Configure Kibana
+#  template: src=kibana_service.j2 dest=/etc/init.d/kibana
+#
+#- name: Chmod +x
+#  shell: sudo chmod +x /etc/init.d/kibana
 
 - name: Put Kibana on startup
   shell: sudo update-rc.d kibana defaults 96 9
