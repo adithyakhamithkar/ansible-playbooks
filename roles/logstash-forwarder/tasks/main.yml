@@ -1,0 +1,11 @@
+---
+- name: Add the elasticsearch APT repository key
+  apt_key: url=https://packages.elasticsearch.org/GPG-KEY-elasticsearch state=present
+
+- name: Add the logstash-forwarder APT repository
+  apt_repository: repo="deb http://packages.elastic.co/logstashforwarder/debian stable main" state=present
+
+- name: Install logstash-forwarder
+  apt: name={{item}} state=present force=yes
+  with_items:
+  - logstash-forwarder
