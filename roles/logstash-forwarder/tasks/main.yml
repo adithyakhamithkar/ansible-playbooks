@@ -10,6 +10,15 @@
   with_items:
   - logstash-forwarder
 
+- name: Create SSL directory for postfix
+  file: path=/etc/pki/tls/certs state=directory
+
+- name: Copy logstash-forwarder.crt
+  template: src=logstash_forwarder_crt.j2 dest=/etc/pki/tls/certs/logstash-forwarder.crt
+
+- name: Copy logstash-forwarder.key
+  template: src=logstash_forwarder_key.j2 dest=/etc/pki/tls/certs/logstash-forwarder.key
+
 - name: Configure logstash-forwarder
   template: src=logstash_forwarder.j2 dest=/etc/logstash-forwarder.conf
 

@@ -9,3 +9,24 @@
   apt: name={{item}} state=present force=yes
   with_items:
   - logstash
+
+- name: Create SSL directory for postfix
+  file: path=/etc/pki/tls/certs state=directory
+
+- name: Copy logstash-forwarder.crt
+  template: src=logstash_forwarder_crt.j2 dest=/etc/pki/tls/certs/logstash-forwarder.crt
+
+- name: Copy logstash-forwarder.key
+  template: src=logstash_forwarder_key.j2 dest=/etc/pki/tls/certs/logstash-forwarder.key
+
+- name: Configure logstash
+  template: src=01-lumberjack-input.j2 dest=/etc/logstash/conf.d/01-lumberjack-input.conf
+
+- name: Configure logstash
+  template: src=10-syslog.j2 dest=/etc/logstash/conf.d/10-syslog.conf
+
+- name: Configure logstash
+  template: src=30-lumberjack-output.j2 dest=/etc/logstash/conf.d/30-lumberjack-output.conf
+
+- name: Restart logstash
+  service: name=logstash state=restarted

@@ -4,27 +4,34 @@
     # A list of downstream servers listening for our messages.
     # logstash-forwarder will pick one at random and only switch if
     # the selected one appears to be dead or unresponsive
-    #"servers": [ "localhost:5043" ],
+    "servers": [ "{{logstash_server}}" ],
 
     # The path to your client ssl certificate (optional)
-    #"ssl certificate": "./logstash-forwarder.crt",
+    "ssl certificate": "/etc/pki/tls/certs/logstash-forwarder.crt",
     # The path to your client ssl key (optional)
-    #"ssl key": "./logstash-forwarder.key",
+    "ssl key": "/etc/pki/tls/certs/logstash-forwarder.key",
 
     # The path to your trusted ssl CA file. This is used
     # to authenticate your downstream server.
-    #"ssl ca": "./logstash-forwarder.crt",
+    "ssl ca": "/etc/pki/tls/certs/logstash-forwarder.crt",
 
     # Network timeout in seconds. This is most important for
     # logstash-forwarder determining whether to stop waiting for an
     # acknowledgement from the downstream server. If an timeout is reached,
     # logstash-forwarder will assume the connection or server is bad and
     # will connect to a server chosen at random from the servers list.
-    #"timeout": 15
+    "timeout": 15
   },
 
   # The list of files configurations
   "files": [
+    {
+      "paths": [
+        "/var/log/syslog",
+        "/var/log/auth.log"
+        ],
+    "fields": { "type": "syslog" }
+    }
     # An array of hashes. Each hash tells what paths to watch and
     # what fields to annotate on events from those paths.
     #{
