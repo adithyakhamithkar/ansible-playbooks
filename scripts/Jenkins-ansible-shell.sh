@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "Starting..."
+echo "Starting Deployment..."
 
 if [ "$HOST_NAME" == "" ]
 then
@@ -8,13 +8,13 @@ then
 fi
 
 
-cp install-lemp.yml install-lemp-$JOB_NAME-$BUILD_NUMBER.yml
+cp deployment-nginx.yml deployment-nginx-$JOB_NAME-$BUILD_NUMBER.yml
 
-echo "Installing Nginx on $HOST_NAME"
-ansible-playbook -i hosts-template install-lemp-$JOB_NAME-$BUILD_NUMBER.yml --extra-vars "inventory=$HOST_NAME" -v || true
-if [ -f /root/install-lemp-$JOB_NAME-$BUILD_NUMBER.retry ]
+echo "Deploying on $HOST_NAME"
+sudo ansible-playbook -i inventory/estateace-staging/hosts deployment-nginx-$JOB_NAME-$BUILD_NUMBER.yml -e "inventory=$HOST_NAME serial=$SERIAL" -vvvv || true
+if [ -f /root/deployment-nginx-$JOB_NAME-$BUILD_NUMBER.retry ]
 then
-        echo "Installation failed on $Inventory"
-        cat /root/install-lemp-$JOB_NAME-$BUILD_NUMBERretry
+        echo "Deployment failed on $HOST_NAME"
+        cat ~/install-lemp-$JOB_NAME-$BUILD_NUMBERretry
         exit 1
 fi
