@@ -30,7 +30,19 @@
         "/var/log/syslog",
         "/var/log/auth.log"
         ],
-    "fields": { "type": "syslog" }
+    "fields": { "type": "syslogs" }
+    },
+    {
+      "paths": [
+        "/var/log/auth.log"
+        ],
+    "fields": { "type": "authlog" }
+    },
+    {
+      "paths": [
+        "/var/log/elasticsearch/elasticsearch.log"
+        ],
+    "fields": { "type": "eslog" }
     }
     # An array of hashes. Each hash tells what paths to watch and
     # what fields to annotate on events from those paths.

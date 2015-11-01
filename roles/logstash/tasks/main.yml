@@ -20,13 +20,14 @@
   template: src=logstash_forwarder_key.j2 dest=/etc/pki/tls/certs/logstash-forwarder.key
 
 - name: Configure logstash
-  template: src=01-lumberjack-input.j2 dest=/etc/logstash/conf.d/logstash.conf
+  template: src=logstash.j2 dest=/etc/logstash/conf.d/logstash.conf
 
 - name: Configure openssl.conf
   template: src=openssl.j2 dest=/etc/ssl/openssl.cnf
 
-#- name: Configure logstash
-#  template: src=30-lumberjack-output.j2 dest=/etc/logstash/conf.d/30-lumberjack-output.conf
-
 - name: Restart logstash
   service: name=logstash state=restarted
+
+- name: Set logstash to start up by default
+  shell: sudo update-rc.d logstash defaults 95 10
+  changed_when: false

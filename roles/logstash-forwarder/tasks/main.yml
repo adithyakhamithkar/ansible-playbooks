@@ -24,3 +24,7 @@
 
 - name: Restart logstash-forwarder
   service: name=logstash-forwarder state=restarted
+
+- name: Set logstash-forwarder to start up by default
+  shell: sudo update-rc.d logstash-forwarder defaults 95 10
+  changed_when: false
