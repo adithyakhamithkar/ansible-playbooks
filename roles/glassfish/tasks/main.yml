@@ -5,6 +5,9 @@
 - name: Add a glassfish user
   user: name=glassfish shell=/bin/bash groups=glassfish
 
+- name: Create glassfish logs directory
+  file: path=/var/log/glassfish state=directory
+
 - name: Download glassfish
   get_url: url={{glassfish_url}} dest=/opt
 
@@ -26,15 +29,31 @@
   ignore_errors: True
 
 - name: update-rc
-  shell: sudo update-rc.d -f glassfish enable
+  shell: sudo update-rc.d glassfish defaults 95 10
+  changed_when: false
+
+- name: Start Glassfish
+  shell: sudo /etc/init.d/glassfish start
+
+- name: Wait for Glassfish to start
+  wait_for: port=8080 delay=10
 
 - name: Get rid of http header field value "server" (Glassfish obfuscation)
   shell: sudo /opt/glassfish4/bin/asadmin create-jvm-options -Dproduct.name=""
+  ignore_errors: True
 
 #disable sending x-powered-by in http header (Glassfish obfuscation)
 - shell: sudo /opt/glassfish4/bin/asadmin set server.network-config.protocols.protocol.http-listener-1.http.xpowered-by=false
-- shell: sudo /opt/glassfish4/bin/asadmin set server.network-config.protocols.protocol.http-listener-2.http.xpowered-by=false
-- shell: sudo /opt/glassfish4/bin/asadmin set server.network-config.protocols.protocol.admin-listener.http.xpowered-by=false
+  ignore_errors: True
 
-- name: Start glassfish
-  shell: sudo /etc/init.d/glassfish restart
+- shell: sudo /opt/glassfish4/bin/asadmin set server.network-config.protocols.protocol.http-listener-2.http.xpowered-by=false
+  ignore_errors: True
+
+- shell: sudo /opt/glassfish4/bin/asadmin set server.network-config.protocols.protocol.admin-listener.http.xpowered-by=false
+  ignore_errors: True
+
+- name: Restart glassfish
+  service: name=glassfish state=restarted
+
+- name: Wait for Glassfish to start
+  wait_for: port=8080 delay=10
