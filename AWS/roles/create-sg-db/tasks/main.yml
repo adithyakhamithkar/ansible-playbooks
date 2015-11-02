@@ -1,0 +1,15 @@
+---
+- name: Create ec2 security group
+  ec2_group:
+        state: present
+        aws_access_key: "{{aws_access_key}}"
+        aws_secret_key: "{{aws_secret_key}}"
+        name: "SG-DB"
+        description: "Database security group - MySql"
+        vpc_id: "{{vpc_id}}"
+        region: "{{aws_region}}"
+        rules:
+          - proto: tcp
+            from_port: 3306
+            to_port: 3306
+            cidr_ip: 0.0.0.0/0
