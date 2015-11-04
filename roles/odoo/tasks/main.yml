@@ -1,0 +1,16 @@
+---
+- name: Add the ODOO APT repository key
+  apt_key: url=https://nightly.odoo.com/odoo.key state=present validate_certs=False
+
+- name: Add the ODOO APT repository
+  apt_repository: repo="deb http://nightly.odoo.com/8.0/nightly/deb/ ./" state=present
+
+- name: Install ODOO
+  apt: name={{item}} state=present force=yes
+  with_items:
+  - odoo
+
+- name: Install support
+  pip: name={{item}} state=present
+  with_items:
+  - pysftp

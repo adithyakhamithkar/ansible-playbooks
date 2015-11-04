@@ -1,0 +1,8 @@
+#
+#About: This will install odoo
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - odoo
