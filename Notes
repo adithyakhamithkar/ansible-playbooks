@@ -8,7 +8,7 @@ dd if=/dev/zero of=/tmp/tempFiller.deleteMe bs=1M count=300000
 openssl s_client -connect localhost:443 -nextprotoneg ''
 
 #Create SSH key:
-ssh-keygen -t rsa -C "your_email@example.com"
+ssh-keygen -t rsa
 
 #Copy ssh keys
 mkdir .ssh && echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDoVR2N6/L0eiPxV3HZNwjDe298kvaXUX+wEOnGAKQ9bNHY57G0Y48nWwgcHx8glmR4KhZfyVtOlJpD2I3UsVf1lhM5Es01KGPxM7T3AfrqgplHl5K7tAtxy7Sss8A+DLjdzVrk/yzRIZu3cfbR/FeRKHejhuixN4YFpXzDbJU7auizv2ymd+c/jGTulKGP8d+Zdp/pEvq+oATrmP+CVNn65tKYJ77R/XsTjHnsoXvR1YPxerRwK6Ed1UIBbsQSkZjHxTk3OnuXbGPYN7zqccvGWUPiTS7n5V6ujRAjPReU89D6OFeEMP6Ci9gjGvgzZXLizmjk8oM5vdeUniLsmHBJ nkadithya31@gmail.com" >> .ssh/authorized_keys
