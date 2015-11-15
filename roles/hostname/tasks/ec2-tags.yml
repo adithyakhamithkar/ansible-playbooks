@@ -1,5 +1,5 @@
 ---
-- name: Tag a resource
+- name: Tag the hostname and ansible_groups
   ec2_tag:
     region: "{{aws_region}}"
     resource: "{{ansible_ec2_instance_id}}"
@@ -7,6 +7,26 @@
     aws_access_key: "{{aws_access_key}}"
     aws_secret_key: "{{aws_secret_key}}"
     tags: { "Name":"{{hostname}}", "ansible_groups":"{{group_names|join(',')}}" }
+
+- name: Tag the Service
+  ec2_tag:
+    region: "{{aws_region}}"
+    resource: "{{ansible_ec2_instance_id}}"
+    state: present
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+    tags: { "Service":"Tools" }
+  when: '"admin-tools" in group_names'
+
+- name: Tag the Service
+  ec2_tag:
+    region: "{{aws_region}}"
+    resource: "{{ansible_ec2_instance_id}}"
+    state: present
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+    tags: { "Service":"Web Server" }
+  when: '"web-server" in group_names'
 
 #- name: list the volumes for the instance
 #  ec2_vol:
