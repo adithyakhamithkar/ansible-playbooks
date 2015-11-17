@@ -7,6 +7,22 @@ env : test-env
 aws_access_key:
 aws_secret_key:
 
+##Environment variables
+vpc_name : Staging-VPC
+aws_region : ap-southeast-1
+resource_tags : { "Name":"Staging-VPC" }
+cidr_block : 10.0.0.0/16
+#Subnet-web
+cidr_web_1 : 10.0.1.0/24
+az_web_1: ap-southeast-1a
+cidr_web_2 : 10.0.2.0/24
+az_web_2: ap-southeast-1b
+resource_tags_web_1 : { "Name":"Staging-ap-southeast-1a", "Environment":"Staging", "Service" : "Web" }
+resource_tags_web_2 : { "Name":"Staging-ap-southeast-1b", "Environment":"Staging", "Service" : "Web" }
+vpc_id : 
+#ELB
+elb_url :
+
 ##System variables (Can't be blank)
 #Define Time Zone
 timezone : Asia/Calcutta
@@ -98,7 +114,7 @@ phpmyadmin_url : https://files.phpmyadmin.net/phpMyAdmin/4.4.15/phpMyAdmin-4.4.1
 
 ###SaltStack
 salt_pem :
-salt_pub : 
+salt_pub :
 
 ###ldap
 ldap_base : dc=ldap,dc=adithya,dc=in
