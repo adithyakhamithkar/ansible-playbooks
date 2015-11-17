@@ -1,0 +1,8 @@
+#
+#About: This will install docker
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - docker

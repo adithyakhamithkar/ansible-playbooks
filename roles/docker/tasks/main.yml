@@ -1,0 +1,20 @@
+---
+- name: Make sure aufs support is available
+  apt: name={{item}} state=latest
+  with_items:
+  - linux-image-extra-{{ansible_kernel}}
+
+- name: Add the docker APT key
+  apt_key: keyserver=hkp://pgp.mit.edu:80 id=58118E89F3A912897C070ADBF76221572C52609D state=present
+
+- name: Add the docker source to the APT source list
+  apt_repository: repo='deb https://apt.dockerproject.org/repo ubuntu-trusty main' state=present
+
+- name: Install docker
+  apt: name={{item}} state=present
+  with_items:
+  - docker-engine
+
+- name: Update UFW
+  template: src=ufw.j2 dest=/etc/default/ufw
+  notify: ufw restart
