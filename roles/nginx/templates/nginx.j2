@@ -72,4 +72,10 @@ http {
 
 	include /etc/nginx/conf.d/*.conf;
 	include /etc/nginx/sites-enabled/*;
+
+	##
+	# Cache Settings
+	##
+	proxy_cache_path /tmp/nginx levels=1:2 keys_zone=my_zone:10m inactive=60m;
+	proxy_cache_key "$scheme$request_method$host$request_uri";
 }
