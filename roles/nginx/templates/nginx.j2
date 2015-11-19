@@ -3,8 +3,8 @@ worker_processes 1;
 pid /run/nginx.pid;
 
 events {
-	worker_connections 1024;
-	# multi_accept on;
+		worker_connections 1024;
+		# multi_accept on;
 }
 
 http {
@@ -57,11 +57,11 @@ http {
 	# Gzip Settings
 	##
 
-	gzip             on;
-	gzip_comp_level  2;
-	gzip_min_length  1000;
-	gzip_proxied     expired no-cache no-store private auth;
-	gzip_types 	 text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+	gzip on;
+	gzip_comp_level 2;
+	gzip_min_length 1000;
+	gzip_proxied expired no-cache no-store private auth;
+	gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 	gzip_vary on;
 
 
@@ -76,6 +76,6 @@ http {
 	##
 	# Cache Settings
 	##
-	proxy_cache_path /tmp/nginx levels=1:2 keys_zone=my_zone:10m inactive=60m;
+	proxy_cache_path /tmp/nginx levels=1:2 keys_zone=STATIC:10m inactive=24h max_size=1g;
 	proxy_cache_key "$scheme$request_method$host$request_uri";
 }
