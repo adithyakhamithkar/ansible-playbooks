@@ -1,0 +1,8 @@
+#
+#About: This will install ossec-agent
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - ossec-agent

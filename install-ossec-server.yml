@@ -1,0 +1,8 @@
+#
+#About: This will install ossec-server
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - ossec-server
