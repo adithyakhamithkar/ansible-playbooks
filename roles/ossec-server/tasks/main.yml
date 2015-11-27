@@ -1,0 +1,11 @@
+---
+- name: Add the OSSEC APT key
+  apt_key: url=http://ossec.wazuh.com/repos/apt/conf/ossec-key.gpg.key state=present
+
+- name: Add the OSSEC source to the APT source list
+  apt_repository: repo='deb http://ossec.wazuh.com/repos/apt/ubuntu trusty main' state=present
+
+- name: Install OSSEC
+  apt: name={{item}} state=latest update_cache=yes
+  with_items:
+   - ossec-hids
