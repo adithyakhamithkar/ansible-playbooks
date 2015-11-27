@@ -6,6 +6,10 @@
   apt_repository: repo='deb http://ossec.wazuh.com/repos/apt/ubuntu trusty main' state=present
 
 - name: Install OSSEC
-  apt: name={{item}} state=latest update_cache=yes
+  apt: name={{item}} state=present
   with_items:
    - ossec-hids-agent
+
+- name: Configure OSSEC
+  template: src=ossec.j2 dest=/var/ossec/etc/ossec.conf
+  notify: Restart OSSEC
