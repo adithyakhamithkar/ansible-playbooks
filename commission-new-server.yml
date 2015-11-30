@@ -5,8 +5,8 @@
 - hosts: '{{inventory}}'
   sudo: yes
   roles:
-  - hostname
   - common
+  - hostname
   - ntp
   - motd
   - ssh-banner

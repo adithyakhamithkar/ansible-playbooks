@@ -10,3 +10,8 @@
   - logrotate
   - ufw
   - python-pip
+
+- name: Install pip modules
+  pip: name={{item}} state=present
+  with_items:
+  - boto
