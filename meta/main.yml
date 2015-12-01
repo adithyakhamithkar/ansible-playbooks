@@ -13,6 +13,7 @@ galaxy_info:
    - elasticsearch
    - glassfish
    - java
+   - jdk
    - jenkins
    - mysql
    - nginx
@@ -29,4 +30,19 @@ galaxy_info:
    - salt
    - solr
    - zookeeper
-  dependencies: []
+   - monitoring
+   - rabbitmq
+   - docker
+   - agar
+   - bittorrentsync
+   - aws
+   - ec2
+   - newrelic
+   - ntp
+   - varnish
+   - psad
+   - ossec
+   - tiger
+   - chkrootkit
+   - rkhunter
+  dependencies: [boto]
