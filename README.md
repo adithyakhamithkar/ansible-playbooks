@@ -34,7 +34,7 @@
     - ldap-server
     - logstash
     - logstash-forwarder
-    - mesos
+    - [mesos](https://github.com/adithyakhamithkar/ansible/blob/master/roles/mesos/README.md)
     - mesos-master
     - mesos-slave
     - mongodb
@@ -51,7 +51,7 @@
     - odoo
     - ossec-agent (WIP)
     - ossec-server (WIP)
-    - phabricator
+    - [phabricator](https://github.com/adithyakhamithkar/ansible/blob/master/roles/phabricator/README.md)
     - php
     - postfix
     - psad
@@ -73,4 +73,4 @@
     - tomcat
     - varnish
     - youtrack
-    - zookeeper
+    - [zookeeper](https://github.com/adithyakhamithkar/ansible/blob/master/roles/zookeeper/README.md)
