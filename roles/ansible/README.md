@@ -11,3 +11,4 @@ It uses SSH to communicate with the hosts and to execute tasks.
 The playbooks are written in YAML(Yet Another Markup Language) which is very human readable.
 
 [Wiki](http://docs.ansible.com/)
+[Ansible support group](https://groups.google.com/forum/#!forum/ansible-project)
