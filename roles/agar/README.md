@@ -2,6 +2,9 @@
 Agar.io is a massively multiplayer action game developed by Matheus Valadares. In the game, the player controls a cell in a map representing a petri dish; the goal is to gain as much mass as possible by swallowing smaller cells without being swallowed by bigger ones. The name Agar.io comes from the substance agar, used to culture bacteria.
 
 This ansible role will install a self hosted Agar.
+– To change the port from 3000, open file “config.json”
+
+– To change app name and description, open files “app.json” & “package.json”
 
 ![Agar](https://raw.githubusercontent.com/adithyakhamithkar/ansible/master/roles/agar/images/agar.jpg)
 
