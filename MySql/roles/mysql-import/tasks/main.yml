@@ -1,0 +1,6 @@
+---
+- name: Import Database
+  mysql_db: name={{database_name}} login_host={{hostname}} login_user={{mysql_user}} login_password={{mysql_password}} state=import target=/tmp/{{database_name}}.sql.gz
+
+- name: Remove the .sql.gz file
+  file: path=/tmp/{{database_name}}.sql.gz state=absent

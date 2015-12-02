@@ -1,0 +1,7 @@
+---
+- name: Copy Database dump file
+  synchronize: mode=pull src=/tmp/{{database_name}}.sql.gz dest=/tmp/{{database_name}}.sql.gz
+  delegate_to: "{{target_host}}"
+
+- name: Remove the .sql.gz file
+  file: path=/tmp/{{database_name}}.sql.gz state=absent
