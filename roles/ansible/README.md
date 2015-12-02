@@ -3,7 +3,7 @@ It is a simple IT automation engine that automates cloud provisioning, configura
 It is designed for multi-tier deployments.
 It models the IT infrastructure by describing how all of your systems inter-relate, rather than just managing one system at a time.
 
-![Ansible](https://raw.githubusercontent.com/adithyakhamithkar/ansible/master/roles/roles/images/ansible.png)
+![Ansible](https://raw.githubusercontent.com/adithyakhamithkar/ansible/master/roles/ansible/images/ansible.png)
 
 ##How does Ansible work?
 As it’s written in python it requires python to be installed on the machine to run. It also needs jinja2, PyYAML.
