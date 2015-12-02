@@ -1,8 +1,0 @@
-#
-#Transfer a Database from one server to another
-#
----
-- hosts: '{{inventory}}'
-  sudo: yes
-  roles:
-  - mysql-dump
