@@ -7,7 +7,7 @@
 
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/github-light.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
@@ -35,17 +35,36 @@
 <a id="index" class="anchor" href="#index" aria-hidden="true"><span class="octicon octicon-link"></span></a>Index</h2>
 
 <ul>
-<li>
-<p>List of Roles</p>
+<li>AWS
 
 <ul>
-<li>agar</li>
-<li>ansible</li>
+<li>create-iam-user (WIP)</li>
+<li>create-sg-db</li>
+<li>create-web-db</li>
+<li>create-vpc</li>
+</ul>
+</li>
+<li>MySql
+
+<ul>
+<li>mysql-create-db</li>
+<li>mysql-dump</li>
+<li>mysql-import</li>
+<li>transfer-db</li>
+</ul>
+</li>
+<li>List of Roles
+
+<ul>
+<li><a href="https://github.com/adithyakhamithkar/ansible/blob/master/roles/agar/README.md">agar</a></li>
+<li><a href="https://github.com/adithyakhamithkar/ansible/blob/master/roles/ansible/README.md">ansible</a></li>
+<li>bitcoin (WIP)</li>
 <li>bittorrentsync</li>
-<li>cachethq</li>
+<li>cachethq (Not working)</li>
 <li>common</li>
 <li>datadog-agent</li>
 <li>deployment-nginx</li>
+<li>docker</li>
 <li>elasticsearch</li>
 <li>elasticsearch-data</li>
 <li>elasticsearch-master</li>
@@ -54,12 +73,19 @@
 <li>jdk</li>
 <li>jenkins</li>
 <li>jenkins-configure</li>
+<li><a href="https://github.com/adithyakhamithkar/ansible/blob/master/roles/kafka/README.md">kafka</a></li>
+<li><a href="https://github.com/adithyakhamithkar/ansible/tree/master/roles/kafka-manager">kafka-manager</a></li>
+<li>kibana</li>
+<li>ldap-server</li>
+<li>logstash</li>
+<li>logstash-forwarder</li>
 <li>mesos</li>
 <li>mesos-master</li>
 <li>mesos-slave</li>
 <li>mongodb</li>
 <li>motd</li>
 <li>mysql</li>
+<li>new-relic-java-agent (WIP)</li>
 <li>new-relic-php-agent</li>
 <li>new-relic-server-agent</li>
 <li>nginx</li>
@@ -67,6 +93,10 @@
 <li>nginx-load-balancer</li>
 <li>nginx-sensu-master</li>
 <li>ntp</li>
+<li>odoo</li>
+<li>ossec-agent (WIP)</li>
+<li>ossec-server (WIP)</li>
+<li>phabricator</li>
 <li>php</li>
 <li>postfix</li>
 <li>psad</li>
@@ -74,6 +104,8 @@
 <li>redis</li>
 <li>roles-template</li>
 <li>rootkit-scanners</li>
+<li>salt-master</li>
+<li>salt-minion</li>
 <li>scala</li>
 <li>sensu-client</li>
 <li>sensu-client-checks</li>
@@ -87,55 +119,6 @@
 <li>varnish</li>
 <li>youtrack</li>
 <li>zookeeper</li>
-</ul>
-</li>
-<li>
-<p>List of Ansible scripts</p>
-
-<ul>
-<li>cleanup.yml - Runs a clean up of deb package manager</li>
-<li>commission-new-server.yml - Helps commission a new server by install common packages</li>
-<li>deploy-cachethq.yml - Deploys a cachethq application(currently not working)</li>
-<li>elasticsearch-enable-shard.yml - Enables share allocation for a ElasticSearch cluster</li>
-<li>elasticsearch-health-check.yml - ElasticSearch health check</li>
-<li>install-agar.yml - Install an agar.io server</li>
-<li>install-bittorrentsync.yml - Installs and configure bittorrentsync</li>
-<li>install-datadog.yml - Installs the datadog-agent</li>
-<li>install-elasticsearch-data.yml - Installs an ElasticSearch data node</li>
-<li>install-elasticsearch-master.yml - Installs an ElasticSearch master node</li>
-<li>install-glassfish.yml - Installs glassfish</li>
-<li>install-jenkins.yml - Install Jenkins</li>
-<li>install-kafka.yml - Installs Kafka</li>
-<li>install-lemp.yml - Installs a LEMP stack</li>
-<li>install-mesos-master.yml - Installs a mesos master node</li>
-<li>install-mesos-slave.yml - Installs a mesos slave node</li>
-<li>install-mongodb.yml - Installs a stand alone mongodb</li>
-<li>install-mysql.yml - Installs a mysql server</li>
-<li>install-new-relic-php-agent.yml - Install a new-relic-php-agent</li>
-<li>install-new-relic-server-agent - Installs a new-relic-server-agent</li>
-<li>install-nginx-load-balancer.yml - Installs and configures nginx as a load balancer</li>
-<li>install-nginx-php.yml - Installs nginx with php</li>
-<li>install-nginx.yml - Installs nginx</li>
-<li>install-ntp.yml - Install NTP</li>
-<li>install-php.yml - Installs php</li>
-<li>install-postfix.yml - Installs postfix</li>
-<li>install-psad.yml - Installs psad</li>
-<li>install-rootkit-scanner.yml - Installs rkhunter and chkrootkit</li>
-<li>install-security-updates.yml - Installs only security updates on ubuntu</li>
-<li>install-sensu-client.yml - Installs a sensu-client</li>
-<li>install-sensu-master.yml - Installs a sensu-master</li>
-<li>install-solr.yml - Installs Solr</li>
-<li>install-teamcity.yml - Installs teamcity</li>
-<li>install-tomcat.yml - Installs tomcat</li>
-<li>install-varnish.yml - Installs varnish</li>
-<li>install-youtrack.yml - Installs youtrack</li>
-<li>security-audit.yml - Runs several audit tools</li>
-<li>set-hostname.yml - Sets the hostname</li>
-<li>set-mysqlpassword.yml - Sets the mysql password</li>
-<li>update-motd.yml - Updates the MOTD</li>
-<li>update-sensu-client-checks.yml - Updates the sensu client checks</li>
-<li>update-ssh-banner.yml - Updates the SSH banner</li>
-<li>update-ssh-keys.yml - Updates the ssh-keys</li>
 </ul>
 </li>
 </ul>
