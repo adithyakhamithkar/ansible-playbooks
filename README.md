@@ -1,8 +1,18 @@
 #Project Ansible
 ##Index
++ AWS
+    - create-iam-user (WIP)
+    - create-sg-db
+    - create-web-db
+    - create-vpc
++ MySql
+    - mysql-create-db
+    - mysql-dump
+    - mysql-import
+    - transfer-db
 + List of Roles
-    - agar
-    - ansible
+    - [agar](https://github.com/adithyakhamithkar/ansible/blob/master/roles/agar/README.md)
+    - [ansible](https://github.com/adithyakhamithkar/ansible/blob/master/roles/ansible/README.md)
     - bitcoin (WIP)
     - bittorrentsync
     - cachethq (Not working)
@@ -18,8 +28,8 @@
     - jdk
     - jenkins
     - jenkins-configure
-    - kafka
-    - kafka-manager
+    - [kafka](https://github.com/adithyakhamithkar/ansible/blob/master/roles/kafka/README.md)
+    - [kafka-manager](https://github.com/adithyakhamithkar/ansible/tree/master/roles/kafka-manager)
     - kibana
     - ldap-server
     - logstash
@@ -64,4 +74,3 @@
     - varnish
     - youtrack
     - zookeeper
-    
