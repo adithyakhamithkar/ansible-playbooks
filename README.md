@@ -20,9 +20,9 @@
     - datadog-agent
     - deployment-nginx
     - docker
-    - elasticsearch
-    - elasticsearch-data
-    - elasticsearch-master
+    + elasticsearch
+        - elasticsearch-data
+        - elasticsearch-master
     - glassfish
     - hostname
     - jdk
@@ -49,8 +49,9 @@
     - nginx-sensu-master
     - ntp
     - odoo
-    + ossec-server
-      - ossec-agent  
+    + [ossec](https://github.com/adithyakhamithkar/ansible/blob/master/roles/ossec-server/README.md)
+        - ossec-server
+        - ossec-agent  
     - [phabricator](https://github.com/adithyakhamithkar/ansible/blob/master/roles/phabricator/README.md)
     - php
     - postfix
