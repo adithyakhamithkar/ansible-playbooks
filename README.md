@@ -27,26 +27,27 @@
     - hostname
     - jdk
     - jenkins
-    - jenkins-configure
+        - jenkins-configure
     - [kafka](https://github.com/adithyakhamithkar/ansible/blob/master/roles/kafka/README.md)
-    - [kafka-manager](https://github.com/adithyakhamithkar/ansible/tree/master/roles/kafka-manager)
+        - [kafka-manager](https://github.com/adithyakhamithkar/ansible/tree/master/roles/kafka-manager)
     - kibana
     - ldap-server
     - logstash
     - logstash-forwarder
     - [mesos](https://github.com/adithyakhamithkar/ansible/blob/master/roles/mesos/README.md)
-    - mesos-master
-    - mesos-slave
+        - mesos-master
+        - mesos-slave
     - mongodb
     - motd
     - mysql
-    - new-relic-java-agent (WIP)
-    - new-relic-php-agent
-    - new-relic-server-agent
+    - newrelic
+        - new-relic-java-agent (WIP)
+        - new-relic-php-agent
+        - new-relic-server-agent
     - nginx
-    - nginx-jenkins
-    - nginx-load-balancer
-    - nginx-sensu-master
+        - nginx-jenkins
+        - nginx-load-balancer
+        - nginx-sensu-master
     - ntp
     - odoo
     + [ossec](https://github.com/adithyakhamithkar/ansible/blob/master/roles/ossec-server/README.md)
@@ -60,12 +61,16 @@
     - redis
     - roles-template
     - rootkit-scanners
-    - salt-master
-    - salt-minion
+        - chkrootkit
+        - rkhunter
+    - saltstack    
+        - salt-master
+        - salt-minion
     - scala
-    - sensu-client
-    - sensu-client-checks
-    - sensu-master
+    - sensu
+        - sensu-client
+        - sensu-client-checks
+        - sensu-master
     - solr
     - ssh-banner
     - ssh-keys
