@@ -49,8 +49,8 @@
     - nginx-sensu-master
     - ntp
     - odoo
-    - ossec-agent (WIP)
-    - ossec-server (WIP)
+    + ossec-server
+      - ossec-agent  
     - [phabricator](https://github.com/adithyakhamithkar/ansible/blob/master/roles/phabricator/README.md)
     - php
     - postfix
