@@ -1,0 +1,10 @@
+---
+- name: Install Apache
+  apt: name={{item}} state=present
+  with_items:
+   - apache2
+   - libapache2-mod-php5
+
+- name: Configure Apache
+  template: src=000-default.j2 dest=/etc/apache2/sites-available/000-default.conf
+  notify: Restart Apache

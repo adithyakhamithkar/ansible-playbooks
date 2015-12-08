@@ -1,0 +1,8 @@
+#
+#About: This will install apache
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - apache
