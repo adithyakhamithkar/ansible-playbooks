@@ -1,0 +1,28 @@
+---
+- name: Install ldap-client
+  apt: name={{item}} state=present
+  with_items:
+   - libnss-ldap
+   - libpam-ldap
+   - nscd
+
+- name: Create SSL directory for ldap
+  file: path=/etc/ldap/ssl/certs state=directory
+
+- name: Copy cert.pem
+  copy: src={{sensu_ssl_crt_file}} dest=/etc/ldap/ssl/certs/ssl_crt.pem
+
+- name: Copy key.pem
+  copy: src={{sensu_ssl_key_file}} dest=/etc/ldap/ssl/certs/ssl_key.pem
+
+- name: Configure ldap
+  template: src=ldap.j2 dest=/etc/ldap/ldap.conf
+
+- name: Update nsswitch.conf
+  template: src=nsswitch.j2 dest=/etc/nsswitch.conf
+
+- name: Update common-sessions
+  template: src=common_sessions.j2 dest=/etc/pam.d/common-session
+
+- name: Restart nscd
+  service: name=nscd state=restarted

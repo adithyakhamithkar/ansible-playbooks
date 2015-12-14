@@ -1,0 +1,8 @@
+#
+#About: This will install ldap
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - ldap-client
