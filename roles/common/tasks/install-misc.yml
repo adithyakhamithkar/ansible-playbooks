@@ -10,7 +10,6 @@
   - logrotate
   - ufw
   - python-pip
-  - language-pack-UTF-8
 
 - name: Install pip modules
   pip: name={{item}} state=present
