@@ -20,19 +20,19 @@
   git: repo={{project_repo}} dest={{project_doc_root}} accept_hostkey=yes version={{branch_name}} force=yes
 
 - name: Update deployment_info
-  template: src=deployment_info.j2 dest=/usr/share/nginx/deployment_info/deployment_info.json
+  template: src=deployment_info.j2 dest=/usr/share/nginx/deployment_info/{{project_name}}.json
 
 - name: Configure Nginx virtualhost
-  template: src=virtualhost.j2 dest=/etc/nginx/sites-available/default
+  template: src=virtualhost.j2 dest=/etc/nginx/sites-available/{{project_name}}
 
-#- name: Configure Nginx virtualhost
-#  template: src=virtualhost.j2 dest=/etc/nginx/sites-enabled/default
-
-- name: Configure Nginx virtualhost with SSL
-  template: src=virtualhost_ssl.j2 dest=/etc/nginx/sites-available/default-ssl
+- name: Configure Nginx virtualhost
+  template: src=virtualhost.j2 dest=/etc/nginx/sites-enabled/{{project_name}}
 
 - name: Configure Nginx virtualhost with SSL
-  template: src=virtualhost_ssl.j2 dest=/etc/nginx/sites-enabled/default-ssl
+  template: src=virtualhost_ssl.j2 dest=/etc/nginx/sites-available/{{project_name}}-ssl
+
+- name: Configure Nginx virtualhost with SSL
+  template: src=virtualhost_ssl.j2 dest=/etc/nginx/sites-enabled/{{project_name}}-ssl
 
 - name: Start Nginx
   service: name=nginx state=started

@@ -5,7 +5,7 @@ server {
         index index.php index.html index.htm;
         #Uncomment the below line to force rediret to https
         #rewrite ^ https://$http_host$request_uri? permanent;
-        server_name {{hostname}}.{{domain_name}};
+        server_name {{project_name}}.{{domain_name}};
         location / {
 		            try_files $uri $uri/ /index.php?q=$request_uri;
         }
