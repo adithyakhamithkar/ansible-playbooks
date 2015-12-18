@@ -3,9 +3,13 @@
   shell: sudo echo "Banner /etc/issue.net" >> /etc/ssh/sshd_config
   changed_when: False
 
+- name: Change StrictHostKeyChecking to no
+  shell: sudo sed -i "s/#   StrictHostKeyChecking ask/    StrictHostKeyChecking no/g" /etc/ssh/ssh_config
+  changed_when: False
+  
 - name: Restart ssh
   service: name=ssh state=restarted
-  changed_when: False  
+  changed_when: False
 
 - name: Update ssh banner
   template: src=ssh-banner.j2 dest=/etc/issue.net
