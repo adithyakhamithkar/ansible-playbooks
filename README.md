@@ -1,4 +1,5 @@
 #Project Ansible
+[![Build Status](https://travis-ci.org/adithyakhamithkar/ansible.svg?branch=master)](https://travis-ci.org/adithyakhamithkar/ansible)
 ##Index
 + AWS
     - create-iam-user (WIP)
