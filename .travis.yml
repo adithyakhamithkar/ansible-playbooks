@@ -15,4 +15,4 @@ install:
 
 script:
   # We'll add some commands to test the role here.
-  - ansible-playbook -i inventory/template-env cleanup.yml --syntax-check
+  - ansible-playbook -i inventory/template-env/hosts cleanup.yml --syntax-check
