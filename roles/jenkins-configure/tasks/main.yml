@@ -14,7 +14,7 @@
   ignore_errors: True
 
 - name: Stop Jenkins
-  server: name=jenkins state=stopped
+  service: name=jenkins state=stopped
 
 - name: Start Jenkins
-  server: name=jenkins state=started
+  service: name=jenkins state=started
