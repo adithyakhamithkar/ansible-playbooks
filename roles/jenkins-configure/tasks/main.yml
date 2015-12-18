@@ -7,9 +7,14 @@
 
 - name: Install Git plugin
   shell: java -jar /home/jenkins/cli/jenkins-cli.jar -s http://localhost:8080/ install-plugin git -deploy
+  ignore_errors: True
 
 - name: Install categorized-view plugin
   shell: java -jar /home/jenkins/cli/jenkins-cli.jar -s http://localhost:8080/ install-plugin categorized-view -deploy
+  ignore_errors: True
 
-- name: Restart Jenkins
-  shell: java -jar /home/jenkins/cli/jenkins-cli.jar -s http://localhost:8080 safe-restart
+- name: Stop Jenkins
+  server: name=jenkins state=stopped
+
+- name: Start Jenkins
+  server: name=jenkins state=started

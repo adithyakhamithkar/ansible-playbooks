@@ -12,6 +12,8 @@ JAVA_ARGS="-Djava.awt.headless=true"  # Allow graphs etc. to work even when an X
 #JAVA_ARGS="-Djava.net.preferIPv4Stack=true" # make jenkins listen on IPv4 address
 # set jenkins timezone
 JAVA_ARGS="-Dorg.apache.commons.jelly.tags.fmt.timeZone={{timezone}}"
+JENKINS_JAVA_OPTIONS="-Duser.timezone={{timezone}}"
+
 # newrelic
 #JAVA_OPTS="$JAVA_OPTS -javaagent:/var/lib/jenkins/newrelic/newrelic.jar
 PIDFILE=/var/run/$NAME/$NAME.pid
