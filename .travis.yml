@@ -16,3 +16,5 @@ install:
 script:
   # We'll add some commands to test the role here.
   - ansible-playbook -i inventory/template-env/hosts *.yml --syntax-check
+  - ansible-playbook -i inventory/template-env/hosts AWS/*.yml --syntax-check
+  - ansible-playbook -i inventory/template-env/hosts MySql/*.yml --syntax-check
