@@ -18,3 +18,4 @@ script:
   - ansible-playbook -i inventory/template-env/hosts *.yml --syntax-check
   - ansible-playbook -i inventory/template-env/hosts AWS/*.yml --syntax-check
   - ansible-playbook -i inventory/template-env/hosts MySql/*.yml --syntax-check
+  - ansible-playbook -i inventory/template-env/hosts ubuntu-desktop/*.yml --syntax-check
