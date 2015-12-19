@@ -1,6 +1,5 @@
-#Project Ansible [![Build Status](https://travis-ci.org/adithyakhamithkar/ansible.svg?branch=master)](https://travis-ci.org/adithyakhamithkar/ansible)
+#Project Ansible [![Build Status](https://travis-ci.org/adithyakhamithkar/ansible.svg?branch=master)](https://travis-ci.org/adithyakhamithkar/ansible) [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/adithyakhamithkar/ansible/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 This is my pet project writing ansible playbooks
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/adithyakhamithkar/ansible/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 ##Index
 + AWS
     - create-iam-user (WIP)
