@@ -1,5 +1,5 @@
----
-- name: Create two new IAM users with API keys
-  local_action:
-  module: iam
-    - iam_type=user name="{{iam_user_name}}" state=present password="{{iam_user_password}}" access_key_state=create aws_access_key="{{aws_access_key}}" aws_secret_key="{{aws_secret_key}}"
+#---
+#- name: Create two new IAM users with API keys
+#  local_action:
+#  module: iam
+#    - iam_type=user name="{{iam_user_name}}" state=present password="{{iam_user_password}}" access_key_state=create aws_access_key="{{aws_access_key}}" aws_secret_key="{{aws_secret_key}}"
