@@ -8,6 +8,7 @@ This is my pet project writing ansible playbooks
     - create-vpc
 + MySql
     - mysql-create-db
+    - mysql-create-user
     - mysql-dump
     - mysql-import
     - transfer-db
@@ -56,6 +57,7 @@ This is my pet project writing ansible playbooks
         - ossec-agent  
     - [phabricator](https://github.com/adithyakhamithkar/ansible/blob/master/roles/phabricator/README.md)
     - php
+    - php7
     - postfix
     - psad
     - rabbit-mq
@@ -64,7 +66,7 @@ This is my pet project writing ansible playbooks
     - rootkit-scanners
         - chkrootkit
         - rkhunter
-    - saltstack    
+    - [saltstack](https://github.com/adithyakhamithkar/ansible/blob/master/roles/salt-minion/README.md)
         - salt-master
         - salt-minion
     - scala
