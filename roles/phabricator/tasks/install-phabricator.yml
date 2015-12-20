@@ -12,7 +12,7 @@
   git: repo=https://github.com/phacility/phabricator.git dest={{phabricator_directory}}/phabricator/phabricator accept_hostkey=yes
 
 - name: Create a mysql_user for phabricator
-  mysql_user: name={{phabricator_user}} password={{phabricator_password}} priv=*.*:ALL,GRANT state=present
+  mysql_user: name={{phabricator_user}} password={{phabricator_password}} priv=*.*:ALL,GRANT state=present login_user=root login_password={{mysqlrootpassword}}
 
 - name: Set mysql db host
   shell: sudo {{phabricator_directory}}/phabricator/phabricator/bin/config set mysql.host localhost
