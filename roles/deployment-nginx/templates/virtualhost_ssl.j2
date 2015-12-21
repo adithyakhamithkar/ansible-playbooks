@@ -7,7 +7,7 @@ server {
         ssl_certificate /etc/nginx/ssl/ssl_crt.pem;
         ssl_certificate_key /etc/nginx/ssl/ssl_key.pem;
         location / {
-                try_files $uri $uri/ /index.php?q=$request_uri;
+                try_files $uri $uri/ /index.php?$args;
         }
         #pass the PHP scripts to FastCGI server listening on 127.0.0.1:9$
         location ~ \.php$ {

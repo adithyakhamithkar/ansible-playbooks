@@ -7,7 +7,7 @@ server {
         rewrite ^ https://$http_host$request_uri? permanent;
         server_name admin.{{domain_name}};
         location / {
-		            try_files $uri $uri/ /index.php?q=$request_uri;
+		            try_files $uri $uri/ /index.php?$args;
         }
         #pass the PHP scripts to FastCGI server listening on 127.0.0.1:9$
         location ~ \.php$ {
