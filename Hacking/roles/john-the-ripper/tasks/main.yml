@@ -47,7 +47,7 @@
 - name: Clean up
   file: path=/tmp/password.txt state=absent
 
-#- name: Uninstall John the ripper
-#  apt: name={{item}} state=absent
-#  with_items:
-#  - john
+- name: Uninstall John the ripper
+  apt: name={{item}} state=absent
+  with_items:
+  - john
