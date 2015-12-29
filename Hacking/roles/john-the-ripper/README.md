@@ -1,5 +1,5 @@
 ##What is John the Ripper?
-John the Ripper is a fast password cracker tool that supports UNIX, Linux, Windows and Mac OS.johntheripper1_design
+John the Ripper is a fast password cracker tool that supports UNIX, Linux, Windows and Mac OS.
 
 http://www.openwall.com/john/
 
