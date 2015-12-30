@@ -12,6 +12,8 @@ This is my pet project writing ansible playbooks
     - mysql-dump
     - mysql-import
     - transfer-db
++ Hacking
+    - [john-the-ripper](https://github.com/adithyakhamithkar/ansible/blob/master/Hacking/roles/john-the-ripper/README.md)
 + List of Roles
     - [agar](https://github.com/adithyakhamithkar/ansible/blob/master/roles/agar/README.md)
     - [ansible](https://github.com/adithyakhamithkar/ansible/blob/master/roles/ansible/README.md)

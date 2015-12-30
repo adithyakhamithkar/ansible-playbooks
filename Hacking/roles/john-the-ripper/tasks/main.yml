@@ -19,10 +19,10 @@
 - name: Unshadow
   shell: unshadow /tmp/passwd_copy /tmp/shadow_copy > /tmp/password.txt
 
-- name: Cracking
+- name: Cracking password
   shell: john /tmp/password.txt
 
-- name: Cracking password
+- name: Fetch password
   command: john --show /tmp/password.txt
   register: password
 
