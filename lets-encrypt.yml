@@ -1,0 +1,8 @@
+#
+#About: This will deploy on nginx using a git repo
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - lets-encrypt
