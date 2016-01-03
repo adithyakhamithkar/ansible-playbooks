@@ -1,6 +1,6 @@
 # Server Block for Virtual host with SSL start
 server {
-        listen  443 ssl spdy;
+        listen  443 ssl http2;
         root {{doc_root}};
         index index.php index.html index.htm;
         server_name {{hostname}}.{{domain_name}};
