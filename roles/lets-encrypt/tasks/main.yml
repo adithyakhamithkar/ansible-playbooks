@@ -8,8 +8,28 @@
 - name: Copy webroot.ini configuration
   template: src=webroot.j2 dest=/opt/letsencrypt/{{domain_name}}-webroot.ini
 
-- name: Configure
-  shell: sudo /opt/letsencrypt/letsencrypt-auto certonly --config /opt/letsencrypt/{{domain_name}}-webroot.ini
+#Execute this manually
+#- name: Configure
+#  shell: sudo /opt/letsencrypt/letsencrypt-auto certonly --config /opt/letsencrypt/{{domain_name}}-webroot.ini
 
 - name: Copy renew-certificate shell script
-  template: src=renew-certificate.j2 dest=/opt/letsencrypt/renew-certificate.sh
+  template: src=renew-certificates.j2 dest=/opt/letsencrypt/renew-certificate.sh
+
+- name: Install sqlite
+  apt: name={{item}} state=present
+  with_items:
+  - sqlite3
+  - libsqlite3-dev
+
+- name: Install pip modules
+  pip: name={{item}} state=present
+  with_items:
+  - cherrypy
+  - jinja2
+  - peewee
+
+- name: Clone lets encrypt management console
+  git: repo=git@github.com:ggtd/Let-s-Encrypt-Certificates-Management-Console-API.git dest=/opt/letsencrypt-management-console accept_hostkey=yes force=yes
+
+- name: Copy app.j2
+  template: src=app.j2 dest=/opt/letsencrypt-management-console/app.py
