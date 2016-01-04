@@ -1,5 +1,5 @@
 #Project Ansible [![Build Status](https://travis-ci.org/adithyakhamithkar/ansible.svg?branch=master)](https://travis-ci.org/adithyakhamithkar/ansible)
-This is my pet project writing ansible playbooks
+This is my pet project writing ansible playbooks. Do write to me with your feedback!
 ##Index
 + AWS
     - create-iam-user (WIP)
@@ -36,6 +36,7 @@ This is my pet project writing ansible playbooks
         - [kafka-manager](https://github.com/adithyakhamithkar/ansible/tree/master/roles/kafka-manager)
     - kibana
     - ldap-server
+    - lets-encrypt
     - logstash
     - logstash-forwarder
     - [mesos](https://github.com/adithyakhamithkar/ansible/blob/master/roles/mesos/README.md)
@@ -48,7 +49,7 @@ This is my pet project writing ansible playbooks
         - new-relic-java-agent (WIP)
         - new-relic-php-agent
         - new-relic-server-agent
-    - nginx
+    - nginx (Configured to support http 2.0)
         - nginx-jenkins
         - nginx-load-balancer
         - nginx-sensu-master
