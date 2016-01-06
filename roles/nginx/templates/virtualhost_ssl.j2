@@ -8,6 +8,7 @@ server {
         ssl_certificate_key /etc/nginx/ssl/ssl_key.pem;
         location / {
                 try_files $uri $uri/ /index.php?$args;
+                proxy_cache STATIC;
         }
         #pass the PHP scripts to FastCGI server listening on 127.0.0.1:9$
         location ~ \.php$ {

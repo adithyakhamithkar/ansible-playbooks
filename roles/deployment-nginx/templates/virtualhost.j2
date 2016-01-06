@@ -8,6 +8,7 @@ server {
         server_name {{project_name}}.{{domain_name}};
         location / {
 		            try_files $uri $uri/ /index.php?$args;
+                proxy_cache STATIC;
         }
         #pass the PHP scripts to FastCGI server listening on 127.0.0.1:9$
         location ~ \.php$ {
