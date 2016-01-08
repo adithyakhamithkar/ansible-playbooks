@@ -19,6 +19,9 @@
 - name: Deploy
   git: repo={{project_repo}} dest={{project_doc_root}} accept_hostkey=yes version={{branch_name}} force=yes
 
+- name: Set file permissions
+  file: path={{project_doc_root}} mode=0755 owner=www-data group=www-data recurse=yes
+
 - name: Update deployment_info
   template: src=deployment_info.j2 dest=/usr/share/nginx/deployment_info/deployment_info.json
 
