@@ -3,11 +3,13 @@
   user: name=jenkins groups=sudo,shadow shell=/bin/bash append=yes generate_ssh_key=yes ssh_key_file=.ssh/id_rsa
 
 - name: Adding Jenkins user to sudoers
-  shell: sudo echo "jenkins ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers
-  changed_when: False
+  lineinfile: dest=/etc/sudoers state=present regexp='^%jenkins' line='%jenkins ALL=(ALL) NOPASSWD:ALL' validate='visudo -cf %s'
 
 - name: Set JAVA_HOME
-  shell: sudo echo "export JAVA_HOME=/usr/lib/jvm/java-8-oracle" >> /home/jenkins/.bashrc
+  lineinfile: dest=/home/jenkins/.bashrc line="{{item}}"
+  with_items:
+  - JAVA_HOME=/usr/lib/jvm/java-8-oracle
+  - PATH=PATH:$JAVA_HOME/bin
 
 - name: Add the Jenkins APT repository key
   apt_key: url=http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key state=present
