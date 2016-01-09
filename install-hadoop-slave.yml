@@ -1,0 +1,10 @@
+#
+#About: This will install hadoop
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - jdk
+  - hadoop
+  - hadoop-slave
