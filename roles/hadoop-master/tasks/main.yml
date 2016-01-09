@@ -1,0 +1,21 @@
+---
+- name: Configure core-site
+  template: src=core_site.j2 dest=/opt/hadoop-2.6.3/etc/hadoop/core-site.xml owner=hadoop group=hadoop
+
+- name: Configure hdfs-site
+  template: src=hdfs_site.j2 dest=/opt/hadoop-2.6.3/etc/hadoop/hdfs-site.xml owner=hadoop group=hadoop
+
+- name: Configure mapred-site
+  template: src=mapred_site.j2 dest=/opt/hadoop-2.6.3/etc/hadoop/mapred-site.xml owner=hadoop group=hadoop
+
+- name: Configure master
+  template: src=masters.j2 dest=/opt/hadoop-2.6.3/etc/hadoop/masters owner=hadoop group=hadoop
+
+- name: Configure slaves
+  template: src=slaves.j2 dest=/opt/hadoop-2.6.3/etc/hadoop/slaves owner=hadoop group=hadoop
+
+- name: Configure yarn-site
+  template: src=yarn_site.j2 dest=/opt/hadoop-2.6.3/etc/hadoop/yarn-site.xml owner=hadoop group=hadoop
+
+- name: Configure hadoop-env
+  template: src=hadoop_env.j2 dest=/opt/hadoop-2.6.3/etc/hadoop/hadoop-env.sh owner=hadoop group=hadoop

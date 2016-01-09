@@ -5,6 +5,20 @@
 - name: Adding hadoop user to sudoers
   lineinfile: dest=/etc/sudoers state=present regexp='^%hadoop' line='%hadoop ALL=(ALL) NOPASSWD:ALL' validate='visudo -cf %s'
 
+- name: Set HADOOP_HOME
+  lineinfile: dest=/home/hadoop/.bashrc line="{{item}}"
+  with_items:
+  - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+  - export PATH=$PATH:$JAVA_HOME/bin
+  - export HADOOP_HOME=/opt/hadoop-2.6.3
+  - export HADOOP_MAPRED_HOME=$HADOOP_HOME
+  - export HADOOP_COMMON_HOME=$HADOOP_HOME
+  - export HADOOP_HDFS_HOME=$HADOOP_HOME
+  - export YARN_HOME=$HADOOP_HOME
+  - export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native
+  - export PATH=$PATH:$HADOOP_HOME/sbin:$HADOOP_HOME/bin
+  - export HADOOP_INSTALL=$HADOOP_HOME
+
 #- name: Download hadoop
 #  get_url: url={{hadoop_url}} dest=/opt
 
