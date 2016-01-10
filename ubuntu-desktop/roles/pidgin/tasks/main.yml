@@ -1,5 +1,5 @@
 ---
-- name: Add moka repository
+- name: Add pidgin repository
   apt_repository: repo="ppa:pidgin-developers/ppa" state=present
 
 - name: Install pidgin
