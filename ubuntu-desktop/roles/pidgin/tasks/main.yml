@@ -1,0 +1,8 @@
+---
+- name: Add moka repository
+  apt_repository: repo="ppa:pidgin-developers/ppa" state=present
+
+- name: Install pidgin
+  apt: name={{item}} state=present
+  with_items:
+  - pidgin
