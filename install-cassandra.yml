@@ -1,0 +1,9 @@
+#
+#About: This will install cassandra
+#
+---
+- hosts: '{{inventory}}'
+  sudo: yes
+  roles:
+  - jdk
+  - cassandra
