@@ -2,13 +2,6 @@
 - name: Adding Cassandra repo
   apt_repository: repo='deb http://www.apache.org/dist/cassandra/debian 22x main' state=present
 
-#- name: Add the Cassandra APT key
-#  apt_key: keyserver=pgp.mit.edu id={{item}} state=present
-#  with_items:
-#  - F758CE318D77295D
-#  - 2B5C1B00
-#  - 0353B12C
-
 - name: Add the Cassandra APT key
   apt_key: keyserver=pgp.mit.edu id=F758CE318D77295D state=present
 
@@ -19,6 +12,18 @@
   apt_key: keyserver=pgp.mit.edu id=0353B12C state=present
 
 - name: Install Cassandra
-  apt: name={{item}} state=latest update_cache=yes
+  apt: name={{item}} state=present
   with_items:
    - cassandra
+
+- name: Stop Cassandra
+  service: name=cassandra state=stopped
+
+- name: Configure Cassandra
+  template: src=cassandra.j2 dest=/etc/cassandra/cassandra.yaml
+
+- name: Configure Cassandra
+  template: src=cassandra_service.j2 dest=/etc/init.dcassandra
+
+- name: Start Cassandra
+  service: name=cassandra state=started
