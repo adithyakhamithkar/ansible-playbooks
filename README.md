@@ -1,4 +1,4 @@
-#Project Ansible [![Build Status](https://travis-ci.org/adithyakhamithkar/ansible.svg?branch=master)](https://travis-ci.org/adithyakhamithkar/ansible)  [![Binder](http://mybinder.org/badge.svg)](http://mybinder.org/repo/adithyakhamithkar/ansible) 
+#Project Ansible [![Build Status](https://travis-ci.org/adithyakhamithkar/ansible.svg?branch=master)](https://travis-ci.org/adithyakhamithkar/ansible) 
 This is my pet project writing ansible playbooks. Do write to me with your feedback!
 ##Index
 + AWS
