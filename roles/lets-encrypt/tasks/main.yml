@@ -1,6 +1,6 @@
 ---
-- name: Clone lets encrypt repo
-  git: repo=git@github.com:letsencrypt/letsencrypt.git dest=/opt/letsencrypt accept_hostkey=yes force=yes
+#- name: Clone lets encrypt repo
+#  git: repo=git@github.com:letsencrypt/letsencrypt.git dest=/opt/letsencrypt accept_hostkey=yes force=yes
 
 - name: Create SSL directory
   file: path=/usr/share/nginx/ssl state=directory
@@ -14,6 +14,9 @@
 
 - name: Copy renew-certificate shell script
   template: src=renew-certificates.j2 dest=/opt/letsencrypt/renew-certificate.sh
+
+- name: Setting up cron
+  cron: name="update-letsencrypt-certificate" special_time=daily job="sh /opt/letsencrypt/renew-certificate.sh" state=present
 
 - name: Install sqlite
   apt: name={{item}} state=present
