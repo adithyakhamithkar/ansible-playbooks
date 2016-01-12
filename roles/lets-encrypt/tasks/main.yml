@@ -1,16 +1,13 @@
 ---
-#- name: Clone lets encrypt repo
-#  git: repo=git@github.com:letsencrypt/letsencrypt.git dest=/opt/letsencrypt accept_hostkey=yes force=yes
-
-- name: Create SSL directory
-  file: path=/usr/share/nginx/ssl state=directory
+- name: Clone lets encrypt repo
+  git: repo=git@github.com:letsencrypt/letsencrypt.git dest=/opt/letsencrypt accept_hostkey=yes force=yes
 
 - name: Copy webroot.ini configuration
   template: src=webroot.j2 dest=/opt/letsencrypt/{{domain_name}}-webroot.ini
 
 #Execute this manually
-#- name: Configure
-#  shell: sudo /opt/letsencrypt/letsencrypt-auto certonly --config /opt/letsencrypt/{{domain_name}}-webroot.ini
+- name: Configure
+  shell: sudo /opt/letsencrypt/letsencrypt-auto certonly --agree-tos --config /opt/letsencrypt/{{domain_name}}-webroot.ini
 
 - name: Copy renew-certificate shell script
   template: src=renew-certificates.j2 dest=/opt/letsencrypt/renew-certificate.sh
