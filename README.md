@@ -1,4 +1,4 @@
-#Project Ansible [![Build Status](https://travis-ci.org/adithyakhamithkar/ansible.svg?branch=master)](https://travis-ci.org/adithyakhamithkar/ansible) 
+#Project Ansible [![Build Status](https://travis-ci.org/adithyakhamithkar/ansible.svg?branch=master)](https://travis-ci.org/adithyakhamithkar/ansible)
 This is my pet project writing ansible playbooks. Do write to me with your feedback!
 ##Index
 + AWS
@@ -20,6 +20,7 @@ This is my pet project writing ansible playbooks. Do write to me with your feedb
     - bitcoin (WIP)
     - bittorrentsync
     - cachethq (Not working)
+    - [cassandra](https://github.com/adithyakhamithkar/ansible/blob/master/roles/cassandra/README.md)
     - common
     - datadog-agent
     - deployment-nginx
