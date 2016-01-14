@@ -1,6 +1,6 @@
 ---
 - hosts: '{{inventory}}'
-  sudo: yes
+  become: yes
 
   tasks:
   - name: Enalbe shard allocation

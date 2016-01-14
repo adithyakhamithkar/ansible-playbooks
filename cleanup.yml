@@ -1,6 +1,7 @@
 ---
 - hosts: '{{inventory}}'
-  sudo: yes
+  become: yes
+  become_method: sudo
 
   tasks:
   - name: Cleaning up

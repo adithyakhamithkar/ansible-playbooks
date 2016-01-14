@@ -3,6 +3,6 @@
 #
 ---
 - hosts: '{{inventory}}'
-  sudo: yes
+  become: yes
   roles:
   - new-relic-java-agent

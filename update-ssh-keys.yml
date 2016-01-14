@@ -3,6 +3,6 @@
 #
 ---
 - hosts: '{{inventory}}'
-  sudo: yes
+  become: yes
   roles:
   - ssh-keys
