@@ -1,0 +1,16 @@
+---
+- name: Add the openvpn APT repository key
+  apt_key: url=https://swupdate.openvpn.net/repos/repo-public.gpg state=present
+
+- name: Add the openvpn APT repository
+  apt_repository: repo="deb http://swupdate.openvpn.net/apt trusty main" state=present
+
+- name: Install openvpn
+  apt: name={{item}} state=present
+  with_items:
+  - openvpn
+  - easy-rsa
+  - bridge-utils
+
+- name: Configure openvpn
+  template: src=server.j2 dest=/etc/openvpn/server.conf

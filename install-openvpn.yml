@@ -1,0 +1,8 @@
+#
+#About: This will install openvpn
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - openvpn
