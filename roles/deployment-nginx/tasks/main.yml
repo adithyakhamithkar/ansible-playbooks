@@ -22,20 +22,29 @@
 - name: Set file permissions
   file: path={{project_doc_root}} mode=0755 owner=www-data group=www-data recurse=yes
 
-- name: Update deployment_info
-  template: src=deployment_info.j2 dest=/usr/share/nginx/deployment_info/deployment_info.json
+#- name: Update deployment_info
+#  template: src=deployment_info.j2 dest=/usr/share/nginx/deployment_info/deployment_info.json
 
-- name: Configure Nginx virtualhost
-  template: src=virtualhost.j2 dest=/etc/nginx/sites-available/default
+#- name: Configure Nginx virtualhost
+#  template: src=virtualhost.j2 dest=/etc/nginx/sites-available/default
 
-- name: Configure Nginx virtualhost
-  template: src=virtualhost.j2 dest=/etc/nginx/sites-enabled/default
+#- name: Configure Nginx virtualhost
+#  template: src=virtualhost.j2 dest=/etc/nginx/sites-enabled/default
 
-- name: Configure Nginx virtualhost with SSL
-  template: src=virtualhost_ssl.j2 dest=/etc/nginx/sites-available/default-ssl
+#- name: Configure Nginx virtualhost with SSL
+#  template: src=virtualhost_ssl.j2 dest=/etc/nginx/sites-available/default-ssl
 
-- name: Configure Nginx virtualhost with SSL
-  template: src=virtualhost_ssl.j2 dest=/etc/nginx/sites-enabled/default-ssl
+#- name: Configure Nginx virtualhost with SSL
+#  template: src=virtualhost_ssl.j2 dest=/etc/nginx/sites-enabled/default-ssl
+
+- name: Update Nginx configuration and deployment info
+  template: src={{item.src}} dest={{item.dest}}
+  with_items:
+    - { src: deployment_info.j2, dest: /usr/share/nginx/deployment_info/deployment_info.json }
+    - { src: virtualhost.j2, dest: /etc/nginx/sites-available/default }
+    - { src: virtualhost.j2, dest: /etc/nginx/sites-enabled/default }
+    - { src: virtualhost_ssl.j2, dest: /etc/nginx/sites-available/default-ssl }
+    - { src: virtualhost_ssl.j2, dest: /etc/nginx/sites-enabled/default-ssl }
 
 - name: Start Nginx
   service: name=nginx state=started
