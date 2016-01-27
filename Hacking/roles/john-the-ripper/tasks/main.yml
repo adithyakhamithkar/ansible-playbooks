@@ -30,22 +30,14 @@
   debug: var=password
 
 - name: Clean up
-  file: path=/root/.john/john.pot state=absent
-
-- name: Clean up
-  file: path=/root/.john/john.log state=absent
-
-- name: Clean up
-  file: path=/root/.john state=absent
-
-- name: Clean up
-  file: path=/tmp/passwd_copy state=absent
-
-- name: Clean up
-  file: path=/tmp/shadow_copy state=absent
-
-- name: Clean up
-  file: path=/tmp/password.txt state=absent
+  file: path={{item}} state=absent
+  with_items:
+    - /root/.john/john.pot
+    - /root/.john/john.log
+    - /root/.john
+    - /tmp/passwd_copy
+    - /tmp/shadow_copy
+    - /tmp/password.txt
 
 - name: Uninstall John the ripper
   apt: name={{item}} state=absent
