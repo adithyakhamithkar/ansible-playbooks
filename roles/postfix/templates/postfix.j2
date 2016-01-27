@@ -38,3 +38,5 @@ mailbox_size_limit = 0
 recipient_delimiter = +
 inet_interfaces = all
 inet_protocols = ipv4
+mime_header_checks = regexp:/etc/postfix/smtp_header_checks
+smtp_header_checks = pcre:/etc/postfix/smtp_header_checks

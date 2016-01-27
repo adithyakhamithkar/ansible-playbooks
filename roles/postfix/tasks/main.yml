@@ -4,6 +4,7 @@
   with_items:
   - postfix
   - mailutils
+  - postfix-pcre
 
 - name: Create SSL directory for postfix
   file: path=/etc/postfix/ssl state=directory
@@ -18,7 +19,14 @@
   service: name=postfix state=stopped
 
 - name: Configure postfix
-  template: src=postfix.j2 dest=/etc/postfix/main.cf
+  template: src={{item.src}} dest={{item.dest}}
+  with_items:
+    - { src: postfix.j2, dest: /etc/postfix/main.cf }
+    - { src: master.j2, dest: /etc/postfix/master.cf }
+    - { src: smtp_header_checks.j2, dest: /etc/postfix/smtp_header_checks }
+
+- name: Rebuild
+  command: postmap /etc/postfix/smtp_header_checks
 
 - name: Start postfix
   service: name=postfix state=restarted
