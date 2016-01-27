@@ -1,5 +1,5 @@
 #Project Ansible [![Build Status](https://travis-ci.org/adithyakhamithkar/ansible.svg?branch=master)](https://travis-ci.org/adithyakhamithkar/ansible)
-This is my pet project writing ansible playbooks. If you like my work please share your feedback and send me a Tip from Instamojo [![Tip](https://raw.githubusercontent.com/adithyakhamithkar/ansible/master/Files/instamojo-logo.png)](https://www.instamojo.com/@adithyakhamithkar)
+This is my pet project writing ansible playbooks. If you like my work please share your feedback and send me a Tip from [Instamojo](https://www.instamojo.com/@adithyakhamithkar)
 ##Index
 + AWS
     - create-iam-user (WIP)
