@@ -22,17 +22,13 @@
 - name: Stop Nginx
   service: name=nginx state=stopped
 
-- name: Configure Nginx virtualhost
-  template: src=virtualhost_phpmyadmin.j2 dest=/etc/nginx/sites-available/virtualhost_phpmyadmin
-
-- name: Configure Nginx virtualhost
-  template: src=virtualhost_phpmyadmin.j2 dest=/etc/nginx/sites-enabled/virtualhost_phpmyadmin
-
-- name: Configure Nginx virtualhost with SSL
-  template: src=virtualhost_phpmyadmin_ssl.j2 dest=/etc/nginx/sites-available/virtualhost_phpmyadmin-ssl
-
-- name: Configure Nginx virtualhost with SSL
-  template: src=virtualhost_phpmyadmin_ssl.j2 dest=/etc/nginx/sites-enabled/virtualhost_phpmyadmin-ssl
+- name: Update Nginx configuration
+  template: src={{item.src}} dest={{item.dest}}
+  with_items:
+    - { src: virtualhost_phpmyadmin.j2, dest: /etc/nginx/sites-available/virtualhost_phpmyadmin }
+    - { src: virtualhost_phpmyadmin.j2, dest: /etc/nginx/sites-enabled/virtualhost_phpmyadmin }
+    - { src: virtualhost_phpmyadmin_ssl.j2, dest: /etc/nginx/sites-available/virtualhost_phpmyadmin-ssl }
+    - { src: virtualhost_phpmyadmin_ssl.j2, dest: /etc/nginx/sites-enabled/virtualhost_phpmyadmin-ssl }
 
 - name: Start Nginx
   service: name=nginx state=started
