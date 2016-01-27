@@ -23,10 +23,10 @@
   file: path={{cassandra_data}}/cassandra state=directory owner=cassandra group=cassandra
 
 - name: Configure Cassandra
-  template: src=cassandra.j2 dest=/etc/cassandra/cassandra.yaml
-
-- name: Configure Cassandra
-  template: src=cassandra_service.j2 dest=/etc/init.dcassandra
+  template: src={{item.src}} dest={{item.dest}}
+  with_items:
+  - { src: cassandra.j2, dest: /etc/cassandra/cassandra.yaml }
+  - { src: cassandra_service.j2, dest: /etc/init.dcassandra }
 
 - name: Start Cassandra
   service: name=cassandra state=started
