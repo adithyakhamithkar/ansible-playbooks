@@ -1,0 +1,8 @@
+#
+#About: This will install vagrant
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - vagrant
