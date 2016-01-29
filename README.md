@@ -1,5 +1,6 @@
 #Project Ansible [![Build Status](https://travis-ci.org/adithyakhamithkar/ansible.svg?branch=master)](https://travis-ci.org/adithyakhamithkar/ansible) [![npm](https://img.shields.io/npm/dm/awesome-badges.svg)](https://www.npmjs.org/package/awesome-badges) [![npm](https://img.shields.io/npm/dt/awesome-badges.svg)](https://www.npmjs.org/package/awesome-badges) [![npm license](https://img.shields.io/npm/l/awesome-badges.svg)](https://www.npmjs.org/package/awesome-badges)
 This is my pet project writing ansible playbooks. If you like my work please share your feedback and send me a Tip from [Instamojo](https://www.instamojo.com/@adithyakhamithkar)
+
 [![GitHub forks](https://img.shields.io/github/forks/bevacqua/awesome-badges.svg?style=social&label=Fork)](https://github.com/adithyakhamithkar/ansible)
 [![GitHub stars](https://img.shields.io/github/stars/bevacqua/awesome-badges.svg?style=social&label=Star)](https://github.com/adithyakhamithkar/ansible)
 [![GitHub watchers](https://img.shields.io/github/watchers/bevacqua/awesome-badges.svg?style=social&label=Watch)](https://github.com/adithyakhamithkar/ansible)
