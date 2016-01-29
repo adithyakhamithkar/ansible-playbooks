@@ -1,0 +1,10 @@
+---
+- name: Create Role
+  iam:
+    iam_type: role
+    name: "{{item}}"
+    state: present
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+  with_items:
+     - "{{iam_role}}"

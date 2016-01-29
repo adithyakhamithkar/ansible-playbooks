@@ -1,0 +1,20 @@
+---
+- name: Create Read-Only Group
+  iam:
+    iam_type: group
+    name: "{{item}}"
+    state: present
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+  with_items:
+     - Read-Only
+
+- name: Apply READ-ONLY policy to new groups that have been recently created
+  iam_policy:
+    iam_type: group
+    iam_name: Read-Only
+    policy_name: "READ-ONLY"
+    policy_document: AWS/roles/create-iam-read-only-group/templates/read_only_policy.json
+    state: present
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"

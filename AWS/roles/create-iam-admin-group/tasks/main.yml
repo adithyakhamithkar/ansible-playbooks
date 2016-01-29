@@ -1,0 +1,20 @@
+---
+- name: Create CloudAdmin Group
+  iam:
+    iam_type: group
+    name: "{{item}}"
+    state: present
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+  with_items:
+     - CloudAdmin
+
+- name: Apply AdministratorAccess policy to new groups that have been recently created
+  iam_policy:
+    iam_type: group
+    iam_name: CloudAdmin
+    policy_name: "AdministratorAccess"
+    policy_document: AWS/roles/create-iam-admin-group/templates/admin_policy.json
+    state: present
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"

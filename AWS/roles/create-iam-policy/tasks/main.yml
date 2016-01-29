@@ -1,0 +1,10 @@
+---
+- name: Assign a policy called any group
+  iam_policy:
+    iam_type: group
+    iam_name: "{{iam_group}}"
+    policy_name: "{{iam_policy}}"
+    state: present
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+    policy_document: AWS/roles/create-iam-policy/templates/admin_policy.json

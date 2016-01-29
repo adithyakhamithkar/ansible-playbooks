@@ -1,0 +1,9 @@
+#
+#About: This will create an IAM group
+#
+---
+- hosts: localhost
+  connection: local
+  gather_facts: True
+  roles:
+  - create-iam-group
