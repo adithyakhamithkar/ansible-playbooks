@@ -2,7 +2,12 @@
 This is my pet project writing ansible playbooks. If you like my work please share your feedback and send me a Tip from [Instamojo](https://www.instamojo.com/@adithyakhamithkar)
 ##Index
 + AWS
-    - create-iam-user (WIP)
+    - [create-iam-admin-group](https://github.com/adithyakhamithkar/ansible/blob/master/AWS/roles/create-iam-admin-group/README.md)
+    - [create-iam-group](https://github.com/adithyakhamithkar/ansible/blob/master/AWS/roles/create-iam-group/README.md)
+    - [create-iam-policy](https://github.com/adithyakhamithkar/ansible/blob/master/AWS/roles/create-iam-policy/README.md)
+    - [create-iam-read-only-group](https://github.com/adithyakhamithkar/ansible/blob/master/AWS/roles/create-iam-read-only-group/README.md)
+    - create-iam-role
+    - [create-iam-user](https://github.com/adithyakhamithkar/ansible/blob/master/AWS/roles/create-iam-user/README.md)
     - create-sg-db
     - create-sg-web
     - create-vpc
