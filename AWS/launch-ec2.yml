@@ -1,0 +1,9 @@
+#
+#About: This will launch-ec2
+#
+---
+- hosts: localhost
+  connection: local
+  gather_facts: True
+  roles:
+  - launch-ec2
