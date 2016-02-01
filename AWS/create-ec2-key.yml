@@ -1,0 +1,9 @@
+#
+#About: This will create ec2 key
+#
+---
+- hosts: localhost
+  connection: local
+  gather_facts: True
+  roles:
+  - create-ec2-key

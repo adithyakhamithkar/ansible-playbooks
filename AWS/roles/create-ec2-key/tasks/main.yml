@@ -1,0 +1,10 @@
+---
+- name: Create ec2 key
+  ec2_key:
+    name: "{{ec2_key_name}}"
+    key_material: "{{item}}"
+    state: present
+    region: "{{aws_region}}"
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+  with_file: "{{id_rsa_pub}}"
