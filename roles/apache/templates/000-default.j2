@@ -9,12 +9,12 @@
         #ServerName www.example.com
 
         ServerAdmin webmaster@localhost
-        DocumentRoot /var/www/html
+        DocumentRoot {{doc_root}}
         <Directory />
                 Options FollowSymLinks
                 AllowOverride None
         </Directory>
-        <Directory /mnt1/www/html/estateace/>
+        <Directory {{doc_root}}>
                 Options Indexes FollowSymLinks MultiViews
                 AllowOverride None
                 Order allow,deny
