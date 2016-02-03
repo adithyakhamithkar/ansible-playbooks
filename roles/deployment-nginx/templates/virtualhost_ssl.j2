@@ -3,7 +3,7 @@ server {
         listen  443 ssl http2;
         root {{project_doc_root}};
         index index.php index.html index.htm;
-        server_name {{project_name}}.{{domain_name}};
+        server_name {{domain_name}};
         ssl_certificate /etc/nginx/ssl/ssl_crt.pem;
         ssl_certificate_key /etc/nginx/ssl/ssl_key.pem;
         location / {
