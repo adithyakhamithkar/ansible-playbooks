@@ -1,0 +1,16 @@
+---
+- name: Adding new user
+  user: name={{user_name}} groups=sudo,shadow shell=/bin/bash append=yes generate_ssh_key=yes ssh_key_file=.ssh/id_rsa
+
+- name: Adding user to sudoers
+  lineinfile: dest=/etc/sudoers state=present regexp='^%{{user_name}}' line='%{{user_name}} ALL=(ALL) NOPASSWD:ALL' validate='visudo -cf %s'
+
+- name: Adding public key to authorized_keys
+  #authorized_key: user={{user_name}}  key="{{ lookup('file', '/home/{{user_name}}/.ssh/id_rsa.pub') }}" state=present
+  shell: sudo cat /home/{{user_name}}/.ssh/id_rsa.pub > /home/{{user_name}}/.ssh/authorized_keys
+
+- name: Get the private key
+  shell: sudo cat /home/{{user_name}}/.ssh/id_rsa
+  register: ssh_key
+
+- debug: var=ssh_key

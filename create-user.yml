@@ -1,0 +1,8 @@
+#
+#About: This will create-user
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - create-user
