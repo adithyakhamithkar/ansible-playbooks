@@ -34,3 +34,6 @@ http://download.java.net/glassfish/4.1/release/glassfish-4.1.zip
 sudo /opt/glassfish4/bin/asadmin  --port 4848 change-admin-password
 #Enable glassfish admin
 sudo /opt/glassfish4/bin/asadmin  --port 4848 enable-secure-admin
+
+#Send test email
+echo "This is the body of the email" | mail -s "This is the subject line" user@example.com
