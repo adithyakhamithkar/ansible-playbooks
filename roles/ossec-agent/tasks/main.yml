@@ -10,6 +10,15 @@
   with_items:
    - ossec-hids-agent
 
+- name: Copy ssl cert
+  template: src=sslcert.j2 dest=/var/ossec/etc/sslmanager.cert
+
+- name: Copy ssl keys
+  template: src=sslkey.j2 dest=/var/ossec/etc/sslmanager.key
+
 - name: Configure OSSEC
   template: src=ossec.j2 dest=/var/ossec/etc/ossec.conf
   notify: Restart OSSEC
+
+- name: Connect to ossec-server
+  shell: /var/ossec/bin/agent-auth -m {{ossec_server}} -p 1514

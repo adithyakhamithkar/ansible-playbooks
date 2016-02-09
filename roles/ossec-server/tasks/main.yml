@@ -10,6 +10,24 @@
   with_items:
    - ossec-hids
 
+- name: Copy ssl cert
+  template: src=sslcert.j2 dest=/var/ossec/etc/sslmanager.cert
+
+- name: Copy ssl keys
+  template: src=sslkey.j2 dest=/var/ossec/etc/sslmanager.key
+
+- name: Copy authd
+  template: src=ossec_authd.j2 dest=/etc/init.d/ossec-authd owner=root group=root mode=0755
+
+- name: Set ossec-authd to start up by default
+  shell: update-rc.d ossec-authd defaults 95 10
+  changed_when: false
+
 - name: Configure OSSEC
   template: src=ossec.j2 dest=/var/ossec/etc/ossec.conf
-  notify: Restart OSSEC
+
+- name: Start OSSEC
+  service: name={{item}} state=started
+  with_items:
+   - ossec
+   - ossec-authd
