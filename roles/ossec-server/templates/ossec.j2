@@ -2,10 +2,10 @@
 
 <ossec_config>
   <global>
-    <email_notification>no</email_notification>
-    <email_to>your_email_address@xxx.com</email_to>
-    <smtp_server>smtp.your_domain.com.</smtp_server>
-    <email_from>ossecm@ossec.your_domain.com.</email_from>
+    <email_notification>yes</email_notification>
+    <email_to>{{web_master}}</email_to>
+    <smtp_server>localhost</smtp_server>
+    <email_from>ossec-alerts@ossec.{{domain_name}}</email_from>
   </global>
 
   <rules>
