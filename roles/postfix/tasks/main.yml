@@ -28,5 +28,8 @@
 - name: Rebuild
   command: postmap /etc/postfix/smtp_header_checks
 
+#- name: Change aliases
+#  lineinfile: dest=/etc/aliases state=present regexp='postmaster' line='postmaster: admin@{{hostname}}.{{domain_name}}'
+
 - name: Start postfix
   service: name=postfix state=restarted
