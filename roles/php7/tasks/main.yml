@@ -40,7 +40,11 @@
    - php7.0-mysql
    - php7.0-opcache
    - php7.0-bz2
+  tags:
+    - installation
 
 - name: Configure Php
   template: src=php.ini dest=/etc/php/7.0/fpm/php.ini
   notify: Restart Php
+  tags:
+    - configuration
