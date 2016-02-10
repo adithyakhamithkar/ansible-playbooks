@@ -5,18 +5,26 @@
   - postfix
   - mailutils
   - postfix-pcre
+  tags:
+    - installation
 
 - name: Create SSL directory for postfix
   file: path=/etc/postfix/ssl state=directory
+  tags:
+    - installation
 
 - name: Copy ssl_crt_file to /etc/postfix/ssl
   template: src={{item.src}} dest={{item.dest}}
   with_items:
     - { src: '{{ssl_crt_file}}', dest: /etc/postfix/ssl/ssl_crt.pem }
     - { src: '{{ssl_key_file}}', dest: /etc/postfix/ssl/ssl_key.pem }
+  tags:
+    - installation
 
 - name: Stop postfix
   service: name=postfix state=stopped
+  tags:
+    - configuration
 
 - name: Configure postfix
   template: src={{item.src}} dest={{item.dest}}
@@ -24,12 +32,20 @@
     - { src: postfix.j2, dest: /etc/postfix/main.cf }
     - { src: master.j2, dest: /etc/postfix/master.cf }
     - { src: smtp_header_checks.j2, dest: /etc/postfix/smtp_header_checks }
+  tags:
+    - configuration
 
 - name: Rebuild
   command: postmap /etc/postfix/smtp_header_checks
+  tags:
+    - configuration
 
 #- name: Change aliases
 #  lineinfile: dest=/etc/aliases state=present regexp='postmaster' line='postmaster{{':'}} admin@{{hostname}}.{{domain_name}}'
+#  tags:
+#    - configuration
 
 - name: Start postfix
   service: name=postfix state=restarted
+  tags:
+    - configuration
