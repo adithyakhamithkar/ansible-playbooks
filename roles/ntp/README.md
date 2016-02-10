@@ -7,13 +7,13 @@ timezone=Asia/Kolkata
 ###Example
 To install and configure NTP
 ```
-ansible-playbook -i inventory/hosts install-ntp -e "inventory= timezone="
+ansible-playbook -i inventory/hosts install-ntp.yml -e "inventory= timezone="
 ```
 To only install NTP
 ```
-ansible-playbook -i inventory/hosts install-ntp -e "inventory= timezone=" --skip-tags "ntp-installation"
+ansible-playbook -i inventory/hosts install-ntp.yml -e "inventory= timezone=" --skip-tags "ntp-installation"
 ```
 To only configure NTP
 ```
-ansible-playbook -i inventory/hosts install-ntp -e "inventory= timezone=" --skip-tags "ntp-configuration"
+ansible-playbook -i inventory/hosts install-ntp.yml -e "inventory= timezone=" --skip-tags "ntp-configuration"
 ```
