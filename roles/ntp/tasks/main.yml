@@ -4,22 +4,22 @@
   with_items:
   - ntp
   tags:
-    - installation
+    - ntp-installation
 
 - name: Configure ntp
   template: src=ntp.j2 dest=/etc/ntp.conf
   notify: Restart ntp
   tags:
-    - configuration
+    - ntp-configuration
 
 - name: Remove default time zone
   file: path=/etc/localtime state=absent
   changed_when: False
   tags:
-    - configuration
+    - ntp-configuration
 
 - name: Set local time
-  file: src=/usr/share/zoneinfo/{{ timezone }} dest=/etc/localtime state=link
+  file: src=/usr/share/zoneinfo/{{timezone}} dest=/etc/localtime state=link
   changed_when: False
   tags:
-    - configuration
+    - ntp-configuration
