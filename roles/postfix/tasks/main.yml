@@ -10,10 +10,10 @@
   file: path=/etc/postfix/ssl state=directory
 
 - name: Copy ssl_crt_file to /etc/postfix/ssl
-  copy: src={{ssl_crt_file}} dest=/etc/postfix/ssl/ssl_crt.pem
-
-- name: Copy ssl_key_file to /etc/postfix/ssl
-  copy: src={{ssl_key_file}} dest=/etc/postfix/ssl/ssl_key.pem
+  template: src={{item.src}} dest={{item.dest}}
+  with_items:
+    - { src: '{{ssl_crt_file}}', dest: /etc/postfix/ssl/ssl_crt.pem }
+    - { src: '{{ssl_key_file}}', dest: /etc/postfix/ssl/ssl_key.pem }
 
 - name: Stop postfix
   service: name=postfix state=stopped
@@ -29,7 +29,7 @@
   command: postmap /etc/postfix/smtp_header_checks
 
 #- name: Change aliases
-#  lineinfile: dest=/etc/aliases state=present regexp='postmaster' line='postmaster: admin@{{hostname}}.{{domain_name}}'
+#  lineinfile: dest=/etc/aliases state=present regexp='postmaster' line='postmaster{{':'}} admin@{{hostname}}.{{domain_name}}'
 
 - name: Start postfix
   service: name=postfix state=restarted
