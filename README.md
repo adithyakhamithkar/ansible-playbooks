@@ -76,7 +76,7 @@ This is my pet project writing ansible playbooks. If you like my work please sha
     - rootkit-scanners
         - chkrootkit
         - rkhunter
-    - [stfs](https://github.com/adithyakhamithkar/ansible/blob/master/roles/s3fs)
+    - [s3fs](https://github.com/adithyakhamithkar/ansible/blob/master/roles/s3fs)
     - [saltstack](https://github.com/adithyakhamithkar/ansible/tree/master/roles/salt-master)
         - salt-master
         - salt-minion
