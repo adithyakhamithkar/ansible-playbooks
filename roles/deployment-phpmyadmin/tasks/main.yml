@@ -15,9 +15,13 @@
 
 - name: Download phpmyadmin
   get_url: url={{phpmyadmin_url}} dest=/opt validate_certs=False
+  tags:
+    - deployment
 
 - name: Extract phpmyadmin
   unarchive: src=/opt/{{phpmyadmin_version}}.zip dest=/opt copy=no
+  tags:
+    - deployment
 
 - name: Stop Nginx
   service: name=nginx state=stopped
@@ -29,7 +33,9 @@
     - { src: virtualhost_phpmyadmin.j2, dest: /etc/nginx/sites-enabled/virtualhost_phpmyadmin }
     - { src: virtualhost_phpmyadmin_ssl.j2, dest: /etc/nginx/sites-available/virtualhost_phpmyadmin-ssl }
     - { src: virtualhost_phpmyadmin_ssl.j2, dest: /etc/nginx/sites-enabled/virtualhost_phpmyadmin-ssl }
-
+  tags:
+    - nginx-virtualhost-configuration
+    
 - name: Start Nginx
   service: name=nginx state=started
 
