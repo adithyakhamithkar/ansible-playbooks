@@ -43,7 +43,7 @@
 #- name: Change aliases
 #  lineinfile: dest=/etc/aliases state=present regexp='postmaster' line='postmaster{{':'}} admin@{{hostname}}.{{domain_name}}'
 #  tags:
-#    - configuration
+#    - postfix-configuration
 
 - name: Start postfix
   service: name=postfix state=restarted
