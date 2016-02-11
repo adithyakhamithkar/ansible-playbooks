@@ -18,9 +18,13 @@
 
 - name: Deploy
   git: repo={{project_repo}} dest={{project_doc_root}} accept_hostkey=yes version={{branch_name}} force=yes
+  tags:
+    - deployment
 
 - name: Set file permissions
   file: path={{project_doc_root}} mode=0755 owner=www-data group=www-data recurse=yes
+  tags:
+    - deployment
 
 - name: Update Nginx configuration and deployment info
   template: src={{item.src}} dest={{item.dest}}
@@ -30,6 +34,8 @@
     - { src: virtualhost.j2, dest: /etc/nginx/sites-enabled/default }
     - { src: virtualhost_ssl.j2, dest: /etc/nginx/sites-available/default-ssl }
     - { src: virtualhost_ssl.j2, dest: /etc/nginx/sites-enabled/default-ssl }
+  tags:
+    - nginx-virtualhost-configuration
 
 - name: Start Nginx
   service: name=nginx state=started
