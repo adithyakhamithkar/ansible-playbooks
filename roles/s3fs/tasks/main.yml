@@ -1,25 +1,37 @@
 ---
 - name: Add the s3fs source to the APT source list
   apt_repository: repo="deb http://ppa.launchpad.net/pomeo/s3fs/ubuntu lucid main" state=present
+  tags:
+    - s3fs-installation
 
 - name: Install s3fs
   apt: name={{item}} state=present force=yes
   with_items:
    - s3fs
+  tags:
+    - s3fs-installation
 
 - name: Configure fuse
   template: src=fuse.j2 dest=/etc/fuse.conf
+  tags:
+    - s3fs-configuration
 
 - name: Copy keys
   template: src=passwd_s3fs.j2 dest=/root/.passwd-s3fs mode=0600
+  tags:
+    - s3fs-configuration
 
 - name: Create a folder for S3
   file: path={{item}} state=directory
   with_items:
   - /mnt/s3
   - /tmp/s3_cache
+  tags:
+    - s3fs-configuration
 
 - name: Setup fstab
   lineinfile: dest=/etc/fstab line="{{item}}"
   with_items:
   - s3fs#{{bucket_name}} /mnt/s3 fuse allow_other,use_cache=/tmp/s3_cache 0 0
+  tags:
+    - s3fs-configuration
