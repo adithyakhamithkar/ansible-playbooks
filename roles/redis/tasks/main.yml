@@ -1,2 +1,33 @@
 ---
-- include: install-redis.yml
+- name: Install Redis
+  apt: name={{item}} state=present
+  with_items:
+  - redis-server
+  tags:
+    - redis-installation
+
+- name: Enable the Redis services to start automatically
+  shell: update-rc.d redis-server defaults
+  changed_when: False
+  tags:
+    - redis-installation
+
+- name: Sysctl configuration
+  template: src=sysctl.j2 dest=/etc/sysctl.conf
+  tags:
+    - redis-configuration
+
+- name: Sysctl configuration
+  shell: sysctl vm.overcommit_memory=1
+  tags:
+    - redis-configuration
+
+- name: Configuring redis
+  template: src=redis.conf dest=/etc/redis/redis.conf
+  tags:
+    - redis-configuration
+
+- name: Restart Redis
+  service: name=redis-server state=restarted
+  tags:
+    - redis-restart
