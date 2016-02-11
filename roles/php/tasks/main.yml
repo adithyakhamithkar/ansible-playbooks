@@ -29,10 +29,10 @@
    - mcrypt
    - libapache2-mod-php5
   tags:
-    - installation
+    - php5-installation
 
 - name: Configure Php
   template: src=php.ini dest=/etc/php5/fpm/php.ini
   notify: Restart Php
   tags:
-    - configuration
+    - php5-configuration

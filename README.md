@@ -3,12 +3,12 @@ This is my pet project writing ansible playbooks. If you like my work please sha
 
 ##Index
 + AWS
-    - [create-iam-admin-group](https://github.com/adithyakhamithkar/ansible/blob/master/AWS/roles/create-iam-admin-group/README.md)
-    - [create-iam-group](https://github.com/adithyakhamithkar/ansible/blob/master/AWS/roles/create-iam-group/README.md)
-    - [create-iam-policy](https://github.com/adithyakhamithkar/ansible/blob/master/AWS/roles/create-iam-policy/README.md)
-    - [create-iam-read-only-group](https://github.com/adithyakhamithkar/ansible/blob/master/AWS/roles/create-iam-read-only-group/README.md)
+    - [create-iam-admin-group](https://github.com/adithyakhamithkar/ansible/blob/master/AWS/roles/create-iam-admin-group)
+    - [create-iam-group](https://github.com/adithyakhamithkar/ansible/blob/master/AWS/roles/create-iam-group)
+    - [create-iam-policy](https://github.com/adithyakhamithkar/ansible/blob/master/AWS/roles/create-iam-policy)
+    - [create-iam-read-only-group](https://github.com/adithyakhamithkar/ansible/blob/master/AWS/roles/create-iam-read-only-group)
     - create-iam-role
-    - [create-iam-user](https://github.com/adithyakhamithkar/ansible/blob/master/AWS/roles/create-iam-user/README.md)
+    - [create-iam-user](https://github.com/adithyakhamithkar/ansible/blob/master/AWS/roles/create-iam-user)
     - create-sg-db
     - create-sg-web
     - create-vpc
@@ -19,14 +19,14 @@ This is my pet project writing ansible playbooks. If you like my work please sha
     - mysql-import
     - transfer-db
 + Hacking
-    - [john-the-ripper](https://github.com/adithyakhamithkar/ansible/blob/master/Hacking/roles/john-the-ripper/README.md)
+    - [john-the-ripper](https://github.com/adithyakhamithkar/ansible/blob/master/Hacking/roles/john-the-ripper)
 + List of Roles
-    - [agar](https://github.com/adithyakhamithkar/ansible/blob/master/roles/agar/README.md)
-    - [ansible](https://github.com/adithyakhamithkar/ansible/blob/master/roles/ansible/README.md)
+    - [agar](https://github.com/adithyakhamithkar/ansible/blob/master/roles/agar)
+    - [ansible](https://github.com/adithyakhamithkar/ansible/blob/master/roles/ansible)
     - bitcoin (WIP)
     - bittorrentsync
     - cachethq (Not working)
-    - [cassandra](https://github.com/adithyakhamithkar/ansible/blob/master/roles/cassandra/README.md)
+    - [cassandra](https://github.com/adithyakhamithkar/ansible/blob/master/roles/cassandra)
     - common
     - datadog-agent
     - deployment-nginx
@@ -39,14 +39,14 @@ This is my pet project writing ansible playbooks. If you like my work please sha
     - jdk
     - jenkins
         - jenkins-configure
-    - [kafka](https://github.com/adithyakhamithkar/ansible/blob/master/roles/kafka/README.md)
+    - [kafka](https://github.com/adithyakhamithkar/ansible/blob/master/roles/kafka)
         - [kafka-manager](https://github.com/adithyakhamithkar/ansible/tree/master/roles/kafka-manager)
     - kibana
     - ldap-server
     - lets-encrypt
     - logstash
     - logstash-forwarder
-    - [mesos](https://github.com/adithyakhamithkar/ansible/blob/master/roles/mesos/README.md)
+    - [mesos](https://github.com/adithyakhamithkar/ansible/blob/master/roles/mesos)
         - mesos-master
         - mesos-slave
     - mongodb
@@ -60,15 +60,15 @@ This is my pet project writing ansible playbooks. If you like my work please sha
         - nginx-jenkins
         - nginx-load-balancer
         - nginx-sensu-master
-    - ntp
+    - [ntp](https://github.com/adithyakhamithkar/ansible/tree/master/roles/ntp)
     - odoo
-    + [ossec](https://github.com/adithyakhamithkar/ansible/blob/master/roles/ossec-server/README.md)
+    + [ossec](https://github.com/adithyakhamithkar/ansible/blob/master/roles/ossec-server)
         - ossec-server
         - ossec-agent  
-    - [phabricator](https://github.com/adithyakhamithkar/ansible/blob/master/roles/phabricator/README.md)
+    - [phabricator](https://github.com/adithyakhamithkar/ansible/blob/master/roles/phabricator)
     - php
     - php7
-    - postfix
+    - [postfix](https://github.com/adithyakhamithkar/ansible/tree/master/roles/postfix)
     - psad
     - rabbit-mq
     - redis
@@ -76,8 +76,8 @@ This is my pet project writing ansible playbooks. If you like my work please sha
     - rootkit-scanners
         - chkrootkit
         - rkhunter
-    - [stfs](https://github.com/adithyakhamithkar/ansible/blob/master/roles/s3fs/README.md)
-    - [saltstack](https://github.com/adithyakhamithkar/ansible/blob/master/roles/salt-minion/README.md)
+    - [stfs](https://github.com/adithyakhamithkar/ansible/blob/master/roles/s3fs)
+    - [saltstack](https://github.com/adithyakhamithkar/ansible/tree/master/roles/salt-master)
         - salt-master
         - salt-minion
     - scala
@@ -93,4 +93,4 @@ This is my pet project writing ansible playbooks. If you like my work please sha
     - tomcat
     - varnish
     - youtrack
-    - [zookeeper](https://github.com/adithyakhamithkar/ansible/blob/master/roles/zookeeper/README.md)
+    - [zookeeper](https://github.com/adithyakhamithkar/ansible/blob/master/roles/zookeeper)
