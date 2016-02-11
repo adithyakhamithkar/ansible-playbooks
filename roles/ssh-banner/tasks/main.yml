@@ -1,21 +1,18 @@
 ---
-#- name: Adding banner info in sshd.conf
-#  shell: sudo echo "Banner /etc/issue.net" >> /etc/ssh/sshd_config
-#  changed_when: False
-
 - name: Adding banner info in sshd.conf
-  lineinfile: dest=/etc/ssh/sshd_config line="Banner /etc/issue.net"
-
-#- name: Change StrictHostKeyChecking to no
-#  shell: sudo sed -i "s/#   StrictHostKeyChecking ask/    StrictHostKeyChecking no/g" /etc/ssh/ssh_config
-#  changed_when: False
-
-- name: Change StrictHostKeyChecking to no
-  lineinfile: dest=/etc/ssh/ssh_config line="  StrictHostKeyChecking no"
-
-- name: Restart ssh
-  service: name=ssh state=restarted
-  changed_when: False
+  lineinfile: dest=/etc/ssh/sshd_config regexp='#Banner /etc/issue.net' line="Banner /etc/issue.net"
+  tags:
+    - ssh-banner-configuration
 
 - name: Update ssh banner
   template: src=ssh-banner.j2 dest=/etc/issue.net
+  tags:
+    - ssh-banner-configuration
+
+- name: Change StrictHostKeyChecking to no
+  lineinfile: dest=/etc/ssh/ssh_config regexp='#   StrictHostKeyChecking' line="    StrictHostKeyChecking no"
+  tags:
+    - ssh-strict-key-configuration
+
+- name: Restart ssh
+  service: name=ssh state=restarted
