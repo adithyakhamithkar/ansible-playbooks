@@ -1,33 +1,45 @@
 ---
 - name: Add the OSSEC APT key
   apt_key: url=http://ossec.wazuh.com/repos/apt/conf/ossec-key.gpg.key state=present
+  tags:
+    - ossec-server-installation
 
 - name: Add the OSSEC source to the APT source list
   apt_repository: repo='deb http://ossec.wazuh.com/repos/apt/ubuntu trusty main' state=present
+  tags:
+    - ossec-server-installation
 
 - name: Install OSSEC
   apt: name={{item}} state=present
   with_items:
    - ossec-hids
+  tags:
+    - ossec-server-installation
 
-- name: Copy ssl cert
-  template: src=sslcert.j2 dest=/var/ossec/etc/sslmanager.cert
-
-- name: Copy ssl keys
-  template: src=sslkey.j2 dest=/var/ossec/etc/sslmanager.key
+- name: Copy ssl cert and configuration
+  template: src={{item.src}} dest={{item.dest}}
+  with_items:
+    - { src: sslcert.j2, dest: /var/ossec/etc/sslmanager.cert }
+    - { src: sslkey.j2, dest: /var/ossec/etc/sslmanager.key }
+    - { src: ossec.j2, dest: /var/ossec/etc/ossec.conf }
+  tags:
+    - ossec-server-configuration
 
 - name: Copy authd
   template: src=ossec_authd.j2 dest=/etc/init.d/ossec-authd owner=root group=root mode=0755
+  tags:
+    - ossec-server-configuration
 
 - name: Set ossec-authd to start up by default
   shell: update-rc.d ossec-authd defaults 95 10
   changed_when: false
+  tags:
+    - ossec-server-configuration
 
-- name: Configure OSSEC
-  template: src=ossec.j2 dest=/var/ossec/etc/ossec.conf
-
-- name: Start OSSEC
-  service: name={{item}} state=started
+- name: Restart OSSEC
+  service: name={{item}} state=restarted
   with_items:
    - ossec
    - ossec-authd
+  tags:
+    - ossec-server-restart

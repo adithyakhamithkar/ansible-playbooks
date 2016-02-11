@@ -10,17 +10,17 @@ case "$1" in
   start)
         # Start daemon.
         echo "Starting $DAEMON_NAME";
-        nohup $DAEMON_PATH/ossec-authd -p 1514 2>&1 >> /var/ossec/logs/ossec-authd.log &
+        nohup $DAEMON_PATH/$DAEMON_NAME -p 1515 2>&1 >> /var/ossec/logs/ossec-authd.log &
         ;;
   stop)
         # Stop daemons.
         echo "Shutting down $DAEMON_NAME";
-        pid=`ps ax | grep -i 'ossec-authd' | grep -v grep | awk '{print $1}'`
+        pid=`ps ax | grep -i '$DAEMON_NAME' | grep -v grep | awk '{print $1}'`
         if [ -n "$pid" ]
           then
           kill -9 $pid
         else
-          echo "ossec-authd was not Running"
+          echo "$DAEMON_NAME was not Running"
         fi
         ;;
   restart)
@@ -29,12 +29,12 @@ case "$1" in
         $0 start
         ;;
   status)
-        pid=`ps ax | grep -i 'ossec-authd' | grep -v grep | awk '{print $1}'`
+        pid=`ps ax | grep -i '$DAEMON_NAME' | grep -v grep | awk '{print $1}'`
         if [ -n "$pid" ]
           then
-          echo "ossec-authd is Running as PID: $pid"
+          echo "$DAEMON_NAME is Running as PID: $pid"
         else
-          echo "ossec-authd is not Running"
+          echo "$DAEMON_NAME is not Running"
         fi
         ;;
   *)

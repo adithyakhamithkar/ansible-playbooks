@@ -1,3 +1,5 @@
 ---
 - name: Clone ossec-server-webui
   git: repo=git@github.com:ossec/ossec-wui.git dest=/var/www/html/ossec-webui accept_hostkey=yes force=yes
+  tags:
+    - ossec-server-webui-instannation
