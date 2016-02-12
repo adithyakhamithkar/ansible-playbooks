@@ -31,6 +31,7 @@
     - { src: '{{error_page_403}}', dest: /usr/share/nginx/error_pages }
     - { src: '{{ssl_crt_file}}', dest: /etc/nginx/ssl/ssl_crt.pem }
     - { src: '{{ssl_key_file}}', dest: /etc/nginx/ssl/ssl_key.pem }
+    - { src: '{{ssl_dhparam}}', dest: /etc/nginx/ssl/dhparam.pem}
   tags:
     - nginx-configuration
 

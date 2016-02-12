@@ -9,6 +9,9 @@ server {
         server_name {{hostname}}.{{domain_name}};
         ssl_certificate /etc/nginx/ssl/ssl_crt.pem;
         ssl_certificate_key /etc/nginx/ssl/ssl_key.pem;
+        ssl_dhparam /etc/nginx/ssl/dhparam.pem;
+        ssl_prefer_server_ciphers on;
+        ssl_session_cache shared:SSL:10m;
         location / {
             proxy_cache my_zone;
             add_header X-Proxy-Cache $upstream_cache_status;

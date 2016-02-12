@@ -9,6 +9,9 @@ server {
         ssl_prefer_server_ciphers on;
         ssl_certificate /etc/nginx/ssl/ssl_crt.pem;
         ssl_certificate_key /etc/nginx/ssl/ssl_key.pem;
+        ssl_dhparam /etc/nginx/ssl/dhparam.pem;
+        ssl_prefer_server_ciphers on;
+        ssl_session_cache shared:SSL:10m;
         location / {
                 try_files $uri $uri/ /index.php?$args;
                 proxy_cache STATIC;
