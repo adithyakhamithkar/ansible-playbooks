@@ -13,7 +13,6 @@ server {
         ssl_certificate /etc/nginx/ssl/ssl_crt.pem;
         ssl_certificate_key /etc/nginx/ssl/ssl_key.pem;
         ssl_dhparam /etc/nginx/ssl/dhparam.pem;
-        ssl_prefer_server_ciphers on;
         ssl_session_cache shared:SSL:10m;
         location / {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
