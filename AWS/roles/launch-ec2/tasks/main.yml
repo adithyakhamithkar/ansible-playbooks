@@ -4,7 +4,7 @@
     key_name: "{{ec2_key}}"
     instance_type: "{{instance_type}}"
     image: "{{ami}}"
-    group: "{sg_group}"
+    group: "{{sg_group}}"
     wait: yes
     wait_timeout: 500
     count: 1
