@@ -11,3 +11,6 @@
     groups: "{{iam_group}}"
   with_items:
     - "{{iam_user_name}}"
+  register: iam_user
+
+- debug: var=iam_user

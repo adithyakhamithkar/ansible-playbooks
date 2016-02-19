@@ -6,7 +6,7 @@
   - python-software-properties
 
 - name: Adding Ansible repository
-  apt_repository: repo="ppa:rquillo/ansible"
+  apt_repository: repo="ppa:ansible/ansible"
 
 - name: Install Ansible
   apt: name={{item}} state=present
