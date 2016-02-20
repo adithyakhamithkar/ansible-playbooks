@@ -1,18 +1,51 @@
 ---
 - name: Add the tor APT repository
-  apt_key: keyserver=subkeys.pgp.net id=0x94C09C7F state=present
+  apt_key: keyserver=keys.gnupg.net id=886DDD89 state=present
+  tags:
+    - tor-installation
 
 - name: Add tor repository
-  apt_repository: repo="deb http://mirror.noreply.org/pub/tor lenny main" state=present
+  apt_repository: repo="deb http://deb.torproject.org/torproject.org trusty main" state=present
+  tags:
+    - tor-installation
 
 - name: Install tor
-  apt: name={{item}} state=present
+  apt: name={{item}} state=present force=yes
   with_items:
   - tor
-  - socat
+  - deb.torproject.org-keyring
+  - netcat
+  tags:
+    - tor-installation
 
-#- name: Configure tor
-#  template: src=torrc.j2 dest=/etc/tor/torrc
+- name: Stop postfix
+  service: name=tor state=stopped
+  tags:
+    - tor-restart
 
-- name: Configure ssh-tor
-  template: src=ssh.j2 dest=/home/{{ansible_ssh_user}}/.ssh/config owner={{ansible_ssh_user}} group={{ansible_ssh_user}}
+- name: Configure Tor
+  lineinfile: dest=/etc/tor/torrc line="{{item}}"
+  with_items:
+  - HiddenServiceDir /var/lib/tor/hidden_service_ssh/
+  - HiddenServicePort 22 127.0.0.1:22
+  tags:
+    - tor-configuration
+
+- name: Create directory
+  file: path=/var/lib/tor/hidden_service_ssh state=directory
+  tags:
+    - tor-configuration
+
+- name: Start postfix
+  service: name=tor state=started
+  tags:
+    - tor-restart
+
+- name: Configure ssh_config
+  lineinfile: dest=/etc/ssh/ssh_config line="{{item}}"
+  with_items:
+    - Host *.onion
+    - ProxyCommand nc -x localhost{{':'}}9150 %h %p
+
+#- name: Configure ssh-tor
+#  template: src=ssh.j2 dest=/home/{{ansible_ssh_user}}/.ssh/config owner={{ansible_ssh_user}} group={{ansible_ssh_user}}

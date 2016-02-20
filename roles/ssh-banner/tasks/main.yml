@@ -10,7 +10,7 @@
     - ssh-banner-configuration
 
 - name: Change StrictHostKeyChecking to no
-  lineinfile: dest=/etc/ssh/ssh_config regexp='#   StrictHostKeyChecking' line="    StrictHostKeyChecking no"
+  lineinfile: dest=/etc/ssh/ssh_config regexp='#   StrictHostKeyChecking' line="     StrictHostKeyChecking no"
   tags:
     - ssh-strict-key-configuration
 
