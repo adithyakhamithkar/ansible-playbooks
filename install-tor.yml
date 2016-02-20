@@ -1,0 +1,8 @@
+#
+#About: This will install tor
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - tor

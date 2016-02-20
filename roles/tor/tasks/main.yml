@@ -1,0 +1,46 @@
+---
+- name: Add the tor APT repository
+  apt_key: keyserver=keys.gnupg.net id=886DDD89 state=present
+  tags:
+    - tor-installation
+
+- name: Add tor repository
+  apt_repository: repo="deb http://deb.torproject.org/torproject.org trusty main" state=present
+  tags:
+    - tor-installation
+
+- name: Install tor
+  apt: name={{item}} state=present force=yes
+  with_items:
+  - tor
+  - deb.torproject.org-keyring
+  - netcat
+  tags:
+    - tor-installation
+
+- name: Stop tor
+  service: name=tor state=stopped
+  tags:
+    - tor-restart
+
+- name: Configure Tor
+  lineinfile: dest=/etc/tor/torrc line="{{item}}"
+  with_items:
+  - HiddenServiceDir /var/lib/tor/hidden_service_web/
+  - HiddenServicePort 80 127.0.0.1:80
+  tags:
+    - tor-configuration
+
+- name: Start tor
+  service: name=tor state=started
+  tags:
+    - tor-restart
+
+- name: Configure ssh_config
+  lineinfile: dest=/etc/ssh/ssh_config line="{{item}}"
+  with_items:
+    - Host *.onion
+    - ProxyCommand nc -x localhost{{':'}}9150 %h %p
+
+#- name: Configure ssh-tor
+#  template: src=ssh.j2 dest=/home/{{ansible_ssh_user}}/.ssh/config owner={{ansible_ssh_user}} group={{ansible_ssh_user}}

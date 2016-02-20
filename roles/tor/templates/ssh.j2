@@ -1,0 +1,5 @@
+Host *
+CheckHostIP no
+Compression yes
+Protocol 2
+ProxyCommand socat STDIO SOCKS4A:localhost:%h:%p,socksport=9050
