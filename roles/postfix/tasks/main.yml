@@ -5,6 +5,7 @@
   - postfix
   - mailutils
   - postfix-pcre
+  - libsasl2-modules
   tags:
     - postfix-installation
 
@@ -40,10 +41,27 @@
   tags:
     - postfix-configuration
 
-#- name: Change aliases
-#  lineinfile: dest=/etc/aliases state=present regexp='postmaster' line='postmaster{{':'}} admin@{{hostname}}.{{domain_name}}'
+#- name: Postfix gmail credentials
+#  template: src=sasl_passwd.j2 dest=/etc/postfix/sasl_passwd mode=0600
 #  tags:
-#    - postfix-configuration
+#    - postfix-gmail-relay
+
+#- name: Postfix gmail relay configure
+#  lineinfile: dest=/etc/postfix/main.cf line="{{item}}"
+#  with_items:
+#  - relayhost = [smtp.gmail.com]:587
+#  - smtp_use_tls = yes
+#  - smtp_sasl_auth_enable = yes
+#  - smtp_sasl_security_options =
+#  - smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+#  - smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
+#  tags:
+#    - postfix-gmail-relay
+
+#- name: Rebuild
+#  command: postmap /etc/postfix/sasl_passwd
+#  tags:
+#    - postfix-gmail-relay
 
 - name: Start postfix
   service: name=postfix state=restarted
