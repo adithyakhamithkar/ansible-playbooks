@@ -5,12 +5,18 @@
 
 - name: Set Host name
   hostname: name={{hostname}}
+  tags:
+    - set-hostname
 
 - name: Replace default hosts file
   template: src=hosts.j2 dest=/etc/hosts
+  tags:
+    - set-hostname
 
 - name: Prevent IP Spoofing
   template: src=hosts.conf dest=/etc/host.conf
+  tags:
+    - set-hostname
 
 - name: Update ec2 tags
   include: ec2-tags.yml
