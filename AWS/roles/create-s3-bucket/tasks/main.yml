@@ -1,0 +1,12 @@
+---
+- name: Create s3 bucket
+  s3_bucket:
+    name: "{{s3_bucket_name}}"
+    region: "{{aws_region}}"
+    versioning: yes
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+  register: s3_url
+
+- name: Display s3 url
+  debug: var=s3_url
