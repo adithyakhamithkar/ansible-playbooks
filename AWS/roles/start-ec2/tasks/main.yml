@@ -1,14 +1,18 @@
 ---
-- name: Gather ec2 facts
-  ec2_facts:
-  when: dc_env == "aws"
-
-- name: Stop ec2 instance
-  local_action:
-    module: ec2
-    instance_ids: "{{ansible_ec2_instance_id}}"
+- name: Search ec2
+  ec2_remote_facts:
+    filters:
+      "tag:Name": "{{hostname}}"
     aws_access_key: "{{aws_access_key}}"
     aws_secret_key: "{{aws_secret_key}}"
-    region: "{{ansible_ec2_placement_region}}"
-    state: stopped
-  when: dc_env == "aws"
+    region: "{{aws_region}}"
+  register: ec2info
+
+- name: Start ec2 instance
+  ec2:
+    instance_ids: "{{ec2info.instances[0].id}}"
+    region: "{{ec2info.instances[0].region}}"
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+    state: running
+    wait: True
