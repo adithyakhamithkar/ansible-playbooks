@@ -4,7 +4,33 @@
   with_items:
    - apache2
    - apache2-utils
+  tags:
+    - apache-installation
+
+- name: Enable modules
+  command: a2enmod {{item}}
+  with_items:
+    - ssl
+    - rewrite
+  tags:
+    - apache-configuration
+
+- name: Stop Apache
+  service: name=apache2 state=stopped
+  tags:
+    - apache-restart
 
 - name: Configure Apache
-  template: src=000-default.j2 dest=/etc/apache2/sites-available/000-default.conf
-  notify: Restart Apache
+  template: src={{item.src}} dest={{item.dest}}
+  with_items:
+    - { src: 000-default.j2, dest: /etc/apache2/sites-available/000-default.conf }
+    - { src: 000-default.j2, dest:  /etc/apache2/sites-enabled/000-default.conf }
+    - { src: default-ssl.j2, dest:  /etc/apache2/sites-available/default-ssl.conf }
+    - { src: default-ssl.j2, dest:  /etc/apache2/sites-enabled/default-ssl.conf }
+  tags:
+    - apache-configuration
+
+- name: Start Apache
+  service: name=apache2 state=started
+  tags:
+    - apache-restart
