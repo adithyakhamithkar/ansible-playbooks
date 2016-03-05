@@ -1,0 +1,110 @@
+##Define Domain name (Can't be blank)
+domain_name : adithyakhamithkar.xyz
+
+#Define datacenter environment (Can't be blank)
+dc_env :
+env : test-env
+aws_access_key :
+aws_secret_key : 
+
+##System variables (Can't be blank)
+#Define Time Zone
+timezone : Asia/Calcutta
+
+#Define global ssh user (Can't be blank)
+ansible_ssh_user : adithya
+#Define private key
+ansible_ssh_private_key_file : ~/Personal/Projects/ansible/inventory/test-env/keys/ansible.pem
+id_rsa : ~/Personal/Projects/ansible/inventory/test-env/keys/id_rsa
+id_rsa_pub : ~/Personal/Projects/ansible/inventory/test-env/keys/id_rsa.pub
+
+##Sensu
+#Define ssl certificate file path
+sensu_ssl_crt_file : ~/Personal/Projects/ansible/inventory/test-env/keys/sensu_ssl_crt.pem
+#Define ssl key file path
+sensu_ssl_key_file : ~/Personal/Projects/ansible/inventory/test-env/keys/sensu_ssl_key.pem
+#Define ssl ca certificate file path
+sensu_ssl_ca_crt_file : ~/Personal/Projects/ansible/inventory/test-env/keys/sensu_ssl_ca_crt.pem
+#Sensu smtp username
+smtp_username : sensu@sensu-master
+slack_webhook : https://hooks.slack.com/services/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
+
+##Nginx
+#Define ssl certificate file path
+ssl_crt_file : ~/Personal/Projects/ansible/inventory/test-env/keys/ssl_crt.pem
+#Define ssl key file path
+ssl_key_file : ~/Personal/Projects/ansible/inventory/test-env/keys/ssl_key.pem
+ssl_dhparam : ~/Personal/Projects/ansible/roles/nginx/templates/dhparam.pem
+#Define default document root
+doc_root : /usr/share/nginx/html
+default_index : ~/Personal/Projects/ansible/inventory/test-env/files/nginx/index.html
+#Define error page path
+error_page_404 : ~/Personal/Projects/ansible/inventory/test-env/files/nginx/error-page-404.html
+error_page_50x : ~/Personal/Projects/ansible/inventory/test-env/files/nginx/error-page-50x.html
+error_page_403 : ~/Personal/Projects/ansible/inventory/test-env/files/nginx/error-page-403.html
+
+
+##MySql server variables (Can't be blank)
+mysql_backup : /var/log/mysql_backup
+#MySql password
+mysqlrootpassword : 123
+mysql_password : 123
+mysql_user : root
+
+##Project repo
+project_name : default
+project_repo : git@bitbucket.org:adithyakhamithkar/wordpress.git
+project_doc_root : /usr/share/nginx/html/wordpress
+
+##Tools
+#New relic (Can't be blank)
+new_relic_license_key : 8c12315a732c7f5ff8638a994816287fe373e726
+#Sensu Master
+sensu_master : 192.168.44.153
+rabbitmq_user : sensu
+rabbitmq_password : sensu
+#datadog-agent
+datadog_api_key : 6cb7b456835c714811fecf918cf82a7f
+logstash_server : 192.168.44.197:5000
+ossec_server : 192.168.44.199
+
+##Alert information variables
+#Define Intrusion Detection System alerts emailID
+ids_alerts : nkadithya31@gmail.com
+#Define Mysql alerts emailID
+mysql_back_email : nkadithya31@gmail.com
+#Define web-master emailID
+web_master : nkadithya31@gmail.com
+#Sensu alerts
+alert_email : nkadithya31@gmail.com
+
+##URLs
+#Youtrack url
+youtrack_url : http://download-cf.jetbrains.com/charisma/youtrack-6.0.12634.zip
+#Upsourse url
+upsourse_url : http://download-cf.jetbrains.com/upsource/upsource-2.0.3554.zip
+#TeamCity url
+teamcity_url : http://download-cf.jetbrains.com/teamcity/TeamCity-9.0.5.tar.gz
+#Glassfish url
+glassfish_url : http://download.java.net/glassfish/4.1/release/glassfish-4.1.zip
+#Solr
+solr_url : http://apache.mirror1.spango.com/lucene/solr/5.2.1/solr-5.2.1.tgz
+#Kafka
+kafka_url : http://mirror.cc.columbia.edu/pub/software/apache/kafka/0.8.2.1/kafka_2.11-0.8.2.1.tgz
+#Kafka-manager
+kafka_manager_url : ~/kafka-manager-1.2.7.zip
+#Kibana
+kibana_url : https://download.elastic.co/kibana/kibana/kibana-4.1.2-linux-x64.tar.gz
+#phpmyadmin
+phpmyadmin_version : phpMyAdmin-4.4.15-english
+phpmyadmin_url : https://files.phpmyadmin.net/phpMyAdmin/4.4.15/phpMyAdmin-4.4.15-english.zip
+
+hadoop_url : http://www.us.apache.org/dist/hadoop/common/hadoop-2.6.3/hadoop-2.6.3.tar.gz
+
+###SaltStack
+salt_pem : inventory/test-env/keys/salt.pem
+salt_pub : inventory/test-env/keys/salt.pub
+
+###ldap
+ldap_base : dc=ldap,dc=adithya,dc=in
+ldap_uri : ldap://{{hostname}}/ ldap://{{hostname}}:666/ ldaps://{{hostname}}/ ldaps://{{hostname}}:666/
