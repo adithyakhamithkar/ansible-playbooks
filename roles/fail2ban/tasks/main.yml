@@ -1,0 +1,21 @@
+---
+- name: Install fail2ban
+  apt: name={{item}} state=present
+  with_items:
+  - fail2ban
+
+- name: Stop fail2ban
+  service: name=fail2ban state=stopped
+
+- name: Configure fail2ban
+  template: src={{item.src}} dest={{item.dest}}
+  with_items:
+    - { src: jail.j2, dest: /etc/fail2ban/jail.local }
+    - { src: nginx-badbots.j2, dest: /etc/fail2ban/filter.d/nginx-badbots.conf }
+    - { src: nginx-http-auth.j2, dest: /etc/fail2ban/filter.d/nginx-http-auth.conf }
+    - { src: nginx-nohome.j2, dest: /etc/fail2ban/filter.d/nohome.conf }
+    - { src: nginx-noproxy.j2, dest: /etc/fail2ban/filter.d/nginx-noproxy.conf }
+    - { src: nginx-noscript.j2, dest: /etc/fail2ban/filter.d/nginx-noscript.conf }
+
+- name: Start fail2ban
+  service: name=fail2ban state=started

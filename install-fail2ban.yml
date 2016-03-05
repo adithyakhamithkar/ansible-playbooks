@@ -1,0 +1,8 @@
+#
+#About: This will install fail2ban
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - fail2ban
