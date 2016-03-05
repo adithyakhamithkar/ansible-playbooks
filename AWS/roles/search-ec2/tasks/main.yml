@@ -1,0 +1,12 @@
+---
+- name: Search ec2
+  ec2_remote_facts:
+    filters:
+      "tag:Name": "{{hostname}}"
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+    region: "{{aws_region}}"
+  register: ec2info
+
+- name: Display ec2info
+  debug: var=ec2info
