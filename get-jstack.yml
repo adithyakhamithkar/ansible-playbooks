@@ -1,0 +1,22 @@
+---
+- hosts: '{{inventory}}'
+
+  tasks:
+  - name: Get PID
+    shell: "ps -ef | grep {{process}} | grep -v ansible | grep -v grep | awk '{print $2}'"
+    register: pid
+
+  - name: Take jstack
+    shell: /opt/javahome/bin/{{item}} -l {{pid.stdout}} >> jstack-{{hostname}}.txt
+    with_items:
+    - jstack
+    - jstack
+    - jstack
+    - jstack
+    - jstack
+
+  - name: Copy jstack
+    fetch: src=/root/jstack-{{hostname}}.txt dest={{destination}}/jstack/ flat=yes
+
+  - name: Clean up
+    file: path=/root/jstack-{{hostname}}.txt state=absent
