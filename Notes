@@ -1,6 +1,9 @@
 #Increase disk space:
 dd if=/dev/zero of=/tmp/tempFiller.deleteMe bs=1M count=300000
 
+#check disk uptilization
+sudo du -hcsx .[!.]* * | sort -rh | head
+
 #Fork bomb to test load
 :(){ :|: & };:
 
