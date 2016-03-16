@@ -1,1 +1,182 @@
-nrsysmond-config --set license_key= {{new_relic_license_key}}
+#
+# This is a configuration template for the New Relic daemon - a communications
+# proxy between New Relic agents (such as the PHP agent) and the New Relic
+# data collectors. This configuration file is required *ONLY* if you need or
+# want to start the New Relic daemon at system boot time using init. In order
+# to do so you must execute the following commands (as root):
+#
+# For CentOS and RedHat systems:
+#    /sbin/chkconfig newrelic-daemon on
+#
+# For Ubuntu and Debian systems:
+#    /usr/sbin/update-rc.d newrelic-daemon defaults 90 10
+#    /usr/sbin/update-rc.d newrelic-daemon enable
+#
+# For FreeBSD systems:
+#    /etc/rc.d/newrelic-daemon start
+#
+# For other systems please consult your documentation on how to enable and
+# disable services.
+#
+# For most systems:
+#    /etc/init.d/newrelic-daemon start
+#
+# The startup scripts will only start the daemon if there is a valid daemon
+# configuration file in place. This file is, by default:
+#
+#    /etc/newrelic/newrelic.cfg
+#
+# If that file does not exist, you can copy this template file to that
+# location and edit it to suit your system needs.
+#
+# By default the daemon is not started at system boot time, and does not use
+# the /etc/newrelic/newrelic.cfg file. Rather, the daemon is started by the
+# agent automatically on startup and is configured by the agent (for example
+# when using the PHP agent the daemon parameters are set in the global INI
+# file and all begin with 'newrelic.daemon').
+#
+# There are certain circumstances under which you may want the daemon to be
+# started at boot time rather than by the agent. If you use a chroot jail for
+# running the agent in, if you have multiple web servers or FastCGI process
+# managers, or if you use PHP on the command line a lot for batch processing
+# then you may want to start the daemon once at system boot rather than having
+# the agent start it.
+#
+# Below are the various options you can change that affect the daemon. Each
+# one is explained in detail along with it's default value.
+#
+
+#
+# Setting: pidfile
+# Type   : string
+# Purpose: Sets the name of the file that the daemon writes its process ID
+#          (PID) to. This is used by the startup and shutdown script to know
+#          which process to monitor or kill.
+# Default: None. Init script uses a filename of newrelic-daemon.pid in
+#          the first directory from /var/run or /var/pid that is found.
+#pidfile=
+
+#
+# Setting: logfile
+# Type   : string
+# Purpose: Sets the name of the file to record log messages in. If this file
+#          does not exist it is created. If it cannot be created the daemon
+#          will not start up. The amount of information sent to this file is
+#          controlled by the loglevel settings, defined below.
+# Default: /var/log/newrelic/newrelic-daemon.log
+logfile=/var/log/newrelic/newrelic-daemon.log
+
+#
+# Setting: loglevel
+# Type   : string
+# Purpose: Sets the level of detail of log messages sent to the log file. This
+#          variable can control the log level for different subsystem at
+#          different levels, although such custom usage should only be done at
+#          the request of New Relic technical support. The simplest setting is
+#          to use one of the following keywords, in increasing order of detail:
+#          error - only error messages
+#          warning - only warning and error messages
+#          info - only minimal startup and shutdown info
+#          debug - very verbose, includes messages only relevant to support.
+#                  The debug level may create very large log files.
+#
+#          The values verbose and verbosedebug are deprecated aliases for debug.
+#
+# Default: info
+#loglevel=info
+
+#
+# Setting: port
+# Type   : String or Integer (1-65534)
+# Purpose: Sets how the agent and daemon communicate. How this is set can impact
+#          performance. The default is to use a UNIX-domain socket located at
+#          /tmp/.newrelic.sock. If you want to use UNIX domain sockets then
+#          this value must begin with a "/". If you set this to an integer
+#          value in the range 1-65534, then this will instruct the daemon to
+#          listen on a normal TCP socket on the port specified. This may be
+#          easier to use if you are using a chroot environment. On Linux, an
+#          abstract socket can be created by prefixing the socket name with '@'.
+#          Support for abstract sockets was added in PHP agent version 5.2.
+#
+#          In order to use a port in the range 1-1023, the daemon must be
+#          started by the super-user. This is a fundamental OS limitation
+#          and not one imposed by the daemon itself.
+# Default: "/tmp/.newrelic.sock"
+#port="/tmp/.newrelic.sock"
+
+#
+# Setting: ssl
+# Type   : boolean
+# Purpose: If you prefer the daemon to use the secure HTTP (https) protocol
+#          when communicating with the New Relic collector servers, set this
+#          to true.
+# Default: true (as of version 3.6)
+#ssl=true
+
+#
+# Setting: ssl_ca_bundle
+# Type   : string
+# Purpose: Sets the location of a file containing CA certificates in PEM
+#          format. When set, the certificates in this file will be used
+#          to authenticate the New Relic collector servers. If ssl_ca_path
+#          is also set (see below), the certificates in this file will be
+#          searched first, followed by the certificates contained in the
+#          ssl_ca_path directory. This setting has no effect when ssl
+#          is set to false.
+# Default: none
+#ssl_ca_bundle=
+
+#
+# Setting: ssl_ca_path
+# Type   : string
+# Purpose: Sets the location of a directory containing trusted CA certificates
+#          in PEM format. When set, the certificates in this directory will be
+#          used to authenticate the New Relic collector servers. If
+#          ssl_ca_bundle is also set (see above), it will be searched first
+#          followed by the certificates contained in ssl_ca_path. This
+#          setting has no effect when ssl is set to false.
+# Default: none
+#ssl_ca_path=
+
+#
+# Setting: proxy
+# Type   : string
+# Purpose: Some networks are configured to require the use of an egress proxy
+#          server in order to communicate with the outside world. Since the
+#          daemon needs to communicate with the New Relic data collection
+#          servers you may need to instruct it to use a proxy server. Your
+#          system or network administrator should be able to provide you with
+#          the details.
+#          This string is in the form [user[:password]]@hostname[:port] with
+#          the user, password and port fields being optional. Some examples:
+#          myusername:secret@10.1.1.1:12345
+#          someuser@proxy.mydomain.com:4321
+#          proxy.mydomain.com
+# Default: none
+#proxy=
+
+#
+# Setting: auditlog
+# Type   : string
+# Purpose: Sets the name of a file to record all uncompressed, un-encoded
+#          content that is sent from your machine to the New Relic servers.
+#          This includes the full URL for each command along with the payload
+#          delivered with the command. This allows you to satisfy yourself
+#          that the agent is not sending any sensitive data to our servers.
+#          This file must be a different file to the logfile setting above.
+#          If you set it to the same name audit logging will be silently
+#          ignored.
+# Default: None
+#auditlog=/var/log/newrelic/audit.log
+
+# Setting: utilization.detect_aws
+# Type   : boolean
+# Default: true
+# Info   : Enable detection of whether the system is running on AWS. This will
+#          create a small amount of network traffic on daemon startup.
+
+# Setting: utilization.detect_docker
+# Type   : boolean
+# Default: true
+# Info   : Enable detection of a system running on Docker. This will be used
+#          to support future features.

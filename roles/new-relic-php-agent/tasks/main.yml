@@ -11,13 +11,11 @@
   - newrelic-php5
 
 - name: Configure New Relic agent php
-  template: src=new_relic_php.j2 dest=/etc/php5/fpm/conf.d/newrelic.ini
+  template: src=new_relic_php.j2 dest=/etc/php/7.0/mods-available/newrelic.ini
 
-- name: Configure New Relic agent php
-  template: src=new_relic_php.j2 dest=/etc/php5/cli/conf.d/newrelic.ini
 
 - name: Restart
   service: name={{item}} state=restarted
   with_items:
-  - php5-fpm
+  - php7.0-fpm
   - nginx

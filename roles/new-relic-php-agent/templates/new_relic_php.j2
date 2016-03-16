@@ -1,3 +1,4 @@
+;
 ; This file contains the various settings for the New Relic PHP agent. There
 ; are many options, all of which are described in detail at the following URL:
 ; https://newrelic.com/docs/php/php-agent-phpini-settings
@@ -91,6 +92,7 @@ newrelic.logfile = "/var/log/newrelic/php_agent.log"
 ;            false:
 ;            newrelic_add_custom_parameter
 ;            newrelic_set_user_attributes
+;            newrelic_record_custom_event
 ;
 ;          IMPORTANT:  If you change this setting, you must also change the RPM
 ;          UI security setting.  If the two settings do not match, then no data
@@ -109,7 +111,18 @@ newrelic.logfile = "/var/log/newrelic/php_agent.log"
 ;          list is considered the 'primary' application name and must be unique
 ;          for each account / license key.
 ;
-newrelic.appname = "{{hostname}}"
+newrelic.appname = "{{hostname}};{{domain_name}}"
+
+;
+; Setting: newrelic.process_host.display_name
+; Type   : string
+; Scope  : system
+; Default: none
+; Info   : Sets a custom display name for your application server in the New
+;          Relic UI. Servers are normally identified by host and port number.
+;          This setting allows you to give your hosts more recognizable names.
+;
+;newrelic.process_host.display_name = ""
 
 ;
 ; Beginning with version 3.0 of the agent, the daemon can be automatically
@@ -152,8 +165,9 @@ newrelic.daemon.logfile = "/var/log/newrelic/newrelic-daemon.log"
 ;          rarely need to change this from the default, and usually only under
 ;          the guidance of technical support.
 ;          Must be one of the following values:
-;            always, error, warning, info, verbose, debug, verbosedebug
+;            always, error, warning, info, debug
 ;
+;          The values verbose and verbosedebug are deprecated aliases for debug.
 ;newrelic.daemon.loglevel = "info"
 
 ;
@@ -167,7 +181,10 @@ newrelic.daemon.logfile = "/var/log/newrelic/newrelic-daemon.log"
 ;          this value must begin with a "/". If you set this to an integer
 ;          value in the range 1-65534, then this will instruct the agent to
 ;          use a normal TCP socket on the port specified. This may be easier
-;          to use if you are using a chroot environment.
+;          to use if you are using a chroot environment. On Linux, an abstract
+;          socket can be created by prefixing the socket name with '@'. Support
+;          for abstract sockets was added in PHP agent version 5.2.
+
 ;
 ;newrelic.daemon.port = "/tmp/.newrelic.sock"
 
@@ -281,6 +298,24 @@ newrelic.daemon.logfile = "/var/log/newrelic/newrelic-daemon.log"
 ;
 ;newrelic.daemon.dont_launch = 0
 
+; Setting: newrelic.daemon.utilization.detect_aws
+; Type   : boolean
+; Scope  : system
+; Default: true
+; Info   : Enable detection of whether the system is running on AWS. This will
+;          create a small amount of network traffic on daemon startup.
+;
+;newrelic.daemon.utilization.detect_aws = true
+
+; Setting: newrelic.daemon.utilization.detect_docker
+; Type   : boolean
+; Scope  : system
+; Default: true
+; Info   : Enable detection of a system running on Docker. This will be used
+;          to support future features.
+;
+;newrelic.daemon.utilization.detect_docker = true
+
 ;
 ; Setting: newrelic.error_collector.enabled
 ; Type   : boolean
@@ -292,6 +327,22 @@ newrelic.daemon.logfile = "/var/log/newrelic/newrelic-daemon.log"
 ;          this to be disabled regardless of any value you set for it.
 ;
 ;newrelic.error_collector.enabled = true
+
+;
+; Setting: newrelic.error_collector.ignore_user_exception_handler
+; Type   : boolean
+; Scope  : per-directory
+; Default: false
+; Info   : If enabled, the New Relic error collector will ignore any exceptions
+;          that are handled by an exception handler installed with
+;          set_exception_handler().
+;
+;          If an exception handler has not been installed, this setting will
+;          have no effect, as PHP will turn the uncaught exception into a fatal
+;          error and it will be handled accordingly by the New Relic error
+;          collector.
+;
+;newrelic.error_collector.ignore_user_exception_handler = false
 
 ;
 ; Setting: newrelic.error_collector.record_database_errors
@@ -635,10 +686,9 @@ newrelic.daemon.logfile = "/var/log/newrelic/newrelic-daemon.log"
 ; Type   : string
 ; Scope  : system
 ; Default: none
-; Info   : Enables experimental features within the PHP agent. These flags are
-;          used to allow testing of features that may be provided in future
-;          versions of the agent. Please note that we may be unable to provide
-;          support for experimental features.
+; Info   : Enables new and experimental features within the PHP agent. These
+;          flags are used to selectively enable features that are intended to be
+;          enabled by default in later versions of the PHP agent.
 ;
 ;newrelic.feature_flag = ""
 
@@ -687,3 +737,12 @@ newrelic.daemon.logfile = "/var/log/newrelic/newrelic-daemon.log"
 ; Info   : Enables or disables support for Cross Application Tracing, aka "CAT".
 ;
 ;newrelic.cross_application_tracer.enabled = true
+
+; Setting: newrelic.error_collector.capture_events
+; Type   : boolean
+; Scope  : per-directory
+; Default: true
+; Info   : Enables or disables capturing error events, which are displayed as
+;          Error Analytics in the UI.
+;
+;newrelic.error_collector.capture_events = true
