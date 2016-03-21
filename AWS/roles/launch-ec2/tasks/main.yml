@@ -7,6 +7,10 @@
     group: "{{sg_group}}"
     wait: yes
     wait_timeout: 500
+    volumes:
+      - device_name: /dev/sda1
+        volume_type: gp2
+        volume_size: 30
     count: 1
     monitoring: yes
     vpc_subnet_id: "{{vpc_subnet}}"
@@ -14,3 +18,7 @@
     aws_access_key: "{{aws_access_key}}"
     aws_secret_key: "{{aws_secret_key}}"
     region: "{{aws_region}}"
+  register: new_ec2
+
+- name: Print new_ec2
+  debug: var=new_ec2
