@@ -1,0 +1,16 @@
+---
+- hosts: '{{inventory}}'
+
+  tasks:
+  - name: Get PID
+    shell: "ps -ef | grep {{process}} | grep -v ansible | grep -v grep | awk '{print $2}'"
+    register: pid
+
+  - name: Take thread dump
+    shell: /opt/javahome/bin/jstat -gc {{pid.stdout}} 1s 30 >> thread-dump-{{hostname}}.txt
+
+  - name: Copy thread dump
+    fetch: src=/root/thread-dump-{{hostname}}.txt dest={{destination}}/ flat=yes
+
+  - name: Clean up
+    file: path=/root/thread-dump-{{hostname}}.txt state=absent
