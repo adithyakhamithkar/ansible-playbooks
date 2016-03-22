@@ -13,7 +13,6 @@
         volume_size: 30
         delete_on_termination: true
     count: 1
-    monitoring: yes
     vpc_subnet_id: "{{vpc_subnet}}"
     assign_public_ip: yes
     aws_access_key: "{{aws_access_key}}"
