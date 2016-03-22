@@ -1,0 +1,9 @@
+#
+#About: This will assign eip
+#
+---
+- hosts: localhost
+  connection: local
+  gather_facts: True
+  roles:
+  - assign-eip

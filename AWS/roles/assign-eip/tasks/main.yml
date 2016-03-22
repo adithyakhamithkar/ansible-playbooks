@@ -1,0 +1,20 @@
+---
+- name: Search ec2
+  ec2_remote_facts:
+    filters:
+      "tag:Name": "{{hostname}}"
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+    region: "{{aws_region}}"
+  register: ec2info
+
+- name: Assign eip
+  ec2_eip:
+    device_id: "{{ec2info.instances[0].id}}"
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+    region: "{{aws_region}}"
+  register: ec2info
+
+- name: Print ec2info
+  debug: var=ec2info

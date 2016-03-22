@@ -11,6 +11,7 @@
       - device_name: /dev/sda1
         volume_type: gp2
         volume_size: 30
+        delete_on_termination: true
     count: 1
     monitoring: yes
     vpc_subnet_id: "{{vpc_subnet}}"
@@ -18,7 +19,15 @@
     aws_access_key: "{{aws_access_key}}"
     aws_secret_key: "{{aws_secret_key}}"
     region: "{{aws_region}}"
-  register: new_ec2
+  register: ec2info
 
-- name: Print new_ec2
-  debug: var=new_ec2
+- name: Assign eip
+  ec2_eip:
+    device_id: "{{ec2info.instances[0].id}}"
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+    region: "{{aws_region}}"
+  register: ec2info
+
+- name: Print ec2info
+  debug: var=ec2info
