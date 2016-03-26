@@ -1,0 +1,8 @@
+---
+- name: Adding Gradle repository
+  apt_repository: repo="ppa:cwchien/gradle"
+
+- name: Install gradle
+  apt: name={{item}} state=present
+  with_items:
+  - gradle
