@@ -13,6 +13,14 @@
   shell: java -jar /home/jenkins/cli/jenkins-cli.jar -s http://localhost:8080/ install-plugin categorized-view -deploy
   ignore_errors: True
 
+- name: Install categorized-view plugin
+  shell: java -jar /home/jenkins/cli/jenkins-cli.jar -s http://localhost:8080/ install-plugin s3 -deploy
+  ignore_errors: True
+
+- name: Install categorized-view plugin
+  shell: java -jar /home/jenkins/cli/jenkins-cli.jar -s http://localhost:8080/ install-plugin email-ext -deploy
+  ignore_errors: True
+
 - name: Stop Jenkins
   service: name=jenkins state=stopped
 
