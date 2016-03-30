@@ -1,0 +1,8 @@
+#
+#About: This will install netdash
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - netdash

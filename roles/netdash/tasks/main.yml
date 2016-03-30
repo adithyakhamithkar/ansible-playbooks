@@ -1,0 +1,18 @@
+---
+- name: Install build components
+  apt: name={{item}} state=present
+  with_items:
+   - zlib1g-dev
+   - gcc
+   - make
+   - git
+   - autoconf
+   - autogen
+   - automake
+   - pkg-config
+
+- name: Clone netdash repo
+  git: repo=git@github.com:firehol/netdata.git dest=/opt/netdash accept_hostkey=yes force=yes
+
+- name: Install netdash
+  shell: cd /opt/netdash && "\n" | ./netdata-installer.sh
