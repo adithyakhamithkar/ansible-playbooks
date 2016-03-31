@@ -6,14 +6,9 @@ before_install:
   # Make sure everything's up to date.
   - sudo apt-get update -qq
   # Install virtualbox and vagrant
-  - sudo echo "deb http://download.virtualbox.org/virtualbox/debian vivid contrib" > /etc/apt/sources.list.d/virtualbox.list
-  - wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-key add -
-  - apt-get update
-  - sudo apt-get install linux-headers-generic virtualbox-ose-dkms virtualbox dkms vagrant -y
-  - sudo dpkg-reconfigure virtualbox-dkms
-  - sudo dpkg-reconfigure virtualbox
+  #- sudo apt-get install linux-headers-generic virtualbox-ose-dkms virtualbox dkms vagrant -y
   # Set virtualbox nat network
-  - VBoxManage natnetwork add --netname nat --network "192.168.33.0/24"
+  #- VBoxManage natnetwork add --netname nat --network "192.168.33.0/24"
 
 install:
   # Install Ansible.
@@ -24,12 +19,16 @@ install:
 
 script:
   # Testing Vagrent
-  - vagrant init
-  - vagrent up
-  - ansible-playbook -i inventory/template-env/hosts install-ntp.yml -e "inventory=test-box"
+  #- vagrant init ubuntu/trusty64
+  #- vagrent up
+  #- ansible-playbook -i inventory/template-env/hosts install-ntp.yml -e "inventory=test-box"
   # We'll add some commands to test the role here.
   - ansible-playbook -i inventory/template-env/hosts *.yml --syntax-check -e "inventory=localhost serial=1"
   - ansible-playbook -i inventory/template-env/hosts AWS/*.yml --syntax-check -e "inventory=localhost serial=1"
   - ansible-playbook -i inventory/template-env/hosts MySql/*.yml --syntax-check -e "inventory=localhost serial=1"
   - ansible-playbook -i inventory/template-env/hosts ubuntu-desktop/*.yml --syntax-check -e "inventory=localhost serial=1"
   - ansible-playbook -i inventory/template-env/hosts Hacking/*.yml --syntax-check -e "inventory=localhost serial=1"
+
+after-script:
+  #- vagrant halt
+  #- vagrant destroy
