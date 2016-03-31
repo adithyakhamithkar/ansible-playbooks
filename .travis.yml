@@ -6,7 +6,7 @@ before_install:
   # Make sure everything's up to date.
   - sudo apt-get update -qq
   # Install virtualbox and vagrant
-  - sudo apt-get install virtualbox vagrant
+  - sudo apt-get install virtualbox-ose-dkms virtualbox vagrant
   # Set virtualbox nat network
   - VBoxManage natnetwork add --netname nat --network "192.168.33.0/24"
 
