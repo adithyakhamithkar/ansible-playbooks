@@ -6,7 +6,10 @@ before_install:
   # Make sure everything's up to date.
   - sudo apt-get update -qq
   # Install virtualbox and vagrant
-  - sudo apt-get install linux-headers-generic virtualbox-ose-dkms virtualbox vagrant
+  - echo "deb http://download.virtualbox.org/virtualbox/debian vivid contrib" > /etc/apt/sources.list.d/virtualbox.list
+  - wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-key add -
+  - apt-get update
+  - sudo apt-get install linux-headers-generic virtualbox-ose-dkms virtualbox dkms vagrant -y
   - sudo dpkg-reconfigure virtualbox-dkms
   - sudo dpkg-reconfigure virtualbox
   # Set virtualbox nat network
