@@ -9,10 +9,10 @@
   tags:
     - ssh-banner-configuration
 
-- name: Change StrictHostKeyChecking to no
-  lineinfile: dest=/etc/ssh/ssh_config regexp='#   StrictHostKeyChecking' line="     StrictHostKeyChecking no"
-  tags:
-    - ssh-strict-key-configuration
+#- name: Change StrictHostKeyChecking to no
+#  lineinfile: dest=/etc/ssh/ssh_config regexp='#   StrictHostKeyChecking' line="     StrictHostKeyChecking no"
+#  tags:
+#    - ssh-strict-key-configuration
 
 - name: Restart ssh
   service: name=ssh state=restarted

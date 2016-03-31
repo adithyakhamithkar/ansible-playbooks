@@ -5,6 +5,10 @@ python: "2.7"
 before_install:
   # Make sure everything's up to date.
   - sudo apt-get update -qq
+  # Install virtualbox and vagrant
+  - sudo apt-get virtualbox vagrant
+  # Set virtualbox nat network
+  - VBoxManage natnetwork add --netname nat --network "192.168.33.0/24"
 
 install:
   # Install Ansible.
@@ -14,7 +18,10 @@ install:
   #- "printf '[defaults]\nroles_path = ../' > ansible.cfg"
 
 script:
-
+  # Testing Vagrent
+  - vagrant init
+  - vagrent up
+  - ansible-playbook -i inventory/template-env/hosts install-ntp.yml -e "inventory=test-box"
   # We'll add some commands to test the role here.
   - ansible-playbook -i inventory/template-env/hosts *.yml --syntax-check -e "inventory=localhost serial=1"
   - ansible-playbook -i inventory/template-env/hosts AWS/*.yml --syntax-check -e "inventory=localhost serial=1"

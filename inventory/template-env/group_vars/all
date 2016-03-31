@@ -19,7 +19,7 @@ cidr_web_2 : 10.0.2.0/24
 az_web_2: ap-southeast-1b
 resource_tags_web_1 : { "Name":"Staging-ap-southeast-1a", "Environment":"Staging", "Service" : "Web" }
 resource_tags_web_2 : { "Name":"Staging-ap-southeast-1b", "Environment":"Staging", "Service" : "Web" }
-vpc_id : 
+vpc_id :
 #ELB
 elb_url :
 
@@ -28,9 +28,9 @@ elb_url :
 timezone : Asia/Calcutta
 
 #Define global ssh user (Can't be blank)
-ansible_ssh_user :
+ansible_ssh_user : vagrant
 #Define private key
-ansible_ssh_private_key_file :
+ansible_ssh_private_key_file : .vagrant/machines/default/virtualbox/private_key
 id_rsa :
 id_rsa_pub :
 
