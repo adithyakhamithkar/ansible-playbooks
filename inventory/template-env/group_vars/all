@@ -30,7 +30,7 @@ timezone : Asia/Calcutta
 #Define global ssh user (Can't be blank)
 ansible_ssh_user : vagrant
 #Define private key
-ansible_ssh_private_key_file : .vagrant/machines/default/virtualbox/private_key
+ansible_ssh_private_key_file : .vagrant/machines/test_box/virtualbox/private_key
 id_rsa :
 id_rsa_pub :
 
@@ -47,16 +47,17 @@ slack_webhook :
 
 ##Nginx
 #Define ssl certificate file path
-ssl_crt_file :
+ssl_crt_file : ~/Dropbox/inventory/test-env/keys/ssl_crt.pem
 #Define ssl key file path
-ssl_key_file :
+ssl_key_file : ~/Dropbox/inventory/test-env/keys/ssl_key.pem
+ssl_dhparam : roles/nginx/templates/dhparam.pem
 #Define default document root
 doc_root : /usr/share/nginx/html
-default_index :
+default_index : ~/Dropbox/inventory/test-env/files/nginx/index.html
 #Define error page path
-error_page_404 :
-error_page_50x :
-error_page_403 :
+error_page_404 : ~/Dropbox/inventory/test-env/files/nginx/error-page-404.html
+error_page_50x : ~/Dropbox/inventory/test-env/files/nginx/error-page-50x.html
+error_page_403 : ~/Dropbox/inventory/test-env/files/nginx/error-page-403.html
 
 
 ##MySql server variables (Can't be blank)
