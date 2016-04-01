@@ -1,16 +1,12 @@
 ---
-- name: Install python packages
-  apt: name={{item}} state=present force=yes
-  with_items:
-  - git
-  - python-software-properties
-
 - name: Adding Ansible repository
   apt_repository: repo="ppa:ansible/ansible"
 
 - name: Install Ansible
   apt: name={{item}} state=present
   with_items:
+  - python-pip
+  - python-software-properties
   - ansible
 
 - name: Install pip modules
