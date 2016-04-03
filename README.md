@@ -3,6 +3,8 @@ This is my pet project writing ansible playbooks. If you like my work please sha
 
 ##Index
 + AWS
+    - assign-eip
+    - create-ec2-key
     - [create-iam-admin-group](https://github.com/adithyakhamithkar/ansible/blob/master/AWS/roles/create-iam-admin-group)
     - [create-iam-group](https://github.com/adithyakhamithkar/ansible/blob/master/AWS/roles/create-iam-group)
     - [create-iam-policy](https://github.com/adithyakhamithkar/ansible/blob/master/AWS/roles/create-iam-policy)
@@ -12,6 +14,9 @@ This is my pet project writing ansible playbooks. If you like my work please sha
     - create-sg-db
     - create-sg-web
     - create-vpc
+    - launch-ec2
+    - start-ec2
+    - stop-ec2
 + MySql
     - mysql-create-db
     - mysql-create-user
