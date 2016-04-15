@@ -16,9 +16,19 @@ Vagrant.configure(2) do |config|
   config.vm.define "test_box" do |test_box|
     test_box.vm.box = "ubuntu/trusty64"
     test_box.vm.network "private_network", ip: "192.168.33.10"
-    #test_box.vm.network "forwarded_port", guest: 80, host: 80
-    #test_box.vm.network "forwarded_port", guest: 443, host: 443
   end
+  # test_box1 configuration
+  #config.vm.define "test_box1" do |test_box1|
+  #  test_box1.vm.box = "ubuntu/trusty64"
+  #  test_box1.vm.network "private_network", ip: "192.168.33.11"
+  #end
+  # Run commission-new-server.yml playbook
+  #config.vm.provision "ansible" do |ansible|
+  #  ansible.verbose = "v"
+  #  ansible.playbook = "commission-new-server.yml"
+  #  ansible.inventory_path = "~/Dropbox/inventory/test-env/hosts"
+  #  ansible.raw_arguments = ["-e 'inventory=test_box1'"]
+  #end
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
   # `vagrant box outdated`. This is not recommended.
