@@ -1,0 +1,9 @@
+#
+#About: This will create a droplat
+#
+---
+- hosts: localhost
+  connection: local
+  gather_facts: True
+  roles:
+  - create-droplet

@@ -1,0 +1,10 @@
+---
+- digital_ocean:
+    state: present
+    command: ssh
+    name: "{{ssh_key_name}}"
+    ssh_pub_key: "{{ lookup('file', '{{id_rsa_pub}}') }}"
+    api_token: "{{digitalocean_api_token}}"
+  register: ssh_key
+
+- debug: var=ssh_key

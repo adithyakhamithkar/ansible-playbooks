@@ -1,0 +1,9 @@
+#
+#About: This will create a ssh key
+#
+---
+- hosts: localhost
+  connection: local
+  gather_facts: True
+  roles:
+  - create-ssh-key
