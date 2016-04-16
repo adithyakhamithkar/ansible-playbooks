@@ -1,0 +1,15 @@
+#
+#About: This will get list of all images based distribution on DigitalOcean
+#
+---
+- hosts: localhost
+  connection: local
+  gather_facts: True
+  become: yes
+
+  tasks:
+  - name: Get list of all images based distribution on DigitalOcean
+    shell: curl -X GET -H "Content-Type{{':'}} application/json" -H "Authorization{{':'}} Bearer {{digitalocean_api_token}}" "https{{':'}}//api.digitalocean.com/v2/images?per_page=999&type=distribution"
+    register: optput
+
+  - debug: var=optput.stdout
