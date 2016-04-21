@@ -1,0 +1,14 @@
+---
+- name: Add the grafana APT repository key
+  apt_key: url=https://packagecloud.io/gpg.key state=present
+
+- name: Add the grafana APT repository
+  apt_repository: repo="deb https://packagecloud.io/grafana/stable/debian/ wheezy main" state=present
+
+- name: Install grafana
+  apt: name={{item}} state=present update_cache=yes
+  with_items:
+  - grafana
+
+- name: Put grafana on startup
+  shell: update-rc.d grafana-server defaults 95 10
