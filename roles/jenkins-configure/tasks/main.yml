@@ -5,21 +5,19 @@
 - name: Download Jenkins CLI
   get_url: url=http://localhost:8080/jnlpJars/jenkins-cli.jar dest=/home/jenkins/cli/jenkins-cli.jar
 
-- name: Install Git plugin
-  shell: java -jar /home/jenkins/cli/jenkins-cli.jar -s http://localhost:8080/ install-plugin git -deploy
-  ignore_errors: True
+- name: Copy install jenkins plugins shell script
+  template: src=install-jenkins-plugin.sh.j2 dest=/home/jenkins/install-jenkins-plugins.sh
 
-- name: Install categorized-view plugin
-  shell: java -jar /home/jenkins/cli/jenkins-cli.jar -s http://localhost:8080/ install-plugin categorized-view -deploy
-  ignore_errors: True
-
-- name: Install categorized-view plugin
-  shell: java -jar /home/jenkins/cli/jenkins-cli.jar -s http://localhost:8080/ install-plugin s3 -deploy
-  ignore_errors: True
-
-- name: Install categorized-view plugin
-  shell: java -jar /home/jenkins/cli/jenkins-cli.jar -s http://localhost:8080/ install-plugin email-ext -deploy
-  ignore_errors: True
+- name: Install jenkins plugins
+  shell: sh /home/jenkins/install-jenkins-plugins.sh {{item}}
+  with_items:
+  - git
+  - s3
+  - email-ext
+  - rebuild
+  - thinBackup
+  - performance
+  - postbuild-task
 
 - name: Stop Jenkins
   service: name=jenkins state=stopped

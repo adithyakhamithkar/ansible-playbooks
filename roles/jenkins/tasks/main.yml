@@ -17,7 +17,7 @@
   apt_repository: repo="deb http://pkg.jenkins-ci.org/debian binary/" state=present
 
 - name: Install Jenkins
-  apt: name={{item}} state=present update_cache=yes
+  apt: name={{item}} state=latest update_cache=yes
   with_items:
   - jenkins
 
