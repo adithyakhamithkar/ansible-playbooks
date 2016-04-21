@@ -5,7 +5,7 @@
     - nginx-installation
 
 - name: Install Nginx
-  apt: name={{item}} state=present
+  apt: name={{item}} state=latest
   with_items:
    - nginx
    - nginx-extras
