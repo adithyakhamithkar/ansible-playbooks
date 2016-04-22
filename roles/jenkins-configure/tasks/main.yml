@@ -11,13 +11,42 @@
 - name: Install jenkins plugins
   shell: sh /home/jenkins/install-jenkins-plugins.sh {{item}}
   with_items:
+  - ansible
+  - ant
+  - antisamy-markup-formatter
+  - aws-java-sdk
+  - categorized-view
+  - conditional-buildstep
+  - copyartifact
+  - credentials
+  - external-monitor-job
   - git
-  - s3
-  - email-ext
-  - rebuild
-  - thinBackup
+  - git-client
+  - htmlpublisher
+  - icon-shim
+  - jackson2-api
+  - javadoc
+  - jobConfigHistory
+  - junit
+  - ldap
+  - mailer
+  - matrix-project
+  - maven-plugin
+  - multiple-scms
+  - pam-auth
+  - parameterized-trigger
   - performance
-  - postbuild-task
+  - rebuild
+  - run-condition
+  - s3
+  - scm-api
+  - script-security
+  - ssh-credentials
+  - structs
+  - thinBackup
+  - token-macro
+  - windows-slaves
+  - workflow-step-api
 
 - name: Stop Jenkins
   service: name=jenkins state=stopped
