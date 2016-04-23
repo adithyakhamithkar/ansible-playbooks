@@ -47,6 +47,7 @@
   - token-macro
   - windows-slaves
   - workflow-step-api
+  - matrix-auth
 
 - name: Stop Jenkins
   service: name=jenkins state=stopped
