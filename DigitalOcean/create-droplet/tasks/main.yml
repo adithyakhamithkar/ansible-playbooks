@@ -11,6 +11,7 @@
     state: present
     command: droplet
     name: "{{droplet_name}}"
+    unique_name: yes
     ssh_key_ids: "{{ssh_key.ssh_key.id}}"
     api_token: "{{digitalocean_api_token}}"
     size_id: "{{droplet_size}}"
@@ -20,6 +21,5 @@
     wait_timeout: 500
   register: droplet
 
-- debug: msg=droplet
 - debug: msg="ID is {{droplet.droplet.id}}"
 - debug: msg="IP is {{droplet.droplet.ip_address}}"
