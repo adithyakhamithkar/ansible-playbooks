@@ -31,7 +31,6 @@
     - { src: '{{error_page_403}}', dest: /usr/share/nginx/error_pages }
     - { src: '{{ssl_crt_file}}', dest: /etc/nginx/ssl/ssl_crt.pem }
     - { src: '{{ssl_key_file}}', dest: /etc/nginx/ssl/ssl_key.pem }
-    - { src: '{{ssl_dhparam}}', dest: /etc/nginx/ssl/dhparam.pem}
   tags:
     - nginx-configuration
 
@@ -52,6 +51,7 @@
   - { src: virtualhost.j2, dest: /etc/nginx/sites-enabled/default }
   - { src: virtualhost_ssl.j2, dest: /etc/nginx/sites-available/default-ssl }
   - { src: virtualhost_ssl.j2, dest: /etc/nginx/sites-enabled/default-ssl }
+  - { src: dhparam.pem, dest: /etc/nginx/ssl/dhparam.pem}
   tags:
     - nginx-virtualhost-configuration
 
