@@ -1,0 +1,11 @@
+---
+- name: Adding Freeipa repository
+  apt_repository: repo="deb http://ppa.launchpad.net/freeipa/ppa/ubuntu trusty main"
+
+- name: Adding Freeipa repository
+  apt_repository: repo="deb http://ppa.launchpad.net/sssd/updates/ubuntu trusty main"
+
+#- name: Install Freeipa
+#  apt: name={{item}} state=present
+#  with_items:
+#  - python-pip

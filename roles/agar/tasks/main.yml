@@ -8,16 +8,22 @@
     - npm
 
 - name: Create folder for agar
-  file: path=/var/www/agar state=directory
+  file: path={{agar_directory}} state=directory
 
 - name: Clone agar
-  git: repo=git@github.com:huytd/agar.io-clone.git dest=/var/www/agar accept_hostkey=yes
+  git: repo=git@github.com:huytd/agar.io-clone.git dest={{agar_directory}} accept_hostkey=yes
 
 - name: Install gulp
-  npm: name=gulp path=/var/www/agar state=present
+  npm: name=gulp path={{agar_directory}} state=present
 
 - name: Run npm install
-  npm: path=/var/www/agar
+  npm: path={{agar_directory}}
 
-- name: Start agar
-  shell: cd /var/www/agar && sudo nohup npm start &
+- name: Add init.d script
+  template: src=agar.j2 dest=/etc/init.d/agar
+
+- name: File permission
+  shell: chmod +x /etc/init.d/agar
+  
+#- name: Start agar
+#  shell: cd /var/www/agar && sudo nohup npm start &

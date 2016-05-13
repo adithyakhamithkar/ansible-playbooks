@@ -10,6 +10,9 @@ sudo du -hcsx .[!.]* * | sort -rh | head
 #To check if spdy is running execute this on the server
 openssl s_client -connect localhost:443 -nextprotoneg ''
 
+#Diff of 2 files
+sort test1 test | awk 'dup[$0]++ == 1'
+
 #Create SSH key:
 ssh-keygen -t rsa
 

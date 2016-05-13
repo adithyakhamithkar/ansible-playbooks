@@ -7,6 +7,7 @@
     group: "{{sg_group}}"
     wait: yes
     wait_timeout: 500
+    termination_protection : yes
     volumes:
       - device_name: /dev/sda1
         volume_type: gp2
