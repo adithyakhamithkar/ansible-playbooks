@@ -7,7 +7,7 @@ upstream app_server {
 server {
         listen  80;
         server_name {{hostname}}.{{domain_name}};
-        #Uncomment the below line to force rediret to https
+        #Uncomment the below line to force redirect to https
         rewrite ^ https://$http_host$request_uri? permanent;
         location / {
             proxy_cache STATIC;

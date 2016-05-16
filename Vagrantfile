@@ -16,6 +16,12 @@ Vagrant.configure(2) do |config|
   config.vm.define "test_box" do |test_box|
     test_box.vm.box = "ubuntu/trusty64"
     test_box.vm.network "private_network", ip: "192.168.33.10"
+    #test_box.ssh.username = "vagrant"
+    #test_box.ssh.password = "vagrant"
+    config.vm.provider "virtualbox" do |test_box|
+      test_box.memory = 2048
+      test_box.cpus = 2
+    end
   end
   # test_box1 configuration
   #config.vm.define "test_box1" do |test_box1|

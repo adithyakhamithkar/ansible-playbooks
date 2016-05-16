@@ -13,6 +13,7 @@
   pip: name={{item}} state=present
   with_items:
   - boto
+  - doto
 
 - name: Set host_key_checking to false
   lineinfile: dest=/etc/ansible/ansible.cfg regexp='#host_key_checking = False' line="host_key_checking = False"

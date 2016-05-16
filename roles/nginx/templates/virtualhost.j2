@@ -3,7 +3,7 @@ server {
         listen  80;
         root {{doc_root}};
         index index.php index.html index.htm;
-        #Uncomment the below line to force rediret to https
+        #Uncomment the below line to force redirect to https
         #rewrite ^ https://$http_host$request_uri? permanent;
         server_name {{hostname}}.{{domain_name}};
         location / {
