@@ -7,7 +7,11 @@
   with_items:
   - bitcoin-qt
   - bitcoind
-  - bfgminer
+  - libcurl4-openssl-dev
+  - libncurses5-dev
+  - pkg-config
+  - automake
+  - yasm
 
 - name: Adding bitcoin user
   user: name=bitcoin groups=sudo,shadow shell=/bin/bash append=yes generate_ssh_key=yes ssh_key_file=.ssh/id_rsa
@@ -21,5 +25,5 @@
 - name: Configure bitcoin
   template: src=bitcoin.j2 dest=/home/bitcoin/.bitcoin/bitcoin.conf
 
-#- name: Deploy
-#  git: repo=git://github.com/luke-jr/bfgminer.git dest=/home/bitcoin/bfgminer accept_hostkey=yes
+- name: Deploy
+  git: repo=git://github.com/pooler/cpuminer.git dest=/home/bitcoin/cpuminer accept_hostkey=yes
