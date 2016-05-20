@@ -13,9 +13,10 @@
     - { src: jail.j2, dest: /etc/fail2ban/jail.local }
     - { src: nginx-badbots.j2, dest: /etc/fail2ban/filter.d/nginx-badbots.conf }
     - { src: nginx-http-auth.j2, dest: /etc/fail2ban/filter.d/nginx-http-auth.conf }
-    - { src: nginx-nohome.j2, dest: /etc/fail2ban/filter.d/nohome.conf }
+    - { src: nginx-nohome.j2, dest: /etc/fail2ban/filter.d/nginx-nohome.conf }
     - { src: nginx-noproxy.j2, dest: /etc/fail2ban/filter.d/nginx-noproxy.conf }
     - { src: nginx-noscript.j2, dest: /etc/fail2ban/filter.d/nginx-noscript.conf }
+    - { src: nginx-ddos.j2, dest: /etc/fail2ban/filter.d/nginx-ddos.conf }
 
 - name: Start fail2ban
   service: name=fail2ban state=started

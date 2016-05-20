@@ -26,4 +26,4 @@
   template: src=bitcoin.j2 dest=/home/bitcoin/.bitcoin/bitcoin.conf
 
 - name: Deploy
-  git: repo=git://github.com/pooler/cpuminer.git dest=/home/bitcoin/cpuminer accept_hostkey=yes
+  git: repo=git://github.com/pooler/cpuminer.git dest=/opt/cpuminer accept_hostkey=yes

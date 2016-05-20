@@ -1,0 +1,23 @@
+# /etc/fail2ban/filter.d/nginx-dos.conf
+
+# Fail2Ban configuration file
+#
+# Generated on Fri Jun 08 12:09:15 EST 2012 by BeezNest
+#
+# Author: Yannick Warnir
+#
+# $Revision: 1 $
+#
+
+[Definition]
+# Option:  failregex
+# Notes.:  Regexp to catch a generic call from an IP address.
+# Values:  TEXT
+#
+failregex = ^<HOST> -.*"(GET|POST).*HTTP.*"$
+
+# Option:  ignoreregex
+# Notes.:  regex to ignore. If this regex matches, the line is ignored.
+# Values:  TEXT
+#
+ignoreregex =
