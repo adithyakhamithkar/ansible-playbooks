@@ -315,16 +315,16 @@ maxretry = 2
 
 [nginx-ddos]
 # Based on apache-badbots but a simple IP check (any IP requesting more than
-# 240 pages in 60 seconds, or 4p/s average, is suspicious)
+# 300 pages in 300 seconds, or 1p/s average, is suspicious)
 # Block for two full days.
 # @author Yannick Warnier
 enabled = true
 port    = http,https
 filter  = nginx-ddos
-logpath = /var/log/nginx/access.log
-findtime = 60
+logpath = /var/log/nginx/access.*
+findtime = 300
 bantime  = 172800
-maxretry = 240
+maxretry = 300
 action = iptables[name=HTTP, port=http, protocol=tcp]
 
 # Monitor roundcube server
