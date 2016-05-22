@@ -15,6 +15,7 @@
   - tor
   - deb.torproject.org-keyring
   - netcat
+  - connect-proxy
   tags:
     - tor-installation
 
@@ -40,8 +41,11 @@
 - name: Configure ssh_config
   lineinfile: dest=/etc/ssh/ssh_config line="{{item}}"
   with_items:
-    - Host *.onion
-    - ProxyCommand nc -x localhost{{':'}}9150 %h %p
+    - Host *
+    - CheckHostIP no
+    - Compression yes
+    - Protocol 2
+    - ProxyCommand connect -4 -S localhost:9050 $(tor-resolve %h localhost:9050) %p
 
 #- name: Configure ssh-tor
 #  template: src=ssh.j2 dest=/home/{{ansible_ssh_user}}/.ssh/config owner={{ansible_ssh_user}} group={{ansible_ssh_user}}
