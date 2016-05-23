@@ -10,6 +10,8 @@
   - logrotate
   - ufw
   - python-pip
+  - ttf-ancient-fonts
+  - xclip
 
 - name: Install pip modules
   pip: name={{item}} state=present
