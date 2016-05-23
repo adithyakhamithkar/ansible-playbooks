@@ -8,10 +8,15 @@
   tags:
     - set-hostname
 
-- name: Replace default hosts file
-  template: src=hosts.j2 dest=/etc/hosts
+- name: Adding entry into hosts
+  lineinfile: dest=/etc/hosts line="{{ansible_eth0["ipv4"]["address"]}} {{hostname}}.{{domain_name}}"
   tags:
     - set-hostname
+
+#- name: Replace default hosts file
+#  template: src=hosts.j2 dest=/etc/hosts
+#  tags:
+#    - set-hostname
 
 - name: Prevent IP Spoofing
   template: src=hosts.conf dest=/etc/host.conf
