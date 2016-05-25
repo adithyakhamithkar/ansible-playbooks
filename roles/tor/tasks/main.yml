@@ -13,7 +13,6 @@
   apt: name={{item}} state=present force=yes
   with_items:
   - tor
-  - deb.torproject.org-keyring
   - netcat
   - connect-proxy
   tags:
