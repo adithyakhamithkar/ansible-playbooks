@@ -3,20 +3,15 @@
   ec2_facts:
   when: dc_env == "aws"
 
+- name: Replace default hosts file
+  template: src=hosts.j2 dest=/etc/hosts
+  tags:
+    - set-hostname
+    
 - name: Set Host name
   hostname: name={{hostname}}
   tags:
     - set-hostname
-
-- name: Adding entry into hosts
-  lineinfile: dest=/etc/hosts line="{{ansible_eth0["ipv4"]["address"]}} {{hostname}}.{{domain_name}}"
-  tags:
-    - set-hostname
-
-#- name: Replace default hosts file
-#  template: src=hosts.j2 dest=/etc/hosts
-#  tags:
-#    - set-hostname
 
 - name: Prevent IP Spoofing
   template: src=hosts.conf dest=/etc/host.conf

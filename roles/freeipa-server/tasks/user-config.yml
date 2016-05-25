@@ -1,0 +1,26 @@
+---
+# configure sudo for superadmin group
+- name: add superadmins group if not already migrated
+  shell: ipa group-add superadmins --desc="admin group"
+  tags: configure_users
+  ignore_errors: true
+
+- name: add sudo rule for superadmins
+  shell: ipa sudorule-add allow-sudo-superadmins
+  tags: configure_users
+  ignore_errors: true
+
+- name: allow all commands as sudo for superadmins
+  shell: ipa sudorule-add-allow-command --sudocmds=all allow-sudo-superadmins
+  tags: configure_users
+  ignore_errors: true
+
+- name: allow sudo on all hosts for allow-sudo-superadmins
+  shell: ipa sudorule-add-host --hosts=all allow-sudo-superadmins
+  tags: configure_users
+  ignore_errors: true
+
+- name: add superadmins group to allow-sudo rule
+  shell: ipa sudorule-add-user --group superadmins allow-sudo-superadmins
+  tags: configure_users
+  ignore_errors: true
