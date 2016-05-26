@@ -12,6 +12,7 @@
   - python-pip
   - ttf-ancient-fonts
   - xclip
+  - nscd
 
 - name: Install pip modules
   pip: name={{item}} state=present
