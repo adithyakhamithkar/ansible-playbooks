@@ -3,13 +3,13 @@
   ec2_facts:
   when: dc_env == "aws"
 
-- name: Replace default hosts file
-  template: src=hosts.j2 dest=/etc/hosts
-  tags:
-    - set-hostname
-    
 - name: Set Host name
   hostname: name={{hostname}}
+  tags:
+    - set-hostname
+
+- name: Replace default hosts file
+  lineinfile: dest=/etc/hosts line='{{ansible_default_ipv4.address}} {{hostname}}.{{domain_name}} {{hostname}}'
   tags:
     - set-hostname
 
