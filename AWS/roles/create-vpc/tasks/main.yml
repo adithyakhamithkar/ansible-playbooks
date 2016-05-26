@@ -25,3 +25,6 @@
                 gw: igw
         region: "{{aws_region}}"
         wait: yes
+  register: vpc
+
+- debug: var=vpc
