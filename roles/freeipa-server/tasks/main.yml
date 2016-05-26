@@ -14,11 +14,11 @@
     - session         required        pam_mkhomedir.so skel=/etc/skel/
 
 - name: Configure Freeipa
-  shell: ipa-server-install -a {{freeipa_admin_password}} --hostname={{hostname}}.{{domain_name}} --realm {{realm_name}} -p {{freeipa_admin_password}} -n {{domain_name}} -U
+  shell: ipa-server-install -a {{ipa_admin_password}} --hostname={{hostname}}.{{domain_name}} --realm {{realm_name}} -p {{ipa_admin_password}} -n {{domain_name}} -U
   ignore_errors: True
 
 - name: Initialize the admin command line and change default shell for users
-  shell: 'echo {{freeipa_admin_password}} | kinit admin; ipa config-mod --defaultshell=/bin/bash'
+  shell: 'echo {{ipa_admin_password}} | kinit admin; ipa config-mod --defaultshell=/bin/bash'
   ignore_errors: True
 
 - include: user-config.yml
