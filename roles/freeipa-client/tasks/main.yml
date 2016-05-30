@@ -28,4 +28,4 @@
   file: path=/etc/ipa/ca.crt state=absent
 
 - name: Configure Freeipa
-  shell: ipa-client-install --domain={{domain_name}} --server={{ipa_server}}.{{domain_name}} --realm={{realm_name}} -p admin --password={{ipa_admin_password}} --mkhomedir --hostname={{hostname}}.{{domain_name}} --no-ssh --no-sshd -N -f -U
+  shell: ipa-client-install --domain={{domain_name}} --server={{ipa_server}}.{{domain_name}} --realm={{realm_name}} -p admin --password={{ipa_admin_password}} --mkhomedir --hostname={{hostname}}.{{domain_name}} --unattended

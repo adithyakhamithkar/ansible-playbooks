@@ -21,4 +21,4 @@
   shell: 'echo {{ipa_admin_password}} | kinit admin; ipa config-mod --defaultshell=/bin/bash'
   ignore_errors: True
 
-- include: user-config.yml
+#- include: user-config.yml
