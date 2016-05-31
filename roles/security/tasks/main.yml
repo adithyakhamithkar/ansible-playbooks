@@ -13,7 +13,7 @@
     - { rule: 'limit', port: '{{ssh_port | default("22")}}', proto: 'tcp' }
     - { rule: 'allow', port: '80', proto: 'tcp' }
     - { rule: 'allow', port: '443', proto: 'tcp' }
-    - { rule: 'limit', port: '123', proto: 'upd' }
+    - { rule: 'limit', port: '123', proto: 'udp' }
   notify:
     - restart ufw
 

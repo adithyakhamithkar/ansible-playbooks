@@ -1,0 +1,8 @@
+#
+#About: This will install security
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - security
