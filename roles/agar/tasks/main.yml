@@ -10,6 +10,9 @@
 - name: Create folder for agar
   file: path={{agar_directory}} state=directory
 
+- name: Create folder for agar
+  file: path={{agar_directory}}/logs state=directory
+
 - name: Clone agar
   git: repo=git@github.com:huytd/agar.io-clone.git dest={{agar_directory}} accept_hostkey=yes
 
@@ -24,6 +27,6 @@
 
 - name: File permission
   shell: chmod +x /etc/init.d/agar
-  
+
 #- name: Start agar
 #  shell: cd /var/www/agar && sudo nohup npm start &
