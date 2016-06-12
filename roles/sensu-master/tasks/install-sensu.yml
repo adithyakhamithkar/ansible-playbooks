@@ -21,6 +21,7 @@
   - sensu-plugin
   - mail
   - timeout
+  ignore_errors: True
 
 - name: Installing more gems
   shell: /opt/sensu/embedded/bin/gem install {{item}}

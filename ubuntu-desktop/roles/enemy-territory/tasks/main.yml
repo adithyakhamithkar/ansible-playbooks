@@ -1,0 +1,20 @@
+---
+- name: Add the playdeb APT key
+  apt_key: url=http://archive.getdeb.net/getdeb-archive.key state=present
+
+- name: Add playdeb repository
+  apt_repository: repo="deb http://archive.getdeb.net/ubuntu trusty-getdeb games" state=present
+
+- name: Install enemy-territory
+  apt: name={{item}} state=present
+  with_items:
+  - enemy-territory
+
+- name: Configure enemy-territory
+  template: src=server.j2 dest=/usr/share/games/enemy-territory/etmain/server.cfg
+
+- name: Create SSL directory for omni-bot
+  file: path=/usr/local/games/enemy-territory/omni-bot state=directory
+
+- name: Copy omni-bot binaries
+  unarchive: src=omni-bot_0_831_ET_linux.zip dest=/usr/local/games/enemy-territory/omni-bot copy=yes
