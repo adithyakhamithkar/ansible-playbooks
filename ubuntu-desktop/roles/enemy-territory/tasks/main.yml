@@ -26,17 +26,17 @@
 #- name: Copy wolfzone binaries
 #  unarchive: src=http://www.wolfzone.eu/download/wolfzone-linux64-160207.zip dest=/usr/share/games/enemy-territory copy=no
 
-#- name: Copy omni-bot binaries
-#  unarchive: src=omni-bot.zip dest=/usr/share/games/enemy-territory copy=yes mode=0755
-
-#- name: Create directory for omni-bot
-#  file: path=/usr/share/games/enemy-territory state=directory
+- name: Copy omni-bot binaries
+  unarchive: src=omni-bot_0_831_ET_linux.zip dest=/usr/share/games/enemy-territory copy=yes
+  ignore_errors: True
 
 - name: Configure enemy-territory
   template: src={{item.src}} dest={{item.dest}}
   with_items:
     - { src: 'server.j2', dest: '/usr/share/games/enemy-territory/etmain/server.cfg' }
     - { src: 'silent.j2', dest: '/usr/share/games/enemy-territory/etmain/silent.cfg' }
+    - { src: 'silent-banner.j2', dest: '/usr/share/games/enemy-territory/silent/banner.cfg' }
+    - { src: 'bot.j2', dest: '/usr/share/games/enemy-territory/etmain/bot.cfg' }
 #    - { src: 'jaymod.j2', dest: '/usr/share/games/enemy-territory/etmain/jaymod.cfg' }
 #    - { src: 'nitmod.j2', dest: '/usr/share/games/enemy-territory/etmain/nitmod.cfg' }
 

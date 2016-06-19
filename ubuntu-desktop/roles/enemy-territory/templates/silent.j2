@@ -101,20 +101,20 @@ set g_XPSave 9
 set g_resetXPMapCount 6
 set g_XPSaveMaxAge "90d"	// keep KR and PRW saved for longer time
 
-// XP is reset after 30 days
-//set g_XPSaveMaxAge_xp "30d"	// for the XP
-//set g_XPSaveMaxAge "90d"	// keep KR and PRW saved for longer time
+// XP is reset after 90 days
+set g_XPSaveMaxAge_xp "30d"	// for the XP
+set g_XPSaveMaxAge "90d"	// keep KR and PRW saved for longer time
 
 // Never reset XP (it's not really an option, but a huge value (30 months) will do instead)
 // Do note that g_dbUserMaxAge should be set to "-1" to disable player record deletions
-//set g_g_XPSaveMaxAge_xp "30o"
-//set g_XPSaveMaxAge "30o"
+set g_g_XPSaveMaxAge_xp "30o"
+set g_XPSaveMaxAge "30o"
 
 //**************************************************
 // Player Statistics, Rating and Team Balance
 //**************************************************
 
-set g_playerRating 0	// Enable only if the players on your server remain consistently the same
+set g_playerRating 1	// Enable only if the players on your server remain consistently the same
 
 //**************************************************
 // Class and Weapon Restrictions
@@ -124,7 +124,7 @@ set g_playerRating 0	// Enable only if the players on your server remain consist
 set team_maxPanzers 1
 set team_maxMortars 1
 set team_maxFlamers 1
-set team_maxGrenLaunchers 2
+set team_maxGrenLaunchers 6
 
 //**************************************************
 // Player Inactivity
@@ -217,7 +217,7 @@ set g_fixedphysicsfps 125
 //**************************************************
 
 // often admins want to default to ETPro hitsounds, uncomment below for that
-//set g_defaultHitSounds 2
+set g_defaultHitSounds 2
 
 //**************************************************
 // Intermission
@@ -259,9 +259,9 @@ set g_cheatLog "cheat.log"
 //**************************************************
 // Omni-Bots
 //**************************************************
-
+exec bot.cfg
 set omnibot_enable 1
-//set omnibot_path ""  // set this path manually if the auto-search does not find the Omni-bot files
+set omnibot_path "/usr/share/games/enemy-territory/omni-bot"  // set this path manually if the auto-search does not find the Omni-bot files
 set g_bot_maxXP -1
 set omnibot_flags 262148
 
