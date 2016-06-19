@@ -1,6 +1,6 @@
 set dedicated "2"				// 1: dedicated server for lan 2: dedicated server for internet
-// set net_ip ""				// set to override the default IP ET uses
-set net_port "80"				// set to override the default port ET uses
+set net_ip "{{ansible_ssh_host}}"				// set to override the default IP ET uses
+set net_port "8080"				// set to override the default port ET uses
 
 // PASSWORDS & CLIENTS
 
@@ -8,17 +8,17 @@ set sv_maxclients "20"				// number of players including private slots
 set g_password ""				// set to password protect the server
 set sv_privateclients "4"			// if set > 0, then this number of client slots will be reserved for connections
 set sv_privatepassword ""			// that have "password" set to the value of "sv_privatePassword"
-set rconpassword "" 				// remote console access password
+set rconpassword "123" 				// remote console access password
 set refereePassword ""				// referee status password
 
 // DL, RATE
 
 set sv_maxRate "13000"				// 10000 standard but poor for ET
 set sv_dl_maxRate "42000"			// increase/decerease if you have plenty/little spare bandwidth
-set sv_allowDownload "0"        			// global toggle for both legacy download and web download
-set sv_wwwDownload "0"				// toggle to enable web download
-set sv_wwwBaseURL "" 				// base URL for redirection
-set sv_wwwDlDisconnected "0"			// tell clients to perform their downloads while disconnected from the server
+set sv_allowDownload "1"        			// global toggle for both legacy download and web download
+set sv_wwwDownload "1"				// toggle to enable web download
+set sv_wwwBaseURL "http://{{ansible_ssh_host}}/" 				// base URL for redirection
+set sv_wwwDlDisconnected "1"			// tell clients to perform their downloads while disconnected from the server
 set sv_wwwFallbackURL ""			// URL to send to if an http/ftp fails or is refused client side
 
 // MOTD ETC
@@ -124,6 +124,6 @@ exec campaigncycle.cfg				// Campaign mode
 //set com_watchdog 10				// defaults 60
 set com_watchdog_cmd "exec campaigncycle.cfg"	// defaults to quit
 
-// OMI-BOT
-set omnibot_enable "1"
-set omnibot_path = "/usr/local/games/enemy-territory/omni-bot"
+// PATH
+set fs_basepath /usr/share/games/enemy-territory
+set fs_homepath 27960

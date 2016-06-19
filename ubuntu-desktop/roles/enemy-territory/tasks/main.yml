@@ -10,11 +10,35 @@
   with_items:
   - enemy-territory
 
+- name: Copy etpro binaries
+  unarchive: src=etpro-3_2_6.zip dest=/usr/share/games/enemy-territory copy=yes
+
+#- name: Copy nitmod binaries
+#  unarchive: src=nitmod_2.3.1.zip dest=/usr/share/games/enemy-territory copy=yes
+
+#- name: Copy wolfzone binaries
+#  unarchive: src=http://www.wolfzone.eu/download/wolfzone-linux64-160207.zip dest=/usr/share/games/enemy-territory copy=no
+
+#- name: Copy silent binaries
+#  unarchive: src=silent.zip dest=/usr/share/games/enemy-territory copy=yes
+
+#- name: Create SSL directory for omni-bot
+#  file: path=/usr/local/games/enemy-territory/omni-bot state=directory
+
 - name: Configure enemy-territory
-  template: src=server.j2 dest=/usr/share/games/enemy-territory/etmain/server.cfg
+  template: src={{item.src}} dest={{item.dest}}
+  with_items:
+    - { src: 'server.j2', dest: '/usr/share/games/enemy-territory/etmain/server.cfg' }
+#    - { src: 'nitmod.j2', dest: '/usr/share/games/enemy-territory/etmain/nitmod.cfg' }
+#    - { src: 'silent.j2', dest: '/usr/share/games/enemy-territory/etmain/silent.cfg' }
 
-- name: Create SSL directory for omni-bot
-  file: path=/usr/local/games/enemy-territory/omni-bot state=directory
-
-- name: Copy omni-bot binaries
-  unarchive: src=omni-bot_0_831_ET_linux.zip dest=/usr/local/games/enemy-territory/omni-bot copy=yes
+- name: Copy init.d script
+  template: src={{item.src}} dest={{item.dest}} mode=0755
+  with_items:
+    - { src: 'etded-main-obj.j2', dest: '/etc/init.d/etded-main-obj' }
+    - { src: 'etded-pro-obj.j2', dest: '/etc/init.d/etded-pro-obj' }
+    - { src: 'etded-main-camp.j2', dest: '/etc/init.d/etded-main-camp' }
+    - { src: 'etded-pro-camp.j2', dest: '/etc/init.d/etded-pro-camp' }
+#    - { src: 'etded-silent.j2', dest: '/etc/init.d/etded-silent' }
+#    - { src: 'etded-wolfzone.j2', dest: '/etc/init.d/etded-wolfzone' }
+#    - { src: 'etded-nitmod.j2', dest: '/etc/init.d/etded-nitmod' }
