@@ -1,0 +1,71 @@
+// note: this should be considered experimental
+this.Name = "ROAMING";
+this.Parent = "HighLevel";
+this.SkipGetPriorityWhenActive = true;
+
+if(!BB.ROAMING) {
+	BB.ROAMING = Blackboard.MakeKey();
+}
+
+this.GetPriority = function()
+{
+	while(1)
+	{
+		if ( Map && (Map.DeathMatch == 1 || Map.PanzerMap) || GetGameType() == 5) { //last man standing
+			block(0);
+		}
+
+		botId = this.Bot.GetGameId();
+		if ( !this.BlackboardIsDelayed(botId) ) {
+			// just a bit higher than the default roam goal
+			this.Priority = 0.1;
+			this.BlackboardId = botId;
+		}
+		sleep(2);
+	}
+};
+
+this.Enter = function()
+{
+	// post a bb record this way since there is no real mapgoal
+	bbRecord = {
+		Owner = this.BlackboardId,
+		Target = this.BlackboardId,
+	};
+	Blackboard.PostRecord(BB.ROAMING, bbRecord);
+
+	this.GotoPosition = null;
+	teammatesAlive = table();
+
+	// is there a teammate we can go to?
+	for( i = 0; i < Server.MaxPlayers; i = i + 1 ) {
+		if ( !EntityIsValid(i) ) {
+			continue;
+		}
+
+		ent = GetGameIdFromEntity(i);
+		if ( typeId(ent) == 0 || ent == this.BlackboardId || this.Bot.DistanceTo(ent) < 256 || !this.Bot.IsAllied(ent) ) {
+			continue;
+		}
+
+		if ( GetEntFlags(ent, ENTFLAG.DEAD, ENTFLAG.LIMBO) ) {
+			continue;
+		}
+
+		teammatesAlive[ tableCount(teammatesAlive) ] = ent;
+	}
+
+	if ( tableCount(teammatesAlive) > 0 ) {
+		this.GotoPosition = GetEntPosition(Util.GetRandomTableValue(teammatesAlive));
+	}
+};
+
+this.Update = function()
+{
+	if ( !this.GotoPosition || this.Goto(this.GotoPosition, 64.0) == EVENT.PATH_FAILED) {
+		// bb delay it so the default roam goal can activate
+		this.BlackboardDelay(6, this.BlackboardId);
+	}
+	this.Finished();
+};
+

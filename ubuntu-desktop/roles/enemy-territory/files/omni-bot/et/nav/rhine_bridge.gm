@@ -1,0 +1,319 @@
+global Map =
+{
+	Ammo_Cabinet_t2 = "AMMOCAB_t2",
+	Ammo_Cabinet_t3 = "AMMOCAB_t3",
+	Health_Cabinet_t1 = "HEALTHCAB_t1",
+	Health_Cabinet_t4 = "HEALTHCAB_t4",
+	Call_Artillery_224 = "CALLARTILLERY_224",
+	Call_Artillery_268 = "CALLARTILLERY_268",
+	Call_Artillery_269 = "CALLARTILLERY_269",
+	Call_Artillery_275 = "CALLARTILLERY_275",
+	Call_Artillery_281 = "CALLARTILLERY_281",
+	Call_Artillery_293 = "CALLARTILLERY_293",
+	Call_Artillery_295 = "CALLARTILLERY_295",
+	Call_Artillery_339 = "CALLARTILLERY_339",
+	Call_Artillery_450 = "CALLARTILLERY_450",
+	Call_Artillery_513 = "CALLARTILLERY_513",
+	Artillery_D_130 = "ARTILLERY_D_130",
+	Artillery_D_288 = "ARTILLERY_D_288",
+	Artillery_D_293 = "ARTILLERY_D_293",
+	Artillery_D_424 = "ARTILLERY_D_424",
+	Artillery_D_468 = "ARTILLERY_D_468",
+	Artillery_D_508 = "ARTILLERY_D_508",
+	Artillery_D_509 = "ARTILLERY_D_509",
+	Artillery_D_510 = "ARTILLERY_D_510",
+	Artillery_D_511 = "ARTILLERY_D_511",
+	Artillery_D_512 = "ARTILLERY_D_512",
+	Artillery_S_130 = "ARTILLERY_S_130",
+	Artillery_S_288 = "ARTILLERY_S_288",
+	Artillery_S_468 = "ARTILLERY_S_468",
+	Artillery_S_508 = "ARTILLERY_S_508",
+	Artillery_S_509 = "ARTILLERY_S_509",
+	Artillery_S_510 = "ARTILLERY_S_510",
+	Artillery_S_511 = "ARTILLERY_S_511",
+	Artillery_S_512 = "ARTILLERY_S_512",
+	Checkpoint_forward_spawn = "CHECKPOINT_forward_spawn",
+	Build_Command_Post = "BUILD_Command_Post",
+	Build_Door_bars = "BUILD_Door_bars",
+	Build_Ladder = "BUILD_Ladder",
+	Build_Rhine_Bridge = "BUILD_Rhine_Bridge",
+	Build_Stairs = "BUILD_Stairs",
+	Plant_Bunker_Door = "PLANT_Bunker_Door",
+	Plant_Cave_Stone = "PLANT_Cave_Stone",
+	Plant_Command_Post = "PLANT_Command_Post",
+	Plant_Ladder = "PLANT_Ladder",
+	Plant_Rhine_Bridge = "PLANT_Rhine_Bridge",
+	Plant_Stairs = "PLANT_Stairs",
+	Explode_Door_bars = "EXPLODE_Door_bars",
+	Mount_135 = "MOUNTMG42_135",
+	Mount_283 = "MOUNTMG42_283",
+	Mount_486 = "MOUNTMG42_486",
+	Mount_643 = "MOUNTMG42_643",
+	Mount_644 = "MOUNTMG42_644",
+	Repair_135 = "REPAIRMG42_135",
+	Repair_283 = "REPAIRMG42_283",
+	Repair_486 = "REPAIRMG42_486",
+	Repair_643 = "REPAIRMG42_643",
+	Repair_644 = "REPAIRMG42_644",
+	Snipe_163 = "SNIPE_163",
+	Snipe_290 = "SNIPE_290",
+	Snipe_380 = "SNIPE_380",
+	Snipe_455 = "SNIPE_455",
+	Snipe_600 = "SNIPE_600",
+	Snipe_axis_snipe = "SNIPE_axis_snipe",
+	Snipe_axis_snipe2 = "SNIPE_axis_snipe2",
+	Snipe_snipe1 = "SNIPE_snipe1",
+	Snipe_snipe2 = "SNIPE_snipe2",
+	Snipe_snipe_2 = "SNIPE_snipe_2",
+	Plant_Mine_447 = "PLANTMINE_447",
+
+	Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Built" );
+	},
+
+	Door_bars_Built = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Bunker_Door" );
+
+		Util.MapDebugPrint( "Door_bars_Built" );
+	},
+
+	Ladder_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Ladder_Built" );
+	},
+
+	Rhine_Bridge_Built = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_db.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_door.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_forward_spawn" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_bunker.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_bridge.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_axis_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CALLARTILLERY_artythis1" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_D_artythis" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_artythis" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "EXPLODE_Door_bars" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_mg1" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMG42_mg2" );
+
+		Util.MapDebugPrint( "Rhine_Bridge_Built" );
+	},
+
+	Stairs_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Stairs_Built" );
+	},
+
+	Bunker_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Bunker_Door_Destroyed" );
+	},
+
+	Cave_Stone_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_as.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_bridge.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_db.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_ds.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Door_bars" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Stairs" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Rhine_Bridge" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Rhine_Bridge" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Post" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Command_Post" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_snipe1" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Stairs" );
+
+		Util.MapDebugPrint( "Cave_Stone_Destroyed" );
+	},
+
+	Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Destroyed" );
+	},
+
+	Ladder_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Ladder_Destroyed" );
+	},
+
+	Rhine_Bridge_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_bunker.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_bridge.*" );
+
+		Util.MapDebugPrint( "Rhine_Bridge_Destroyed" );
+	},
+
+	Stairs_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Stairs_Destroyed" );
+	},
+
+	forward_spawn_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "forward_spawn_Axis_Captured" );
+	},
+
+	forward_spawn_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "forward_spawn_Allies_Captured" );
+	},
+	
+	Door_bars_Blown = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Bunker_Door" );
+
+		Util.MapDebugPrint( "Door_bars_Blown" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "MISSING_STRING", Map.Command_Post_Built );
+	OnTrigger( "The Bunker door has been caged.", Map.Door_bars_Built );
+	OnTrigger( "The Bunker door has been destroyed.", Map.Door_bars_Blown );
+	OnTrigger( "The Ladder have been built.", Map.Ladder_Built );
+	OnTrigger( "The Rhine Bridge has been repaired.", Map.Rhine_Bridge_Built );
+	OnTrigger( "MISSING_STRING", Map.Stairs_Built );
+	OnTrigger( "MISSING_STRING", Map.Bunker_Door_Destroyed );
+	OnTrigger( "Allies have breached the cave!", Map.Cave_Stone_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Command_Post_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Ladder_Destroyed );
+	OnTrigger( "The Rhine Bridge is destroyed.", Map.Rhine_Bridge_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Stairs_Destroyed );
+	OnTrigger( "Axis capture the forward bunker!", Map.forward_spawn_Axis_Captured );
+	OnTrigger( "Allies capture the forward bunker!", Map.forward_spawn_Allies_Captured );
+
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+	
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_ds.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_as.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "HEALTHCAB_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Cave_Stone" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_snipe1" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Ladder" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_forward_spawn" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_forward_spawn" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Command_Post" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_.*" );
+	Util.SetMaxUsersInProgress( 1, "ATTACK_.*" );
+	Util.SetMaxUsersInProgress( 1, "SNIPE_.*" );
+	Util.SetMaxUsersInProgress( 1, "MOBILEMG42_.*" );
+	Util.SetMaxUsersInProgress( 1, "BUILD_Ladder" );
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=15, MaxCampTime=40} ); 
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=15, MaxCampTime=40} ); 
+	SetGoalPriority( "MOBILEMG42_.*", 0.7, 0, CLASS.SOLDIER );
+	
+	Util.SetGoalOffset( 0,55,0, "PLANT_Cave_Stone" );
+	Util.SetGoalOffset( 0,30,0, "BUILD_Rhine_Bridge" );
+	Util.SetGoalOffset( 0,30,-20, "PLANT_Bunker_Door" );
+	Util.SetGoalOffset( 0,30,0, "BUILD_Ladder" );
+	
+	MapRoutes =
+	{
+		CHECKPOINT_forward_spawn = 
+		{
+			ROUTE_s0  = 
+			{
+				ROUTE_s1  = 
+				{
+					ROUTE_s2  = 
+					{
+						ROUTE_s3  = 
+						{
+							ROUTE_s4  = 
+							{
+								ROUTE_s5  = 
+								{
+									ROUTE_s6  = 
+									{
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_s7  = 
+				{
+					ROUTE_s8  = 
+					{
+						ROUTE_473  = 
+						{
+							ROUTE_s9  = 
+							{
+								ROUTE_s10  = 
+								{
+									ROUTE_s11  = 
+									{
+										ROUTE_s12  = 
+										{
+										},
+									},
+								},
+							},
+						},
+					},
+					ROUTE_s14  = 
+					{
+					},
+				},
+			},
+		},
+	};
+
+	MapRoutes.ATTACK_as2 = CHECKPOINT_forward_spawn;
+	MapRoutes.ATTACK_as1 = CHECKPOINT_forward_spawn;
+	MapRoutes.PLANT_Cave_Stone = CHECKPOINT_forward_spawn;
+	Util.Routes(MapRoutes);
+	
+	Util.MapDebugPrint( "map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 100.0;
+};

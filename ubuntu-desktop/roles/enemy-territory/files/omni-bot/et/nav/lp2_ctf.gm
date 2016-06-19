@@ -1,0 +1,279 @@
+//==========================================================================================
+//
+//	lp2_ctf.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	booger	25 July 2012	Initial Script
+//	palota	31 July 2012	fixed flag_Returned triggers, fixed ATTACK_axis_flag availability, cleanup
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+
+	allied_flag_Taken = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_axis_flag.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_axis_roam.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_ally_flag.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_ally_flag[12]" );
+		Util.MapDebugPrint( "allied_flag_Taken" );
+	},
+
+	axis_flag_Taken = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_ally_flag.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_ally_roam.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_axis_flag.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_axis_flag[12]" );
+		Util.MapDebugPrint( "axis_flag_Taken" );
+	},
+
+	allied_flag_Returned = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_axis_flag.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_axis_roam.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_ally_flag.*" );
+		Util.MapDebugPrint( "allied_flag_Returned" );
+	},
+
+	axis_flag_Returned = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_ally_flag.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_ally_roam.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_axis_flag.*" );
+		Util.MapDebugPrint( "axis_flag_Returned" );
+	},
+
+	allied_flag_Secured = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_axis_flag.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_axis_roam.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_ally_flag.*" );
+		Util.MapDebugPrint( "allied_flag_Secured" );
+	},
+
+	axis_flag_Secured = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_ally_flag.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_ally_roam.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_axis_flag.*" );
+		Util.MapDebugPrint( "axis_flag_Secured" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// Register callback functions
+	OnTrigger( "Axis have stolen the Flag!", Map.allied_flag_Taken );
+	OnTrigger( "Allies have stolen the Flag!", Map.axis_flag_Taken );
+	OnTrigger( "Flag returned allied_flag!", Map.allied_flag_Returned );
+	OnTrigger( "Flag returned axis_flag!", Map.axis_flag_Returned );
+	OnTrigger( "the Axis have Captured the Flag!!!", Map.allied_flag_Secured );
+	OnTrigger( "the Allies have Captured the Flag!!!", Map.axis_flag_Secured );
+
+	Util.DisableGoal( ".*", true ); // all but routes
+	
+	
+	SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_axis_flag" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_allyflag" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_ally_flag.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_axisflag" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "FLAG_allied_flag" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_axis_flag.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_axis_roam.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_ally_roam.*" );
+
+
+	// Max users per goal
+	Util.SetMaxUsers( 3, "FLAG_.*" );
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};	
+
+
+
+global OnBotJoin = function( bot )
+{
+};
+
+global InitializeRoutes = function()
+{
+	MapRoutes =
+	{
+		CAPPOINT_allyflag =
+		{	
+			ROUTE_allied_runback =
+			{
+				ROUTE_allied_runback1 = 
+					{
+						ROUTE_allied_runback7 = 
+						{
+							ROUTE_allied_runback11 = 
+							{
+								ROUTE_allied_runback17 = {},
+							},	
+						},	
+					},	
+				ROUTE_allied_runback2 = 
+					{
+						ROUTE_allied_runback6 = 
+						 {
+							ROUTE_allied_runback10 = 
+							{
+								ROUTE_allied_runback16 = {},
+							},	
+						 },	
+					},	
+				ROUTE_allied_runback3 = 
+				{
+					ROUTE_allied_runback4 = 
+					 {
+						ROUTE_allied_runback9 = 
+						{
+						ROUTE_allied_runback14 = {},
+						},	
+					 },	
+					ROUTE_allied_runback5 = 
+					 {
+						ROUTE_allied_runback8 = 
+						 {
+						ROUTE_allied_runback14 = {},
+						},	
+					 },
+				},		
+			},	
+			
+		},
+		CAPPOINT_axisflag =
+		{
+			ROUTE_axis_runback = 
+			{
+				ROUTE_axis_runback1 = 
+				 {
+					ROUTE_axis_runback6 = {},
+				 }, 
+					
+				ROUTE_axis_runback2 = 
+				 {
+					ROUTE_axis_runback6 = {},
+				 }, 
+				
+				ROUTE_axis_runback3 = 
+				
+				 {
+					ROUTE_axis_runback4 = 
+						{
+							ROUTE_axis_runback8 = 
+							{
+								ROUTE_axis_runback10 = {},
+							},	
+						},	
+					ROUTE_axis_runback5 = 
+						{
+							ROUTE_axis_runback8 = 
+								{
+									ROUTE_axis_runback10 = 
+										{
+											ROUTE_axis_runback11 = {},
+											ROUTE_axis_runback12 = {},
+										},	
+								},	
+						},	
+					
+				 }, 
+				        
+						
+						
+			},	
+				
+		},
+		
+		FLAG_allied_flag =
+		{
+			ROUTE_axis_spawn = 
+			{
+				ROUTE_axis_runback11 = 
+				
+				{
+					ROUTE_axis_runback10 = 
+					{	
+						ROUTE_allied_runback13 = 
+							{
+								ROUTE_allied_runback17 = {},
+								ROUTE_allied_runback20 = {},
+								ROUTE_allied_runback15 = {},
+							},	
+						ROUTE_axflag1 = {},
+						ROUTE_axflag2 = {},
+						ROUTE_axis_runback8 =
+							{
+								ROUTE_allied_runback15 = {},
+								ROUTE_allied_runback14 = {},
+					
+		
+
+
+
+							},
+					},
+				},
+			},
+
+		},
+		
+		FLAG_axis_flag = 
+		{
+				ROUTE_ally_spawn = 
+			{			
+						ROUTE_allied_runback18 = 
+					{
+								ROUTE_alflag1 = {},
+								ROUTE_alflag2 = {},
+								ROUTE_allied_runback13 = 
+								{
+										ROUTE_alflag4 = {},
+										ROUTE_alflag5 = {},
+										ROUTE_allied_runback11 = {},
+										ROUTE_allied_runback12 = 
+									{
+											ROUTE_allied_runback9 = {},
+											ROUTE_allied_runback8 = 
+										{
+												ROUTE_allied_runback4 = {},
+												ROUTE_allied_runback5 = {},
+										},	
+									},
+	
+								},
+							
+					},
+
+			},
+
+		},			
+							
+	};	
+	MapRoutes.ATTACK_ally_flag2 = MapRoutes.FLAG_allied_flag;
+	MapRoutes.ATTACK_ally_flag3 = MapRoutes.FLAG_allied_flag;
+	MapRoutes.ATTACK_ally_flag4 = MapRoutes.FLAG_allied_flag;
+	MapRoutes.ATTACK_ally_flag1 = MapRoutes.FLAG_allied_flag;
+	MapRoutes.ATTACK_axis_roam1 = MapRoutes.FLAG_allied_flag;
+	MapRoutes.ATTACK_axis_roam2 = MapRoutes.FLAG_allied_flag;
+	MapRoutes.ATTACK_axis_flag2 = MapRoutes.FLAG_axis_flag;
+	MapRoutes.ATTACK_axis_flag4 = MapRoutes.FLAG_axis_flag;
+	MapRoutes.ATTACK_axis_flag3 = MapRoutes.FLAG_axis_flag;
+	MapRoutes.ATTACK_axis_flag1 = MapRoutes.FLAG_axis_flag;
+	MapRoutes.ATTACK_ally_roam1 = MapRoutes.FLAG_axis_flag;
+	MapRoutes.ATTACK_ally_roam2 = MapRoutes.FLAG_axis_flag;
+	Util.Routes(MapRoutes);
+	
+};

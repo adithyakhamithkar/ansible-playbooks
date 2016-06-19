@@ -1,0 +1,423 @@
+//==========================================================================================
+//
+//	rommel_final.gm
+//
+//	Who	When			What
+//------------------------------------------------------------------------------------------
+//	MickyP	30 September 2010	Initial Script
+//	MickyP	14 October 2010		Minor Fixes
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	ShowMovers = false,
+	Key_Taken = false,
+	Key_Secured = false,
+	Spawn_Back = false,
+
+	Roles =
+	{
+		AllBots = true,
+		AXIS =
+		{
+			DEFENDER1 =
+			{
+				numbots = 4,
+			},
+			DEFENDER2 =
+			{
+				numbots = 4,
+			},
+		},
+
+		ALLIES =
+		{
+			ATTACKER1 =
+			{
+				numbots = 4,
+			},
+			ATTACKER2 =
+			{
+				numbots = 4,
+			},
+		},
+ 	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.EnableGoal( "ROUTE_Tank_Depot", true );
+		Wp.SetWaypointFlag( "Tank_depot_door", "axis", false );
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal( "ROUTE_Tank_Depot", true );
+		Wp.SetWaypointFlag( "Tank_depot_door", "axis", true );
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	East_Gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Spawn_Back = true;
+
+		Util.EnableGoal( "ROUTE_East_Gate", true );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Post" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Command_Post" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_access_codes" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_gate" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_East_Gate.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_West_Gate.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_East_Gate.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_West_Gate.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_t26" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_t25" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_forward_spawn" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_t24" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "HEALTHCAB_t22" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_t24" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_t22" );
+
+		Util.ChangeSpawn(TEAM.AXIS, 3);
+
+		if 	( Map.Key_Secured == true )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Cistern.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Cistern.*" );
+		}
+		else if ( Map.Key_Taken == true )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Lock.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Lock.*" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Key.*" );
+		}
+		Util.MapDebugPrint( "East_Gate_Destroyed" );
+	},
+
+	West_Gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.EnableGoal( "ROUTE_West_Gate", true );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_West_Gate.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_East_Gate.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_t26" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_t25" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_access_codes" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_gate" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_West_Gate.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_East_Gate.*" );
+
+		if 	( Map.Key_Secured == true )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Cistern.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Cistern.*" );
+		}
+		else if ( Map.Key_Taken == true )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Lock.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Lock.*" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Key.*" );
+		}
+		Util.MapDebugPrint( "West_Gate_Destroyed" );
+	},
+
+	access_codes_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Key_Taken = true;
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Key.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Lock.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Lock.*" );
+		Util.MapDebugPrint( "access_codes_Taken" );
+	},
+
+	access_codes_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Key_Taken = false;
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Key.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Lock.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Lock.*" );
+		Util.MapDebugPrint( "access_codes_Returned" );
+	},
+
+	access_codes_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		sleep(10);
+		Map.Key_Taken = false;
+		Map.Key_Secured = true;
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Lock.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Cistern.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Cistern" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Cistern.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Lock.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_gate" );
+		Util.MapDebugPrint( "access_codes_Secured" );
+	},
+
+	forward_spawn_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "forward_spawn_Axis_Captured" );
+	},
+
+	forward_spawn_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "forward_spawn_Allies_Captured" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// Register callback functions
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Allies have breached the East Gate", Map.East_Gate_Destroyed );
+	OnTrigger( "Allies have breached the West Gate", Map.West_Gate_Destroyed );
+	OnTrigger( "The Allies have stolen the Access Card", Map.access_codes_Taken );
+	OnTrigger( "The Axis have retrieved the Access Card", Map.access_codes_Returned );
+	OnTrigger( "The Allies have gained access to the Cistern", Map.access_codes_Secured );
+	OnTrigger( "Axis capture the Forward spawn!", Map.forward_spawn_Axis_Captured );
+	OnTrigger( "Allies capture the Forward spawn!", Map.forward_spawn_Allies_Captured );
+
+	Util.SetGoalOffset( 0, -90, 0, "PLANT_West_Gate" );
+
+	Util.DisableGoal( ".*", true ); // all but routes
+	Util.DisableGoal( "ROUTE_East_Gate", true );
+	Util.DisableGoal( "ROUTE_West_Gate", true );
+	Util.DisableGoal( "ROUTE_Tank_Depot", true );
+
+	Wp.SetWaypointFlag( "Tank_depot_door", "axis", true );
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_East_Gate" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_West_Gate" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_West_Gate.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_East_Gate.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_forward_spawn" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_East_Gate.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_West_Gate.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_forward_spawn" );
+
+	// Priorities
+
+	SetGoalPriority( "DEFEND_Key_.*", 0.52, TEAM.AXIS);
+
+	// Max users per goal
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "BUILD_Command_Post" );
+
+	Util.ChangeSpawn(TEAM.AXIS, 1); // Make sure bots spawn here at start
+
+	// Camp times
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=60} );
+
+	MapRoutes =
+	{
+		CHECKPOINT_forward_spawn =
+		{
+			ROUTE_Cave_Spawn1  =
+			{
+				ROUTE_East_Cave_Exit  =
+				{
+					ROUTE_East_Door  =
+					{
+					},
+					ROUTE_Centre_Door  =
+					{
+					},
+				},
+				ROUTE_West_Cave_Exit  =
+				{
+					ROUTE_West_Door  =
+					{
+					},
+					ROUTE_Centre_Door  =
+					{
+					},
+				},
+			},
+			ROUTE_Cave_Spawn2  =
+			{
+				ROUTE_East_Cave_Exit  =
+				{
+					ROUTE_East_Door  =
+					{
+					},
+					ROUTE_Centre_Door  =
+					{
+					},
+				},
+				ROUTE_West_Cave_Exit  =
+				{
+					ROUTE_West_Door  =
+					{
+					},
+					ROUTE_Centre_Door  =
+					{
+					},
+				},
+			},
+		},
+		FLAG_access_codes =
+		{
+			ROUTE_Flag_Spawn  =
+			{
+				ROUTE_East_Gate  =
+				{
+					ROUTE_North_Path  =
+					{
+						ROUTE_Back_Path  =
+						{
+							ROUTE_Hill  =
+							{
+							},
+							ROUTE_Ladder  =
+							{
+							},
+						},
+					},
+				},
+				ROUTE_West_Gate  =
+				{
+					ROUTE_Key_Main  =
+					{
+					},
+					ROUTE_Key_Side  =
+					{
+					},
+				},
+			},
+			ROUTE_Flag_Spawn_2  =
+			{
+				ROUTE_East_Gate  =
+				{
+					ROUTE_North_Path  =
+					{
+						ROUTE_Back_Path  =
+						{
+							ROUTE_Hill  =
+							{
+							},
+							ROUTE_Ladder  =
+							{
+							},
+						},
+					},
+				},
+				ROUTE_West_Gate  =
+				{
+					ROUTE_Key_Main  =
+					{
+					},
+					ROUTE_Key_Side  =
+					{
+					},
+				},
+			},
+		},
+		CAPPOINT_gate =
+		{
+			ROUTE_Key  =
+			{
+				ROUTE_Tank_Depot  =
+				{
+				},
+				ROUTE_Back_Path  =
+				{
+					ROUTE_North_Path  =
+					{
+						ROUTE_North_Exit  =
+						{
+						},
+						ROUTE_Big_Hill  =
+						{
+						},
+					},
+				},
+				ROUTE_South_Exit  =
+				{
+				},
+			},
+		},
+	};
+
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	// Uncomment for shootable breakables
+	//~bot.TargetBreakableDist = 90.0;
+	// Only set MaxViewDistance on maps with limited sight (e.g. fog)
+	//~bot.MaxViewDistance = 2400;
+	if ( Map.Spawn_Back == true )
+	{
+		Util.ChangeSpawn(TEAM.AXIS, 3);
+	}
+};

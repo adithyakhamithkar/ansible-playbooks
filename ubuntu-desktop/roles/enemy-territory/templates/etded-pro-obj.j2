@@ -10,7 +10,7 @@ case "$1" in
   start)
         # Start daemon.
         echo "Starting $DAEMON_NAME";
-        nohup $DAEMON_NAME +set com_hunkmegs 512 +exec objectivecycle.cfg +set net_ip "{{ansible_ssh_host}}" +set net_ip "{{ansible_ssh_host}}" +exec server.cfg +set fs_game etpro +set fs_basepath /usr/share/games/enemy-territory +set fs_homepath 27960 +set sv_punkbuster 1 > /var/log/et.log 2>&1 &
+        nohup $DAEMON_NAME +set com_hunkmegs 512 +exec objectivecycle.cfg +set net_ip "{{ansible_ssh_host}}" +exec server.cfg +set fs_game etpro +set fs_basepath /usr/share/games/enemy-territory +set fs_homepath 27960 +set sv_punkbuster 1 > /var/log/et.log 2>&1 &
         ;;
   stop)
         # Stop daemons.

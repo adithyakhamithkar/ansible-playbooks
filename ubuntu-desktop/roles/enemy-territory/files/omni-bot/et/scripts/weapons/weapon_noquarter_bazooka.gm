@@ -1,0 +1,28 @@
+if (GetModName()!="noquarter") { return; }
+
+//////////////////////////////////////////////////////////////////////////
+// Overall weapon properties.
+WEAPON.BAZOOKA = 96;
+
+this.Name = "Bazooka";
+this.WeaponId = WEAPON.BAZOOKA;
+
+//////////////////////////////////////////////////////////////////////////
+// Set some weapon properties that affect some internal logic.
+this.PrimaryFire.WeaponType = "projectile";
+this.PrimaryFire.ProjectileSpeed = 2100;
+this.PrimaryFire.RequiresAmmo = true;
+this.PrimaryFire.WaterProof = false;
+this.PrimaryFire.SplashRadius = 256.0;
+this.PrimaryFire.InheritsVelocity = false;
+this.PrimaryFire.ProjectileGravity = 0.0;
+
+this.PrimaryFire.AimOffsetZ = -20;
+
+this.PrimaryFire.SetTargetBias(CLASS.VEHICLE_HVY, 1);
+this.PrimaryFire.DefaultDesirability = 0.2;
+//~ this.PrimaryFire.SetDesirabilityRange(256, 500, 0.4);
+this.PrimaryFire.SetDesirabilityRange(400, 4000, 0.8);
+
+this.PrimaryFire.LowAmmoThreshold = 1;
+this.PrimaryFire.LowAmmoPriority = 0.8;

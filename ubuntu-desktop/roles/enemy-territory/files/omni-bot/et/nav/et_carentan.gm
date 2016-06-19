@@ -1,0 +1,374 @@
+//==========================================================================================
+//
+//	kharanthan.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	d00d	04 January 2011	Pretty much done.
+//		TODO: Fix team door at wp id 299.
+//	d00d	02 January 2011	Initial Script
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0, // please set to zero before distributing your script
+	ShowMovers = false,
+	DefendingTeam = TEAM.AXIS,
+
+	Tank_Barrier_Dyno = 0,
+	Tank_Barrier2_Dyno = 0,
+	Town_Gate_Dyno = 0,
+
+	Navigation =
+	{
+		quickjump =
+		{
+			// better response time than nav flags
+			navigate = function(_this)
+			{
+				_this.Bot.PressButton(BTN.JUMP);
+				yield();
+			},
+		},
+		crouchjump =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.PressButton(BTN.JUMP);
+				_this.Bot.HoldButton(BTN.CROUCH, 0.5);
+				yield();
+			},
+		},
+		door =
+		{
+			navigate = function(_this)
+			{
+				_this.AddAimRequest( Priority.High, "position", Vec3(1402,520,-1770) );
+				_this.Bot.PressButton(BTN.USE);
+				yield();
+				_this.Bot.PressButton(BTN.USE);
+				yield();
+				_this.Bot.PressButton(BTN.USE);
+				yield();
+			},
+		},
+	},
+
+	Tank_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Tank_Built" );
+	},
+
+	Tank_Barrier_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Tank_Barrier_Built" );
+	},
+
+	Tank_Barrier2_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Tank_Barrier2_Built" );
+	},
+
+	Town_Gate_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Town_Gate_Built" );
+	},
+
+	Tank_Barrier_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tank_Barrier_Dyno += 1;
+		Util.MapDebugPrint( "Tank_Barrier_Planted" );
+	},
+
+	Tank_Barrier2_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tank_Barrier2_Dyno += 1;
+		Util.MapDebugPrint( "Tank_Barrier2_Planted" );
+	},
+
+	Town_Gate_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Town_Gate_Dyno += 1;
+		Util.MapDebugPrint( "Town_Gate_Planted" );
+	},
+
+	Tank_Barrier_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tank_Barrier_Dyno -= 1;
+		Util.MapDebugPrint( "Tank_Barrier_Defused" );
+	},
+
+	Tank_Barrier2_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tank_Barrier2_Dyno -= 1;
+		Util.MapDebugPrint( "Tank_Barrier2_Defused" );
+	},
+
+	Town_Gate_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Town_Gate_Dyno -= 1;
+		Util.MapDebugPrint( "Town_Gate_Defused" );
+	},
+
+	Tank_Barrier_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tank_Barrier_Dyno = 0;
+
+		Util.MapDebugPrint( "Tank_Barrier_Destroyed" );
+	},
+
+	Tank_Barrier2_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tank_Barrier2_Dyno = 0;
+
+		Util.MapDebugPrint( "Tank_Barrier2_Destroyed" );
+	},
+
+	Tank_Past_Barrier1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_tb1.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_tb2.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_tb1.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_tb2.*" );
+		Util.MapDebugPrint( "Tank_Past_Barrier1" );
+	},
+
+	Tank_Past_Barrier2 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_tb2.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_hq.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_tb2.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_hq.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_alley.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_backdoor.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_frontdoor.*" );
+		Util.MapDebugPrint( "Tank_Past_Barrier2" );
+	},
+
+	Town_Gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Town_Gate_Dyno = 0;
+
+		Util.MapDebugPrint( "Town_Gate_Destroyed" );
+	},
+
+	Docs_Accessible = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetMapGoalProperties( "MOUNT_Tank", {AimMode = "random"} );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_tb.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_hq.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_tb.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_hq.*" );
+		iw1 = OnTriggerRegion( AABB(2303.863,2031.539,-1816.039,2435.173,2156.698,-1664.466), RegionTrigger.IntrusionWarning );
+		iw2 = OnTriggerRegion( AABB(2136.427,2477.799,-1786.485,2273.273,2638.421,-1686.592), RegionTrigger.IntrusionWarning );
+		iw3 = OnTriggerRegion( AABB(2768.811,2105.022,-1797.775,2896.143,2197.293,-1694.848), RegionTrigger.IntrusionWarning );
+		Util.MapDebugPrint( "Docs_Accessible" );
+	},
+
+	Vietcong_Documents_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_hq.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_cp.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Tank" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNT_Tank" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_hq.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_cp.*" );
+		Util.MapDebugPrint( "Vietcong_Documents_Taken" );
+	},
+
+	Vietcong_Documents_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_hq.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_cp.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_cp.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_hq.*" );
+		Util.MapDebugPrint( "Vietcong_Documents_Returned" );
+	},
+
+	Vietcong_Documents_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Vietcong_Documents_Secured" );
+	},
+
+	dbg = function( )
+	{
+		while(true)
+		{
+			DrawDebugLine( Vec3(1402,520,-1783), Vec3(1402,520,-1770), COLOR.BLUE, 0.25 );
+			yield();
+		}
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// Register callback functions
+	OnTrigger( "The tank has been repaired!", Map.Tank_Built );
+	OnTrigger( "^hThe First Tank Barrier has been constructed!", Map.Tank_Barrier_Built );
+	OnTrigger( "^hThe Second Tank Barrier has been constructed!", Map.Tank_Barrier2_Built );
+	OnTrigger( "^hThe Town Gate has been built!", Map.Town_Gate_Built );
+	OnTrigger( "Planted at the MISSING_STRING.", Map.Tank_Barrier_Planted );
+	OnTrigger( "Planted at the MISSING_STRING.", Map.Tank_Barrier2_Planted );
+	OnTrigger( "Planted at the MISSING_STRING.", Map.Town_Gate_Planted );
+	OnTrigger( "Defused at the MISSING_STRING.", Map.Tank_Barrier_Defused );
+	OnTrigger( "Defused at the MISSING_STRING.", Map.Tank_Barrier2_Defused );
+	OnTrigger( "Defused at the MISSING_STRING.", Map.Town_Gate_Defused );
+	OnTrigger( "^iThe First Tank Barrier has been destroyed!", Map.Tank_Barrier_Destroyed );
+	OnTrigger( "goldrush_axis_tank_barrier1", Map.Tank_Past_Barrier1 );
+	OnTrigger( "^iThe Second Tank Barrier has been destroyed!", Map.Tank_Barrier2_Destroyed );
+	OnTrigger( "goldrush_axis_tank_barrier2", Map.Tank_Past_Barrier2 );
+	OnTrigger( "^iThe Town Gate has been destroyed!", Map.Town_Gate_Destroyed );
+	OnTrigger( "^qViet Cong must defend the HQ and the documents!", Map.Docs_Accessible );
+	OnTrigger( "Allies have stolen The Vietcong Documents!", Map.Vietcong_Documents_Taken );
+	OnTrigger( "Flag returned Vietcong Documents!", Map.Vietcong_Documents_Returned );
+	OnTrigger( "Marines team has secured the documents!", Map.Vietcong_Documents_Secured );
+
+	Util.DisableGoal( "DEFEND_.*" );
+	Util.DisableGoal( "ATTACK_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_tb1.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_tb1.*" );
+
+	SetGoalPriority( "BUILD_Tank_Barrier", 0.91 );
+	SetGoalPriority( "BUILD_Tank", 0.91 );
+	SetGoalPriority( "BUILD_Neutral_Command_Post", 0.7 );
+	SetGoalPriority( "PLANT_Neutral_Command_Post", 0.7 );
+	SetGoalPriority( "PLANT_Tank_Barrier", 0.82 );
+	SetGoalPriority( "PLANT_Tank_Barrier_1", 0.81 );
+	SetGoalPriority( "PLANT_Town_Gate", 0.81, 0, CLASS.COVERTOPS );
+
+	// Max users per goal
+	Util.SetMaxUsers( 1, "PLANT_.*" );
+	Util.SetMaxUsers( 1, "BUILD_.*" );
+	Util.SetMaxUsers( 2, "BUILD_Tank" );
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 3, "FLAG_Vietcong_Documents" );
+
+	Util.AddUsePoint( "BUILD_Tank_Barrier_1", Vec3(3750,-695,-1789) ); // better cover
+	Util.AddUsePoint( "PLANT_Town_Gate", { Vec3(3250,-795,-1789), Vec3(3250,-695,-1789) } );
+
+	// Camp times
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=60} );
+
+	MapRoutes =
+	{
+		PLANT_Town_Gate = {
+			ROUTE_allied_spawn = {
+				ROUTE_yard = {},
+				ROUTE_gate_right = {
+					ROUTE_corner = {},
+					ROUTE_window = {}
+				},
+				ROUTE_street_left = {},
+				ROUTE_door_left = {},
+				ROUTE_window = {}
+			}
+		},
+		PLANT_Tank_Barrier = {
+			ROUTE_allied_spawn = {
+				ROUTE_street_left = {},
+				ROUTE_gate_right = {},
+				ROUTE_mast = { ROUTE_house_right = {} }
+			}
+		},
+		FLAG_Vietcong_Documents = {
+			ROUTE_allied_spawn = {
+				ROUTE_street_left = {},
+				ROUTE_alley = { ROUTE_alley2 = { ROUTE_backdoor = {} } },
+				ROUTE_gate_right = { ROUTE_alley2 = { ROUTE_backdoor = {} } },
+				ROUTE_alley2 = { ROUTE_backdoor = {} }
+		}
+		},
+		CAPPOINT_Huey = {
+			ROUTE_objective = {
+				ROUTE_frontdoor = {
+					ROUTE_street_left = {},
+					ROUTE_gate_right = {}
+				},
+				ROUTE_backdoor = {
+					ROUTE_alley2 = {
+						ROUTE_gate_right = {}
+					}
+				},
+			},
+			ROUTE_frontdoor = {
+				ROUTE_street_left = {},
+				ROUTE_gate_right = {}
+			}
+		},
+	};
+	Util.Routes(MapRoutes);
+
+	// thread( Map.dbg );
+	Util.MapDebugPrint( "Omni-bot map script for Kha-Ran-Than executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.MaxViewDistance = 3500;
+};

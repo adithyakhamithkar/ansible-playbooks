@@ -1,0 +1,499 @@
+//==========================================================================================
+//
+//	Sands Of Time Beta 2 - sot_b2.gm
+//
+//	Who                     When			What
+//------------------------------------------------------------------------------------------
+//	Mateos			11 January 2011		Initial Script
+//
+//==========================================================================================
+
+/****************************************************
+Pathing updated and script by Mateos
+Correspondant WAY file size : -
+Last Update : 16 February 2011
+****************************************************/
+
+global Map =
+{
+	FlagStatus =0,		// Allies captured the Old City Flag
+	MirrorStatus = 0,	// Not Built
+	SideWallStatus = 0,	// Not Destroyed
+	BasementWallStatus = 0,	// Not Destroyed
+
+	Assault_Ramp_Dyno = 0,
+	Basement_Wall_Dyno = 0,
+	Command_Post_Dyno = 0,
+	Side_Wall_Dyno = 0,
+
+	Roles =
+	{
+		ALLIES = // Team
+		{
+			AllBots = true, // Each bot is considered for a role
+			DEFENDER = // The City Defense
+			{
+				voice = "Defending the City!", 		// Signals voice chat to randomly announce
+				spawnpt = 1,				// Users of this role will choose spawnpt 1
+				numbots = 7,				// Maximum of 7 bots
+				crucialClass = CLASS.FIELDOPS,		// First bot
+			},
+			DEFENDER1 = // The Side Wall Defense
+			{
+				voice = "Defending the Side Wall and Temple!", 	// Signals voice chat to randomly announce
+				spawnpt = 1,					// Users of this role will choose spawnpt 1
+				numbots = 7,					// Maximum of 7 bots
+				crucialClass = CLASS.ENGINEER,			// First bot
+			},
+			DEFENDER2 = // The Basement Wall Defense
+			{
+				voice = "Defending the Basement Wall and Temple!", 	// Signals voice chat to randomly announce
+				spawnpt = 1,						// Users of this role will choose spawnpt 1
+				numbots = 3,						// Maximum of 3 bots
+				crucialClass = CLASS.ENGINEER,				// First bot
+			},
+		},
+	},
+
+	Assault_Ramp_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Assault_Ramp" );
+
+		Util.MapDebugPrint( "Assault_Ramp_Built" );
+	},
+
+	Broken_Mirror_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.MirrorStatus = 1;	// Built
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "FLAG_Gold_Bars" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_GoldDropoff" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Delta.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42_TempleMG42" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Echo.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Alpha.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_Alpha.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CALLARTILLERY_Alpha.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_roadbunker" );
+
+		Util.MapDebugPrint( "Broken_Mirror_Built" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Command_Post" );
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Command_Post" );
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Assault_Ramp_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Assault_Ramp_Dyno += 1;
+		Util.MapDebugPrint( "Assault_Ramp_Planted" );
+	},
+
+	Basement_Wall_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Basement_Wall_Dyno += 1;
+		Util.MapDebugPrint( "Basement_Wall_Planted" );
+	},
+
+	Axis_Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno += 1;
+		Util.MapDebugPrint( "Axis_Command_Post_Planted" );
+	},
+
+	Allied_Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno += 1;
+		Util.MapDebugPrint( "Allied_Command_Post_Planted" );
+	},
+
+	Side_Wall_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Side_Wall_Dyno += 1;
+		Util.MapDebugPrint( "Side_Wall_Planted" );
+	},
+
+	Assault_Ramp_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Assault_Ramp_Dyno -= 1;
+		Util.MapDebugPrint( "Assault_Ramp_Defused" );
+	},
+
+	Basement_Wall_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Basement_Wall_Dyno -= 1;
+		Util.MapDebugPrint( "Basement_Wall_Defused" );
+	},
+
+	Axis_Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno -= 1;
+		Util.MapDebugPrint( "Axis_Command_Post_Defused" );
+	},
+
+	Allied_Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno -= 1;
+		Util.MapDebugPrint( "Allied_Command_Post_Defused" );
+	},
+
+	Side_Wall_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Side_Wall_Dyno -= 1;
+		Util.MapDebugPrint( "Side_Wall_Defused" );
+	},
+
+	Assault_Ramp_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Assault_Ramp_Dyno = 0;
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Assault_Ramp" );
+
+		Util.MapDebugPrint( "Assault_Ramp_Destroyed" );
+	},
+
+	Basement_Wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Basement_Wall_Dyno = 0;
+		Map.BasementWallStatus = 1;	// Destroyed
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_BasementWallWay.*" );
+
+		Util.ChangeSpawnForRole( TEAM.ALLIES, ROLE.DEFENDER2, 4 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Foxtrot.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Echo.*" );
+
+		Util.MapDebugPrint( "Basement_Wall_Destroyed" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno = 0;
+		Util.EnableGoal( "BUILD_Command_Post" );
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno = 0;
+		Util.EnableGoal( "BUILD_Command_Post" );
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Side_Wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Side_Wall_Dyno = 0;
+		Map.SideWallStatus = 1;	// Destroyed
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Assault_Ramp" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Broken_Mirror" );
+
+		Util.ChangeSpawnForRole( TEAM.ALLIES, ROLE.DEFENDER1, 3 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Charlie.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42_TempleMG42_2" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Bravo.*" );
+
+		if ( Map.FlagStatus == 1 )	// Axis captured the Old City Flag
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_roadbunker" );
+		}
+
+		Util.MapDebugPrint( "Side_Wall_Destroyed" );
+	},
+
+	Gold_Bars_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_End.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Obj.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Delta.*" );
+
+		Util.MapDebugPrint( "Gold_Bars_Taken" );
+	},
+
+	Gold_Bars_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_End.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Delta.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Obj.*" );
+
+		if ( Map.BasementWallStatus == 1 )	// Basement Wall Destroyed
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Foxtrot.*" );
+		}
+
+		Util.MapDebugPrint( "Gold_Bars_Returned" );
+	},
+
+	Gold_Bars_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		// Axis won!
+
+		Util.MapDebugPrint( "Gold_Bars_Secured" );
+	},
+
+	roadbunker_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.FlagStatus = 1;	// Axis captured the Old City Flag
+
+		if ( Map.MirrorStatus == 0 )	// Broken Mirror Not Built
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_roadbunker" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Alpha.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_Alpha.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CALLARTILLERY_Alpha.*" );
+		}
+
+		if ( Map.SideWallStatus == 1 )	// Axis captured the Old City Flag
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Charlie.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Alpha.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_Alpha.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CALLARTILLERY_Alpha.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_roadbunker" );
+		}
+
+		Util.MapDebugPrint( "roadbunker_Axis_Captured" );
+	},
+
+	roadbunker_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.FlagStatus = 0;	// Allies captured the Old City Flag
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_roadbunker" );
+
+		if ( Map.MirrorStatus == 0 )	// Broken Mirror Not Built
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Alpha.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_Alpha.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "CALLARTILLERY_Alpha.*" );
+		}
+
+		Util.MapDebugPrint( "roadbunker_Allies_Captured" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// *** TRIGGERS ***
+	OnTrigger( "The Assault Ramp have been constructed.", Map.Assault_Ramp_Built );
+	OnTrigger( "The Broken Mirror have been fixed. Defend the Gold!", Map.Broken_Mirror_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Planted at The Assault Ramp.", Map.Assault_Ramp_Planted );
+	OnTrigger( "Planted at The Basement Wall.", Map.Basement_Wall_Planted );
+	OnTrigger( "Planted at The Axis Command Post.", Map.Axis_Command_Post_Planted );
+	OnTrigger( "Planted at The Allied Command Post.", Map.Allied_Command_Post_Planted );
+	OnTrigger( "Planted at The Side Wall.", Map.Side_Wall_Planted );
+	OnTrigger( "Defused at The Assault Ramp.", Map.Assault_Ramp_Defused );
+	OnTrigger( "Defused at The Basement Wall.", Map.Basement_Wall_Defused );
+	OnTrigger( "Defused at The Axis Command Post.", Map.Axis_Command_Post_Defused );
+	OnTrigger( "Defused at The Allied Command Post.", Map.Allied_Command_Post_Defused );
+	OnTrigger( "Defused at The Side Wall.", Map.Side_Wall_Defused );
+	OnTrigger( "The Assault Ramp have been destroyed!", Map.Assault_Ramp_Destroyed );
+	OnTrigger( "Axis have blown up The Basement Wall!", Map.Basement_Wall_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Axis have blown up The Side Wall!", Map.Side_Wall_Destroyed );
+	OnTrigger( "Axis have stolen The Gold Bars!", Map.Gold_Bars_Taken );
+	OnTrigger( "Allies have returned The Gold Bars!", Map.Gold_Bars_Returned );
+	OnTrigger( "The Axis team have escaped with the Gold Crates!", Map.Gold_Bars_Secured );
+	OnTrigger( "Axis capture the Old Town!", Map.roadbunker_Axis_Captured );
+	OnTrigger( "Allies capture the Old Town!", Map.roadbunker_Allies_Captured );
+
+	// *** AXIS GOALS ***
+	Util.DisableGoal( ".*", true );
+	Util.EnableGoal( "BUILD_Command_Post" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Side_Wall" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Basement_Wall" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_roadbunker" );
+
+	// Escape Way for Gold Bars not available OnMapLoad
+	SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_BasementWallWay.*" );
+
+	// *** ALLIED GOALS ***
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Echo.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Alpha.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Bravo.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_Alpha.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CALLARTILLERY_Alpha.*" );
+
+	// Old City Flag
+	Util.SetRoleForGoals( "DEFEND_Alpha.*", ROLE.DEFENDER );
+	Util.SetRoleForGoals( "ARTILLERY_S_Alpha.*", ROLE.DEFENDER );
+	Util.SetRoleForGoals( "CALLARTILLERY_Alpha.*", ROLE.DEFENDER );
+
+	// Side Wall
+	Util.SetRoleForGoals( "DEFEND_Bravo.*", ROLE.DEFENDER1 );
+	Util.SetRoleForGoals( "DEFEND_Charlie.*", ROLE.DEFENDER1 );
+	Util.SetRoleForGoals( "MOUNTMG42_TempleMG42_2", ROLE.DEFENDER1 );
+
+	// Basement Wall
+	Util.SetRoleForGoals( "DEFEND_Echo.*", ROLE.DEFENDER2 );
+	Util.SetRoleForGoals( "DEFEND_Foxtrot.*", ROLE.DEFENDER2 );
+
+	// *** GOALS PROPERTIES ***
+	Util.SetMaxUsers( 1, "PLANT_.*" );
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "CHECKPOINT_.*" );
+	Util.RemoveGoal( "PLANT_Broken_Mirror" );	//Can not be planted
+	ETUtil.ExcludeClass( "MOUNTMG42_.*", CLASS.MEDIC, CLASS.ENGINEER );
+	SetMapGoalProperties( "ATTACK_.*", {mincamptime=60, maxcamptime=120});
+	SetMapGoalProperties( "DEFEND_.*", {mincamptime=60, maxcamptime=120});
+
+	// *** ROUTING ***
+	MapRoutes =
+	{
+		CHECKPOINT_roadbunker =
+		{
+			ROUTE_AxisSpawn  =
+			{
+				ROUTE_AxisWestFlag1  =
+				{
+					ROUTE_AxisWestFlag2  =
+					{
+						ROUTE_AxisWestFlag3  = {},
+					},
+				},
+			},
+		},
+
+		PLANT_Side_Wall =
+		{
+			ROUTE_AxisSpawn  =
+			{
+				ROUTE_SideWall1  =
+				{
+					ROUTE_SideWall2  = {},
+				},
+			},
+		},
+
+		CAPPOINT_GoldDropoff =
+		{
+			ROUTE_GoldBars  =
+			{
+				ROUTE_BasementWallWay1  =
+				{
+					ROUTE_BasementWallWay2  =
+					{
+						ROUTE_BasementWallWay3  = {},
+					},
+				},
+			},
+		},
+	};
+
+	// Copy routes
+	MapRoutes.PLANT_Basement_Wall = MapRoutes.CHECKPOINT_roadbunker;
+
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for Sands Of Time Beta 2 by Mateos" );
+};
+
+global OnBotJoin = function( bot )
+{
+	ETUtil.SetCabinets();
+
+	bot.TargetBreakableDist = 90.0;
+	weaps = { WEAPON.THOMPSON, WEAPON.MP40, WEAPON.GARAND, WEAPON.K43, WEAPON.BAR, WEAPON.STG44, WEAPON.STEN, WEAPON.FG42 };
+
+	foreach( id and weap in weaps )
+	{
+		w = bot.GetWeapon(weap);
+		w.PrimaryFire.SetTargetBias(CLASS.BREAKABLE, 1.2);
+	}
+
+	w = bot.GetWeapon(WEAPON.KNIFE);
+	w.PrimaryFire.SetDesirabilityRange(0, 48, 0.6);
+};

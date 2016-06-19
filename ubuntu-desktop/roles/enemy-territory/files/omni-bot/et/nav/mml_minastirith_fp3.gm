@@ -1,0 +1,345 @@
+//script modified by palota
+global Map =
+{
+	Debug = 0,
+
+	Roles =
+	{
+		ALLIES =
+		{
+			DEFENDER = 
+			{
+				numbots = 8
+			},
+		}
+	},
+
+	First_Gate =
+	{
+		Name = "First_Gate",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			bot = Util.IsBot(ent); 
+			if(bot && bot.GetTeam()==TEAM.ALLIES){ bot.SetRoles(ROLE.ATTACKER3); }
+		},
+		OnExit = function(ent)
+		{
+			bot = Util.IsBot(ent); 
+			if(bot && bot.GetTeam()==TEAM.ALLIES){ bot.ClearRoles(ROLE.ATTACKER3); }
+		},
+	},
+
+	City_Gate_Closed = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, true, ".*_g1_.*");
+		Util.SetRoleForGoals(".*_g0_.*", ROLE.ATTACKER3);
+		Util.MapDebugPrint( "City_Gate_Closed" );
+	},
+
+	City_Gate_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, false, ".*_g0_.*");
+		SetAvailableMapGoals(TEAM.ALLIES, false, ".*_g1_.*");
+		sleep(2);
+		SetAvailableMapGoals(TEAM.ALLIES, true,  ".*_g2_.*");
+		SetAvailableMapGoals(TEAM.AXIS, false, ".*_a0_.*");
+		SetAvailableMapGoals(TEAM.AXIS, true, ".*_a2_.*");
+		SetAvailableMapGoals(TEAM.AXIS, true, "PLANT_Level_2_Gate");
+
+		WeaponTable.SetWeaponTeamAvailability(TEAM.AXIS, CLASS.SOLDIER, WEAPON.FLAMETHROWER, true); 
+
+		Util.MapDebugPrint( "City_Gate_Destroyed" );
+	},
+
+	Level_2_Gate_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, false, ".*_g2_.*");
+		sleep(2);
+		SetAvailableMapGoals(TEAM.ALLIES, true,  ".*_g3_.*");
+		SetAvailableMapGoals(TEAM.AXIS, false, ".*_a2_.*");
+		SetAvailableMapGoals(TEAM.AXIS, true, ".*_a3_.*");
+		SetAvailableMapGoals(TEAM.AXIS, true, "PLANT_Level_3_Gate");
+		SetAvailableMapGoals(TEAM.AXIS, true, "CHECKPOINT_level2cp");
+		Util.MapDebugPrint( "Level_2_Gate_Destroyed" );
+	},
+
+	Level_3_Gate_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, false, ".*_g3_.*");
+		SetAvailableMapGoals(TEAM.ALLIES, false, ".*_g31_.*");
+		sleep(2);
+		SetAvailableMapGoals(TEAM.ALLIES, true,  ".*_g4_.*");
+		SetAvailableMapGoals(TEAM.AXIS, false, ".*_a3_.*");
+		SetAvailableMapGoals(TEAM.AXIS, true, ".*_a4_.*");
+		SetAvailableMapGoals(TEAM.AXIS, true, "PLANT_Level_4_Gate");
+		Util.DisableGoal("CHECKPOINT_level2cp");
+		SetAvailableMapGoals(TEAM.AXIS, true, "CHECKPOINT_level3cp");
+		Util.MapDebugPrint( "Level_3_Gate_Destroyed" );
+	},
+
+	Level_4_Gate_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, false, ".*_g4_.*");
+		SetAvailableMapGoals(TEAM.ALLIES, false, ".*_g41_.*");
+		sleep(2);
+		SetAvailableMapGoals(TEAM.ALLIES, true,  ".*_g5_.*");
+		SetAvailableMapGoals(TEAM.AXIS, false, ".*_a4_.*");
+		SetAvailableMapGoals(TEAM.AXIS, true, ".*_a5_.*");
+		SetAvailableMapGoals(TEAM.AXIS, true, "PLANT_Level_5_Gate");
+
+		Util.DisableGoal("CHECKPOINT_level3cp");
+		Util.EnableGoal("AMMO.*");
+		Util.EnableGoal("HEALTH.*");
+		Map.buildGate5 = true;
+
+		// more covertops are needed to destroy Level_5_Gate
+		Map.minEngineers = Server.MinClassCount[TEAM.AXIS][CLASS.ENGINEER];
+		if (Map.minEngineers > 1){
+			Server.MinClassCount[TEAM.AXIS][CLASS.ENGINEER] -= 1;
+		}
+		Map.minFieldOps = Server.MinClassCount[TEAM.AXIS][CLASS.FIELDOPS];
+		if (Map.minFieldOps > 1){
+			Server.MinClassCount[TEAM.AXIS][CLASS.FIELDOPS] -= 1;
+		}
+		Server.MinClassCount[TEAM.AXIS][CLASS.COVERTOPS] += 2;
+
+		Util.MapDebugPrint( "Level_4_Gate_Destroyed" );
+	},
+
+	Level_5_Gate_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, false, ".*_g5_.*");
+		sleep(2);
+		SetAvailableMapGoals(TEAM.ALLIES, true,  ".*_g6_.*");
+		//SetAvailableMapGoals(TEAM.ALLIES, true, "BUILD_Level_5_Gate"); //map is buggy
+		SetAvailableMapGoals(TEAM.AXIS, false, ".*_a5_.*");
+		SetAvailableMapGoals(TEAM.AXIS, true, ".*_a6_.*");
+		SetAvailableMapGoals(TEAM.AXIS, true, "PLANT_Level_6_Gate");
+		Util.DisableGoal("AMMO.*");
+		Util.DisableGoal("HEALTH.*");
+
+		Server.MinClassCount[TEAM.AXIS][CLASS.ENGINEER] = Map.minEngineers;
+		Server.MinClassCount[TEAM.AXIS][CLASS.FIELDOPS] = Map.minFieldOps;
+		Server.MinClassCount[TEAM.AXIS][CLASS.COVERTOPS] -= 1;
+
+		thread(Map.Gate5Proc);
+
+		Util.MapDebugPrint( "Level_5_Gate_Destroyed" );
+	},
+
+	Level_6_Gate_Destroyed = function( trigger )
+	{
+		Map.buildGate5 = false;
+		SetAvailableMapGoals(TEAM.ALLIES, false, ".*_g5_.*");
+		SetAvailableMapGoals(TEAM.ALLIES, false, "BUILD_Level_5_Gate");
+		SetAvailableMapGoals(TEAM.ALLIES, false, ".*_g6_.*");
+		sleep(2);
+		SetAvailableMapGoals(TEAM.ALLIES, true,  ".*_g7_.*");
+		SetAvailableMapGoals(TEAM.ALLIES, true,  ".*_g8_.*");
+		SetAvailableMapGoals(TEAM.AXIS, false, ".*_a5_.*");
+		SetAvailableMapGoals(TEAM.AXIS, false, ".*_a6_.*");
+		SetAvailableMapGoals(TEAM.AXIS, true, "PLANT_Level_7_Gate");
+		SetAvailableMapGoals(TEAM.AXIS, true, "FLAG.*");
+		SetAvailableMapGoals(TEAM.AXIS, true, "CAPPOINT.*");
+
+		Server.MinClassCount[TEAM.AXIS][CLASS.COVERTOPS] -= 1;
+
+		Util.MapDebugPrint( "Level_6_Gate_Destroyed" );
+	},
+
+	Level_7_Gate_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, false, ".*_g7_.*");
+		Util.EnableGoal("ROUTE_gate7");
+		Util.MapDebugPrint( "Level_7_Gate_Destroyed" );
+	},
+
+	palantir_Taken = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, true,  ".*_g9_.*");
+		SetAvailableMapGoals(TEAM.AXIS, true,  ".*_a9_.*");
+		Util.MapDebugPrint( "palantir_Taken" );
+	},
+
+	palantir_Returned = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, false,  ".*_g9_.*");
+		Util.MapDebugPrint( "palantir_Returned" );
+	},
+
+	CAPPOINT_Captured = function( trigger )
+	{
+		ETUtil.WinningChat( TEAM.AXIS );
+		ETUtil.LosingChat( TEAM.ALLIES );
+		Util.MapDebugPrint( "CAPPOINT_Captured" );
+	},
+
+	level2cp_Axis_Captured = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, true, ".*_g31_.*");
+		SetAvailableMapGoals(TEAM.ALLIES, true, "CHECKPOINT_level2cp");
+		Util.MapDebugPrint( "level2cp_Axis_Captured" );
+	},
+
+	level2cp_Allies_Captured = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, false, ".*_g31_.*");
+		Util.MapDebugPrint( "level2cp_Allies_Captured" );
+	},
+
+	level3cp_Axis_Captured = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, true, ".*_g41_.*");
+		SetAvailableMapGoals(TEAM.ALLIES, true, "CHECKPOINT_level3cp");
+		Util.MapDebugPrint( "level3cp_Axis_Captured" );
+	},
+
+	level3cp_Allies_Captured = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, false, ".*_g41_.*");
+		Util.MapDebugPrint( "level3cp_Allies_Captured" );
+	},
+
+	Gate5Proc = function()
+	{
+		start = Vec3(-2098.619, 1748.539, 1853.357);
+		end = Vec3(-1927.956, 1602.439, 1847.569);
+		while (Map.buildGate5)
+		{
+			tr = TraceLine(start, end, null, TRACE.SOLID, 0, false);
+			if (tr.fraction < 1){
+				SetAvailableMapGoals(TEAM.ALLIES, true, ".*_g5_.*");
+				SetAvailableMapGoals(TEAM.AXIS, true, ".*_a5_.*");
+				Util.MapDebugPrint( "Level_5_Gate_Built" );
+				break;
+			}
+			sleep(1);
+		}
+	},
+};
+
+global OnMapLoad = function()
+{
+	OnTrigger( "maingate_left_down_goto", Map.City_Gate_Closed );
+	OnTrigger( "Axis have blown the City Gate and captured the first level!", Map.City_Gate_Destroyed );
+	OnTrigger( "Axis have blown the level 2 gate and captured the second level!", Map.Level_2_Gate_Destroyed );
+	OnTrigger( "Axis have blown the level 3 gate and captured the second level!", Map.Level_3_Gate_Destroyed );
+	OnTrigger( "Axis have blown the level 4 gate and captured the third level!", Map.Level_4_Gate_Destroyed );
+	OnTrigger( "Axis have blown the level 5 gate and captured the fourth level!", Map.Level_5_Gate_Destroyed );
+	OnTrigger( "Axis have blown the level 6 gate and gained access to all the City!", Map.Level_6_Gate_Destroyed );
+	OnTrigger( "Axis have blown the level 7 gate!", Map.Level_7_Gate_Destroyed );
+	OnTrigger( "Axis have taken the Palantir!", Map.palantir_Taken );
+	OnTrigger( "Flag returned palantir!", Map.palantir_Returned );
+	OnTrigger( "Axis have captured the Palantir and gained control of Minas Tirith!", Map.CAPPOINT_Captured );
+	OnTrigger( "Axis have captured the Level 2 flag!", Map.level2cp_Axis_Captured );
+	OnTrigger( "Allies have cleared the Level 2 flag!", Map.level2cp_Allies_Captured );
+	OnTrigger( "Axis have captured the Level 3 flag!", Map.level3cp_Axis_Captured );
+	OnTrigger( "Allies have cleared the Level 3 flag!", Map.level3cp_Allies_Captured );
+
+	OnTriggerRegion(AABB(7317.213,-1229.103,-3672.077,9839.976,1079.295,-3429.778),Map.First_Gate);
+
+	Util.SetGoalOffset(51,-19,-235, "PLANT_Level_4_Gate");
+	Util.AddUsePoint("PLANT_Level_5_Gate", { Vec3(-2051.904, 1683.212, 1671.690), Vec3(-1958.917, 1587.719, 1736.951) });
+
+	Util.ClearRoleForGoals(".*_g0_.*", ROLE.ATTACKER3);
+	Util.SetRoleForTable({ ".*_g31_.*", ".*_g41_.*" }, ROLE.DEFENDER);
+
+	Util.DisableGoal(".*", true);
+	Util.DisableGoal("ROUTE_gate7");
+
+	SetAvailableMapGoals(TEAM.ALLIES, true, ".*_g0_.*");
+	SetAvailableMapGoals(TEAM.AXIS, true, ".*_a0_.*");
+	SetAvailableMapGoals(TEAM.AXIS, true, "PLANT_City_Gate");
+
+	SetGoalPriority(".*_g31_.*", 0.75);
+	SetGoalPriority(".*_g41_.*", 0.75);
+	SetGoalPriority("SNIPE_.*", 0.8);
+
+	Util.SetMaxUsers(1, "PLANTMINE.*");
+	Util.SetMaxUsersInProgress(9, "ATTACK_.*");
+	Util.SetMaxUsersInProgress(4, "DEFEND_g0_.*");
+
+	SetMapGoalProperties("DEFEND_.*", {mincamptime=50, maxcamptime=200} );
+	SetMapGoalProperties("ATTACK_.*", {mincamptime=5, maxcamptime=15} );
+	SetMapGoalProperties("MOBILEMG.*", {mincamptime=150, maxcamptime=300} );
+	SetMapGoalProperties("SNIPE.*", {mincamptime=100, maxcamptime=250} );
+
+	WeaponTable.SetWeaponTeamAvailability(TEAM.AXIS, CLASS.SOLDIER, WEAPON.FLAMETHROWER, false); 
+
+	MapRoutes =
+	{
+		FLAG_palantir = {
+			ROUTE_spawn8 = {
+				ROUTE_r8_east = {},
+				ROUTE_r8_in = {},
+			},
+		},
+		CAPPOINT_561 = {
+			ROUTE_palantir = {
+				ROUTE_r9_south_east = { Weight=4,
+					ROUTE_gate7 = {},
+					ROUTE_r9_north_east = {},
+				},
+				ROUTE_r9_north = { Weight=3 },
+				ROUTE_r9_south = {},
+			},
+		},
+		ATTACK_a0_1 = {
+			ROUTE_spawn0 = {
+				ROUTE_r0_1 = {},
+				ROUTE_r0_2 = {},
+				ROUTE_r0_3 = {},
+			},
+		},
+		ATTACK_a2_1 = {
+			ROUTE_spawn2 = {
+				ROUTE_r2_2 = {},
+			},
+		},
+		ATTACK_a3_2 = {
+			ROUTE_flag3 = {
+				ROUTE_r3_2 = {},
+				ROUTE_r3_3 = {},
+			},
+		},
+		ATTACK_a4_1 = {
+			ROUTE_flag4 = {
+				ROUTE_r4_1 = {},
+				ROUTE_r4_2 = {},
+			},
+		},
+		ATTACK_a5_1 = {
+			ROUTE_spawn5 = {
+				ROUTE_r5_1 = { Weight=1.7 },
+				ROUTE_r5_2 = { Weight=1.7, ROUTE_r5_5 = {}},
+				ROUTE_r5_3 = {},
+				ROUTE_r5_4 = {},
+			},
+		},
+		ATTACK_a6_1 = {
+			ROUTE_spawn6 = {
+				ROUTE_r6_1 = {},
+			},
+		},
+		CHECKPOINT_level2cp = {
+			ROUTE_allied3 = {
+				ROUTE_a3_1 = {},
+				ROUTE_a3_2 = { Weight=2 },
+			},
+		},
+	};
+	MapRoutes.CAPPOINT_563 = MapRoutes.CAPPOINT_561;
+	MapRoutes.ATTACK_a0_2 = MapRoutes.ATTACK_a0_1;
+	MapRoutes.ATTACK_a0_3 = MapRoutes.ATTACK_a0_1;
+	MapRoutes.ATTACK_a0_4 = MapRoutes.ATTACK_a0_1;
+	MapRoutes.PLANT_City_Gate = MapRoutes.ATTACK_a0_1;
+	MapRoutes.ATTACK_a3_3 = MapRoutes.ATTACK_a3_2;
+	MapRoutes.PLANT_Level_3_Gate = MapRoutes.ATTACK_a3_2;
+	MapRoutes.ATTACK_a4_2 = MapRoutes.ATTACK_a4_1;
+	MapRoutes.PLANT_Level_4_Gate = MapRoutes.ATTACK_a4_1;
+	MapRoutes.ATTACK_a5_2 = MapRoutes.ATTACK_a5_1;
+	MapRoutes.PLANT_Level_5_Gate = MapRoutes.ATTACK_a5_1;
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "Omni_bot map script for " + GetMapName() + " executed." );
+};

@@ -1,0 +1,406 @@
+//==========================================================================================
+//
+//	bloody_omaha_b2.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	palota	27 September 2011	roles, routes, defend/attack at Anti-Tank guns, Wall_Destroyed triggers, Planted/Defused triggers, two_minute, cover spots, more artillery
+//==========================================================================================
+//
+global Map =
+{
+	Debug = 0,
+	ForwardSpawn = false,
+	wallDestroyed = false,
+	seaWallDestroyed = false,
+	FocusPrimary = false,
+	alliedSpawn = 2,
+	EastDyno = 0,
+	WestDyno = 0,
+
+	Roles =
+	{
+		AXIS =
+		{
+			AllBots = true,
+			ATTACKER = {
+				spawnpt = 8, //barracks 2
+				crucialClass = CLASS.COVERTOPS,
+				numbots = 3
+			},
+			DEFENDER1 = {
+				spawnpt = 10, //bunker 2
+				crucialClass = CLASS.FIELDOPS,
+				numbots = 4
+			},
+			DEFENDER2 = {
+				spawnpt = 9,  //bunker 1
+				crucialClass = CLASS.MEDIC,
+				numbots = 4
+			},
+			DEFENDER3 = {
+				spawnpt = 11, //outside 1
+				crucialClass = CLASS.ENGINEER,
+				numbots = 4
+			},
+		},
+		ALLIES =
+		{
+			DEFENDER =
+			{
+				crucialClass = CLASS.COVERTOPS,
+				numbots = 3
+			},
+		}
+	},
+
+	East_Anti_Tank_Gun_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal( ".*_east_gun.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_east_dyno.*" );
+		Util.ClearRoleForGoals( "DEFEND_west_gun.*", ROLE.DEFENDER2);
+		Util.MapDebugPrint( "East_Anti_Tank_Gun_Destroyed" );
+	},
+
+	West_Anti_Tank_Gun_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal( ".*_west_gun.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_west_dyno.*" );
+		Util.ClearRoleForGoals( "DEFEND_east_gun.*", ROLE.DEFENDER1);
+		Util.MapDebugPrint( "West_Anti_Tank_Gun_Destroyed" );
+	},
+
+	SetSpawn1 = function(bot)
+	{
+		if (bot.GetTeam()==TEAM.ALLIES)
+		{
+			if(Map.ForwardSpawn){
+				s=3;
+			}else{
+				//4,2,5,6,7
+				s = Map.alliedSpawn + 1;
+				if(s>7){ s=2; }
+				if(s==3){ s=4; }
+				Map.alliedSpawn = s;
+			}
+			bot.ChangeSpawnPoint(s);
+		}
+	},
+
+	SetForwardFlag = function(b)
+	{
+		Map.ForwardSpawn = b;
+
+		SetAvailableMapGoals( TEAM.AXIS, !b, "CALLARTILLERY.*" );
+		SetAvailableMapGoals( TEAM.AXIS, !b, ".*MG42_bunker.*" );
+		SetAvailableMapGoals( TEAM.AXIS, !b, "DEFEND_.*_bunker.*" );
+		SetAvailableMapGoals( TEAM.AXIS, !b, "DEFEND_center.*" );
+		SetAvailableMapGoals( TEAM.AXIS, !b, "DEFEND_front.*" );
+		SetAvailableMapGoals( TEAM.AXIS, b, ".*MG42_lower" );
+		SetAvailableMapGoals( TEAM.AXIS, b, "TRIPMINE.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, !b, "SNIPE_allies.*" );
+		if(!Map.seaWallDestroyed){ SetAvailableMapGoals( TEAM.ALLIES, b, "PLANT_Seawall" ); }
+		SetAvailableMapGoals( TEAM.ALLIES, b && !Map.FocusPrimary, "DEFEND_flag.*" );
+
+		if(b && Map.wallDestroyed){
+			Util.SetRoleForGoals( "CHECKPOINT_beach_Flag1", ROLE.ATTACKER );
+		}else{
+			Util.ClearRoleForGoals( "CHECKPOINT_beach_Flag1", ROLE.ATTACKER );
+		}
+
+		foreach(bot in BotTable)
+		{
+			Map.SetSpawn1(bot);
+		}
+
+		WeaponTable.SetWeaponAvailability( CLASS.SOLDIER, WEAPON.FLAMETHROWER, b );
+		WeaponTable.SetWeaponAvailability( CLASS.SOLDIER, WEAPON.PANZERFAUST, !b );
+		WeaponTable.SetWeaponAvailability( null, WeaponTable.Shotgun, b );
+	},
+
+	beach_Flag1_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.SetForwardFlag(false);
+		Util.MapDebugPrint( "beach_Flag1_Axis_Captured" );
+	},
+
+	beach_Flag1_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_beach_Flag1" );
+		Map.SetForwardFlag(true);
+		Util.MapDebugPrint( "beach_Flag1_Allies_Captured" );
+	},
+
+	Wall_Destroyed = function()
+	{
+		if (!Map.wallDestroyed)
+		{
+			Map.wallDestroyed = true;
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_.*_gun.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_.*_gun.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, ".*Command_Post" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT.*Anti_Tank_Gun" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, ".*CAB_.*" );
+		}
+	},
+
+	SeaWall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.seaWallDestroyed = true;
+		sleep(1);
+		Map.Wall_Destroyed();
+		if(Map.ForwardSpawn){
+			Util.SetRoleForGoals( "CHECKPOINT_beach_Flag1", ROLE.ATTACKER );
+		}
+		Util.MapDebugPrint( "SeaWall_Destroyed" );
+	},
+
+	SideWall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		sleep(1);
+		Map.Wall_Destroyed();
+		Util.MapDebugPrint( "SideWall_Destroyed" );
+	},
+
+	East_Gun_Planted = function ( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.EastDyno += 1;
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_east_dyno.*" );
+
+		Util.MapDebugPrint( "East_Gun_Planted" );
+	},
+
+	West_Gun_Planted = function ( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.WestDyno += 1;
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_west_dyno.*" );
+
+		Util.MapDebugPrint( "West_Gun_Planted" );
+	},
+
+	East_Gun_Defuse = function ( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.EastDyno -= 1;
+
+		if ( Map.EastDyno < 1  )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_east_dyno.*" );
+		}
+		Util.MapDebugPrint( "East_Gun_Defuse" );
+	},
+
+	West_Gun_Defuse = function ( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.WestDyno -= 1;
+
+		if ( Map.WestDyno < 1  )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_west_dyno.*" );
+		}
+		Util.MapDebugPrint( "West_Gun_Defuse" );
+	},
+
+	two_minute = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if (GetGameTimeLeft() > 0)
+		{
+			Map.FocusPrimary = true;
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_flag.*" );
+		}
+		Util.MapDebugPrint( "two_minute" );
+	},
+
+	Allies_Win = function( trigger )
+	{
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "Allies_Win" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn ) { Util.AutoTestMap(); }
+
+	OnTrigger( "East Anti-tank gun destroyed!!!", Map.East_Anti_Tank_Gun_Destroyed );
+	OnTrigger( "West Anti-Tank gun destroyed!!!", Map.West_Anti_Tank_Gun_Destroyed );
+	OnTrigger( "The Axis have reclaimed the seawall!", Map.beach_Flag1_Axis_Captured );
+	OnTrigger( "The Allies are advancing up the beach!", Map.beach_Flag1_Allies_Captured );
+	OnTrigger( "The allies have breached the seawall!!!", Map.SeaWall_Destroyed );
+	OnTrigger( "The allies have destroyed the side wall!!!", Map.SideWall_Destroyed );
+	OnTrigger( "The Allies have taken control of the beach!", Map.Allies_Win );
+	OnTrigger( "Planted at East Anti Tank Gun.", Map.East_Gun_Planted );
+	OnTrigger( "Defused at East Anti Tank Gun.", Map.East_Gun_Defuse );
+	OnTrigger( "Planted at West Anti Tank Gun.", Map.West_Gun_Planted );
+	OnTrigger( "Defused at West Anti Tank Gun.", Map.West_Gun_Defuse );
+	OnTrigger( "two minute warning.", Map.two_minute );
+
+	Util.DisableGoal( ".*", true ); // all but routes
+	SetAvailableMapGoals( TEAM.AXIS, !b, ".*MG42_center.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, ".*Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, true, ".*CAB_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_x.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_beach_Flag1" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Side_Wall" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_a.*" );
+
+	Map.SetForwardFlag(false);
+
+	Util.SetRoleForTable({ "MOUNTMG42_bunker_e.", "DEFEND_east_bunker.*", "DEFEND_east_gun.*" }, ROLE.DEFENDER1);
+	Util.SetRoleForTable({ "MOUNTMG42_bunker_w.", "DEFEND_west_bunker.*", "DEFEND_west_gun.*" }, ROLE.DEFENDER2);
+	Util.SetRoleForTable({ "MOUNTMG42_center.", "DEFEND_center.*", "MOUNTMG42_lower" }, ROLE.DEFENDER3);
+	Util.SetRoleForGoals( "DEFEND_front.*", ROLE.ATTACKER);
+	Util.SetRoleForGoals( "DEFEND_flag.*", ROLE.DEFENDER);
+
+	SetGoalPriority( "SNIPE.*", 0.81 );
+	SetGoalPriority( "MOUNTMG42.*", 0.69 );
+	SetGoalPriority( "CHECKPOINT_beach_Flag1", 0.6 );
+	SetGoalPriority( "DEFEND_.*_dyno.*", 0.9 );
+	SetGoalPriority( "DEFUSE_Command_Post.*", 0.81, TEAM.ALLIES, CLASS.ENGINEER, true);
+	SetGoalPriority( "PLANT_Command_Post.*", 0.7, TEAM.AXIS, CLASS.ENGINEER);
+
+	foreach (goal in { "DEFEND_.*", "MOUNTMG42_.*", "CALLARTILLERY_.*",
+		"SNIPE_.*", "BUILD_Command_Post", "PLANT_Side_Wall"  }){
+		Util.SetMaxUsers(1, goal);
+	}
+	Util.SetMaxUsersInProgress( 5, "DEFEND_.*_dyno.*" );
+
+	Util.SetGoalPosition( 1530,-13770,-50, "PLANT_Side_Wall" );
+
+	SetMapGoalProperties( "ATTACK_.*", {mincamptime=3, maxcamptime=30} );
+	SetMapGoalProperties( "DEFEND_.*", {mincamptime=10, maxcamptime=35} );
+	SetMapGoalProperties( "DEFEND_center.*", {mincamptime=20, maxcamptime=60} );
+	SetMapGoalProperties( "DEFEND_front.*", {mincamptime=30, maxcamptime=90} );
+	SetMapGoalProperties( "SNIPE_.*", {mincamptime=5, maxcamptime=40} );
+	SetMapGoalProperties( "MOUNTMG42_.*", {mincamptime=10, maxcamptime=250} );
+
+	MapRoutes =
+	{
+		CHECKPOINT_beach_Flag1 = {
+			ROUTE_allied1 = {
+				ROUTE_b11 = {
+					ROUTE_b21 = { Weight=2 },
+					ROUTE_b22 = {},
+				},
+				ROUTE_b12 = {
+					ROUTE_b22 = {},
+					ROUTE_b23 = {},
+				},
+			},
+			ROUTE_allied2 = {
+				ROUTE_b11 = {},
+				ROUTE_b12 = {},
+			},
+			ROUTE_allied3 = {
+				ROUTE_b12 = {},
+				ROUTE_b13 = {
+					ROUTE_b23 = {},
+					ROUTE_b24 = {},
+				},
+			},
+			ROUTE_allied4 = {
+				ROUTE_b14 = {
+					ROUTE_b23 = {},
+					ROUTE_b24 = {},
+				},
+				ROUTE_b15 = {
+					ROUTE_b25 = {},
+					ROUTE_b26 = {},
+				},
+				ROUTE_b16 = {
+					ROUTE_b25 = {},
+					ROUTE_b26 = {},
+				},
+			},
+			ROUTE_allied5 = {
+				ROUTE_b15 = {},
+				ROUTE_b16 = { Weight=2 },
+			},
+			ROUTE_barracks = {
+				ROUTE_command_post2 = {},
+				ROUTE_west = {},
+			},
+		},
+		PLANT_East_Anti_Tank_Gun = {
+			ROUTE_flag = {
+				ROUTE_command_post = {
+					ROUTE_center = {
+						ROUTE_east_gun1 = {},
+						ROUTE_east_gun2 = { Weight=0.7 },
+						ROUTE_east_gun3 = {},
+					},
+				},
+				ROUTE_command_post2 = { ROUTE_center = {}},
+				ROUTE_west = { Weight=3, ROUTE_center = {}},
+			}
+		},
+		PLANT_West_Anti_Tank_Gun = {
+			ROUTE_flag = {
+				ROUTE_command_post = {
+					ROUTE_center = {
+						ROUTE_west_gun1 = {},
+						ROUTE_west_gun2 = { Weight=0.7 },
+						ROUTE_west_gun3 = {},
+					},
+				},
+				ROUTE_command_post2 = { ROUTE_center = {}},
+				ROUTE_west = { Weight=3, ROUTE_center = {}},
+			}
+		},
+	};
+	MapRoutes.PLANT_Side_Wall = MapRoutes.CHECKPOINT_beach_Flag1;
+	MapRoutes.ATTACK_east_gun1 = MapRoutes.PLANT_East_Anti_Tank_Gun;
+	MapRoutes.ATTACK_east_gun2 = MapRoutes.ATTACK_east_gun1;
+	MapRoutes.ATTACK_east_gun3 = MapRoutes.ATTACK_east_gun1;
+	MapRoutes.ATTACK_east_gun4 = MapRoutes.ATTACK_east_gun1;
+	MapRoutes.ATTACK_west_gun1 = MapRoutes.PLANT_West_Anti_Tank_Gun;
+	MapRoutes.ATTACK_west_gun2 = MapRoutes.ATTACK_west_gun1;
+	MapRoutes.ATTACK_west_gun3 = MapRoutes.ATTACK_west_gun1;
+	MapRoutes.ATTACK_west_gun4 = MapRoutes.ATTACK_west_gun1;
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.MaxViewDistance = 4700;
+	Map.SetSpawn1(bot);
+};

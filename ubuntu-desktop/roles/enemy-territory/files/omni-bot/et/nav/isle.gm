@@ -1,0 +1,281 @@
+//script created by palota
+global Map =
+{
+	Debug=0,
+	Checkpoint_forward_spawn = "CHECKPOINT_forward_spawn",
+	Plant_Axis_Helipad = "PLANT_Axis_Helipad",
+	Build_Damaged_Bridge = "BUILD_Damaged_Bridge",
+	Plant_Damaged_Bridge = "PLANT_Damaged_Bridge",
+	Build_Damaged_aqueduct = "BUILD_Damaged_aqueduct",
+	Plant_Damaged_aqueduct = "PLANT_Damaged_aqueduct",
+	Plant_Aqueduct_Houses_Well_Gate = "PLANT_Aqueduct_Houses_Well_Gate",
+	Build_Well_Gate = "BUILD_Well_Gate",
+	Plant_Well_Gate = "PLANT_Well_Gate",
+	Build_helipad_mg40 = "BUILD_helipad_mg40",
+	Mount_helipad_mg40 = "MOUNTMG42_helipad_mg40",
+	Plant_helipad_mg40 = "PLANT_helipad_mg40",
+	Repair_helipad_mg40 = "REPAIRMG42_helipad_mg40",
+	Health_Cabinet_healthcabinet = "HEALTHCAB_healthcabinet",
+
+	DispenseHealthTime = 10.0,
+	alliesFlag=false,
+	aqueductBuilt=false,
+	bridgeBuilt=false,
+	wellGateBuilt=false,
+	houseWellGrateDestroyed=false,
+
+	Navigation =
+	{
+		swim_up =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.JUMP, 4);
+				for(j=0; j<4; j+=1){
+					sleep(1);
+					_this.Bot.ResetStuckTime();
+				}
+				sleep(2);
+			},
+		},
+	},
+
+	SetSpawn = function(bot)
+	{
+		if (bot.GetTeam() == TEAM.ALLIES){
+			if (Map.alliesFlag){ bot.ChangeSpawnPoint(3); }
+			else { bot.ChangeSpawnPoint(RandInt(1,2)); }
+		}else{
+			if (bot.GetClass() == CLASS.ENGINEER){
+				bot.ChangeSpawnPoint(4);
+			}
+			if (bot.GetClass() == CLASS.COVERTOPS){
+				bot.ChangeSpawnPoint(3);
+			}
+		}
+	},
+
+	SetHelipad = function()
+	{
+		if(Map.aqueductBuilt && Map.bridgeBuilt){ m=9; } else { m=1; }
+		Util.SetMaxUsersInProgress(m, Map.Plant_Axis_Helipad);
+	},
+
+	Checkpoint_Captured = function(byAllies)
+	{
+		Map.alliesFlag=byAllies;
+		SetAvailableMapGoals( TEAM.AXIS, !byAllies, "DEFEND_flag.*" );
+		SetAvailableMapGoals( TEAM.AXIS, !byAllies, ".*MINE_flag.*" );
+		SetAvailableMapGoals( TEAM.AXIS, byAllies, "PLANTMINE_axis.*" );
+		if(!Map.houseWellGrateDestroyed){
+			SetAvailableMapGoals( TEAM.ALLIES, byAllies, Map.Plant_Aqueduct_Houses_Well_Gate );
+		}
+		SetAvailableMapGoals( TEAM.ALLIES, byAllies, Map.Build_Damaged_aqueduct );
+
+		foreach ( id and bot in BotTable )
+		{
+			Map.SetSpawn(bot);
+		}
+	},
+
+	forward_spawn_Axis_Captured = function( trigger )
+	{
+		if(Map.bridgeBuilt){
+			SetGoalPriority( Map.Plant_Damaged_Bridge, 0.75, TEAM.AXIS, 0 );
+		}
+		if(Map.aqueductBuilt){
+			SetGoalPriority( Map.Plant_Damaged_aqueduct, 0.75, TEAM.AXIS, 0 );
+		}
+		if(!Map.wellGateBuilt){
+			SetGoalPriority( Map.Build_Well_Gate, 0.75, TEAM.AXIS, 0 );
+		}
+		Map.Checkpoint_Captured(false);
+		Util.MapDebugPrint( "forward_spawn_Axis_Captured" );
+	},
+
+	forward_spawn_Allies_Captured = function( trigger )
+	{
+		Map.Checkpoint_Captured(true);
+		Util.MapDebugPrint( "forward_spawn_Allies_Captured" );
+	},
+
+	Damaged_Bridge_Built = function( trigger )
+	{
+		Map.bridgeBuilt = true;
+		Map.SetHelipad();
+		Util.EnableGoal("ROUTE_north");
+		Util.MapDebugPrint( "Damaged_Bridge_Built" );
+	},
+
+	Damaged_Bridge_Destroyed = function( trigger )
+	{
+		Map.bridgeBuilt = false;
+		Map.SetHelipad();
+		Util.DisableGoal("ROUTE_north");
+		SetGoalPriority( Map.Plant_Damaged_Bridge, 0.55, TEAM.AXIS, 0 );
+		Util.MapDebugPrint( "Damaged_Bridge_Destroyed" );
+	},
+
+	Damaged_aqueduct_Built = function( trigger )
+	{
+		Map.aqueductBuilt = true;
+		Map.SetHelipad();
+		Util.EnableGoal("ROUTE_aqueduct");
+		Util.DisableGoal("ROUTE_aqueduct_eng");
+		Util.MapDebugPrint( "Damaged_aqueduct_Built" );
+	},
+
+	Damaged_aqueduct_Destroyed = function( trigger )
+	{
+		Map.aqueductBuilt = false;
+		Map.SetHelipad();
+		Util.DisableGoal("ROUTE_aqueduct");
+		Util.EnableGoal("ROUTE_aqueduct_eng");
+		SetGoalPriority( Map.Plant_Damaged_aqueduct, 0.55, TEAM.AXIS, 0 );
+		Util.MapDebugPrint( "Damaged_aqueduct_Destroyed" );
+	},
+
+	Well_Gate_Built = function( trigger )
+	{
+		Map.wellGateBuilt=true;
+		foreach ( id and bot in BotTable )
+		{
+			if ( AABB(-3340,-260,150,-3120,0,810).Contains(bot.GetPosition())
+				&& (bot.GetTeam() == TEAM.AXIS || bot.GetClass() != CLASS.ENGINEER) ){
+				bot.ExecCommand("kill");
+			}
+		}
+		Util.DisableGoal("ROUTE_well");
+		SetGoalPriority( Map.Build_Well_Gate, 0.55, TEAM.AXIS, 0 );
+		Util.MapDebugPrint( "Well_Gate_Built" );
+	},
+
+	Well_Gate_Destroyed = function( trigger )
+	{
+		Map.wellGateBuilt=false;
+		Util.EnableGoal("ROUTE_well");
+		Util.MapDebugPrint( "Well_Gate_Destroyed" );
+	},
+
+	house_well_gate_Destroyed = function( trigger )
+	{
+		Map.houseWellGrateDestroyed=true;
+		Util.MapDebugPrint( "house_well_gate_Destroyed" );
+	},
+
+	two_minute = function( trigger )
+	{
+		if (GetGameTimeLeft() > 0)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_.*" );
+		}
+		Util.MapDebugPrint( "two_minute" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	OnTrigger( "The aqueduct has been repaired!", Map.Damaged_aqueduct_Built );
+	OnTrigger( "The aqueduct has been blown!", Map.Damaged_aqueduct_Destroyed );
+	OnTrigger( "The Bridge has been repaired!", Map.Damaged_Bridge_Built );
+	OnTrigger( "The Bridge has been blown!", Map.Damaged_Bridge_Destroyed );
+	OnTrigger( "The Well Gate has been repaired!", Map.Well_Gate_Built );
+	OnTrigger( "Allies have blown up the Well Gate!", Map.Well_Gate_Destroyed );
+	OnTrigger( "axis_capture_forward_spawn", Map.forward_spawn_Axis_Captured );
+	OnTrigger( "axis_reclaims_forward_spawn", Map.forward_spawn_Axis_Captured );
+	OnTrigger( "Allies capture the Aqueduct House!", Map.forward_spawn_Allies_Captured );
+	OnTrigger( "Allies have blown up the Aqueduct House's Well Gate!", Map.house_well_gate_Destroyed );
+	OnTrigger( "two minute warning.", Map.two_minute );
+
+	Util.DisableGoal("MOVER.*");
+	Util.DisableGoal("DEFEND_.*");
+	Util.DisableGoal(".*MINE_.*");
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_Aqueduct_Houses_Well_Gate );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_Damaged_aqueduct );
+
+	SetGoalPriority( Map.Checkpoint_forward_spawn, 0.6, TEAM.AXIS);
+	SetGoalPriority( Map.Build_Well_Gate, 0.8, TEAM.AXIS);
+	SetGoalPriority( Map.Mount_helipad_mg40, 0.65, TEAM.AXIS);
+	SetGoalPriority( Map.Repair_helipad_mg40, 0.85, TEAM.AXIS);
+	SetGoalPriority( "PLANTMINE_flag.*", 0.73, TEAM.AXIS);
+	SetGoalPriority( "TRIPMINE_flag.*", 0.74, TEAM.AXIS);
+
+	SetGoalPriority( Map.Checkpoint_forward_spawn, 0.75, TEAM.ALLIES);
+	SetGoalPriority( Map.Plant_Axis_Helipad, 0.89, TEAM.ALLIES);
+	SetGoalPriority( Map.Plant_Aqueduct_Houses_Well_Gate, 0.92, TEAM.ALLIES);
+	SetGoalPriority( Map.Plant_Well_Gate, 0.9, TEAM.ALLIES);
+	SetGoalPriority( Map.Plant_helipad_mg40, 0.51, TEAM.ALLIES);
+	SetGoalPriority( "CALLARTILLERY_.*", 0.7, TEAM.ALLIES );
+
+	foreach (goal in { Map.Build_Well_Gate, Map.Plant_Aqueduct_Houses_Well_Gate,
+		Map.Plant_Damaged_Bridge, "SNIPE_.*",
+		Map.Mount_helipad_mg40, Map.Build_helipad_mg40, Map.Plant_helipad_mg40 }){
+		Util.SetMaxUsersInProgress(1, goal);
+	}
+	Util.SetMaxUsersInProgress(3, "ATTACK.*");
+
+	SetMapGoalProperties( "SNIPE_.*", {mincamptime=30, maxcamptime=90} );
+	SetMapGoalProperties( "MOUNTMG42.*", {mincamptime=30, maxcamptime=150} );
+	SetMapGoalProperties( "DEFEND_.*", {mincamptime=20, maxcamptime=60} );
+	SetMapGoalProperties( "ATTACK_.*", {mincamptime=5, maxcamptime=20} );
+
+	Util.SetGoalPosition(-3340,-56,760, Map.Plant_Well_Gate);
+
+	WeaponTable.SetWeaponTeamAvailability(TEAM.ALLIES, CLASS.SOLDIER, WEAPON.FLAMETHROWER, false);
+
+	Util.DisableGoal("ROUTE_north");
+	Util.DisableGoal("ROUTE_aqueduct");
+
+	MapRoutes =
+	{
+		PLANT_Axis_Helipad =
+		{
+			ROUTE_flag0 = {
+				ROUTE_aqueduct_eng = {},
+				ROUTE_aqueduct = { Weight = 1.5 },
+				ROUTE_north_eng1 = { ROUTE_north_eng2 = {} },
+				ROUTE_well_eng1 = { Weight = 0.5, ROUTE_well_eng2 = {} },
+				ROUTE_south = { Weight = 0.5 },
+			},
+			ROUTE_allies_south = {
+				ROUTE_well_eng1 = { Weight = 2 },
+				ROUTE_south = {},
+			},
+		},
+		CHECKPOINT_forward_spawn =
+		{
+			ROUTE_allies_north = {
+				ROUTE_flag_north = { Weight=2 },
+				ROUTE_flag_south = {},
+			},
+			ROUTE_allies_south = {
+				ROUTE_flag_north = {},
+				ROUTE_flag_south = { Weight=2 },
+			},
+			ROUTE_axis_spawn = {
+				ROUTE_aqueduct = {},
+				ROUTE_north = {},
+				ROUTE_south = { ROUTE_flag_north = {}},
+			},
+		},
+		PLANT_helipad_mg40 =
+		{
+			ROUTE_flag0 = {
+				ROUTE_aqueduct = { Weight = 1.5 },
+				ROUTE_north = { Weight = 1 },
+				ROUTE_south = { Weight = 0.5 },
+				ROUTE_well = { Weight = 0.4 },
+			},
+		},
+	};
+
+	MapRoutes["ATTACK_helipad.*"] = MapRoutes.PLANT_helipad_mg40;
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Map script for " + GetMapName() + " loaded" );
+};
+
+global OnBotJoin = function( bot )
+{
+	Map.SetSpawn(bot);
+};

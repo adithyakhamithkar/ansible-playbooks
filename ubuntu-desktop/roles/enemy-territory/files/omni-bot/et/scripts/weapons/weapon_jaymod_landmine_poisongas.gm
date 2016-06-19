@@ -1,0 +1,20 @@
+if (GetModName()!="Jaymod") { return; }
+
+WEAPON.MINE_POISONGAS = 80;
+
+//////////////////////////////////////////////////////////////////////////
+// Overall weapon properties.
+this.Name = "Poison Gas";
+this.WeaponId = WEAPON.MINE_POISONGAS;
+this.MinUseTime = 0.0;
+
+//////////////////////////////////////////////////////////////////////////
+// Set some weapon properties that affect some internal logic.
+this.PrimaryFire.WeaponType = "grenade";
+this.PrimaryFire.ProjectileSpeed = 1000;
+this.PrimaryFire.RequiresAmmo = true;
+this.PrimaryFire.WaterProof = true;
+this.PrimaryFire.InheritsVelocity = false;
+this.PrimaryFire.ProjectileGravity = 0.0;
+
+this.PrimaryFire.DefaultDesirability = 0.0;

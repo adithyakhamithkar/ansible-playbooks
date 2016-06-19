@@ -1,0 +1,73 @@
+this.Name = "ResetXP";
+this.Parent = "LowLevel";
+this.GetPriorityDelay = 180;
+this.EnableXPReset = ConfigGet("XP","Reset", -1);
+this.BotMaxXP = ConfigGet("XP","Max", 10000);
+
+this.GetPriority = function()
+{
+	while(1)
+	{
+		if ( this.EnableXPReset > 0 )
+		{
+			botXP = GetEntityStat(this.Bot.GetGameEntity(), "xp");
+
+			if ( botXP >= this.BotMaxXP )
+			{
+				this.Bot.Say("!resetmyxp");
+			}
+		}
+		
+		sleep(this.GetPriorityDelay);
+	}
+};
+
+////////////////////////////////////////////////////////////////////
+
+this.Commands["resetxp"] =
+{
+	Func = function( _params )
+	{
+		resetXP = ToInt(_params[0], 1);
+
+		if ( resetXP )
+		{
+			ConfigSet("XP","Reset", resetXP);
+			this.EnableXPReset = resetXP;
+			print("resetxp set to", resetXP);
+		}
+		else
+		{
+			print("use -1 to disable");
+		}
+	},
+
+	Help =
+	{
+		"enables bots resetting xp. use -1 to disable",
+	},
+};
+
+this.Commands["maxxp"] =
+{
+	Func = function( _params )
+	{
+		maxXP = ToInt(_params[0], 10000);
+
+		if ( maxXP > 0 )
+		{
+			ConfigSet("XP","Max", maxXP);
+			this.BotMaxXP = maxXP;
+			print("resetxp set to", maxXP);
+		}
+		else
+		{
+			print("max xp must be greater than 0");
+		}
+	},
+
+	Help =
+	{
+		"max xp before bots should reset.",
+	},
+};

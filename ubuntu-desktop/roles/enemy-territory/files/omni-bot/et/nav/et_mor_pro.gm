@@ -1,0 +1,1592 @@
+//****************************************************************************//
+// Map Script by [ETC]=ALICEINCHAINS=
+// Last updated: 04-03-2010
+// For each stage of the map a maximum of 10 attack/defend spots have been defined
+// As such it is not recommended to play this version with more than 20 bots at any time
+// TODO: No snipe, arty, artillery spots yet.
+// TODO: Check routing, stuckage locations.
+// TODO: Create additional facings for camp spots where needed.
+//****************************************************************************//
+
+global Map =
+{
+	Debug = false,
+
+	Switches =
+	{
+		Open_Safe =
+		{
+			Enabled = true,
+			Priority = 0.0,
+			WaypointName = "safe_open",
+			LimitTeam = 0, // Not reachable yet
+			LimitBots = 2,
+			LimitDistance = 1200,
+		},
+
+		Close_Safe =
+		{
+			Enabled = true,
+			Priority = 0.0,
+			WaypointName = "safe_close",
+			LimitTeam = 0, // Not reachable yet
+			LimitBots = 2,
+			LimitDistance = 1200,
+		},
+
+		open_bankdoor = // setproperty pathtrough changes capital letters to lower case
+		{
+			Enabled = false,
+			Priority = 0.0,
+			WaypointName = "bank_exit",
+			LimitTeam = (1<<TEAM.AXIS),
+			LimitBots = 1,
+			AimPosition = Vector3(-126.125,457.898,54.547),
+			Wait = function()
+			{
+				// wait until it starts to open. this should make them react faster than
+				// sleeping x amount
+				while( Map.BankDoor_Status != 1 ) {
+					yield();
+					return false;
+				}
+
+				return true;
+			},
+		},
+	},
+
+	// First Stage
+	Tank_Status = 0, // Initially not repaired
+	Tank_Bridge_Status = 0, // Initially not built
+
+	// Second Stage
+	Tank_Near_Bridge = false,
+	Tank_Near_Towngate = false,
+	Towngate_Status = 1, // No access
+
+	// Third Stage
+	East_Gate_Status = 1, // Not destroyed yet
+	Bank_Status = 1, // Locked up tight
+
+	// Fourth Stage
+	SafeDoor_Status = 1, // Closed
+	BankDoor_Status = 0, // Doesn't exist yet
+	Gold_Stolen = false, // Still safe
+
+	// Dynamite counters
+	Allied_Command_Post_Dyno = 0,
+	Axis_Command_Post_Dyno = 0,
+	Back_Door_Dyno = 0,
+	Backdoors_barricade_Dyno = 0,
+	Banks_barricade_Dyno = 0,
+	Banks_entrance_Dyno = 0,
+	East_Gate_Dyno = 0,
+	North_Markets_MG_nest_Dyno = 0,
+	Tank_Defences_Bridge_Dyno = 0,
+	Villa_Courtyards_Gate_Dyno = 0,
+	Wire_Swing_Gate_Dyno = 0,
+
+	Ammo_Cabinet_ammo1 = "AMMOCAB_ammo1",
+	Ammo_Cabinet_ammo2 = "AMMOCAB_ammo2",
+	Health_Cabinet_health1 = "HEALTHCAB_health1",
+	Health_Cabinet_health2 = "HEALTHCAB_health2",
+	Flag_case1 = "FLAG_case1", // Gold
+	Flag_case2 = "FLAG_case2", // Keycard
+	Cappoint_deliver_Gold = "CAPPOINT_deliver_Gold", // Gold
+	Cappoint_364 = "CAPPOINT_364", // Keycard
+	Build_Allied_Command_Post = "BUILD_Allied_Command_Post",
+	Build_Axis_Command_Post = "BUILD_Axis_Command_Post",
+	Build_Backdoors_barricade = "BUILD_Backdoors_barricade",
+	Build_Banks_barricade = "BUILD_Banks_barricade",
+	Build_North_Markets_MG_nest = "BUILD_North_Markets_MG_nest",
+	Build_Tank = "BUILD_Tank",
+	Build_Tank_Defences_Bridge = "BUILD_Tank_Defences_Bridge",
+	Build_Villa_Courtyards_Gate = "BUILD_Villa_Courtyards_Gate",
+	Build_Wire_Swing_Gate = "BUILD_Wire_Swing_Gate",
+	Plant_Allied_Command_Post = "PLANT_Allied_Command_Post",
+	Plant_Axis_Command_Post = "PLANT_Axis_Command_Post",
+	Plant_Back_Door = "PLANT_Back_Door",
+	Plant_Backdoors_barricade = "PLANT_Backdoors_barricade",
+	Plant_Banks_barricade = "PLANT_Banks_barricade",
+	Plant_Banks_entrance = "PLANT_Banks_entrance",
+	Plant_East_Gate = "PLANT_East_Gate",
+	Plant_North_Markets_MG_nest = "PLANT_North_Markets_MG_nest",
+	Plant_Tank_Defences_Bridge = "PLANT_Tank_Defences_Bridge",
+	Plant_Villa_Courtyards_Gate = "PLANT_Villa_Courtyards_Gate",
+	Plant_Wire_Swing_Gate = "PLANT_Wire_Swing_Gate",
+	Mount_North_Markets_MG_nest = "MOUNTMG42_North_Markets_MG_nest",
+	Repair_North_Markets_MG_nest = "REPAIRMG42_North_Markets_MG_nest",
+	Mover_tank = "MOVER_tank",
+
+	Mobile_MG42_Axis_TankDefense_MG42_1 = "MOBILEMG42_Axis_TankDefense_MG42_1",
+	Mobile_MG42_Axis_TankDefense_MG42_2 = "MOBILEMG42_Axis_TankDefense_MG42_2",
+	Mobile_MG42_Axis_TownGate_MG42_1 = "MOBILEMG42_Axis_TownGate_MG42_1",
+	Mobile_MG42_Axis_TownGate_MG42_2 = "MOBILEMG42_Axis_TownGate_MG42_2",
+	Mobile_MG42_Axis_Keycard_MG42_1 = "MOBILEMG42_Axis_Keycard_MG42_1",
+	Mobile_MG42_Axis_Bank_MG42_1 = "MOBILEMG42_Axis_Bank_MG42_1",
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_Allied_Command_Post );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Allied_Command_Post );
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Axis_Command_Post );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_Axis_Command_Post);
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Backdoors_barricade_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Backdoors_barricade );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_Backdoors_barricade );
+
+		Util.MapDebugPrint( "Backdoors_barricade_Built" );
+	},
+
+	Banks_barricade_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Switches.open_bankdoor.Enabled = true;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_Open_Safe" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Banks_barricade );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_Banks_barricade );
+
+		Util.MapDebugPrint( "Banks_barricade_Built" );
+	},
+
+	North_Markets_MG_nest_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_North_Markets_MG_nest );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_North_Markets_MG_nest );
+
+		Util.MapDebugPrint( "North_Markets_MG_nest_Built" );
+	},
+
+	Tank_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tank_Status = 1;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_Tank );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_Tank" );
+
+		Util.MapDebugPrint( "Tank_Built" );
+	},
+
+	Tank_Defences_Bridge_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tank_Bridge_Status = 1;
+
+		Wp.SetWaypointFlag( "bridgeStart", "closed", true );
+		Wp.SetWaypointFlag( "bridgeEnd", "closed", true );
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_Tank_Defences_Bridge );
+		if ( Map.Tank_Status == 1) {
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_Tank" );
+		}
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Tank_Defences_Bridge );
+
+		Util.MapDebugPrint( "Tank_Defences_Bridge_Built" );
+	},
+
+	Villa_Courtyards_Gate_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Villa_Courtyards_Gate );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_Villa_Courtyards_Gate );
+
+		Util.MapDebugPrint( "Villa_Courtyards_Gate_Built" );
+	},
+
+	Wire_Swing_Gate_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_Wire_Swing_Gate );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Wire_Swing_Gate );
+
+		Util.MapDebugPrint( "Wire_Swing_Gate_Built" );
+	},
+
+	Allied_Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Allied_Command_Post_Dyno += 1;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Plant_Allied_Command_Post );
+
+		Util.MapDebugPrint( "Allied_Command_Post_Planted" );
+	},
+
+	Axis_Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Command_Post_Dyno += 1;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_Axis_Command_Post );
+
+		Util.MapDebugPrint( "Axis_Command_Post_Planted" );
+	},
+
+	Back_Door_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Back_Door_Dyno += 1;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_Back_Door );
+
+		Util.MapDebugPrint( "Back_Door_Planted" );
+	},
+
+	Backdoors_barricade_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Backdoors_barricade_Dyno += 1;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_Backdoors_barricade );
+
+		Util.MapDebugPrint( "Backdoors_barricade_Planted" );
+	},
+
+	Banks_barricade_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Banks_barricade_Dyno += 1;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, "Plant.*" ); // Focus on the dynamite
+		SetAvailableMapGoals( TEAM.ALLIES, false, "Build.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allies_Bank.*" );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, "Plant.*" ); // Disarm that dynamite!
+		SetAvailableMapGoals( TEAM.AXIS, false, "Build.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_Bank.*" );
+
+		Util.MapDebugPrint( "Banks_barricade_Planted" );
+	},
+
+	Banks_entrance_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Banks_entrance_Dyno += 1;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, "Plant.*" ); // Cover that dynamite!
+		SetAvailableMapGoals( TEAM.ALLIES, false, "Build.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allies_Bank.*" );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, "Plant.*" ); // Disarm that dynamite!
+		SetAvailableMapGoals( TEAM.AXIS, false, "Build.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_Bank.*" );
+
+		Util.MapDebugPrint( "Banks_entrance_Planted" );
+	},
+
+	East_Gate_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.East_Gate_Dyno += 1;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_East_Gate );
+		SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allies_EastGate.*" );
+
+		Util.MapDebugPrint( "East_Gate_Planted" );
+	},
+
+	North_Markets_MG_nest_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.North_Markets_MG_nest_Dyno += 1;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_North_Markets_MG_nest );
+
+		Util.MapDebugPrint( "North_Markets_MG_nest_Planted" );
+	},
+
+	Tank_Defences_Bridge_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tank_Defences_Bridge_Dyno += 1;
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Plant_Tank_Defences_Bridge );
+
+		Util.MapDebugPrint( "Tank_Defences_Bridge_Planted" );
+	},
+
+	Villa_Courtyards_Gate_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Villa_Courtyards_Gate_Dyno += 1;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_Villa_Courtyards_Gate );
+
+		Util.MapDebugPrint( "Villa_Courtyards_Gate_Planted" );
+	},
+
+	Wire_Swing_Gate_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Wire_Swing_Gate_Dyno += 1;
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Plant_Wire_Swing_Gate );
+
+		Util.MapDebugPrint( "Wire_Swing_Gate_Planted" );
+	},
+
+	Allied_Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Allied_Command_Post_Dyno -= 1;
+		if ( Map.Allied_Command_Post_Dyno < 1 )
+			{ SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Allied_Command_Post ); }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Defused" );
+	},
+
+	Axis_Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Command_Post_Dyno -= 1;
+		if ( Map.Axis_Command_Post_Dyno < 1 )
+			{ SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Axis_Command_Post ); }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Defused" );
+	},
+
+	Back_Door_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Back_Door_Dyno -= 1;
+		if ( Map.Back_Door_Dyno < 1 )
+			{ SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Back_Door ); }
+
+		Util.MapDebugPrint( "Back_Door_Defused" );
+	},
+
+	Backdoors_barricade_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Backdoors_barricade_Dyno -= 1;
+		if ( Map.Backdoors_barricade_Dyno < 1 )
+			{ SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Backdoors_barricade ); }
+
+		Util.MapDebugPrint( "Backdoors_barricade_Defused" );
+	},
+
+	Banks_barricade_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Banks_barricade_Dyno -= 1;
+		if ( Map.Banks_barricade_Dyno < 1 )
+			{ SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Banks_barricade ); }
+
+		Util.MapDebugPrint( "Banks_barricade_Defused" );
+	},
+
+	Banks_entrance_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Banks_entrance_Dyno -= 1;
+		if ( Map.Banks_entrance_Dyno < 1 )
+			{ SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Banks_entrance ); }
+
+		Util.MapDebugPrint( "Banks_entrance_Defused" );
+	},
+
+	East_Gate_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.East_Gate_Dyno -= 1;
+		if ( Map.East_Gate_Dyno < 1 )
+			{ SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_East_Gate ); }
+
+		Util.MapDebugPrint( "East_Gate_Defused" );
+	},
+
+	North_Markets_MG_nest_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.North_Markets_MG_nest_Dyno -= 1;
+		if ( Map.North_Markets_MG_nest_Dyno < 1 )
+			{ SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_North_Markets_MG_nest ); }
+
+		Util.MapDebugPrint( "North_Markets_MG_nest_Defused" );
+	},
+
+	Tank_Defences_Bridge_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tank_Defences_Bridge_Dyno -= 1;
+		if ( Map.Tank_Defences_Bridge_Dyno < 1 )
+			{ SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Tank_Defences_Bridge ); }
+
+		Util.MapDebugPrint( "Tank_Defences_Bridge_Defused" );
+	},
+
+	Villa_Courtyards_Gate_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Villa_Courtyards_Gate_Dyno -= 1;
+		if ( Map.Villa_Courtyards_Gate_Dyno < 1 )
+			{ SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Villa_Courtyards_Gate ); }
+
+		Util.MapDebugPrint( "Villa_Courtyards_Gate_Defused" );
+	},
+
+	Wire_Swing_Gate_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Wire_Swing_Gate_Dyno -= 1;
+		if ( Map.Wire_Swing_Gate_Dyno < 1 )
+			{ SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Wire_Swing_Gate ); }
+
+		Util.MapDebugPrint( "Wire_Swing_Gate_Defused" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Allied_Command_Post_Dyno = 0;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Allied_Command_Post );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Plant_Allied_Command_Post );
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Command_Post_Dyno = 0;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_Axis_Command_Post );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Axis_Command_Post );
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	Back_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.EnableGoal( "ROUTE_Back_Door" );
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_Back_Door );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Backdoors_barricade );
+
+		Util.MapDebugPrint( "Back_Door_Destroyed" );
+	},
+
+	Backdoors_barricade_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Backdoors_barricade_Dyno = 0;
+
+		Util.EnableGoal( "ROUTE_Back_Door" );
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_Backdoors_barricade );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Backdoors_barricade );
+
+		Util.MapDebugPrint( "Backdoors_barricade_Destroyed" );
+	},
+
+	Banks_barricade_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Banks_barricade_Dyno = 0;
+
+		Map.Switches.open_bankdoor.Enabled = false;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_Banks_barricade );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_Open_Safe" );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Banks_barricade );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_Bank_In.*" );
+
+		Util.MapDebugPrint( "Banks_barricade_Destroyed" );
+	},
+
+	Banks_entrance_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Wp.SetWaypointFlag( "Bank_Door_1", "closed", false );
+		Wp.SetWaypointFlag( "Bank_Door_2", "closed", false );
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_Banks_entrance );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_Open_Safe" );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Banks_barricade );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_Bank_In.*" ); // Get some support for Engi
+
+		Util.MapDebugPrint( "Banks_entrance_Destroyed" );
+	},
+
+	East_Gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.East_Gate_Status = 0;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_364" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_case2" );
+
+		Util.EnableGoal( "ROUTE_Keycard" );
+
+		Util.MapDebugPrint( "East_Gate_Destroyed" );
+	},
+
+	North_Markets_MG_nest_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "North_Markets_MG_nest_Destroyed" );
+	},
+
+	Tank_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tank_Status = 0;
+
+		Util.SetPositionGoal( Map.Build_Tank, Map.Mover_tank );
+
+		// Allied Goals
+		if ( Map.Towngate_Status == 0 ) {
+			SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_Tank );
+		}
+		else {
+			SetAvailableMapGoals ( TEAM.ALLIES, true, Map.Build_Tank );
+		}
+
+		Util.MapDebugPrint( "Tank_Destroyed" );
+	},
+
+	Tank_Defences_Bridge_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tank_Bridge_Status = 0;
+		Map.Tank_Defences_Bridge_Dyno = 0;
+
+		Wp.SetWaypointFlag( "bridgeStart", "closed", false );
+		Wp.SetWaypointFlag( "bridgeEnd", "closed", false );
+
+		// Allied Goals
+		if ( Map.Tank_Near_Bridge )
+			{ SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Tank_Defences_Bridge ); }
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Plant_Tank_Defences_Bridge );
+
+		Util.MapDebugPrint( "Tank_Defences_Bridge_Destroyed" );
+	},
+
+	Villa_Courtyards_Gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Villa_Courtyards_Gate_Dyno = 0;
+
+		Util.EnableGoal( "ROUTE_Courtyard");
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_Villa_Courtyards_Gate );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Villa_Courtyards_Gate );
+
+		Util.MapDebugPrint( "Villa_Courtyards_Gate_Destroyed" );
+	},
+
+	Wire_Swing_Gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Wire_Swing_Gate_Dyno = 0;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Wire_Swing_Gate );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Plant_Wire_Swing_Gate );
+
+		Util.MapDebugPrint( "Wire_Swing_Gate_Destroyed" );
+	},
+
+	case1_Taken = function( trigger ) // Gold
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Gold_Stolen = true;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_Open_Safe" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allies_Bank.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allies_Truck.*" );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_Close_Safe" );
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_Truck.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_Axis_TownGate_MG42_1" );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_Banks_barricade );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_Backdoors_barricade );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_Villa_Courtyards_Gate );
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_Bank.*" );
+
+		Util.MapDebugPrint( "case1_Taken" );
+	},
+
+	case2_Taken = function( trigger ) // Keycard
+	{
+		if ( TestMap )
+			{ return; }
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_Keycard.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_EastGate.*" );
+
+		Util.MapDebugPrint( "case2_Taken" );
+	},
+
+	case1_Returned = function( trigger )  // Gold
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Gold_Stolen = false;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allies_Truck.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allies_Bank.*" );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_Truck.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_Axis_TownGate_MG42_1" );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Banks_barricade );
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_Bank.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_Close_Safe" );
+
+		Util.MapDebugPrint( "case1_Returned" );
+	},
+
+	case2_Returned = function( trigger ) // Keycard
+	{
+		if ( TestMap )
+			{ return; }
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_Keycard.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_EastGate.*" );
+
+		Util.MapDebugPrint( "case2_Returned" );
+	},
+
+	case1_Secured = function( trigger ) // Game Over
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "case1_Secured" );
+	},
+
+	case2_Secured = function( trigger ) // Bank is accessible
+	{
+		if ( TestMap )
+			{ return; }
+
+		Bank_Status = 0;
+
+		sleep(2.0);
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, "FLAG_case2" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_364" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allies_EastGate.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Back_Door );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Villa_Courtyards_Gate );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Banks_entrance );
+		SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allies_Bank.*" );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_EastGate.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_Keycard.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Axis_Command_Post );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_North_Markets_MG_nest );
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_Bank_Out.*" );
+
+		Util.EnableGoal( "ROUTE_Roof_Access" );
+
+		Wp.SetWaypointFlag( "Locked_Door", "closed", false );
+
+		Util.MapDebugPrint( "case2_Secured" );
+	},
+
+	Tank_At_Location = function( trigger )
+	{
+		switch(Map.VehicleLocation)
+		{
+			// note: location prints inline since Tank_Past_Bridge has a sleep
+			case 1:
+			{
+				Util.MapDebugPrint("tank at location " + Map.VehicleLocation, true);
+				Map.Tank_Near_Bridge();
+			}
+			case 2:
+			{
+				Util.MapDebugPrint("tank at location " + Map.VehicleLocation, true);
+				Map.Tank_Past_Bridge();
+			}
+		}
+	},
+
+	Tank_Near_Bridge = function()
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tank_Near_Bridge = true;
+
+		ETUtil.SetExcludeIndexes( "ESCORT_Tank", { 2, 3 } );
+
+		// Allied Goals
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allies_TownGate.*" );
+
+		if ( Map.Tank_Bridge_Status == 0 ) {
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_Tank" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Tank_Defences_Bridge );
+		}
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_Tunnel.*" );
+
+		Util.MapDebugPrint( "Tank_Near_Bridge" );
+	},
+
+	Tank_Past_Bridge = function()
+	{
+		if ( TestMap )
+			{ return; }
+
+		// cs: note, it's not necessary to null it first as the table is over-written
+		// ETUtil.SetExcludeIndexes( "ESCORT_Tank", null );
+		ETUtil.SetExcludeIndexes( "ESCORT_Tank", { 2 } );
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allies_TankEscort.*" );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_TankDefense.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_TownGate.*" );
+
+		// Script lockout here
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_Tank" );
+		Util.MapDebugPrint( "Tank_Past_Bridge: escort off", true );
+		sleep(8.0);
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_Tank" );
+
+		Util.MapDebugPrint( "Tank_Past_Bridge: escort on" );
+	},
+
+	Tank_Near_Towngate = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tank_Near_Towngate = true;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_Tank" );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Plant_Tank_Defences_Bridge );
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_Tunnel.*" );
+
+		Util.MapDebugPrint( "Tank_Near_Towngate" );
+	},
+
+	Towngate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Towngate_Status = 0;
+
+		Util.DisableGoal( "ROUTE_alliedSpawn" );
+		Util.DisableGoal( "ROUTE_exit_Left" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_Tank" );
+
+		sleep(2.0); // Pathing for new goals will fail at first otherwise
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_Tank_Defences_Bridge );
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allies_TownGate.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Ammo_Cabinet_ammo1 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Health_Cabinet_health1 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Allied_Command_Post );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_East_Gate );
+		SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allies_EastGate.*" );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_TownGate.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Ammo_Cabinet_ammo1 );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Health_Cabinet_health1 );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Ammo_Cabinet_ammo2 );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Health_Cabinet_health2 );
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_Keycard.*" );
+
+		Util.MapDebugPrint( "Towngate_Destroyed" );
+	},
+
+	Safe_Closed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SafeDoor_Status = 1;
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, "FLAG_case1" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_deliver_Gold" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_Open_Safe" );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_Close_Safe" );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Banks_barricade );
+
+		Util.MapDebugPrint( "Safe_Closed" );
+	},
+
+	Safe_Opened = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SafeDoor_Status = 0;
+
+		if ( Map.Gold_Stolen ) { // It is possible to get the gold BEFORE Safe door has opened completely --> Humans, tssssk
+			SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_Close_Safe" );
+			SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_Banks_barricade );
+		}
+		else {
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_Close_Safe" );
+		}
+
+		// Allied Goals
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_case1" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_deliver_Gold" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_Open_Safe" );
+
+		Util.MapDebugPrint( "Safe_Opened" );
+	},
+
+	Bank_Door_Moving = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( trigger.Action == "opened" ) {
+			Map.BankDoor_Status = 1; // Opened
+			Map.Switches.open_bankdoor.Enabled = false;
+		}
+		else {
+			Map.BankDoor_Status = 0; // closed
+			Map.Switches.open_bankdoor.Enabled = true;
+		}
+
+		Util.MapDebugPrint( "Bank_Door_Moving: " + trigger.Action, true );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "^5Allied team have constructed a command post. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "^1Axis team have constructed a command post. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "^1Axis have built the Backdoor's barricade", Map.Backdoors_barricade_Built );
+	OnTrigger( "^1Axis have built the Bank's barricade", Map.Banks_barricade_Built );
+	OnTrigger( "^1Axis team have constructed the North Market's MG nest", Map.North_Markets_MG_nest_Built );
+	OnTrigger( "^8The Tank ^ahas been repaired^8!", Map.Tank_Built );
+	OnTrigger( "^5Allied team have constructed the Tank Defences' Bridge", Map.Tank_Defences_Bridge_Built );
+	OnTrigger( "^8The Tank ^ais nearly at ^8the Main town gate!", Map.Tank_Near_Towngate );
+	OnTrigger( "^1Axis team have constructed the Villa Courtyard's Gate", Map.Villa_Courtyards_Gate_Built );
+	OnTrigger( "^5Allied team have constructed the Wire Swing Gate", Map.Wire_Swing_Gate_Built );
+	OnTrigger( "Planted at the Allied Command Post.", Map.Allied_Command_Post_Planted );
+	OnTrigger( "Planted at the Axis Command Post.", Map.Axis_Command_Post_Planted );
+	OnTrigger( "Planted at the Back Door.", Map.Back_Door_Planted );
+	OnTrigger( "Planted at the Backdoor's barricade.", Map.Backdoors_barricade_Planted );
+	OnTrigger( "Planted at the Bank's barricade.", Map.Banks_barricade_Planted );
+	OnTrigger( "Planted at the Bank's entrance.", Map.Banks_entrance_Planted );
+	OnTrigger( "Planted at the East Gate.", Map.East_Gate_Planted );
+	OnTrigger( "Planted at the North Market's MG nest.", Map.North_Markets_MG_nest_Planted );
+	OnTrigger( "Planted at the Tank Defences' Bridge.", Map.Tank_Defences_Bridge_Planted );
+	OnTrigger( "Planted at the Villa Courtyard's Gate.", Map.Villa_Courtyards_Gate_Planted );
+	OnTrigger( "Planted at the Wire Swing Gate.", Map.Wire_Swing_Gate_Planted );
+	OnTrigger( "Defused at the Allied Command Post.", Map.Allied_Command_Post_Defused );
+	OnTrigger( "Defused at the Axis Command Post.", Map.Axis_Command_Post_Defused );
+	OnTrigger( "Defused at the Back Door.", Map.Back_Door_Defused );
+	OnTrigger( "Defused at the Backdoor's barricade.", Map.Backdoors_barricade_Defused );
+	OnTrigger( "Defused at the Bank's barricade.", Map.Banks_barricade_Defused );
+	OnTrigger( "Defused at the Bank's entrance.", Map.Banks_entrance_Defused );
+	OnTrigger( "Defused at the East Gate.", Map.East_Gate_Defused );
+	OnTrigger( "Defused at the North Market's MG nest.", Map.North_Markets_MG_nest_Defused );
+	OnTrigger( "Defused at the Tank Defences' Bridge.", Map.Tank_Defences_Bridge_Defused );
+	OnTrigger( "Defused at the Villa Courtyard's Gate.", Map.Villa_Courtyards_Gate_Defused );
+	OnTrigger( "Defused at the Wire Swing Gate.", Map.Wire_Swing_Gate_Defused );
+	OnTrigger( "^1Axis team have destroyed the Allied Commmand Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "^5Allied team have destroyed the Axis Commmand Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "^5Allies have destroyed the Back door!", Map.Back_Door_Destroyed );
+	OnTrigger( "^5Allies have destroyed the Backdoor's barricade", Map.Backdoors_barricade_Destroyed );
+	OnTrigger( "^5Allies have destroyed the Bank's barricade", Map.Banks_barricade_Destroyed );
+	OnTrigger( "^5Allies have destroyed the Bank's entrance", Map.Banks_entrance_Destroyed );
+	OnTrigger( "^5Allies have destroyed the East Gate!", Map.East_Gate_Destroyed );
+	OnTrigger( "^5Allied team have destroyed the North Market's MG nest", Map.North_Markets_MG_nest_Destroyed );
+	OnTrigger( "^8The Tank ^ahas been damaged^8!", Map.Tank_Destroyed );
+	OnTrigger( "^1Axis team have destroyed the Tank Defences' Bridge", Map.Tank_Defences_Bridge_Destroyed );
+	OnTrigger( "^aAllies have destroyed ^8the Main town gate!", Map.Towngate_Destroyed );
+	OnTrigger( "^5Allied team have destroyed the Villa Courtyard's Gate", Map.Villa_Courtyards_Gate_Destroyed );
+	OnTrigger( "^1Axis team have destroyed the Wire Swing Gate", Map.Wire_Swing_Gate_Destroyed );
+	OnTrigger( "Allies have stolen the ^8Gold!", Map.case1_Taken );
+	OnTrigger( "Allies have stolen ^1the Key Card!", Map.case2_Taken );
+	OnTrigger( "Flag returned case1!", Map.case1_Returned );
+	OnTrigger( "Flag returned case2!", Map.case2_Returned );
+	OnTrigger( "^5The Allies have escaped with the Nazi gold!", Map.case1_Secured );
+	OnTrigger( "^5The Allies have got the access to the Gold Safe!", Map.case2_Secured );
+	OnTrigger( "^5Allies have opened the Gold Safe!", Map.Safe_Opened );
+	OnTrigger( "^1Axis have closed the Gold Safe!", Map.Safe_Closed );
+	OnTrigger( "bank_barricade_door_Moving", Map.Bank_Door_Moving );
+	OnTrigger( "tank at location", Map.Tank_At_Location );
+
+	Util.SetMaxUsers( 1, "ATTACK.*" );
+	Util.SetMaxUsers( 1, "DEFEND.*" );
+	Util.SetMaxUsers( 1, "MOBILEMG42.*" );
+	Util.SetMaxUsers( 1, "PLANT.*" );
+	Util.SetMaxUsers( 2, "BUILD.*" );
+	Util.SetMaxUsers( 2, "ESCORT.*" );
+	Util.SetMaxUsers( 4, "FLAG.*" );
+
+	// disable combat movement and bot pushing near the door to the bank for more reliable pathing
+	bpush = OnTriggerRegion(AABB(-256.505,354.329,-0.875,0.996,530.530,118.029),RegionTrigger.DisableCombatMovement);
+
+	// tank location triggers
+	tank1 = OnTriggerRegion(AABB(6638.042,-58.511,-191.661,7015.274,72.943,-96.540),RegionTrigger.VehicleTrigger);
+	tank2 = OnTriggerRegion(AABB(5217.417,-718.246,-100.176,5474.668,-340.442,-5.286),RegionTrigger.VehicleTrigger);
+	//~Util.OnTriggerPosition( Map.Mover_tank, "tankmarker3", 200, Map.Tank_At_Gate );
+
+	Util.SetGoalOffset( -450, 80, 0, Map.Plant_Tank_Defences_Bridge );
+	Util.SetGoalOffset( 20, -120, -100, Map.Plant_Back_Door );
+	Util.SetGoalOffset( 40, 10, 10, Map.Plant_Backdoors_barricade );
+	Util.SetGoalPosition( -205, 350, 55, Map.Build_Banks_barricade );
+
+	SetMapGoalProperties( "ATTACK.*", {mincamptime=20, maxcamptime=30} );
+	SetMapGoalProperties( "DEFEND.*", {mincamptime=30, maxcamptime=45} );
+	SetMapGoalProperties( "MOBILEMG42.*", {mincamptime=120, maxcamptime=180} );
+	SetMapGoalProperties( "SNIPE.*", {mincamptime=40, maxcamptime=60} );
+
+	// Allied goals
+	SetGoalPriority( Map.Build_Wire_Swing_Gate, 0.65, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( Map.Plant_East_Gate, 0,83, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( Map.Plant_Banks_entrance, 0.82, TEAM.ALLIES, CLASS.ENGINEER );
+
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Tank );
+	SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allies_TankEscort.*" );
+
+	// Axis Goals
+	SetGoalPriority( Map.Plant_Wire_Swing_Gate, 0.65, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( Map.Plant_Tank_Defences_Bridge, 0.82, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( Map.Build_Banks_barricade, 0.92, TEAM.AXIS, CLASS.ENGINEER );
+
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	//~SetAvailableMapGoals( TEAM.AXIS, true, Map.Ammo_Cabinet_ammo1 );
+	//~SetAvailableMapGoals( TEAM.AXIS, true, Map.Health_Cabinet_health1 );
+	SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_TankDefense.*" );
+
+	Util.EnableGoal( "ROUTE.*" );
+	Util.DisableGoal( "ROUTE_Roof_Access" );
+	Util.DisableGoal( "ROUTE_Back_Door" );
+	Util.DisableGoal( "ROUTE_Courtyard" );
+
+	ETUtil.SetExcludeIndexes( "ESCORT_Tank", { 3 } );
+
+	Wp.SetWaypointFlag( "bridgeStart", "closed", false );
+	Wp.SetWaypointFlag( "bridgeEnd", "closed", false );
+	Wp.SetWaypointFlag( "Locked_Door", "closed", true );
+	Wp.SetWaypointFlag( "Bank_Door_1", "closed", true );
+	Wp.SetWaypointFlag( "Bank_Door_2", "closed", true );
+
+	// Set up Routing
+	MapRoutes =
+	{
+		PLANT_Tank_Defences_Bridge =
+		{
+			ROUTE_Axis_Spawn_1 =
+			{
+				ROUTE_exit_Left = {},
+				ROUTE_exit_Right = {},
+			},
+		},
+
+		CAPPOINT_364 =
+		{
+			ROUTE_Keycard =
+			{
+				ROUTE_Crossroad =
+				{
+					ROUTE_Crates =
+					{
+						ROUTE_Town_Gate =
+						{
+							ROUTE_East_Gate = {},
+						},
+					},
+					ROUTE_Crates_Side =
+					{
+						ROUTE_Town_Gate =
+						{
+							ROUTE_East_Gate = {},
+						},
+					},
+				},
+				ROUTE_Courtyard =
+				{
+					ROUTE_Crossroad = {},
+					ROUTE_Door_Right = {},
+				},
+				ROUTE_Door_Right = {},
+			},
+			ROUTE_Door_Left =
+			{
+				ROUTE_Crossroad =
+				{
+					ROUTE_Town_Gate =
+					{
+						ROUTE_East_Gate = {},
+					},
+				},
+			},
+		},
+
+		PLANT_Banks_entrance =
+		{
+			ROUTE_Axis_Spawn_1 =
+			{
+				ROUTE_Door_Right =
+				{
+					ROUTE_Upper_Path =
+					{
+						ROUTE_BankEntry_Left = {},
+						ROUTE_BankEntry_Center = {},
+						ROUTE_BankEntry_Right = {},
+						ROUTE_Lower_Path =
+						{
+							ROUTE_BankEntry_Left = {},
+							ROUTE_BankEntry_Center = {},
+							ROUTE_BankEntry_Right = {},
+						},
+					},
+					ROUTE_Lower_Path =
+					{
+						ROUTE_BankEntry_Left = {},
+						ROUTE_BankEntry_Center = {},
+						ROUTE_BankEntry_Right = {},
+					},
+					ROUTE_Door_Left = {},
+				},
+				ROUTE_Crates =
+				{
+					ROUTE_Crossroad =
+					{
+						ROUTE_Upper_Path =
+						{
+							ROUTE_BankEntry_Left = {},
+							ROUTE_BankEntry_Center = {},
+							ROUTE_BankEntry_Right = {},
+							ROUTE_Lower_Path =
+							{
+								ROUTE_BankEntry_Left = {},
+								ROUTE_BankEntry_Center = {},
+								ROUTE_BankEntry_Right = {},
+							},
+						},
+						ROUTE_Lower_Path =
+						{
+							ROUTE_BankEntry_Left = {},
+							ROUTE_BankEntry_Center = {},
+							ROUTE_BankEntry_Right = {},
+						},
+						ROUTE_Courtyard  = {},
+						ROUTE_Door_Left =
+						{
+							ROUTE_Back_Door =
+							{
+								ROUTE_Back_Right =
+								{
+									ROUTE_BankEntry_Left = {},
+									ROUTE_BankEntry_Center = {},
+									ROUTE_BankEntry_Right = {},
+								},
+								ROUTE_Back_Left =
+								{
+									ROUTE_BankEntry_Left = {},
+									ROUTE_BankEntry_Center = {},
+									ROUTE_BankEntry_Right = {},
+								},
+								ROUTE_Balcony =
+								{
+									ROUTE_BankEntry_Left = {},
+									ROUTE_BankEntry_Center = {},
+									ROUTE_BankEntry_Right = {},
+								},
+								ROUTE_BankEntry_Center = {},
+								ROUTE_BankEntry_Right = {},
+							},
+						},
+					},
+				},
+				ROUTE_Crates_Side =
+				{
+					ROUTE_Crossroad =
+					{
+						ROUTE_Upper_Path =
+						{
+							ROUTE_BankEntry_Left = {},
+							ROUTE_BankEntry_Center = {},
+							ROUTE_BankEntry_Right = {},
+							ROUTE_Lower_Path =
+							{
+								ROUTE_BankEntry_Left = {},
+								ROUTE_BankEntry_Center = {},
+								ROUTE_BankEntry_Right = {},
+							},
+						},
+						ROUTE_Lower_Path =
+						{
+							ROUTE_BankEntry_Left = {},
+							ROUTE_BankEntry_Center = {},
+							ROUTE_BankEntry_Right = {},
+						},
+						ROUTE_Courtyard  = {},
+						ROUTE_Door_Left =
+						{
+							ROUTE_Back_Door =
+							{
+								ROUTE_Back_Right =
+								{
+									ROUTE_BankEntry_Left = {},
+									ROUTE_BankEntry_Center = {},
+									ROUTE_BankEntry_Right = {},
+								},
+								ROUTE_Back_Left =
+								{
+									ROUTE_BankEntry_Left = {},
+									ROUTE_BankEntry_Center = {},
+									ROUTE_BankEntry_Right = {},
+								},
+								ROUTE_Balcony =
+								{
+									ROUTE_BankEntry_Left = {},
+									ROUTE_BankEntry_Center = {},
+									ROUTE_BankEntry_Right = {},
+								},
+								ROUTE_BankEntry_Center = {},
+								ROUTE_BankEntry_Right = {},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_Axis_Spawn_1_Exit =
+			{
+				ROUTE_Door_Right =
+				{
+					ROUTE_Upper_Path =
+					{
+						ROUTE_BankEntry_Left = {},
+						ROUTE_BankEntry_Center = {},
+						ROUTE_BankEntry_Right = {},
+						ROUTE_Lower_Path =
+						{
+							ROUTE_BankEntry_Left = {},
+							ROUTE_BankEntry_Center = {},
+							ROUTE_BankEntry_Right = {},
+						},
+					},
+					ROUTE_Lower_Path =
+					{
+						ROUTE_BankEntry_Left = {},
+						ROUTE_BankEntry_Center = {},
+						ROUTE_BankEntry_Right = {},
+					},
+					ROUTE_Door_Left = {},
+				},
+				ROUTE_Crossroad =
+				{
+					ROUTE_Upper_Path =
+					{
+						ROUTE_BankEntry_Left = {},
+						ROUTE_BankEntry_Center = {},
+						ROUTE_BankEntry_Right = {},
+						ROUTE_Lower_Path =
+						{
+							ROUTE_BankEntry_Left = {},
+							ROUTE_BankEntry_Center = {},
+							ROUTE_BankEntry_Right = {},
+						},
+					},
+					ROUTE_Lower_Path =
+					{
+						ROUTE_BankEntry_Left = {},
+						ROUTE_BankEntry_Center = {},
+						ROUTE_BankEntry_Right = {},
+					},
+					ROUTE_Courtyard  = {},
+					ROUTE_Door_Left =
+					{
+						ROUTE_Back_Door =
+						{
+							ROUTE_Back_Right =
+							{
+								ROUTE_BankEntry_Left = {},
+								ROUTE_BankEntry_Center = {},
+								ROUTE_BankEntry_Right = {},
+							},
+							ROUTE_Back_Left =
+							{
+								ROUTE_BankEntry_Left = {},
+								ROUTE_BankEntry_Center = {},
+								ROUTE_BankEntry_Right = {},
+							},
+							ROUTE_Balcony =
+							{
+								ROUTE_BankEntry_Left = {},
+								ROUTE_BankEntry_Center = {},
+								ROUTE_BankEntry_Right = {},
+							},
+							ROUTE_BankEntry_Center = {},
+							ROUTE_BankEntry_Right = {},
+						},
+					},
+				},
+			},
+		},
+
+		BUILD_Tank_Defences_Bridge =
+		{
+			ROUTE_alliedSpawn =
+			{
+				ROUTE_escort_Left =
+				{
+					Weight = 2,
+					ROUTE_bridge_Left = {},
+					ROUTE_house_Right = {},
+				},
+				ROUTE_escort_Right =
+				{
+					Weight = 2,
+					ROUTE_bridge_Left = {},
+					ROUTE_house_Right = {},
+				},
+				ROUTE_Break_Right =
+				{
+					ROUTE_tunnel_Left = { ROUTE_tunnel_Exit },
+					ROUTE_tunnel_Right = { ROUTE_tunnel_Exit },
+					ROUTE_tunnel_Ladder = {},
+				},
+			},
+		},
+
+		ATTACK_Allies_Bank_1 =
+		{
+			ROUTE_Door_Right =
+			{
+				ROUTE_Upper_Path =
+				{
+					ROUTE_BankEntry_Left = {},
+					ROUTE_BankEntry_Center = {},
+					ROUTE_BankEntry_Right = {},
+					ROUTE_Lower_Path =
+					{
+						ROUTE_BankEntry_Left = {},
+						ROUTE_BankEntry_Center = {},
+						ROUTE_BankEntry_Right = {},
+					},
+				},
+				ROUTE_Lower_Path =
+				{
+					ROUTE_BankEntry_Left = {},
+					ROUTE_BankEntry_Center = {},
+					ROUTE_BankEntry_Right = {},
+				},
+				ROUTE_Door_Left = {},
+			},
+			ROUTE_Crossroad =
+			{
+				ROUTE_Upper_Path =
+				{
+					ROUTE_BankEntry_Left = {},
+					ROUTE_BankEntry_Center = {},
+					ROUTE_BankEntry_Right = {},
+					ROUTE_Lower_Path =
+					{
+						ROUTE_BankEntry_Left = {},
+						ROUTE_BankEntry_Center = {},
+						ROUTE_BankEntry_Right = {},
+					},
+				},
+				ROUTE_Lower_Path =
+				{
+					ROUTE_BankEntry_Left = {},
+					ROUTE_BankEntry_Center = {},
+					ROUTE_BankEntry_Right = {},
+				},
+				ROUTE_Courtyard  = {},
+				ROUTE_Door_Left =
+				{
+					ROUTE_Back_Door =
+					{
+						ROUTE_Back_Right =
+						{
+							ROUTE_Wire_Swing_Gate = {},
+							ROUTE_BankEntry_Left = {},
+							ROUTE_BankEntry_Center = {},
+							ROUTE_BankEntry_Right = {},
+						},
+						ROUTE_Back_Left =
+						{
+							ROUTE_Wire_Swing_Gate = {},
+							ROUTE_Command_Post = {},
+							ROUTE_BankEntry_Left = {},
+							ROUTE_BankEntry_Center = {},
+							ROUTE_BankEntry_Right = {},
+						},
+						ROUTE_Balcony =
+						{
+							ROUTE_Wire_Swing_Gate = {},
+							ROUTE_Command_Post = {},
+							ROUTE_BankEntry_Left = {},
+							ROUTE_BankEntry_Center = {},
+							ROUTE_BankEntry_Right = {},
+						},
+						ROUTE_BankEntry_Center = {},
+						ROUTE_BankEntry_Right = {},
+					},
+				},
+			},
+		},
+	};
+
+	// Copy Routes
+	MapRoutes.ATTACK_Allies_TankEscort_1 = MapRoutes.BUILD_Tank_Defences_Bridge;
+	MapRoutes.ATTACK_Allies_TankEscort_2 = MapRoutes.BUILD_Tank_Defences_Bridge;
+	MapRoutes.ATTACK_Allies_TankEscort_3 = MapRoutes.BUILD_Tank_Defences_Bridge;
+	MapRoutes.ATTACK_Allies_TankEscort_4 = MapRoutes.BUILD_Tank_Defences_Bridge;
+	MapRoutes.ATTACK_Allies_TankEscort_5 = MapRoutes.BUILD_Tank_Defences_Bridge;
+	MapRoutes.ATTACK_Allies_TankEscort_6 = MapRoutes.BUILD_Tank_Defences_Bridge;
+	MapRoutes.ATTACK_Allies_TankEscort_7 = MapRoutes.BUILD_Tank_Defences_Bridge;
+	MapRoutes.ATTACK_Allies_TankEscort_8 = MapRoutes.BUILD_Tank_Defences_Bridge;
+	MapRoutes.ATTACK_Allies_TankEscort_9 = MapRoutes.BUILD_Tank_Defences_Bridge;
+	MapRoutes.ATTACK_Allies_TankEscort_10 = MapRoutes.BUILD_Tank_Defences_Bridge;
+
+	MapRoutes.ATTACK_Allies_TownGate_1 = MapRoutes.BUILD_Tank_Defences_Bridge;
+	MapRoutes.ATTACK_Allies_TownGate_2 = MapRoutes.BUILD_Tank_Defences_Bridge;
+	MapRoutes.ATTACK_Allies_TownGate_3 = MapRoutes.BUILD_Tank_Defences_Bridge;
+	MapRoutes.ATTACK_Allies_TownGate_4 = MapRoutes.BUILD_Tank_Defences_Bridge;
+	MapRoutes.ATTACK_Allies_TownGate_5 = MapRoutes.BUILD_Tank_Defences_Bridge;
+	MapRoutes.ATTACK_Allies_TownGate_6 = MapRoutes.BUILD_Tank_Defences_Bridge;
+	MapRoutes.ATTACK_Allies_TownGate_7 = MapRoutes.BUILD_Tank_Defences_Bridge;
+	MapRoutes.ATTACK_Allies_TownGate_8 = MapRoutes.BUILD_Tank_Defences_Bridge;
+	MapRoutes.ATTACK_Allies_TownGate_9 = MapRoutes.BUILD_Tank_Defences_Bridge;
+	MapRoutes.ATTACK_Allies_TownGate_10 = MapRoutes.BUILD_Tank_Defences_Bridge;
+
+	MapRoutes.PLANT_Banks_barricade = MapRoutes.PLANT_Banks_entrance;
+	MapRoutes.ATTACK_Allies_Bank_1 = MapRoutes.PLANT_Banks_entrance;
+	MapRoutes.ATTACK_Allies_Bank_2 = MapRoutes.PLANT_Banks_entrance;
+	MapRoutes.ATTACK_Allies_Bank_3 = MapRoutes.PLANT_Banks_entrance;
+	MapRoutes.ATTACK_Allies_Bank_4 = MapRoutes.PLANT_Banks_entrance;
+	MapRoutes.ATTACK_Allies_Bank_5 = MapRoutes.PLANT_Banks_entrance;
+	MapRoutes.ATTACK_Allies_Bank_6 = MapRoutes.PLANT_Banks_entrance;
+	MapRoutes.ATTACK_Allies_Bank_7 = MapRoutes.PLANT_Banks_entrance;
+	MapRoutes.ATTACK_Allies_Bank_8 = MapRoutes.PLANT_Banks_entrance;
+
+	MapRoutes.DEFEND_Axis_TankDefense_1 = MapRoutes.PLANT_Tank_Defences_Bridge;
+	MapRoutes.DEFEND_Axis_TankDefense_2 = MapRoutes.PLANT_Tank_Defences_Bridge;
+	MapRoutes.DEFEND_Axis_TankDefense_3 = MapRoutes.PLANT_Tank_Defences_Bridge;
+	MapRoutes.DEFEND_Axis_TankDefense_4 = MapRoutes.PLANT_Tank_Defences_Bridge;
+	MapRoutes.DEFEND_Axis_TankDefense_5 = MapRoutes.PLANT_Tank_Defences_Bridge;
+	MapRoutes.DEFEND_Axis_TankDefense_6 = MapRoutes.PLANT_Tank_Defences_Bridge;
+	//~MapRoutes.DEFEND_Axis_TankDefense_7 = MapRoutes.PLANT_Tank_Defences_Bridge;
+	MapRoutes.DEFEND_Axis_TankDefense_8 = MapRoutes.PLANT_Tank_Defences_Bridge;
+	//~MapRoutes.DEFEND_Axis_TankDefense_9 = MapRoutes.PLANT_Tank_Defences_Bridge;
+	MapRoutes.DEFEND_Axis_TankDefense_10 = MapRoutes.PLANT_Tank_Defences_Bridge;
+
+	MapRoutes.DEFEND_Axis_TownGate_1 = MapRoutes.PLANT_Tank_Defences_Bridge;
+	MapRoutes.DEFEND_Axis_TownGate_2 = MapRoutes.PLANT_Tank_Defences_Bridge;
+	MapRoutes.DEFEND_Axis_TownGate_3 = MapRoutes.PLANT_Tank_Defences_Bridge;
+	MapRoutes.DEFEND_Axis_TownGate_4 = MapRoutes.PLANT_Tank_Defences_Bridge;
+	MapRoutes.DEFEND_Axis_TownGate_5 = MapRoutes.PLANT_Tank_Defences_Bridge;
+	MapRoutes.DEFEND_Axis_TownGate_6 = MapRoutes.PLANT_Tank_Defences_Bridge;
+	MapRoutes.DEFEND_Axis_TownGate_7 = MapRoutes.PLANT_Tank_Defences_Bridge;
+	MapRoutes.DEFEND_Axis_TownGate_8 = MapRoutes.PLANT_Tank_Defences_Bridge;
+
+	Util.Routes(MapRoutes);
+	Util.UpdateSwitchData();
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	// Uncomment for shootable breakables
+	bot.TargetBreakableDist = 80.0;
+	// Only set on maps with limited sight conditions (e.g. fog)
+	//~bot.MaxViewDistance = 2400;
+};

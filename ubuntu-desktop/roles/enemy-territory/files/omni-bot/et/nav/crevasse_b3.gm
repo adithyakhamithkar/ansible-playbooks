@@ -1,0 +1,557 @@
+//==========================================================================================
+//
+//	crevasse_b3.gm
+//
+//	Who			When			What
+//------------------------------------------------------------------------------------------
+//	native12		21 January 2012		Initial Script
+//	native12 & Qiki		02.02.2012		Release
+//==========================================================================================
+//
+//	crevasse_b3.way		02.02.2012
+//	crevasse_b3_goals.gm	02.02.2012
+//
+
+global Map =
+{
+	Debug = 0, // please set to zero before distributing your script
+	ShowMovers = false,
+
+	Allied_CP_Dyno = 0,
+	Anti_tank_Gun_Dyno = 0,
+	Documents_Transmitted = false,
+	
+	Navigation =
+	{
+		//  	/bot waypoint_setproperty paththrough Navigation_PT:lis
+		lis =
+		{
+			navigate = function(_this)
+			{
+				wpTable = {};
+				Wp.GetWaypointByName("Ladder_In_Spawn", wpTable);
+				if ( _this.Goto(wpTable.position) == EVENT.PATH_SUCCESS )
+				{
+					
+					_this.AddAimRequest(Priority.VeryHigh, "facing", wpTable.facing);
+					sleep(0.25);
+					_this.Bot.HoldButton(BTN.FORWARD, 2);
+					sleep(2);
+					_this.Bot.HoldButton(BTN.STRAFE_L, 0.45);
+					sleep(0.45);
+				}
+			},
+		},
+		
+		//  	/bot waypoint_setproperty paththrough Navigation_PT:ladder_1
+		ladder_1 =
+		{
+			navigate = function(_this)
+			{
+				wpTable = {};
+				Wp.GetWaypointByName("Ladder_1", wpTable);
+				if ( _this.Goto(wpTable.position) == EVENT.PATH_SUCCESS )
+				{
+					
+					_this.AddAimRequest(Priority.VeryHigh, "facing", wpTable.facing);
+					//sleep(0.25);
+					_this.Bot.HoldButton(BTN.FORWARD, 1.8);
+					sleep(1.8);
+				}
+			},
+		},
+	},
+	
+	keycard_flag_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_Keycard_.*" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "FLAG_keycard_flag" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allied_Keycard_.*" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_DoorLock_.*" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_Keycard_Door_Lock" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAMP_Allied_DoorLock_.*" );
+		
+		Util.MapDebugPrint( "^3keycard_flag_Taken" );
+	},
+	
+	keycard_flag_Dropped = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_Keycard_Door_Lock" );
+		
+		Util.MapDebugPrint( "^3keycard_flag_Dropped" );
+	},
+	
+	keycard_flag_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_DoorLock_.*" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_Keycard_Door_Lock" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAMP_Allied_DoorLock_.*" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_Keycard_.*" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_keycard_flag" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allied_Keycard_.*" );
+		
+		Util.MapDebugPrint( "^3keycard_flag_Returned" );
+	},
+	
+	keycard_flag_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Util.MapDebugPrint( "^3keycard_flag_Secured" );
+		
+		sleep(4);
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_Gun_.*" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_DoorLock_.*" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_Keycard_Door_Lock" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAMP_Allied_DoorLock_.*" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Allied_CP" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Anti_tank_Gun" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_hutammocab" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "HEALTHCAB_huthpcab" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allied_Gun_.*" );
+	},
+	
+	Allied_CP_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Allied_CP" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Allied_CP" );
+		
+		Util.MapDebugPrint( "^3Allied_CP_Built" );
+	},
+	
+	Allied_CP_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Allied_CP_Dyno += 1;
+		
+		Util.MapDebugPrint( "^3Allied_CP_Planted" );
+	},
+	
+	Allied_CP_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Allied_CP_Dyno -= 1;
+		
+		Util.MapDebugPrint( "^3Allied_CP_Defused" );
+	},
+	
+	Allied_CP_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		if ( Map.Allied_CP_Dyno > 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFUSE_Allied_CP_.*" );
+		}
+		
+		Map.Allied_CP_Dyno = 0;
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Allied_CP" );
+		
+		Util.MapDebugPrint( "^3Allied_CP_Destroyed" );
+	},
+	
+	Anti_tank_Gun_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Anti_tank_Gun" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Anti_tank_Gun" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_Anti_tank_Gun" );
+		
+		Util.MapDebugPrint( "^3Anti_tank_Gun_Built" );
+	},
+	
+	Anti_tank_Gun_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Anti_tank_Gun_Dyno += 1;
+		
+		Util.MapDebugPrint( "^3Anti_tank_Gun_Planted" );
+	},
+	
+	Anti_tank_Gun_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Anti_tank_Gun_Dyno -= 1;
+		
+		Util.MapDebugPrint( "^3Anti_tank_Gun_Defused" );
+	},
+	
+	Anti_tank_Gun_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		if ( Map.Anti_tank_Gun_Dyno > 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFUSE_Anti_tank_Gun_.*" );
+		}
+		
+		Map.Anti_tank_Gun_Dyno = 0;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Anti_tank_Gun" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_Anti_tank_Gun" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Anti_tank_Gun" );
+		
+		Util.MapDebugPrint( "^3Anti_tank_Gun_Destroyed" );
+	},
+	
+	Allies_broken_into_SecureRoom = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Anti_tank_Gun" );
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_Gun_.*" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_Anti_tank_Gun" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allied_Gun_.*" );
+		
+		Util.MapDebugPrint( "^3Allies_broken_into_SecureRoom" );
+		
+		sleep(2);
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_Documents_.*" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_documents" );
+		
+		sleep(3);
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_LeftDoor" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_RightDoor" );
+	},
+	
+	documents_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_Documents_.*" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "FLAG_documents" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Transmitter_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_Transmitter_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_Transmitter_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_Transmitter_.*" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_Transmitter" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Transmitter_.*" );
+		
+		Util.MapDebugPrint( "^3documents_Taken" );
+	},
+	
+	documents_Dropped = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_Transmitter" );
+		
+		Util.MapDebugPrint( "^3documents_Dropped" );
+	},
+	
+	documents_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Transmitter_.*" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Transmitter_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_Transmitter" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_Documents_.*" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_documents" );
+		
+		Util.MapDebugPrint( "^3documents_Returned" );
+	},
+	
+	documents_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Documents_Transmitted = true;
+		
+		Util.MapDebugPrint( "^5Allies_Win" );
+		
+		sleep(1);
+		ETUtil.WinningChat( TEAM.ALLIES );
+		sleep(1.5);
+		ETUtil.LosingChat( TEAM.AXIS );
+	},
+	
+	Thirty_second = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "^5Thirty_second" );
+		
+		sleep(31);
+		
+		if ( !Map.Documents_Transmitted )
+		{
+			ETUtil.WinningChat( TEAM.AXIS );
+			sleep(1.5);
+			ETUtil.LosingChat( TEAM.ALLIES );
+		}
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+	
+	// Register callback functions
+	OnTrigger( "Allies have stolen the Keycard!", Map.keycard_flag_Taken );
+	OnTrigger( "the Keycard dropped.", Map.keycard_flag_Dropped );
+	OnTrigger( "Flag returned keycard_flag!", Map.keycard_flag_Returned );
+	OnTrigger( "Allied team has used the keycard!", Map.keycard_flag_Secured );
+	
+	OnTrigger( "Allies have repaired the Anti-tank Gun!", Map.Anti_tank_Gun_Built );
+	OnTrigger( "Planted at Anti-tank Gun.", Map.Anti_tank_Gun_Planted );
+	OnTrigger( "Defused at Anti-tank Gun.", Map.Anti_tank_Gun_Defused );
+	OnTrigger( "Axis have disabled the Anti-tank Gun!", Map.Anti_tank_Gun_Destroyed );
+	
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_CP_Built );
+	OnTrigger( "Planted at the Allied CP.", Map.Allied_CP_Planted );
+	OnTrigger( "Defused at the Allied CP.", Map.Allied_CP_Defused );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_CP_Destroyed );
+	
+	OnTrigger( "The allies have broken into the secure room!", Map.Allies_broken_into_SecureRoom );
+	
+	OnTrigger( "Allies have stolen the documents!", Map.documents_Taken );
+	OnTrigger( "the documents dropped.", Map.documents_Dropped );
+	OnTrigger( "Flag returned documents!", Map.documents_Returned );
+	OnTrigger( "Allied team has transmitted the documents!", Map.documents_Secured );
+	
+	OnTrigger( "thirty second warning.", Map.Thirty_second );
+	
+	Util.DisableGoal( ".*", true ); // all but routes
+	
+	SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_Keycard_.*" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_keycard_flag" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allied_Keycard_.*" );
+	
+	// Max users per goal
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	
+	Util.AddUseWp( "PLANT_Anti_tank_Gun", "build_gun" );
+	Util.AddUseWp( "BUILD_Anti_tank_Gun", "build_gun" );
+	
+	SetGoalPriority( "BUILD_Allied_CP", 0.91, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "SMOKEBOMB_Allied_Keycard_1", 0.81, TEAM.ALLIES, CLASS.COVERTOPS );
+	
+	SetGoalPriority( "DEFEND_DoorLock_5", 0.51, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_DoorLock_6", 0.51, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_DoorLock_7", 0.51, TEAM.AXIS, 0 );
+	
+	NP1 = OnTriggerRegion(AABB(921.693,696.458,133.125,1150.595,944.875,242.429), RegionTrigger.DisableBotPush);	//hole in floor near first allied spawn exit
+	NP2 = OnTriggerRegion(AABB(567.125,13.125,-194.690,786.569,128.916,-73.640), RegionTrigger.DisableBotPush);		//near doorlock
+	DCM2 = OnTriggerRegion(AABB(567.125,13.125,-194.690,786.569,128.916,-73.640), RegionTrigger.DisableCombatMovement);	//near doorlock
+	NP3 = OnTriggerRegion(AABB(282.061,1236.459,-182.875,496.201,1392.875,170.875), RegionTrigger.DisableBotPush);	//ladder in storage near doorlock
+	DCM4 = OnTriggerRegion(AABB(219.568,911.125,17.125,340.390,1003.803,91.125), RegionTrigger.DisableCombatMovement);	//window in storage for airstrike to doorlock
+	
+	MapRoutes =
+	{
+		FLAG_keycard_flag =
+		{
+			ROUTE_Allied_FirstSpawn =
+			{
+				ROUTE_Tunnel =
+				{
+					ROUTE_Hole =
+					{
+						
+					},
+				},
+				ROUTE_SpawnLadder =
+				{
+					ROUTE_SpawnExitNearDoorLock =
+					{
+						ROUTE_LadderInStorage =
+						{
+							ROUTE_NearTruck =
+							{
+								
+							},
+						},
+					},
+				},
+			},
+		},
+		CAPPOINT_Keycard_Door_Lock =
+		{
+			ROUTE_Keycard_Table =
+			{
+				ROUTE_Storage_LeftSide =
+				{
+					
+				},
+				ROUTE_Steel_Platform =
+				{
+					
+				},
+			},
+			ROUTE_Grass_Near_Keycard =
+			{
+				ROUTE_Storage_LeftSide =
+				{
+					
+				},
+				ROUTE_Steel_Platform =
+				{
+					
+				},
+			},
+		},
+		BUILD_Anti_tank_Gun =
+		{
+			ROUTE_Allied_SecondSpawn =
+			{
+				ROUTE_LeftWay =
+				{
+					
+				},
+				ROUTE_RightWay =
+				{
+					
+				},
+			},
+		},
+		FLAG_documents =
+		{
+			ROUTE_Allied_SecondSpawn =
+			{
+				ROUTE_BrokenWall =
+				{
+					ROUTE_LeftDoor =
+					{
+						
+					},
+					ROUTE_DestroyedWall =
+					{
+						
+					},
+				},
+				ROUTE_LeftWay =
+				{
+					ROUTE_StorageExit =
+					{
+						ROUTE_LeftDoor =
+						{
+							
+						},
+						ROUTE_DestroyedWall =
+						{
+							
+						},
+					},
+				},
+			},
+		},
+		CAPPOINT_Transmitter =
+		{
+			ROUTE_Documents_Table =
+			{
+				ROUTE_RightDoor =
+				{
+					
+				},
+				ROUTE_DestroyedWall_1 =
+				{
+					ROUTE_NearGun =
+					{
+						
+					},
+				},
+			},
+			ROUTE_NearTable =
+			{
+				ROUTE_RightDoor =
+				{
+					
+				},
+				ROUTE_DestroyedWall_1 =
+				{
+					ROUTE_NearGun =
+					{
+						
+					},
+				},
+			},
+		},
+	};
+	MapRoutes[".*_Axis_Documents_.*"] =
+	{
+		ROUTE_Axis_SecondSpawn =
+		{
+			ROUTE_RightDoor =
+			{
+				
+			},
+		},
+	};
+	
+	//copy some routes
+	MapRoutes[".*_Allied_Gun_.*"] = MapRoutes.BUILD_Anti_tank_Gun;
+	MapRoutes["ATTACK_Transmitter_.*"] = MapRoutes.CAPPOINT_Transmitter;
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_LeftDoor" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_RightDoor" );
+	
+	Util.Routes(MapRoutes);
+	
+	Util.MapDebugPrint( "^3Omni-bot map script by ^1n^2a^4t^8i^3v^5e12 ^3for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 320.0;
+};

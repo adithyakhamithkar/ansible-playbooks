@@ -1,0 +1,115 @@
+global Map =
+{
+	Debug=0,
+	ShowMovers = false,
+	Movers =
+	{
+		"MOVER_bullseye",
+		"MOVER_dogs",
+		"MOVER_coi",
+		"MOVER_telly",
+	},
+
+	Roles =
+	{
+		AXIS =
+		{
+			DEFENDER =
+			{
+				numbots = 3,
+				crucialClass=CLASS.SOLDIER,
+			}
+		},
+		ALLIES =
+		{
+			DEFENDER =
+			{
+				numbots = 3,
+				crucialClass=CLASS.SOLDIER,
+			}
+		},
+	},
+};
+
+global OnMapLoad = function()
+{
+	OnTriggerRegion(AABB(-4082.263,-3879.013,-1466.419,4025.175,4183.858,-693.839),RegionTrigger.KillTrigger);
+
+	Util.LimitToTeam(TEAM.AXIS, ".*_x_.*");
+	Util.LimitToTeam(TEAM.ALLIES, ".*_l_.*");
+
+	Util.SetRoleForGoals("DEFEND.*", ROLE.DEFENDER);
+
+	SetGoalPriority( "FLAG_.*", 0.6);
+	SetGoalPriority( "DEFEND_.*", 0.65);
+
+	SetMapGoalProperties("SNIPE_.*", {mincamptime=20, maxcamptime=50} );
+
+	MapRoutes =
+	{
+		FLAG_axis_gold_crate = {
+			ROUTE_l_spawn = {
+				ROUTE_west = { Weight=5 },
+				ROUTE_down_west = {},
+				ROUTE_down_east = {},
+				ROUTE_s1 = {ROUTE_n1 = {}},
+				ROUTE_s2 = {ROUTE_n2 = {}},
+				ROUTE_s3 = {ROUTE_n3 = {}},
+				ROUTE_s4 = {ROUTE_n4 = {}},
+				ROUTE_s5 = {ROUTE_n5 = {}},
+				ROUTE_s6 = {ROUTE_n6 = {}},
+			}
+		},
+		FLAG_allies_gold_crate = {
+			ROUTE_x_spawn = {
+				ROUTE_east = { Weight=5 },
+				ROUTE_down_west = {},
+				ROUTE_down_east = {},
+				ROUTE_n1 = {ROUTE_s1 = {}},
+				ROUTE_n2 = {ROUTE_s2 = {}},
+				ROUTE_n3 = {ROUTE_s3 = {}},
+				ROUTE_n4 = {ROUTE_s4 = {}},
+				ROUTE_n5 = {ROUTE_s5 = {}},
+				ROUTE_n6 = {ROUTE_s6 = {}},
+			}
+		},
+		CAPPOINT_l_cap = {
+			ROUTE_l_gold = {
+				ROUTE_n1 = {},
+				ROUTE_n2 = {},
+				ROUTE_n3 = {},
+				ROUTE_n4 = {},
+				ROUTE_n5 = {},
+				ROUTE_n6 = {},
+			}
+		},
+		CAPPOINT_x_cap = {
+			ROUTE_x_gold = {
+				ROUTE_s1 = {},
+				ROUTE_s2 = {},
+				ROUTE_s3 = {},
+				ROUTE_s4 = {},
+				ROUTE_s5 = {},
+				ROUTE_s6 = {},
+			}
+		},
+	};
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.MaxViewDistance = 2500;
+	Util.IgnoreTargetGoalTable(bot, Map.Movers);
+
+	//disable artillery
+	w = bot.GetWeapon(WEAPON.BINOCULARS);
+	if(w){
+		foreach(class in Util.PlayerClassTable)
+		{
+			w.PrimaryFire.SetTargetBias(class, 0);
+		}
+	}
+};

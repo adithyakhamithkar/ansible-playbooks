@@ -1,0 +1,64 @@
+//==========================================================================================
+//
+//	fueldump_sniper.gm
+//
+//	Who               When              What
+//------------------------------------------------------------------------------------------
+//	^8'^0StoerFaktoR  03 December 2010  Initial Script
+//	palota            11 April 2012     deleted old auto-generated script and created new sniper script, cleared prone and crouch waypoint flags, every SNIPE goal is available only for 1 team, fixed ladders
+//	palota            22 July 2012      paththrough navigation
+//
+//==========================================================================================
+//
+global Map =
+{
+	Debug = 0,
+	SnipeMap = true,
+
+	Navigation =
+	{
+		l1 =
+		{
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.High, "facing", Vector3(0.5,0,0.87));
+				sleep(2.3);
+			},
+		},
+		l2 =
+		{
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.High, "facing", Vector3(-0.5,0,0.87));
+				sleep(2.3);
+			},
+		},
+		l3 =
+		{
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.High, "facing", Vector3(0,0.5,0.87));
+				sleep(2);
+			},
+		},
+		l4 =
+		{
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.High, "facing", Vector3(0,-0.5,0.87));
+				sleep(2);
+			},
+		},
+	},
+};
+
+global OnMapLoad = function()
+{
+	SetMapGoalProperties("SNIPE.*", { MinCampTime=30, MaxCamptime=50,});
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	Util.ChangeToSniperWeapons(bot);
+};

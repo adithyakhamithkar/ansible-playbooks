@@ -1,0 +1,32 @@
+if (GetModName()!="bastardmod"){ return; }
+
+//////////////////////////////////////////////////////////////////////////
+// Overall weapon properties.
+WEAPON.BAT = 56;
+
+this.Name = "Bastard Bat";
+this.WeaponId = WEAPON.BAT;
+
+//////////////////////////////////////////////////////////////////////////
+// Set some weapon properties that affect some internal logic.
+this.PrimaryFire.WeaponType = "melee";
+this.PrimaryFire.RequiresAmmo = false;
+this.PrimaryFire.WaterProof = true;
+
+// class.anyplayer doesnt work - we don't want them targeting players with the bat
+this.PrimaryFire.SetTargetBias(CLASS.FIELDOPS, 0.1);
+this.PrimaryFire.SetTargetBias(CLASS.MEDIC, 0.1);
+this.PrimaryFire.SetTargetBias(CLASS.ENGINEER, 0.1);
+this.PrimaryFire.SetTargetBias(CLASS.COVERTOPS, 0.1);
+this.PrimaryFire.SetTargetBias(CLASS.SOLDIER, 0.1);
+if(CLASS.SCIENTIST){
+	this.PrimaryFire.SetTargetBias(CLASS.SCIENTIST, 0.1);
+}
+if(CLASS.SUPER_SOLDIER){
+	this.PrimaryFire.SetTargetBias(CLASS.SUPER_SOLDIER, 0.1);
+}
+
+this.PrimaryFire.DefaultDesirability = 0.01;
+this.PrimaryFire.SetDesirabilityRange(0, 48, 1.0);
+
+this.PrimaryFire.SetTargetBias(CLASS.BREAKABLE, 1.1);

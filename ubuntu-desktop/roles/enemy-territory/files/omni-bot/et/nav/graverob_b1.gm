@@ -1,0 +1,529 @@
+/*****************************************************************************
+Pathing and scripting by **PCZ** >M@t3o$<
+Switches scripting by :)BOK(: Naerling, thanks!
+Thanks to Naerling, d00d, crapshoot and all others waypointers for their help
+*****************************************************************************/
+
+global Map =
+{
+	Debug = false,
+	ShowMovers = false,
+	BigDoor = "open",
+	EscapeDoor = "closed",
+	Switch1Unused = true,
+	Switch2Unused = true,
+	FloorDestroyed = false,
+	Talk = true,
+
+	Command_Post_Dyno = 0,
+	Escape_Ladder_Dyno = 0,
+	Grate_Dyno = 0,
+	Tomb_Floor_Dyno = 0,
+	Tomb_Wall_Dyno = 0,
+
+	Ammo_Cabinet_south_ammocabinet = "AMMOCAB_south_ammocabinet",
+	Health_Cabinet_south_healthcabinet = "HEALTHCAB_south_healthcabinet",
+	Flag_Ank = "FLAG_Ank",
+	Cappoint_Escape_Truck = "CAPPOINT_Escape_Truck",
+	Build_Command_Post = "BUILD_Command_Post",
+	Build_Escape_Ladder = "BUILD_Escape_Ladder",
+	Plant_Command_Post = "PLANT_Command_Post",
+	Plant_Escape_Ladder = "PLANT_Escape_Ladder",
+	Plant_Grate = "PLANT_Grate",
+	Plant_Tomb_Floor = "PLANT_Tomb_Floor",
+	Plant_Tomb_Wall = "PLANT_Tomb_Wall",
+	Mount_21 = "MOUNTMG42_21",
+	Repair_21 = "REPAIRMG42_21",
+	Mobile_MG42_TombMobileMG42 = "MOBILEMG42_TombMobileMG42",
+	Mobile_MG42_AxisMobileMG42_1 = "MOBILEMG42_AxisMobileMG42_1",
+
+	Switches =
+	{
+		Door1 =
+		{
+			Enabled = true,
+			Priority = 0.8,
+			WaypointName = "Door1",
+			LimitBots = 1,
+			LimitTeam = 0, // disabled initially.
+			LimitClass = Util.AllClasses,
+			AimPosition = Vector3(-2529.807, 4361.957, 236.467),
+		},
+
+		Door2 =
+		{
+			Enabled = true,
+			Priority = 0.8,
+			WaypointName = "Door2",
+			LimitBots = 2,
+			LimitTeam = 0, // disabled initially.
+			LimitClass = Util.AllClasses,
+			AimPosition = Vector3(1436.350, 2527.087, -500.284),
+		},
+	},
+
+	Navigation =
+	{
+		longladder =
+		{
+			navigate = function(_this)
+			{
+				// face up
+				_this.AddAimRequest( Priority.High, "position", Vector3(96.250,2799.352,-495.683) );
+
+				seconds = 0;
+				while( seconds < 6 ) {
+					// move backwards
+					_this.Bot.MoveTowards(Vector3(111.072,3169.242,-2215.875));
+					sleep(1);
+					seconds += 1;
+				}
+			},
+		},
+	},
+
+	Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Built" );
+	},
+
+	Escape_Ladder_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Wp.SetWaypointFlag("FastWay", "closed", false);
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_Ladder" );
+
+		Util.MapDebugPrint( "Escape_Ladder_Built" );
+	},
+
+	Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Planted" );
+	},
+
+	Escape_Ladder_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Escape_Ladder_Planted" );
+	},
+
+	Grate_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Grate_Planted" );
+	},
+
+	Tomb_Floor_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Tomb_Floor_Planted" );
+	},
+
+	Tomb_Wall_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Tomb_Wall_Planted" );
+	},
+
+	Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Defused" );
+	},
+
+	Escape_Ladder_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Escape_Ladder_Defused" );
+	},
+
+	Grate_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Grate_Defused" );
+	},
+
+	Tomb_Floor_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Tomb_Floor_Defused" );
+	},
+
+	Tomb_Wall_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Tomb_Wall_Defused" );
+	},
+
+	Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Destroyed" );
+	},
+
+	Escape_Ladder_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Wp.SetWaypointFlag("FastWay", "closed", true);
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_Ladder" );
+
+		Util.MapDebugPrint( "Escape_Ladder_Destroyed" );
+	},
+
+	Grate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Grate_Destroyed" );
+	},
+
+	Tomb_Floor_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		FloorDestroyed = true;
+		Map.Switches.Door1.Enabled = False;
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Ank.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_TombMobileMG42" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Alpha.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Charlie.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_AxisMobileMG42_1" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Dyna.*" );
+
+		Map.Switches.Door2.LimitTeam = (1<<TEAM.ALLIES);
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.MOVE);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.SayVoice(VOICE.DEFEND_OBJECTIVE);
+					}
+				}
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.ExecCommand("vsay_team FTFollowMe");
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTLetsGo");
+					}
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "Tomb_Floor_Destroyed" );
+	},
+
+	Tomb_Wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_Tomb_Wall" );
+
+		if ( Map.Switch1Unused )
+			{ Map.Switches.Door1.LimitTeam = (1<<TEAM.ALLIES); }
+
+		Util.MapDebugPrint( "Tomb_Wall_Destroyed" );
+	},
+
+	Ank_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Bravo.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Ank.*" );
+
+		Util.MapDebugPrint( "Ank_Taken" );
+	},
+
+	Ank_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Ank.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Bravo.*" );
+
+		Util.MapDebugPrint( "Ank_Returned" );
+	},
+
+	Ank_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "Ank_Secured" );
+	},
+
+	//DoorSwitches
+	Doorswitch1 = function( trigger )
+	{
+		vec = ToVector( trigger.Action );
+
+		//Door open
+		if ( vec.z < 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Alpha.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Charlie.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_Tomb_Entrance" );
+			Map.Switches.Door1.LimitTeam = (1<<TEAM.ALLIES);
+			if ( Map.FloorDestroyed )
+				{ Map.Switches.Door1.LimitTeam = 0; }
+			Map.BigDoor = "open";
+		}
+
+		//Door closed
+		if ( vec.z > 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Charlie.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Alpha.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_Tomb_Entrance" );
+			Map.Switches.Door1.LimitTeam = (1<<TEAM.AXIS);
+			Map.Switch1Unused = false;
+			Map.BigDoor = "closed";
+		}
+
+		Util.MapDebugPrint( "Big door is now: " + Map.BigDoor, true);
+	},
+
+	Doorswitch2 = function( trigger )
+	{
+		vec = ToVector( trigger.Action );
+
+		//Door open
+		if ( vec.x < 0 )
+		{
+			Map.Switches.Door2.LimitTeam = (1<<TEAM.AXIS);
+			Map.Switch2Unused = false;
+			Map.EscapeDoor = "open";
+		}
+
+		//Door closed
+		if ( vec.x > 0 )
+		{
+			Map.Switches.Door2.LimitTeam = (1<<TEAM.ALLIES);
+			Map.EscapeDoor = "closed";
+		}
+
+		Util.MapDebugPrint( "Escape door is now: " + Map.EscapeDoor, true);
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// *** TRIGGERS ***
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Command_Post_Built );
+	OnTrigger( "^4The Escape Ladder has been constructed!", Map.Escape_Ladder_Built );
+	OnTrigger( "Planted at the Allied Command Post.", Map.Command_Post_Planted );
+	OnTrigger( "Planted at the Escape Ladder.", Map.Escape_Ladder_Planted );
+	OnTrigger( "Planted at the Grate.", Map.Grate_Planted );
+	OnTrigger( "Planted at the Tomb Floor.", Map.Tomb_Floor_Planted );
+	OnTrigger( "Planted at the Tomb Wall.", Map.Tomb_Wall_Planted );
+	OnTrigger( "Defused at the Allied Command Post.", Map.Command_Post_Defused );
+	OnTrigger( "Defused at the Escape Ladder.", Map.Escape_Ladder_Defused );
+	OnTrigger( "Defused at the Grate.", Map.Grate_Defused );
+	OnTrigger( "Defused at the Tomb Floor.", Map.Tomb_Floor_Defused );
+	OnTrigger( "Defused at the Tomb Wall.", Map.Tomb_Wall_Defused );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Command_Post_Destroyed );
+	OnTrigger( "^1The Escape Ladder has been destroyed!", Map.Escape_Ladder_Destroyed );
+	OnTrigger( "^4The Allies have breached the Grate!", Map.Grate_Destroyed );
+	OnTrigger( "^4The Allies have breached the Tomb Floor!", Map.Tomb_Floor_Destroyed );
+	OnTrigger( "^4The Allies have breached the Tomb Wall!", Map.Tomb_Wall_Destroyed );
+	OnTrigger( "Allies have stolen the Ank!", Map.Ank_Taken );
+	OnTrigger( "Flag returned Ank!", Map.Ank_Returned );
+	OnTrigger( "^4The Allies have secured the Ank!", Map.Ank_Secured );
+
+	// *** MOVING TRIGGERS ***
+	OnTrigger( "door2_goto", Map.Doorswitch1 );
+	OnTrigger( "door_a_goto", Map.Doorswitch2 );
+
+	// *** INITIAL AVAILABILITY OF MAP GOALS ***
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Alpha.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_AxisMobileMG42_1" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_21" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Ank.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Bravo.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Charlie.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_TombMobileMG42" );
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, "Map.Plant_Tomb_Wall" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "Map.Plant_Tomb_Floor" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Dyna.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_21" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_TombMobileMG42" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_Escape" );
+
+	// *** PRIORITY ***
+	SetGoalPriority("ATTACK_.*", 0.7);
+	SetGoalPriority("DEFEND_.*", 0.7);
+	SetGoalPriority(Map.Plant_Tomb_Floor, 0.85);
+	SetGoalPriority(Map.Plant_Tomb_Wall, 0.9);
+	SetGoalPriority(Map.Build_Escape_Ladder, 0.9);
+	SetGoalPriority(Map.Plant_Escape_Ladder, 0.9);
+
+	Util.SetGoalOffset( 0, -30, -30, "PLANT_Tomb_Wall" );
+
+	Util.UpdateSwitchData();
+
+	Util.SetMaxUsersInUse( 1, "PLANT.*" );
+	Util.SetMaxUsersInProgress( 2, "BUILD.*" );
+	Util.SetMaxUsersInProgress( 1, "PLANT.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_.*" );
+	Util.SetMaxUsersInProgress( 1, "ATTACK_.*" );
+	Util.SetMaxUsersInProgress( 1, "MOBILEMG42_.*" );
+	Util.SetMaxUsersInProgress( 1, "REPAIR.*" );
+	Util.SetMaxUsersInProgress( 1, "MOUNTMG42_.*" );
+
+	Wp.SetWaypointFlag("FastWay", "closed", true);
+
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=60, MaxCampTime=120});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=60, MaxCampTime=120});
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=60, MaxCampTime=120});
+
+	//Disable some routes
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_Tomb_Wall" );
+
+	// *** ROUTES ***
+	MapRoutes =
+	{
+		PLANT_Tomb_Floor =
+		{
+			ROUTE_Allied_Spawn =
+			{
+				Weight = 3,
+				ROUTE_Tomb_Wall = {},
+				Weight = 1,
+				ROUTE_Tomb_Entrance = {},
+			},
+		},
+
+		ATTACK_Dyna1 =
+		{
+			ROUTE_Allied_Spawn =
+			{
+				ROUTE_Tomb_Wall = {},
+			},
+		},
+
+		FLAG_Ank =
+		{
+			ROUTE_Central_Spawn =
+			{
+				ROUTE_UpStairs =
+				{
+					Weight = 5,
+					ROUTE_LeftStairs =
+					{
+						Weight = 3,
+						ROUTE_DownStairs =
+						{
+							ROUTE_RightSide =
+							{
+								ROUTE_Middle =
+								{
+									ROUTE_Objective = {},
+								},
+							},
+						},
+					},
+					ROUTE_RightStairs =
+					{
+						ROUTE_Window =
+						{
+							ROUTE_Middle =
+							{
+								ROUTE_Objective = {},
+							},
+						},
+						ROUTE_LeftSide =
+						{
+							Weight = 3,
+							ROUTE_Middle =
+							{
+								ROUTE_Objective ={},
+							},
+						},
+					},
+				},
+				ROUTE_Ladder =
+				{
+					ROUTE_Objective = {},
+				},
+			},
+		},
+
+		CAPPOINT_Escape_Truck =
+		{
+			ROUTE_Objective =
+			{
+				ROUTE_Ladder =
+				{
+					ROUTE_Escape = {},
+				},
+			},
+		},
+	};
+
+	MapRoutes.ATTACK_Dyna3 = MapRoutes.ATTACK_Dyna1;
+
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for Grave Robbery Beta 1 by **PCZ** >M@t3o$<." );
+};

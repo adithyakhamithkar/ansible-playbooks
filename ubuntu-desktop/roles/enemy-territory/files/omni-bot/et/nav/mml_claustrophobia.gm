@@ -1,0 +1,71 @@
+global Map =
+{
+	Plant_Generator = "PLANT_Generator",
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	Util.SetGoalOffset(0, 10, -20, Map.Plant_Generator);
+	SetAvailableMapGoals(TEAM.ALLIES, false, "DEFEND.*");
+	SetAvailableMapGoals(TEAM.ALLIES, false, "MOBILEMG42.*");
+	SetAvailableMapGoals(TEAM.ALLIES, true, "MOBILEMG42_both_teams");
+
+	Maproutes =
+	{
+		PLANT_Generator =
+		{
+			ROUTE_allyspawn =
+			{
+				ROUTE_attic =
+				{
+					ROUTE_healthstand = {},
+					ROUTE_cellar1 =
+					{
+						ROUTE_airshaft1 = {},
+						ROUTE_direct = {},
+						ROUTE_ladder = {},
+					},
+					ROUTE_window =
+					{
+						ROUTE_cellar1 =
+						{
+							ROUTE_airshaft1 = {},
+							ROUTE_direct = {},
+							ROUTE_ladder = {},
+						},
+						ROUTE_healthstand = {},
+					},
+				},
+				ROUTE_hoist =
+				{
+					//Weight = 2,
+					ROUTE_cellar1 =
+					{
+						ROUTE_airshaft1 = {},
+						ROUTE_direct = {},
+						ROUTE_ladder = {},
+					},
+					ROUTE_healthstand = {},
+				},
+				ROUTE_cellar1 =
+				{
+					ROUTE_airshaft1 = {},
+					ROUTE_direct = {},
+					ROUTE_ladder = {},
+				},
+				ROUTE_healthstand = {},
+			},
+		},
+	};
+	Maproutes.MOBILEMG42_both_teams = Maproutes.PLANT_Generator;
+
+	Util.Routes(Maproutes);
+};
+
+global OnBotJoin = function( bot )
+{
+	//~ bot.TargetBreakableDist = 300.0;
+};

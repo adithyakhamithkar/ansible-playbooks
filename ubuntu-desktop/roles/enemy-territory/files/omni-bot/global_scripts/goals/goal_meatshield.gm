@@ -1,0 +1,104 @@
+// This script contains functionality to allow medic bots to dispense health at spawn
+
+// These parameters are required
+this.Name = "MeatShield";			// The name of the goal.
+this.Parent = "HighLevel";		// The name of the parent. This setting determines where in the state tree the goal will reside in.
+this.AlwaysRecieveEvents = true;	// Always recieve events
+this.AutoAdd = false;			// Don't add it to everyone automatically.
+
+this.SquadInfo =
+{
+	Subject = {},
+};
+
+this.Initialize = function()
+{
+	// Internal variables
+	this.Debug = true;
+
+	//print(this.Name, " Initialized");
+	this.PersistentPriority = 2;
+};
+
+this.GetPriority = function()
+{
+	//this.Priority = this.PersistentPriority;
+	block(0);
+};
+
+this.Enter = function()
+{
+	this.Stop();
+	this.AddAimRequest(Priority.Low, "movedirection");
+	this.AddWeaponRequest(Priority.Low, WEAPON.KNIFE);
+
+	this.Bot.Say("Forming Up!");
+
+	this.EscortInfo.Escorts[this.Bot] = tableCount(this.EscortInfo.Escorts);
+};
+
+this.Exit = function()
+{
+	// remove us from the escort list
+	this.EscortInfo.Escorts[this.Bot] = null;
+	this.EscortInfo = null;
+};
+
+this.Update = function()
+{
+	offset = 150;
+	interval = 64;
+
+	while(true)
+	{
+		//interval = 360 / tableCount(this.SquadInfo.Participants);
+		//myangle = this.SquadInfo.Participants[this.Bot] * interval;
+
+		//offset = AngleAxis(myangle+this.SquadInfo.Angle,Vector3(0,1,0)) * 256.0;
+		numbots = tableCount(this.EscortInfo.Escorts);
+		slotnum = this.EscortInfo.Escorts[this.Bot];
+
+		lp = GetEntPosition(this.EscortInfo.Player);
+		lf = GetEntFacing(this.EscortInfo.Player);
+		side = CrossProduct(lf,Vec3(0,0,1));
+
+		dest = lp + lf * offset;
+		dest += (side * (slotnum * interval));
+		dest -= (side * 0.5 * numbots * interval);
+
+		//DrawLine(lp,dest,COLOR.GREEN,1);
+
+		if(this.Bot.DistanceTo(dest) > 1024)
+		{
+			this.Goto(dest);
+		}
+		else
+		{
+			this.Bot.MoveTowards(dest);
+		}
+		yield();
+	}
+};
+
+/////////////////////////
+
+this.Events[EVENT.TEAM_CHAT_MSG] = function(who, msg)
+{
+};
+
+this.Events[EVENT.GLOBAL_CHAT_MSG] = this.Events[EVENT.TEAM_CHAT_MSG];
+
+this.Events[EVENT.TEAM_VOICE] = function(source, id)
+{
+	if ( id == VOICE.COVER_ME && this.EscortInfo == null )
+	{
+		if(this.SquadInfo.Subject[source]==null)
+		{
+			this.SquadInfo.Subject[source] = { Player=source, Escorts = {} };
+		}
+		this.EscortInfo = this.SquadInfo.Subject[source];
+		this.Priority = this.PersistentPriority;
+		return;
+	}
+};
+

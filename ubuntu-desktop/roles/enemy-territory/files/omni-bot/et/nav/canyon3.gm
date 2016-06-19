@@ -1,0 +1,798 @@
+//==========================================================================================
+//
+// canyon3.gm
+//
+// Who	When		What
+//------------------------------------------------------------------------------------------
+// palota	05 July 2010	Initial Script
+// palota	29 September 2010 goals availability and priorities, roles, routes, triggers, attack
+// palota	17 October 2010	routes to axis vault, DEFENDER2 role, DYNAMITE_hatch disabled when neutral bridge built, PLANT_Axis_Gate use point
+// palota	19 October 2010	change spawn when vault planted or documents taken, ROUTE_hatch
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+	elevatorStatus = 3,
+	Allied_Vault_Dyno = 0,
+	Axis_Vault_Dyno = 0,
+	northFlag = TEAM.ALLIES,
+	southFlag = TEAM.AXIS,
+	forwardFlag = 0,
+	oppositeFlags = false,
+	axisVaultDestroyed = false,
+	alliedVaultDestroyed = false,
+	hatchDestroyed = false,
+	neutralBridge = 0,
+
+	NavL = function(_this, x,y,z, t)
+	{
+		_this.AddAimRequest(Priority.High, "facing", Vector3(x,y,z));
+		if(!t){ t=5; }
+		sleep(t);
+	},
+
+	Navigation =
+	{
+		//Ladders
+		l1 = {navigate=function(t){
+			Map.NavL(t, 0.778, -0.598, 0.191);
+		}},
+		l2 = {navigate=function(t){
+			Map.NavL(t, -0.509, 0.840, 0.189, 6);
+		}},
+		l3 = {navigate=function(_this){
+			_this.AddAimRequest(Priority.High, "facing", Vector3(0.7, 0, 0.8));
+			sleep(0.2);
+			_this.Bot.HoldButton(BTN.STRAFE_R, 0.3);
+			_this.Bot.HoldButton(BTN.BACKWARD, 4.5);
+			sleep(4.5);
+		}},
+		l4 = {navigate=function(t){
+			Map.NavL(t, 0.9, 0, 0.4);
+		}},
+		l5 = {navigate=function(t){
+			Map.NavL(t, -0.9, 0, 0.4);
+		}},
+		l6 = {navigate=function(t){
+			Map.NavL(t, 0, 0.9, 0.4);
+		}},
+		l7 = {navigate=function(t){
+			Map.NavL(t, 0, -0.9, 0.4);
+		}},
+		l8 = {navigate=function(t){
+			Map.NavL(t, 0.6, -0.6, 0.4);
+		}},
+		l9 = {navigate=function(_this){
+			_this.Bot.HoldButton(BTN.CROUCH,BTN.FORWARD, 0.5);
+			sleep(0.5);
+			_this.AddAimRequest(Priority.High, "facing", Vector3(0, -0.4, 0.9));
+			sleep(0.2);
+			_this.Bot.HoldButton(BTN.BACKWARD, 3);
+			sleep(3);
+		}},
+		l10 = {navigate=function(_this){
+			_this.AddAimRequest(Priority.High, "facing", Vector3(0, 0.4, 0.9));
+			sleep(1);
+			_this.Bot.HoldButton(BTN.BACKWARD, 3.2);
+			sleep(3.2);
+		}},
+		l11 = {navigate=function(_this){
+			Map.NavL(_this, 0, 0.9, 0.4);
+			for(i=0; i<20; i+=1){
+				if(_this.Bot.GetPosition().z > 4508){
+					_this.Bot.HoldButton(BTN.STRAFE_L, 1);
+					sleep(1);
+					break;
+				}
+				sleep(0.5);
+			}
+		}},
+		l12 = {navigate=function(t){
+			Map.NavL(t, 0.5, 0.5, 0.5);
+		}},
+		centerflag = {
+			EvalFunc = function(_this)
+			{
+				return _this.Bot.GetTeam() != Map.forwardFlag;
+			},
+			navigate=function(_this){
+				_this.Goto(Vector3(-171.719, -1510.005, 5087.556));
+			}
+		},
+	},
+
+	Roles =
+	{
+		AXIS =
+		{
+			AllBots = true,
+			ATTACKER =
+			{
+				numbots = 2,
+				crucialClass = CLASS.ENGINEER,
+			},
+			DEFENDER =
+			{
+				numbots = 2,
+				spawnpt = 2,
+				crucialClass = CLASS.ENGINEER,
+			},
+			DEFENDER2 =
+			{
+				numbots = 2,
+				crucialClass = CLASS.COVERTOPS,
+			},
+		},
+		ALLIES =
+		{
+			AllBots = true,
+			ATTACKER =
+			{
+				numbots = 2,
+				crucialClass = CLASS.ENGINEER,
+			},
+			DEFENDER =
+			{
+				numbots = 2,
+				spawnpt = 3,
+				crucialClass = CLASS.ENGINEER,
+			},
+			DEFENDER2 =
+			{
+				numbots = 2,
+				crucialClass = CLASS.COVERTOPS,
+			},
+		},
+	},
+
+	Switches =
+	{
+		elevator_up_call =
+		{
+			Enabled = false,
+			Priority = 0,
+			WaypointName = "elevator_up_call",
+			AimPosition = Vector3(-302,-1799,5106),
+			ExitConditions =
+			{
+				f = function(bot){
+					return Map.elevatorStatus!=7;
+				}
+			},
+			Wait = function()
+			{
+				return Map.elevatorStatus==2 || Map.elevatorStatus==3 || Map.elevatorStatus==7;
+			}
+		},
+		elevator_up_in =
+		{
+			Enabled = true,
+			Priority = 0,
+			WaypointName = "elevator_up_in",
+			AimPosition = Vector3(-390,-2032,5100),
+			Wait = function()
+			{
+				sleep(4);
+				return true;
+			}
+		},
+		elevator_down_call =
+		{
+			Enabled = true,
+			Priority = 0,
+			WaypointName = "elevator_down_call",
+			AimPosition = Vector3(-302,-1799,3543),
+			ExitConditions =
+			{
+				f = function(bot){
+					return Map.elevatorStatus!=3;
+				}
+			},
+			Wait = function()
+			{
+				return Map.elevatorStatus==3 || Map.elevatorStatus==6 || Map.elevatorStatus==7;
+			}
+		},
+		elevator_down_in =
+		{
+			Enabled = false,
+			Priority = 0,
+			WaypointName = "elevator_down_in",
+			AimPosition = Vector3(-390,-2032,3530),
+			Wait = function()
+			{
+				sleep(4);
+				return true;
+			}
+		},
+	},
+
+	Elevator = function(trigger)
+	{
+		x = ToVector(trigger.Action).x;
+		if(x==-200){
+			Map.elevatorStatus=1;
+			Util.MapDebugPrint("elevator is up", true);
+			sleep(1.5);
+			Map.elevatorStatus=2;
+			Map.Switches.elevator_up_call.Enabled = false;
+			Map.Switches.elevator_up_in.Enabled = true;
+			sleep(2);
+			Map.elevatorStatus=3;
+		}
+		else if(x==-600){
+			Map.elevatorStatus=4;
+			Util.MapDebugPrint("elevator is moving down", true);
+			Map.Switches.elevator_up_in.Enabled = false;
+			Map.Switches.elevator_up_call.Enabled = true;
+		}
+		else if(x==200){
+			Map.elevatorStatus=5;
+			Util.MapDebugPrint("elevator is down", true);
+			sleep(1.5);
+			Map.elevatorStatus=6;
+			Map.Switches.elevator_down_call.Enabled = false;
+			Map.Switches.elevator_down_in.Enabled = true;
+			sleep(2);
+			Map.elevatorStatus=7;
+		}
+		else if(x==600){
+			Map.elevatorStatus=8;
+			Util.MapDebugPrint("elevator is moving up", true);
+			Map.Switches.elevator_down_in.Enabled = false;
+			Map.Switches.elevator_down_call.Enabled = true;
+		}
+	},
+
+	Spawn_Captured = function()
+	{
+		SetAvailableMapGoals(TEAM.AXIS, Map.forwardFlag!=TEAM.AXIS && Map.northFlag!=TEAM.AXIS, "BUILD_Axis_Bridge" );
+		SetAvailableMapGoals(TEAM.ALLIES, Map.forwardFlag==TEAM.ALLIES, "PLANT_Axis_Bridge" );
+		SetAvailableMapGoals(TEAM.ALLIES, Map.forwardFlag!=TEAM.ALLIES && Map.southFlag!=TEAM.ALLIES, "BUILD_Allied_Bridge" );
+		SetAvailableMapGoals(TEAM.AXIS, Map.forwardFlag==TEAM.AXIS, "PLANT_Allied_Bridge" );
+		SetAvailableMapGoals(TEAM.AXIS, Map.forwardFlag==TEAM.AXIS && Map.northFlag!=TEAM.AXIS, "BUILD_Neutral_Constructible" );
+		SetAvailableMapGoals(TEAM.ALLIES, Map.forwardFlag==TEAM.ALLIES && Map.southFlag!=TEAM.ALLIES, "BUILD_Neutral_Constructible" );
+		SetAvailableMapGoals(TEAM.AXIS, !Map.hatchDestroyed && Map.neutralBridge!=1 && Map.northFlag!=TEAM.AXIS, "DYNAMITE_hatch" );
+		SetAvailableMapGoals(TEAM.ALLIES, !Map.hatchDestroyed && Map.neutralBridge!=2 && Map.southFlag!=TEAM.ALLIES, "DYNAMITE_hatch" );
+
+		SetAvailableMapGoals(TEAM.AXIS, Map.forwardFlag==TEAM.AXIS && (Map.alliedVaultDestroyed || Map.northFlag!=TEAM.AXIS), "BUILD_Command_Post" );
+		SetAvailableMapGoals(TEAM.ALLIES, Map.forwardFlag==TEAM.ALLIES && (Map.axisVaultDestroyed || Map.southFlag!=TEAM.ALLIES), "BUILD_Command_Post" );
+		SetAvailableMapGoals(TEAM.AXIS, Map.forwardFlag==TEAM.AXIS, "PLANT_Command_Post" );
+		SetAvailableMapGoals(TEAM.ALLIES, Map.forwardFlag==TEAM.ALLIES, "PLANT_Command_Post" );
+		SetAvailableMapGoals(TEAM.AXIS, Map.northFlag==TEAM.AXIS, "PLANT_Allied_MG" );
+
+		SetAvailableMapGoals(TEAM.AXIS, Map.forwardFlag==TEAM.AXIS, ".*MG42_center_north_mg" );
+		SetAvailableMapGoals(TEAM.ALLIES, Map.forwardFlag==TEAM.ALLIES, ".*MG42_center_south_mg" );
+		SetAvailableMapGoals(TEAM.AXIS, Map.forwardFlag!=TEAM.ALLIES && Map.northFlag!=TEAM.AXIS && Map.southFlag==TEAM.AXIS, ".*MG42_center_flag_mg" );
+		SetAvailableMapGoals(TEAM.ALLIES, Map.forwardFlag!=TEAM.AXIS && Map.southFlag!=TEAM.ALLIES && Map.northFlag==TEAM.ALLIES, ".*MG42_east_mg" );
+		SetAvailableMapGoals(TEAM.AXIS, false, ".*MG42_east_mg" );
+		SetAvailableMapGoals(TEAM.ALLIES, Map.forwardFlag!=TEAM.ALLIES && Map.southFlag!=TEAM.ALLIES && Map.northFlag==TEAM.ALLIES, ".*MG42_north_mg" );
+		SetAvailableMapGoals(TEAM.AXIS, false, ".*MG42_north_mg" );
+		SetAvailableMapGoals(TEAM.AXIS, Map.forwardFlag!=TEAM.AXIS && Map.northFlag!=TEAM.AXIS && Map.southFlag==TEAM.AXIS, ".*MG42_south_mg" );
+		SetAvailableMapGoals(TEAM.ALLIES, false, ".*MG42_south_mg" );
+
+		SetAvailableMapGoals(TEAM.AXIS, Map.northFlag==TEAM.AXIS, "GRENADE_allied.*");
+		SetAvailableMapGoals(TEAM.AXIS, Map.northFlag==TEAM.AXIS, "ATTACK_allied_docs.*");
+		SetAvailableMapGoals(TEAM.ALLIES, Map.southFlag==TEAM.ALLIES, "GRENADE_axis.*");
+		SetAvailableMapGoals(TEAM.ALLIES, Map.southFlag==TEAM.ALLIES, "ATTACK_axis_docs.*");
+
+		if (Map.oppositeFlags && (Map.southFlag!=TEAM.ALLIES || Map.northFlag!=TEAM.AXIS))
+		{
+			Util.ChangeSpawnForRole(TEAM.AXIS, ROLE.DEFENDER2, 0);
+			Util.ChangeSpawnForRole(TEAM.ALLIES, ROLE.DEFENDER2, 0);
+			Util.ClearRoleForGoals("CHECKPOINT_.*_second_spawn", ROLE.DEFENDER2);
+			SetGoalPriority("CHECKPOINT_.*_second_spawn", 0.6);
+			Map.oppositeFlags = false;
+		}
+		else if(!Map.oppositeFlags && (Map.southFlag==TEAM.ALLIES && Map.northFlag==TEAM.AXIS))
+		{
+			Util.ChangeSpawnForRole(TEAM.AXIS, ROLE.DEFENDER2, 2);
+			Util.ChangeSpawnForRole(TEAM.ALLIES, ROLE.DEFENDER2, 3);
+			Util.SetRoleForGoals("CHECKPOINT_.*_second_spawn", ROLE.DEFENDER2);
+			SetGoalPriority("CHECKPOINT_.*_second_spawn", 0.71);
+			Map.oppositeFlags = true;
+		}
+
+		if (Map.northFlag!=TEAM.AXIS){ p=1; }
+		else if(Map.forwardFlag==TEAM.AXIS && Map.southFlag==TEAM.AXIS){ p=90; }
+		else{ p=30; }
+		Util.SetPercentInProgress(p, "FLAG_allied_docs");
+		Util.SetPercentInProgress(p, "ATTACK_allied_docs.*");
+
+		if (Map.southFlag!=TEAM.ALLIES){ p=1; }
+		else if(Map.forwardFlag==TEAM.ALLIES && Map.northFlag==TEAM.ALLIES){ p=90; }
+		else{ p=30; }
+		Util.SetPercentInProgress(p, "FLAG_axis_docs");
+		Util.SetPercentInProgress(p, "ATTACK_axis_docs.*");
+	},
+
+
+	allied_second_spawn_Axis_Captured = function( trigger )
+	{
+		Map.northFlag = TEAM.AXIS;
+		Map.Spawn_Captured();
+		Util.MapDebugPrint( "allied_second_spawn_Axis_Captured" );
+	},
+	allied_second_spawn_Allies_Captured = function( trigger )
+	{
+		Map.northFlag = TEAM.ALLIES;
+		Map.Spawn_Captured();
+		Util.MapDebugPrint( "allied_second_spawn_Allies_Captured" );
+	},
+	axis_second_spawn_Axis_Captured = function( trigger )
+	{
+		Map.southFlag = TEAM.AXIS;
+		Map.Spawn_Captured();
+		Util.MapDebugPrint( "axis_second_spawn_Axis_Captured" );
+	},
+	axis_second_spawn_Allies_Captured = function( trigger )
+	{
+		Map.southFlag = TEAM.ALLIES;
+		Map.Spawn_Captured();
+		Util.MapDebugPrint( "axis_second_spawn_Allies_Captured" );
+	},
+	forward_spawn_Axis_Captured = function( trigger )
+	{
+		Map.forwardFlag = TEAM.AXIS;
+		Map.Spawn_Captured();
+		Util.MapDebugPrint( "forward_spawn_Axis_Captured" );
+	},
+	forward_spawn_Allies_Captured = function( trigger )
+	{
+		Map.forwardFlag = TEAM.ALLIES;
+		Map.Spawn_Captured();
+		Util.MapDebugPrint( "forward_spawn_Allies_Captured" );
+	},
+
+
+	Base_Spawn = function(team)
+	{
+		if (team==TEAM.AXIS){ return 2; }
+		return 3;
+	},
+
+	Add_Defender = function(team)
+	{
+		foreach(bot in BotTable)
+		{
+			if (bot.GetTeam()==team && !Util.BotHasAnyRole(bot))
+			{
+				bot.SetRoles(ROLE.DEFENDER);
+				bot.ChangeSpawnPoint(Map.Base_Spawn(team));
+				return;
+			}
+		}
+	},
+
+	Everyone_Defends = function(team, spawn, goalPosition)
+	{
+		foreach(bot in BotTable)
+		{
+			if (bot.GetTeam()==team)
+			{
+				bot.ChangeSpawnPoint(spawn);
+				if (bot.DistanceTo(goalPosition) > bot.GetReinforceTime() * 300)
+				{
+					thread(ETUtil.SuicideNextSpawn, bot);
+				}
+			}
+		}
+	},
+	Everyone_Defend = function(team, goalPosition)
+	{
+		Map.Everyone_Defends(team, Map.Base_Spawn(team), goalPosition);
+	},
+
+	Cancel_Defend = function(team)
+	{
+		foreach(bot in BotTable)
+		{
+			if (bot.GetTeam()==team){
+				if (!bot.HasRole(ROLE.DEFENDER) && (!Map.oppositeFlags || !bot.HasRole(ROLE.DEFENDER2))){
+					bot.ChangeSpawnPoint(0);
+				}else{
+					bot.ChangeSpawnPoint(Map.Base_Spawn(team));
+				}
+			}
+		}
+	},
+
+	Axis_Vault_Destroyed = function( trigger )
+	{
+		Map.axisVaultDestroyed = true;
+		SetAvailableMapGoals(TEAM.ALLIES, true, "FLAG_axis_docs" );
+		SetAvailableMapGoals(TEAM.ALLIES, false, "ATTACK_axis_docs.*" );
+		Map.Axis_Vault_Dyno = 0;
+		Map.Add_Defender(TEAM.AXIS);
+		Util.SetRoleForGoals("DEFEND_axis_docs.*", ROLE.DEFENDER);
+		Map.Cancel_Defend(TEAM.AXIS);
+		Util.MapDebugPrint( "Axis_Vault_Destroyed" );
+	},
+	Allied_Vault_Destroyed = function( trigger )
+	{
+		Map.alliedVaultDestroyed = true;
+		SetAvailableMapGoals(TEAM.AXIS, true, "FLAG_allied_docs" );
+		SetAvailableMapGoals(TEAM.AXIS, false, "ATTACK_allied_docs.*" );
+		Map.Allied_Vault_Dyno = 0;
+		Map.Add_Defender(TEAM.ALLIES);
+		Util.SetRoleForGoals("DEFEND_allied_docs.*", ROLE.DEFENDER);
+		Map.Cancel_Defend(TEAM.ALLIES);
+		Util.MapDebugPrint( "Allied_Vault_Destroyed" );
+	},
+
+	Axis_Vault_Planted = function( trigger )
+	{
+		Map.Axis_Vault_Dyno += 1;
+		Util.ClearRoleForGoals("DEFEND_axis_docs.*", ROLE.DEFENDER);
+		Map.Everyone_Defend(TEAM.AXIS, Vector3(-1214, -8007, 5106));
+		Util.MapDebugPrint( "Axis_Vault_Planted" );
+	},
+	Allied_Vault_Planted = function( trigger )
+	{
+		Map.Allied_Vault_Dyno += 1;
+		Util.ClearRoleForGoals("DEFEND_allied_docs.*", ROLE.DEFENDER);
+		Map.Everyone_Defend(TEAM.ALLIES, Vector3(1316, 5220, 4432));
+		Util.MapDebugPrint( "Allied_Vault_Planted" );
+	},
+	Axis_Vault_Defused = function( trigger )
+	{
+		Map.Axis_Vault_Dyno -= 1;
+		if(Map.Axis_Vault_Dyno == 0){
+			Util.SetRoleForGoals("DEFEND_axis_docs.*", ROLE.DEFENDER);
+			Map.Cancel_Defend(TEAM.AXIS);
+		}
+		Util.MapDebugPrint( "Axis_Vault_Defused" );
+	},
+	Allied_Vault_Defused = function( trigger )
+	{
+		Map.Allied_Vault_Dyno -= 1;
+		if(Map.Allied_Vault_Dyno == 0){
+			Util.SetRoleForGoals("DEFEND_allied_docs.*", ROLE.DEFENDER);
+			Map.Cancel_Defend(TEAM.ALLIES);
+		}
+		Util.MapDebugPrint( "Allied_Vault_Defused" );
+	},
+
+	allied_docs_Taken = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, true, "DEFEND_allied_cap.*");
+		Map.Everyone_Defend(TEAM.ALLIES, Vector3(1275, 5453, 5072));
+		Util.MapDebugPrint( "allied_docs_Taken" );
+	},
+	allied_docs_Returned = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, false, "DEFEND_allied_cap.*");
+		Map.Cancel_Defend(TEAM.ALLIES);
+		Util.MapDebugPrint( "allied_docs_Returned" );
+	},
+
+	axis_docs_Taken = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.AXIS, true, "DEFEND_axis_cap.*");
+		if (Map.southFlag==TEAM.AXIS){ spawn=5; }else{ spawn=2; }
+		Map.Everyone_Defends(TEAM.AXIS, spawn, Vector3(334, -7176, 5275));
+		Util.MapDebugPrint( "axis_docs_Taken" );
+	},
+	axis_docs_Returned = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.AXIS, false, "DEFEND_axis_cap.*");
+		Map.Cancel_Defend(TEAM.AXIS);
+		Util.MapDebugPrint( "axis_docs_Returned" );
+	},
+
+
+	Axis_Bridge_Built = function( trigger )
+	{
+		Util.EnableGoal("ROUTE_axis_bridge");
+		Util.MapDebugPrint( "Axis_Bridge_Built" );
+	},
+	Axis_Bridge_Destroyed = function( trigger )
+	{
+		Util.DisableGoal("ROUTE_axis_bridge");
+		Util.MapDebugPrint( "Axis_Bridge_Destroyed" );
+	},
+	Allied_Bridge_Built = function( trigger )
+	{
+		Util.EnableGoal("ROUTE_allied_bridge");
+		Util.MapDebugPrint( "Allied_Bridge_Built" );
+	},
+	Allied_Bridge_Destroyed = function( trigger )
+	{
+		Util.DisableGoal("ROUTE_allied_bridge");
+		Util.MapDebugPrint( "Allied_Bridge_Destroyed" );
+	},
+	Axis_Tower_Bridge_Built = function( trigger )
+	{
+		Map.neutralBridge=1;
+		Util.EnableGoal("ROUTE_neutral_bridge.*");
+		SetAvailableMapGoals(TEAM.AXIS, false, "DYNAMITE_hatch" ); //cannot plant near friendly objective
+		Util.MapDebugPrint( "Axis_Tower_Bridge_Built" );
+	},
+	Allied_Tower_Bridge_Built = function( trigger )
+	{
+		Map.neutralBridge=2;
+		Util.EnableGoal("ROUTE_neutral_bridge.*");
+		SetAvailableMapGoals(TEAM.ALLIES, false, "DYNAMITE_hatch" );
+		Util.MapDebugPrint( "Allied_Tower_Bridge_Built" );
+	},
+	Tower_Bridge_Destroyed = function( trigger )
+	{
+		Map.neutralBridge=0;
+		Util.DisableGoal("ROUTE_neutral_bridge.*");
+		Util.MapDebugPrint( "Tower_Bridge_Destroyed" );
+	},
+
+	Gate_Built = function( trigger )
+	{
+		Util.DisableGoal("ROUTE_axis_gate");
+		Util.MapDebugPrint( "Gate_Built" );
+	},
+	Gate_Destroyed = function( trigger )
+	{
+		Util.EnableGoal("ROUTE_axis_gate");
+		Util.MapDebugPrint( "Gate_Destroyed" );
+	},
+	Dam_Built = function( trigger )
+	{
+		Util.DisableGoal("ROUTE_allied_dam");
+		Util.MapDebugPrint( "Dam_Built" );
+	},
+	Dam_Destroyed = function( trigger )
+	{
+		Util.EnableGoal("ROUTE_allied_dam");
+		Util.MapDebugPrint( "Dam_Destroyed" );
+	},
+
+	Tower_Hatch_Destroyed = function( trigger )
+	{
+		Map.hatchDestroyed = true;
+		Util.DisableGoal("DYNAMITE_hatch");
+		Util.EnableGoal("ROUTE_hatch");
+		Util.MapDebugPrint( "Tower_Hatch_Destroyed" );
+	},
+	allied_window1_Destroyed = function( trigger )
+	{
+		Util.EnableGoal("ROUTE_allies_window1");
+		Util.MapDebugPrint( "allied_window1_Destroyed" );
+	},
+	axis_cap_window_Destroyed = function( trigger )
+	{
+		Util.EnableGoal("ROUTE_axis_cap_window");
+		Util.MapDebugPrint( "axis_cap_window_Destroyed" );
+	},
+
+	TwoMinute = function( trigger )
+	{
+		// cs: is it necessary to check the time > 0 here?
+		if (GetGameTimeLeft() > 0)
+		{
+			SetGoalPriority("FLAG.*", 0.96);
+			SetGoalPriority("PLANT.*Vault", 1.0);
+			Util.MapDebugPrint( "TwoMinute" );
+		}
+	},
+};
+
+global OnMapLoad = function()
+{
+	OnTrigger( "Axis have destroyed the Allied Vault Door!", Map.Allied_Vault_Destroyed );
+	OnTrigger( "Allies have destroyed the Axis Vault Door!", Map.Axis_Vault_Destroyed );
+	OnTrigger( "Allies have the docs! Allies have the docs!", Map.axis_docs_Taken );
+	OnTrigger( "Axis have the docs! Axis have the docs!", Map.allied_docs_Taken );
+	OnTrigger( "Flag returned allied_docs!", Map.allied_docs_Returned );
+	OnTrigger( "Flag returned axis_docs!", Map.axis_docs_Returned );
+	OnTrigger( "Axis capture the Allied second spawn!", Map.allied_second_spawn_Axis_Captured );
+	OnTrigger( "Allies recapture the Allied second spawn!", Map.allied_second_spawn_Allies_Captured );
+	OnTrigger( "Axis recapture the Axis second spawn!", Map.axis_second_spawn_Axis_Captured );
+	OnTrigger( "Allies capture the Axis second spawn!", Map.axis_second_spawn_Allies_Captured );
+	OnTrigger( "Axis reclaim the Forward Spawn!", Map.forward_spawn_Axis_Captured );
+	OnTrigger( "Allies capture the Forward Spawn!", Map.forward_spawn_Allies_Captured );
+	OnTrigger( "The Allied Bridge has been built", Map.Allied_Bridge_Built );
+	OnTrigger( "The Axis have destroyed the Allied Bridge", Map.Allied_Bridge_Destroyed );
+	OnTrigger( "The Axis Bridge has been constructed", Map.Axis_Bridge_Built );
+	OnTrigger( "The Axis Bridge has been destroyed", Map.Axis_Bridge_Destroyed );
+	OnTrigger( "Axis have built the Tower Bridge", Map.Axis_Tower_Bridge_Built );
+	OnTrigger( "Allies have built the Tower Bridge", Map.Allied_Tower_Bridge_Built );
+	OnTrigger( "Tower Bridge destroyed!", Map.Tower_Bridge_Destroyed );
+	OnTrigger( "The Axis Gate has been built", Map.Gate_Built );
+	OnTrigger( "The Allies have destroyed the Axis Gate", Map.Gate_Destroyed );
+	OnTrigger( "The Allied Dam has been built", Map.Dam_Built );
+	OnTrigger( "The Axis have destroyed the Allied Dam", Map.Dam_Destroyed );
+	//OnTrigger( "The Tower Emergency Hatch has been destroyed!", Map.Tower_Hatch_Destroyed );
+	OnTrigger( "GRENADE_hatch Exploded.", Map.Tower_Hatch_Destroyed );
+	OnTrigger( "GRENADE_allied_window1 Exploded.", Map.allied_window1_Destroyed );
+	OnTrigger( "GRENADE_axis_cap_window Exploded.", Map.axis_cap_window_Destroyed );
+	OnTrigger( "Planted at the Axis Vault.", Map.Axis_Vault_Planted);
+	OnTrigger( "Planted at the Allied Vault.", Map.Allied_Vault_Planted);
+	OnTrigger( "Defused at the Axis Vault.", Map.Axis_Vault_Defused);
+	OnTrigger( "Defused at the Allied Vault.", Map.Allied_Vault_Defused);
+	OnTrigger("two minute warning.", Map.TwoMinute);
+	OnTrigger("lift01_lever_start", Map.Elevator);
+
+	foreach (goal in { ".*MG42_.*", "FLAG.*", "DEFEND.*_cap.*", "BUILD_Allied_Dam_1",
+		"ROUTE_axis_bridge", "ROUTE_allied_bridge", "ROUTE_neutral_bridge.*",
+		"ROUTE_allies_window1", "ROUTE_axis_cap_window", "ROUTE_hatch" }){
+		Util.DisableGoal(goal);
+	}
+
+	SetAvailableMapGoals(TEAM.AXIS, false, "CAPPOINT_axis_control_room");
+	SetAvailableMapGoals(TEAM.ALLIES, false, "CAPPOINT_allied_control_room");
+	SetAvailableMapGoals(TEAM.AXIS, true, "CAPPOINT_allied_control_room");
+	SetAvailableMapGoals(TEAM.ALLIES, true, ".*MG42_Allied_Mg");
+	SetAvailableMapGoals(TEAM.AXIS, true, ".*MG42_axismg_mg42");
+	SetAvailableMapGoals(TEAM.AXIS, false, "ATTACK_axis_docs.*");
+	SetAvailableMapGoals(TEAM.ALLIES, false, "ATTACK_allied_docs.*");
+	SetAvailableMapGoals(TEAM.AXIS, false, "DEFEND_allied_docs.*");
+	SetAvailableMapGoals(TEAM.ALLIES, false, "DEFEND_axis_docs.*");
+	SetAvailableMapGoals(TEAM.AXIS, false, "GRENADE_axis.*");
+	SetAvailableMapGoals(TEAM.ALLIES, false, "GRENADE_allied.*");
+	Util.LimitToTeam(TEAM.AXIS, "TRIPMINE_x.*");
+	Util.LimitToTeam(TEAM.ALLIES, "TRIPMINE_l.*");
+
+	Util.SetRoleForTable({"DEFEND_.*_docs.*", "BUILD_Allied_Dam.*", "BUILD_Axis_Gate.*",
+		"BUILD_Allied_MG", ".*MG42_Allied_MG", ".*MG42_axismg_mg42", "TRIPMINE.*" }, ROLE.DEFENDER);
+
+	SetGoalPriority("DEFEND.*_cap.*", 0.97);
+	SetGoalPriority("DEFEND.*_docs.*", 0.84);
+	SetGoalPriority("MOUNTMG42_Allied_MG", 0.78); //+0.1 role bonus
+	SetGoalPriority("MOUNTMG42_axismg_mg42", 0.78);
+	SetGoalPriority("ATTACK.*docs.*", 0.61);
+	SetGoalPriority("GRENADE.*", 0.7);
+	SetGoalPriority("CHECKPOINT.*", 0.6);
+	SetGoalPriority("REPAIR.*", 0.9);
+	SetGoalPriority("REPAIRMG42_Allied_MG", 0.89);
+	SetGoalPriority("PLANT_Neutral_Constructible", 0.55);
+	SetGoalPriority("BUILD_Neutral_Constructible", 0.85);
+	SetGoalPriority("DYNAMITE_hatch", 0.82);
+	SetGoalPriority("PLANT_.*_Bridge", 0.8, 0, CLASS.ENGINEER);
+
+	// Max users per goal
+	foreach (goal in { "DEFEND_.*", ".*MG42.*", "DYNAMITE_hatch",
+		 "BUILD_Neutral_Constructible", "BUILD_Command_Post" }){
+		Util.SetMaxUsersInProgress(1, goal);
+	}
+
+	// Camp times
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=90} );
+
+	Util.AddUseWp("PLANT_Axis_Gate", "axis_gate1");
+	Util.AddUseWp("PLANT_Axis_Gate", "axis_gate2");
+	Util.AddUseWp("PLANT_Axis_Gate_1", "axis_gate1");
+	Util.AddUseWp("PLANT_Axis_Gate_1", "axis_gate2");
+
+	Util.UpdateSwitchData();
+
+	MapRoutes =
+	{
+		CHECKPOINT_allied_second_spawn = {
+			ROUTE_allied_spawn = {
+				ROUTE_allies_east = {},
+				ROUTE_allies_south = {},
+			},
+			ROUTE_forward_spawn = {
+				ROUTE_north_east = { Weight=2 },
+				ROUTE_allied_bridge = { ROUTE_north = {} },
+				ROUTE_north_water = { ROUTE_north = {} },
+			},
+		},
+		CHECKPOINT_axis_second_spawn = {
+			ROUTE_axis_spawn = {
+				ROUTE_axis_cappoint = {},
+				ROUTE_axis_west = {},
+				ROUTE_axis_north = {},
+			},
+			ROUTE_forward_spawn = {
+				ROUTE_south_west = {},
+				ROUTE_neutral_bridge = { ROUTE_south_mg = {}},
+				ROUTE_axis_bridge = {},
+				ROUTE_axis_gate = {},
+				ROUTE_south_east = {},
+			},
+		},
+		CHECKPOINT_forward_spawn = {
+			ROUTE_south_spawn = {
+				ROUTE_axis_bridge = { Weight=2 },
+				ROUTE_neutral_bridge_south = { Weight=2, ROUTE_neutral_bridge = {}},
+				ROUTE_axis_gate = {
+					ROUTE_hatch = { Weight=3 },
+					ROUTE_center_entrance = {},
+				},
+				ROUTE_south_east = { ROUTE_center_entrance = {}},
+			},
+			ROUTE_north_spawn = {
+				ROUTE_allied_bridge = { Weight=2 },
+				ROUTE_neutral_bridge_north = { Weight=2, ROUTE_neutral_bridge = {} },
+				ROUTE_north_east = {},
+				ROUTE_north_jump = { ROUTE_center_water = {}},
+				ROUTE_hatch = {},
+			},
+		},
+		FLAG_allied_docs = {
+			ROUTE_north_spawn = {
+				ROUTE_allies_east = { ROUTE_allies_stairs2 = {}},
+				ROUTE_allies_south = {},
+				ROUTE_allies_pipes = {},
+				ROUTE_allies_water_dam = { Weight=2,
+					ROUTE_allies_stairs0 = {},
+					ROUTE_allies_water_east = {},
+					ROUTE_allies_window1 = {},
+				},
+			},
+			ROUTE_forward_spawn = {
+				ROUTE_north_water = { ROUTE_north = {}},
+				ROUTE_allies_south = {},
+				ROUTE_allies_pipes = {},
+				ROUTE_allied_dam = { Weight=2,
+					ROUTE_allies_stairs0 = {},
+					ROUTE_allies_water_east = {},
+					ROUTE_allies_window1 = {},
+				},
+			},
+		},
+		CAPPOINT_allied_control_room = {
+			ROUTE_allied_docs = {
+				ROUTE_allies_window1 = { Weight=2 },
+				ROUTE_allies_stairs2 = {},
+				ROUTE_allies_south_east_ladder = {},
+			}
+		},
+		FLAG_axis_docs = {
+			ROUTE_south_spawn = {
+				ROUTE_axis_cappoint = { Weight=2, ROUTE_axis_ladder2 = {}},
+				ROUTE_axis_north = {},
+				ROUTE_south_mg = {},
+				ROUTE_axis_west = {},
+			},
+			ROUTE_forward_spawn = {
+				ROUTE_center_water = {
+					ROUTE_axis_gate = { ROUTE_axis_west = {}},
+					ROUTE_south_west = {
+						ROUTE_axis_ladder2 = {},
+						ROUTE_axis_water = {},
+					},
+				},
+				ROUTE_center_entrance = {
+					ROUTE_axis_gate = { Weight=2 },
+					ROUTE_south_west = {},
+				},
+				ROUTE_center_ladder = {
+					ROUTE_axis_gate = { Weight=2 },
+					ROUTE_south_west = {},
+				},
+				ROUTE_neutral_bridge = { ROUTE_south_west = {}},
+			},
+		},
+		CAPPOINT_axis_control_room = {
+			ROUTE_axis_docs = {
+				ROUTE_axis_cap_window = { Weight=2 },
+				ROUTE_axis_stairs2 = {},
+				ROUTE_axis_mg42 = {},
+			}
+		},
+		BUILD_Allied_Bridge = {
+			ROUTE_allied_spawn = {
+				ROUTE_allies_pipes = {},
+			}
+		},
+	};
+	MapRoutes.PLANT_Allied_Vault = MapRoutes.FLAG_allied_docs;
+	MapRoutes.ATTACK_allied_docs1 = MapRoutes.FLAG_allied_docs;
+	MapRoutes.ATTACK_allied_docs2 = MapRoutes.ATTACK_allied_docs1;
+	MapRoutes.PLANT_Axis_Vault = MapRoutes.FLAG_axis_docs;
+	MapRoutes.ATTACK_axis_docs1 = MapRoutes.FLAG_axis_docs;
+	MapRoutes.ATTACK_axis_docs2 = MapRoutes.ATTACK_axis_docs1;
+	MapRoutes.DYNAMITE_hatch = MapRoutes.CHECKPOINT_forward_spawn;
+	Util.Routes(MapRoutes);
+
+	Map.Spawn_Captured();
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.MaxViewDistance = 3300;
+};

@@ -1,0 +1,1066 @@
+	/*******************************************************************************
+	Filename: etsbay.gm
+
+	Created by: >WES< P!NNAN
+	Assistance:
+
+	Last Updated: Sun, 15 November 2009
+	Updated by: >WES< P!NNAN
+
+	Change log: Tweaking and stuckage fixing.
+
+	--------------------------------------------------------------------------------
+	Map description :
+
+	The Allies have to take 2 Goldcrates and save it to the waiting submarine !
+	To do that they must either:
+
+	-Get access to the Hotel Bunker
+
+	1.Built the Waterpump
+	2.Built the Westramp
+	3.Built the Eastramp
+	4.Destroy the Sideentrance
+	5.Destroy the Mainentrance
+	6.Capture the Hotel Bunker
+
+	-Get access to the Bank
+	1.Destroy the Bankdoor
+
+	-Escape with the Goldcrates
+	1.Steal the Goldcrates 1 + 2
+	2.Built the escaping Bridge
+	3.Escape with the Goldcrates to the waiting submarine
+
+	***************************************************************************************/
+
+
+	// =======================================================
+	// =========  GLOBAL  MAP  ===============================
+	// =======================================================
+
+global Map =
+{
+	Allies_Capture_Flag = 0,
+	Bridge_built = 0,
+	gold1_taken = 0,
+	Bankdoor_Destroyed = 0,
+	Flag_Owner = "",
+	Side_Destroyed = false,
+	Main_Destroyed = false,
+	Quiet = true,
+	Liftup = false,
+	BigdoorStatus = false,  //closed at start
+	Elevator2Status = "down", // down at start
+
+	Ammo_Cabinet_north_ammocabinet = "AMMOCAB_north_ammocabinet",
+	Ammo_Cabinet_north_ammocabinet_1 = "AMMOCAB_north_ammocabinet_1",
+	Ammo_Cabinet_north_ammocabinet_2 = "AMMOCAB_north_ammocabinet_2",
+	Ammo_Cabinet_north_ammocabinet_3 = "AMMOCAB_north_ammocabinet_3",
+	Health_Cabinet_north_healthcabinet = "HEALTHCAB_north_healthcabinet",
+	Health_Cabinet_north_healthcabinet_1 = "HEALTHCAB_north_healthcabinet_1",
+	Health_Cabinet_north_healthcabinet_2 = "HEALTHCAB_north_healthcabinet_2",
+	Health_Cabinet_north_healthcabinet_3 = "HEALTHCAB_north_healthcabinet_3",
+	Checkpoint_depot_flag = "CHECKPOINT_depot_flag",
+	Call_Artillery_ar_call_1 = "CALLARTILLERY_ar_call_1",
+	Call_Artillery_ar_call_2 = "CALLARTILLERY_ar_call_2",
+	Call_Artillery_ar_call_3 = "CALLARTILLERY_ar_call_3",
+	Artillery_S_ar_place_1 = "ARTILLERY_S_ar_place_1",
+	Artillery_S_ar_place_2 = "ARTILLERY_S_ar_place_2",
+	Artillery_S_ar_place_3 = "ARTILLERY_S_ar_place_3",
+	Checkpoint_depot_flag = "CHECKPOINT_depot_flag",
+	Flag_radarbox1 = "FLAG_radarbox1",
+	Flag_radarbox2 = "FLAG_radarbox2",
+	Cappoint_Dropoff = "CAPPOINT_Dropoff",
+	Cappoint_HIDE = "CAPPOINT_HIDE",
+	Build_Axis_Bunker_MG_1 = "BUILD_Axis_Bunker_MG_1",
+	Build_Axis_Bunker_MG_2 = "BUILD_Axis_Bunker_MG_2",
+	Build_Axis_Command_Bunker_MG = "BUILD_Axis_Command_Bunker_MG",
+	Build_Bridge = "BUILD_Bridge",
+	Build_Command_Post = "BUILD_Command_Post",
+	Build_East_Ramp = "BUILD_East_Ramp",
+	Build_Water_Pump = "BUILD_Water_Pump",
+	Build_West_Ramp = "BUILD_West_Ramp",
+	Plant_Axis_Bunker_MG_1 = "PLANT_Axis_Bunker_MG_1",
+	Plant_Axis_Bunker_MG_2 = "PLANT_Axis_Bunker_MG_2",
+	Plant_Axis_Command_Bunker_MG = "PLANT_Axis_Command_Bunker_MG",
+	Plant_Bank_Door = "PLANT_Bank_Door",
+	Plant_Bridge = "PLANT_Bridge",
+	Plant_Command_Post = "PLANT_Command_Post",
+	Plant_East_Ramp = "PLANT_East_Ramp",
+	Plant_Main_Entrance = "PLANT_Main_Entrance",
+	Plant_Side_Entrance = "PLANT_Side_Entrance",
+	Plant_Water_Pump = "PLANT_Water_Pump",
+	Plant_West_Ramp = "PLANT_West_Ramp",
+	Mount_Axis_Bunker_MG_1 = "MOUNTMG42_Axis_Bunker_MG_1",
+	Mount_Axis_Bunker_MG_2 = "MOUNTMG42_Axis_Bunker_MG_2",
+	Mount_Axis_Command_Bunker_MG = "MOUNTMG42_Axis_Command_Bunker_MG",
+	Repair_Axis_Bunker_MG_1 = "REPAIRMG42_Axis_Bunker_MG_1",
+	Repair_Axis_Bunker_MG_2 = "REPAIRMG42_Axis_Bunker_MG_2",
+	Repair_Axis_Command_Bunker_MG = "REPAIRMG42_Axis_Command_Bunker_MG",
+	Mobile_MG42_mg_place_1 = "MOBILEMG42_mg_place_1",
+	Mobile_MG42_mg_place_2 = "MOBILEMG42_mg_place_2",
+	Snipe_s_alliespawn2_1 = "SNIPE_s_alliespawn2_1",
+	Snipe_s_axis1 = "SNIPE_s_axis1",
+	Snipe_s_axis2 = "SNIPE_s_axis2",
+	Snipe_s_axisspawn2_1 = "SNIPE_s_axisspawn2_1",
+	Snipe_s_axisspawn2_2 = "SNIPE_s_axisspawn2_2",
+	Snipe_s_axisspawn2_4 = "SNIPE_s_axisspawn2_4",
+	Snipe_s_axisspawn2_5 = "SNIPE_s_axisspawn2_5",
+	Snipe_s_tower_1 = "SNIPE_s_tower_1",
+	Snipe_s_tower_2 = "SNIPE_s_tower_2",
+
+	Navigation =
+	{
+		pumpladderpt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 5);
+				sleep(5);
+			},
+		},
+		pumpladderexitpt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 3);
+				sleep(3);
+			},
+		},
+		cpladderpt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 3);
+				sleep(3);
+			},
+		},
+		cpouterladderpt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 3);
+				sleep(3);
+			},
+		},
+		escapeladder_1pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 3);
+				sleep(3);
+			},
+		},
+		escapeladder_2pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 3);
+				sleep(3);
+			},
+		},
+		escapeladder_3pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 2);
+				sleep(2);
+			},
+		},
+		objladder_1pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 3);
+				sleep(3);
+			},
+		},
+		objladder_2pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 4);
+				sleep(4);
+			},
+		},
+		sidedoorladderpt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 4);
+				sleep(4);
+			},
+		},
+		towerladderpt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 4);
+				sleep(4);
+			},
+		},
+	},
+
+	Switches =
+	{
+		bigdoor =
+		{
+			WaypointName = "bigdoor_switch",
+			Enabled = true,
+			LimitTeam = (1<<TEAM.AXIS), 			//Only Allies
+			LimitClass = (1<<CLASS.ENGINEER),
+			LimitBots = 1,
+			LimitDistance = 1000,
+			Priority = 0, //always set to 0 when using path through
+			Timeout = 2000,
+			Wait = function() // optional. used to have the bot wait a bit for slow moving doors / elevators
+			{
+				if ( Map.Door1Status == 1 )
+				{
+					//wait 1.5 secs while the door opens
+					sleep(1.5);
+					return true;
+				}
+				//always return false unless the door is open:
+				return false;
+			},
+		},
+
+		elevator2_up =
+		{
+			WaypointName = "aufzug2_key_up",
+			Enabled = true,
+			LimitTeam = 0, 			//Only on trigger available
+			LimitClass = Util.AllClasses,
+			LimitBots = 1,
+			//LimitDistance = 400,
+			PressOnce = true,    //once per spawn
+			Priority = 0, //always set to 0 when using path through
+			Timeout = 2000,
+			Wait = function() // optional. used to have the bot wait a bit for slow moving doors / elevators
+			{
+				if ( Map.Elevator2Status == "down" )
+				{
+					//wait 8.0 secs while the lift is coming up
+					sleep(8.0);
+					return true;
+				}
+				//always return false unless the lift is up:
+				return false;
+			},
+		},
+	},
+
+	// EVENT TRIGGERS
+
+	//### MG42:
+
+	//MG42 1:
+	Axis_Bunker_MG_1_Built = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Util.MapDebugPrint( "Axis_Bunker_MG_1_Built" );
+	},
+
+	Axis_Bunker_MG_1_Destroyed = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Util.MapDebugPrint( "Axis_Bunker_MG_1_Destroyed" );
+	},
+
+	//MG42 2:
+	Axis_Bunker_MG_2_Built = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		//Enable sniper spots Allies
+
+		Util.MapDebugPrint( "Axis_Bunker_MG_2_Built" );
+	},
+
+	Axis_Bunker_MG_2_Destroyed = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Util.MapDebugPrint( "Axis_Bunker_MG_2_Destroyed" );
+	},
+
+	//MG42 3:
+	Axis_Command_Bunker_MG_Built = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Util.MapDebugPrint( "Axis_Command_Bunker_MG_Built" );
+	},
+
+	Axis_Command_Bunker_MG_Destroyed = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Util.MapDebugPrint( "Axis_Command_Bunker_MG_Destroyed" );
+	},
+
+
+	//### COMPOST
+
+	Command_Post_Built = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Util.MapDebugPrint( "axis_Command_Post_Built" );
+	},
+	Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Util.MapDebugPrint( "axis_Command_Post_Destroyed" );
+	},
+
+	Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Util.MapDebugPrint( "allied_Command_Post_Destroyed" );
+	},
+
+	Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "allied_Command_Post_Built" );
+	},
+
+	//-----------------------------
+	//##### MAIN TRIGGERs
+	//-----------------------------
+
+
+	//=== triggers built
+
+	East_Ramp_Built = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Util.MapDebugPrint( "East_Ramp_Built" );
+	},
+
+	West_Ramp_Built = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Util.MapDebugPrint( "West_Ramp_Built" );
+	},
+
+	Water_Pump_Built = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Wp.SetWaypointFlag("pump","closed",false);		//open the waypoint path
+
+		Util.MapDebugPrint( "Water_Pump_Built" );
+	},
+
+	Bridge_Built = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Map.Bridge_built = 1;
+
+		Groups.DisableAllies(Groups.group5);
+		Groups.EnableAllies(Groups.group7);
+
+		Util.MapDebugPrint( "Bridge_Built" );
+	},
+
+	//===trigger destroyed
+
+	East_Ramp_Destroyed = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Util.MapDebugPrint( "East_Ramp_Destroyed" );
+	},
+
+	West_Ramp_Destroyed = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Util.MapDebugPrint( "West_Ramp_Destroyed" );
+	},
+
+	Water_Pump_Destroyed = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Wp.SetWaypointFlag("pump","closed",true);		//close the waypoint path
+
+		Util.MapDebugPrint( "Water_Pump_Destroyed" );
+	},
+
+	Bridge_Destroyed = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Map.Bridge_built = 0;
+
+		Groups.DisableAllies(Groups.group3);
+		Groups.EnableAllies(Groups.group5);
+
+		//Set Cappoint to Hide
+
+		Util.MapDebugPrint( "Bridge_Destroyed, Cappoint to hide" );
+	},
+
+	// Bankdoor!
+	Bank_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Map.Bankdoor_Destroyed = 1;
+
+		Groups.DisableAllies(Groups.group1);
+		Groups.DisableAxis(Groups.group2);
+		Groups.EnableAllies(Groups.group3);
+		Groups.EnableAxis(Groups.group4);
+
+		Util.MapDebugPrint( "Bank_Door_Destroyed" );
+	},
+
+	//Main entrance!
+	Main_Entrance_Destroyed = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Map.Main_Destroyed = true;
+
+		Util.MapDebugPrint( "Main_Entrance_Destroyed" );
+	},
+
+	//Side entrance!
+	Side_Entrance_Destroyed = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Map.Side_Destroyed = true;
+
+		Util.MapDebugPrint( "Side_Entrance_Destroyed" );
+	},
+
+
+	//Triggers  CTF
+
+	depot_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Map.Flag_Owner = "Allies";
+
+		//Make Switch active
+		//Map.Switches.elevator2_up.LimitTeam = (1<<TEAM.ALLIES);		//Elevator 2 upstairs
+
+		Util.MapDebugPrint( "depot_flag_Allies_Captured" );
+	},
+
+
+	depot_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Map.Flag_Owner = "Axis";
+
+		//Make split spawn for Axis
+		if ( team == TEAM.AXIS )
+		{
+			//Split spawn from start  (at start in Bunker and Depot )
+			if ( RandInt(0,4) < 2)     // 60% Bunker, 40% Submarine
+			{
+				bot.ChangeSpawnPoint( 3 ); 	// Depot spawn
+				Util.MapDebugPrint( "axisbot spawn 3" );
+			}
+		}
+
+		//Disable block path Ramp
+		Wp.SetWaypointFlag("westramp","closed",false);		//open the waypoint path
+		Wp.SetWaypointFlag("eastramp","closed",false);		//open the waypoint path
+
+		//Disable switch
+		//Map.Switches.elevator2_up.LimitTeam = 0;			//Elevator 2 upstairs
+
+		Util.MapDebugPrint( "depot_flag_Axis_Captured" );
+	},
+
+	//=== triggers stolen and returned
+
+	radarbox1_Taken = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Map.gold1_taken = 1;
+		Groups.DisableAxis(Groups.group4);
+		Groups.EnableAxis(Groups.group6);
+
+		Util.MapDebugPrint( "radarbox1_Taken" );
+	},
+
+	radarbox1_Returned = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Map.gold1_taken = 0;
+
+		Groups.DisableAxis(Groups.group6);
+		Groups.EnableAxis(Groups.group4);
+
+		Util.MapDebugPrint( "radarbox1_returned" );
+	},
+
+	radarbox2_Taken = function( trigger )
+	{
+		if ( TestMapOn )  { ETUtil.AutoTestMap(); }
+
+		Map.gold2_taken = 1;
+
+		Groups.DisableAxis(Groups.group4);
+		Groups.EnableAxis(Groups.group6);
+
+		Util.MapDebugPrint( "radarbox2_Taken" );
+	},
+
+	radarbox2_Returned = function( trigger )
+	{
+		if ( TestMap ) { return; }
+
+		Map.gold2_taken = 0;
+
+		Groups.DisableAxis(Groups.group6);
+		Groups.EnableAxis(Groups.group4);
+
+		Util.MapDebugPrint( "radarbox2_Returned" );
+	},
+
+	//=== triggers elevator move
+
+	//Elevator at Axis Spawn
+	ElevatorMove =  function( trigger )
+	{
+		vec = ToVector(trigger.Action);   //split action into 3 coordinates
+
+		if ( vec.z > 36 )    //(Action: 0.00 0.00 38.00) -> z = 38.00
+		{
+			Util.MapDebugPrint( "elevator 2 is coming up", true );
+			sleep(1.0);
+
+			Map.Elevator2Status = "up";
+
+			//Disable Switch
+			Map.Switches.elevator2_up.LimitTeam = 0;		//Elevator 2 upstairs
+			LimitBots = 0;
+
+			sleep( 5.0 );
+			Util.MapDebugPrint( "Elevator 2 available", true );
+
+			Map.Liftup = true;
+
+			Wp.SetWaypointFlag("r_Lift2_1","closed",false);		//open the waypoint path
+		}
+
+		if ( vec[2] < -36 )    //(Action: 0.00 0.00 -38.00 )  -> z = -38.00
+		{
+			Util.MapDebugPrint( "elevator 2 is going down", true );
+			sleep(3.0);
+			Map.Elevator2Status = "down";
+
+			sleep(10.0);
+			//Reactivate switch
+			if ( Map.Flag_Owner == "Allies" )
+			{
+				//Map.Switches.elevator2_up.LimitTeam = (1<<TEAM.ALLIES);
+				Util.MapDebugPrint( "switch on" );
+				LimitBots = 1;
+			}
+			Wp.SetWaypointFlag("r_Lift2_1","closed",true);		//close the waypoint path
+
+			Util.MapDebugPrint( "Elevator 2 NOT available", true );
+		}
+	},
+
+	//Elevator at flag
+	// cs: this is useless, all it is doing is printing ...
+	ElevatorMove1 =  function( trigger )
+	{
+		vec = ToVector(trigger.Action);   //split action into 3 coordinates
+
+		if ( vec[2] > 36 )    //(Action: 0.00 0.00 38.00) -> z = 38.00
+		{
+			Util.MapDebugPrint( "elevator 1 is coming up", true );
+		}
+
+		if ( vec[2] < -36 )    //(Action: 0.00 0.00 -38.00 )  -> z = -38.00
+		{
+			Util.MapDebugPrint( "elevator 1 is going down", true );
+		}
+
+	},
+};
+
+// =======================================================
+// =========  ON MAP LOAD ================================
+// =======================================================
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ ETUtil.AutoTestMap(); }
+
+	//Move goals for better reachable
+	Util.SetGoalOffset( -40, -120, -60, "Plant_West_Ramp" );				//Westramp
+	Util.SetGoalOffset( -30, 60, 0, "BUILD_Axis_Bunker_MG_1" );     		//MG clip 1
+	Util.SetGoalOffset( -160, 200, 0, "PLANT_Bridge" );      				//Dyno bridge
+	Util.SetGoalPosition( 195.019, -2349.740, 527.125, "BUILD_Bridge" );  	//Build bridge
+
+	//Block waypoints
+	Wp.SetWaypointFlag("westramp","closed",false);		//open the waypoint path
+	Wp.SetWaypointFlag("eastramp","closed",false);		//open the waypoint path
+	Wp.SetWaypointFlag("r_Lift2_1","closed",true);		//close the waypoint path
+
+	// The event triggers:
+
+	//MG stuff
+	OnTrigger( "The Axis Main Bunker MG Nest1 constructed.", Map.Axis_Bunker_MG_1_Built );
+	OnTrigger( "The Axis Command Bunker MG Nest constructed.", Map.Axis_Command_Bunker_MG_Built );
+	OnTrigger( "The Axis Main Bunker MG Nest2 constructed.", Map.Axis_Bunker_MG_2_Built );
+
+	OnTrigger( "The Axis Main Bunker MG Nest1 destroyed.", Map.Axis_Bunker_MG_1_Destroyed );
+	OnTrigger( "The Axis Command Bunker MG Nest destroyed.", Map.Axis_Command_Bunker_MG_Destroyed );
+	OnTrigger( "The Axis Main Bunker MG Nest2 destroyed.", Map.Axis_Bunker_MG_2_Destroyed );
+
+	//CommandPost
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Command_Post_Destroyed );
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Command_Post_Built );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Command_Post_Destroyed );
+
+	//CTF
+	OnTrigger( "Allies capture the Forward Bunker!", Map.depot_flag_Allies_Captured );
+	OnTrigger( "Axis reclaim the Forward Bunker!", Map.depot_flag_Axis_Captured );
+
+	//RAM - PUMP - BRIDGE
+	OnTrigger( "Allies have the East Ramp constructed.", Map.East_Ramp_Built );
+	OnTrigger( "Allies have the West Ramp constructed.", Map.West_Ramp_Built );
+	OnTrigger( "Axis have destroyed the West Ramp.", Map.West_Ramp_Destroyed );
+	OnTrigger( "Axis have destroyed the East Ramp.", Map.East_Ramp_Destroyed );
+
+	OnTrigger( "Allies have built the Water Pump!", Map.Water_Pump_Built );
+	OnTrigger( "Axis have damaged the Water Pump!", Map.Water_Pump_Destroyed );
+
+	OnTrigger( "The Bridge has been constructed.", Map.Bridge_Built );
+	OnTrigger( "Axis have destroyed the Bridge.", Map.Bridge_Destroyed );
+
+	//DOORS
+	OnTrigger( "The Bank Door has been breached!", Map.Bank_Door_Destroyed );
+	OnTrigger( "The Main Entrance has been breached!", Map.Main_Entrance_Destroyed );
+	OnTrigger( "The Side Entrance has been breached!", Map.Side_Entrance_Destroyed );
+
+	//Gold stuff
+	OnTrigger( "Allies have stolen the Gold Bars 1!", Map.radarbox1_Taken );
+	OnTrigger( "Allies have stolen the Gold Bars 2!", Map.radarbox2_Taken );
+	OnTrigger( "Axis have returned the Gold Bars 1!", Map.radarbox1_Returned );
+	OnTrigger( "Axis have returned the Gold Bars 2!", Map.radarbox2_Returned );
+	//OnTrigger( "Allied team has secured the first Gold Crate!", Map.radarbox1_Captured );
+	//OnTrigger( "Allied team has secured the second Gold Crate!", Map.radarbox2_Captured );
+	//OnTrigger( "Flag returned radarbox1!", Map.goldcrate1_Returned );
+	//OnTrigger( "Flag returned radarbox2!", Map.goldcrate2_Returned );
+	//OnTrigger( "MISSING_STRING", Map.Dropoff_Captured );
+
+	//ELEVATOR
+	OnTrigger( "aufzug1_goto", Map.ElevatorMove1 );    	//Moving elevator 1
+	OnTrigger( "aufzug_goto", Map.ElevatorMove );    	//Moving elevator 2
+
+	//Destroy Main goals
+	SetGoalPriority( "PLANT_.*", 0.9 );
+	SetGoalPriority( "BUILD_.*", 0.6 );
+
+	//Maxbots per Goal
+	Util.SetMaxUsersInProgress( 1, "DEFEND_d_.*" );
+	Util.SetMaxUsersInProgress( 1, "ATTACK_a_.*" );
+	Util.SetMaxUsersInProgress( 1, "SNIPE_.*" );
+
+	SetMapGoalProperties( "MOBILEMG42_.*", {mincamptime=999, maxcamptime=9999});
+	SetMapGoalProperties( "MOUNTMG42_.*", {mincamptime=999, maxcamptime=9999});
+	SetMapGoalProperties( "SNIPE_.*", {mincamptime=30, maxcamptime=120});
+	SetMapGoalProperties( "ATTACK_.*", {mincamptime=10, maxcamptime=40});
+	SetMapGoalProperties( "DEFEND_.*", {mincamptime=120, maxcamptime=120});
+
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+
+	Map.Switches.bigdoor.LimitTeam = (1<<TEAM.AXIS);
+
+	//enable part 1 goals
+	Groups.EnableAllies(Groups.group1);
+	Groups.EnableAxis(Groups.group2);
+
+	//enable for both teams
+	Util.EnableGoal("ROUTE.*");
+
+	// ********************************************************
+	// *****  ROUTES   ****************************************
+	// ********************************************************
+
+	MapRoutes =
+	{
+	    //Goal: Bankdoor
+
+		PLANT_Bank_Door =
+		{
+			ROUTE_r_allies_spawn =
+			{
+				ROUTE_r_waterpump =
+				{
+					ROUTE_r_cparea =
+					{
+						ROUTE_r_axisarea = {},
+						ROUTE_r_tunnelentrance_2 = {ROUTE_r_tunneldoor = {}, },
+					},
+				},
+			},
+
+			ROUTE_r_allies_spawn2 =
+			{
+				ROUTE_r_waterpump =
+				{
+					ROUTE_r_waterpump_exit =
+					{
+						ROUTE_r_tunnelentrance_3 = { ROUTE_r_tunneldoor = {}, },
+						ROUTE_r_tunnelentrance_2 = { ROUTE_r_tunneldoor =  {}, },
+					},
+				},
+			},
+
+			ROUTE_r_flagspawn =
+			{
+				ROUTE_r_split1 =
+				{
+					ROUTE_r_tunnelentrance_3 = { ROUTE_r_bankdoor = {}, },
+					ROUTE_r_ladder = { ROUTE_r_bankdoor = {}, },
+				},
+
+				ROUTE_r_Lift2_1 =
+				{
+					ROUTE_r_Lift2_2 =
+					{
+						ROUTE_r_ladder = { ROUTE_r_bankdoor = {}, },
+					},
+				},
+
+				ROUTE_r_tunnelentrance_2 =
+				{
+					ROUTE_r_tunneldoor = { ROUTE_r_bankdoor = {}, },
+				},
+			},
+		},
+
+
+	    //Goal: Bring the stolen gold to submarine
+
+		CAPPOINT_Dropoff =
+		{
+			ROUTE_r_goldsafe =
+			{
+				ROUTE_r_tunneldoor =
+				{
+					ROUTE_r_tunnelentrance_2 =
+					{
+						ROUTE_r_waterpump_exit = { ROUTE_r_waterpump = {}, },
+						ROUTE_r_spawn_exit =
+						{
+							ROUTE_r_Bigdoor = { ROUTE_r_frontwall = {}, },
+						},
+					},
+
+					ROUTE_r_tunnelentrance_3 =
+					{
+						ROUTE_r_waterpump_exit = { ROUTE_r_waterpump = {}, },
+						ROUTE_r_spawn_exit = { ROUTE_r_frontwall = {}, },
+					},
+				},
+
+				ROUTE_r_ladder2 =
+				{
+					ROUTE_r_waterpump_exit = { ROUTE_r_waterpump = {}, },
+					ROUTE_r_spawn_exit = { ROUTE_r_frontwall = {}, },
+				},
+			},
+		},
+
+
+	    //Goal: Axis Goal routes  (defend / attack)
+
+		DEFEND_d_bankdoor2 =
+		{
+			ROUTE_r_axisspawn_2 =
+			{
+				ROUTE_r_ladder = { ROUTE_r_ladder2 = {}, },
+				ROUTE_r_tunnelentrance_1 = { ROUTE_r_tunneldoor = {}, },
+			},
+		},
+
+		ATTACK_a_submarine =
+		{
+		    ROUTE_r_axisspawn_2 =
+		    {
+				ROUTE_r_waterpump_exit =
+				{
+					Weight = 3,
+					ROUTE_r_waterpump = {},
+				},
+		    },
+		    ROUTE_r_spawn_exit =
+		    {
+			    ROUTE_r_maindoor = {},
+			    ROUTE_r_sidedoor = {},
+			    ROUTE_r_frontwall = {},
+		    },
+		},
+	};
+
+	// Copy routes
+	MapRoutes.FLAG_radarbox1 = MapRoutes.PLANT_Bank_Door;	//Allies route to Bank to steal gold 1
+	MapRoutes.FLAG_radarbox2 = MapRoutes.PLANT_Bank_Door;	//Allies route to Bank to steal gold 2
+	MapRoutes.ATTACK_a_gold1 = MapRoutes.PLANT_Bank_Door;		//Allies route to Bank to attack gold 1
+	MapRoutes.ATTACK_a_gold2 = MapRoutes.PLANT_Bank_Door;		//Allies route to Bank to attack gold 2
+	MapRoutes.ATTACK_a_bankdoor = MapRoutes.PLANT_Bank_Door;	//Allies route to Bank to attack gold 2
+
+	MapRoutes.CAPPOINT_HIDE = MapRoutes.CAPPOINT_Dropoff;			//Allies Return gold to cappoint
+	MapRoutes.CAPPOINT_HIDE = MapRoutes.CAPPOINT_Dropoff;			//Allies Return gold to cappoint
+
+	MapRoutes.DEFEND_d_gold1 = MapRoutes.DEFEND_d_bankdoor;				//Axis route to Bank
+	MapRoutes.DEFEND_d_gold2 = MapRoutes.DEFEND_d_bankdoor;				//Axis route to Bank
+	MapRoutes.DEFEND_d_gold3 = MapRoutes.DEFEND_d_bankdoor;				//Axis route to Bank
+
+	MapRoutes.ATTACK_a_submarine1 = MapRoutes.ATTACK_a_submarine;			//Axis Attack submarine
+	MapRoutes.ATTACK_a_submarine2 = MapRoutes.ATTACK_a_submarine;			//Axis Attack submarine
+
+	MapRoutes.PLANT_West_Ramp = MapRoutes.ATTACK_a_submarine;		//Destroy westram
+	MapRoutes.PLANT_East_Ramp = MapRoutes.ATTACK_a_submarine;		//Destroy eastram
+	MapRoutes.PLANT_Bridge = MapRoutes.ATTACK_a_submarine;		//Destroy bridge
+
+	// *** END  ROUTES  ******************************************
+
+	Util.UpdateSwitchData();
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "Script loaded for Secret Bay" );
+};
+
+	// =======================================================
+	// =========  BOT  JOIN    ===============================
+	// =======================================================
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 100.0;
+	bot.MaxViewDistance = 2500.0;
+
+	//=====  Default settings
+
+
+	//=====  Special Class or team settings
+
+	//Sniper setting
+
+	if( class == CLASS.COVERTOPS )
+	{
+		if ( bot.HasWeapon(WEAPON.K43) || bot.HasWeapon(WEAPON.GARAND))
+		{
+			Util.MapDebugPrint("Sniper joined", true);
+			bot.MaxViewDistance = 10000.0;
+		}
+	}
+};
+
+	//=================================================
+	//===== G R O U P S ===============================
+	//=================================================
+
+global Groups =
+{
+	//Allied part 1
+	group1 =
+	{
+		Map.Build_Water_Pump,
+		Map.Build_East_Ramp,
+		Map.Build_West_Ramp,
+		Map.Plant_Main_Entrance,
+		Map.Plant_Side_Entrance,
+		Map.Plant_Bank_Door,
+		Map.Checkpoint_depot_flag,
+		"Snipe_s_tower_.*",
+		"ATTACK_a_sideentrance",
+		"ATTACK_a_mainentrance",
+		"ATTACK_a_tug2_up",
+		"ATTACK_a_flag",
+		Map.Ammo_Cabinet_north_ammocabinet,
+		Map.Health_Cabinet_north_healthcabinet,
+		Map.Ammo_Cabinet_north_ammocabinet_1,
+		Map.Health_Cabinet_north_healthcabinet_1,
+	},
+
+	//Axis part 1
+	group2 =
+	{
+		Map.Ammo_Cabinet_north_ammocabinet_2,
+		Map.Health_Cabinet_north_healthcabinet_2,
+		Map.Ammo_Cabinet_north_ammocabinet_3,
+		Map.Health_Cabinet_north_healthcabinet_3,
+		Map.Build_Axis_Bunker_MG_1,
+		Map.Build_Axis_Bunker_MG_2,
+		Map.Mount_Axis_Bunker_MG_1,
+		Map.Mount_Axis_Bunker_MG_2,
+		Map.Repair_Axis_Bunker_MG_1,
+		Map.Repair_Axis_Bunker_MG_2,
+		Map.Build_Command_Post,
+		Map.Plant_East_Ramp,
+		Map.Plant_West_Ramp,
+		Map.Plant_Water_Pump,
+		Map.Checkpoint_depot_flag,
+		Map.Call_Artillery_ar_call_1,
+		Map.Artillery_S_ar_place_1,
+		Map.Call_Artillery_ar_call_2,
+		Map.Artillery_S_ar_place_2,
+		"MOBILEMORTAR_mo_place_.*",
+		"Snipe_s_axis.*" ,
+		"DEFEND_d_window.*",
+		"DEFEND_d_spawn_exit",
+		"ATTACK_bigdoor_switch",
+
+	},
+
+	//Allied part 2
+	group3 =
+	{
+		Map.Flag_radarbox1,
+		Map.Flag_radarbox2,
+		Map.Plant_Main_Entrance,
+		Map.Plant_Side_Entrance,
+		Map.Plant_Command_Post,
+		Map.Build_Command_Post,
+		Map.Build_Bridge,
+		Map.Build_Water_Pump,
+		Map.Build_East_Ramp,
+		Map.Build_West_Ramp,
+		Map.Checkpoint_depot_flag,
+		Map.Plant_Command_Post,
+		Map.Plant_Axis_Command_Bunker_MG,
+		Map.Ammo_Cabinet_north_ammocabinet_3,
+		Map.Health_Cabinet_north_healthcabinet_3,
+		"ATTACK_a_gold.*",
+		"ATTACK_aufzug2_key_up",
+	},
+
+	//Axis part 2
+	group4 =
+	{
+		Map.Build_Axis_Command_Bunker_MG,
+		Map.Mount_Axis_Command_Bunker_MG,
+		Map.Repair_Axis_Command_Bunker_MG,
+	    "DEFEND_d_bankdoor2",
+		"DEFEND_d_gold.*",
+		"Snipe_s_axisspawn2.*",
+		Map.Plant_East_Ramp,
+		Map.Plant_West_Ramp,
+		Map.Plant_Water_Pump,
+		Map.Plant_Command_Post,
+		Map.Build_Command_Post,
+		Map.Call_Artillery_ar_call_3,
+		Map.Artillery_S_ar_place_3,
+		Map.Mobile_MG42_mg_place_1,
+		Map.Mobile_MG42_mg_place_2,
+	},
+
+	//Allied part 3
+	group5 =
+	{
+		Map.Flag_radarbox1,
+		Map.Flag_radarbox2,
+		Map.Plant_Command_Post,
+		Map.Build_Command_Post,
+		Map.Build_Water_Pump,
+		Map.Build_Bridge,
+		Map.Cappoint_HIDE,
+		"ATTACK_a_gold.*",
+	},
+
+	//Axis part 3
+	group6 =
+	{
+		"ATTACK_a_submarine.*",
+		Map.Plant_Bridge,
+		Map.Plant_Water_Pump,
+		Map.Build_Axis_Bunker_MG_1,
+		Map.Build_Axis_Bunker_MG_2,
+		Map.Mount_Axis_Bunker_MG_1,
+		Map.Mount_Axis_Bunker_MG_2,
+		Map.Repair_Axis_Bunker_MG_1,
+		Map.Repair_Axis_Bunker_MG_2,
+	},
+
+	//Allied part 4
+	group7 =
+	{
+		Map.Flag_radarbox1,
+		Map.Flag_radarbox2,
+		Map.Cappoint_Dropoff,
+		Map.Plant_Command_Post,
+		Map.Build_Command_Post,
+		Map.Build_Water_Pump,
+		"ATTACK_a_gold.*",
+		"ATTACK_bigdoor_switch",
+	},
+
+	EnableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, goal );
+
+			Util.MapDebugPrint("EnableAllies: enabling " + goal);
+		}
+	},
+
+	EnableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, goal );
+
+			Util.MapDebugPrint("EnableAxis: enabling " + goal);
+		}
+	},
+
+	DisableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, goal );
+
+			Util.MapDebugPrint("DisableAllies: disabling " + goal);
+		}
+	},
+
+	DisableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, goal );
+
+			Util.MapDebugPrint("DisableAxis: disabling " + goal);
+		}
+	},
+};
+
+
+

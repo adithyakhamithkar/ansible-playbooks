@@ -1,0 +1,1112 @@
+/********************************************************
+Script and waypoints made by  >WES< P!NNAN & >WES< GRANNY
+********************************************************/
+
+global Map =
+{
+	Debug = false,
+	Quiet = true,
+	//set Talk to false if you don't want the bots to talk ingame !
+	Talk = true,
+	Plane1 = false,
+	Plane2 = false,
+	Plane3 = false,
+	BigDoor = false,
+	Lift1Status = "up",
+	Lift2Status = "up",
+	SwitchOneStatus = "up",
+	Pulled1 = false,
+	SwitchThreeStatus = "up",
+	Pulled3 = false,
+
+	Ammo_Cabinet_misc_cabinet_supply_1 = "AMMOCAB_misc_cabinet_supply_1",
+	Ammo_Cabinet_misc_cabinet_supply_10 = "AMMOCAB_misc_cabinet_supply_10",
+	Ammo_Cabinet_misc_cabinet_supply_11 = "AMMOCAB_misc_cabinet_supply_11",
+	Ammo_Cabinet_misc_cabinet_supply_2 = "AMMOCAB_misc_cabinet_supply_2",
+	Ammo_Cabinet_misc_cabinet_supply_3 = "AMMOCAB_misc_cabinet_supply_3",
+	Ammo_Cabinet_misc_cabinet_supply_4 = "AMMOCAB_misc_cabinet_supply_4",
+	Ammo_Cabinet_misc_cabinet_supply_5 = "AMMOCAB_misc_cabinet_supply_5",
+	Ammo_Cabinet_misc_cabinet_supply_6 = "AMMOCAB_misc_cabinet_supply_6",
+	Health_Cabinet_misc_cabinet_health_1 = "HEALTHCAB_misc_cabinet_health_1",
+	Health_Cabinet_misc_cabinet_health_10 = "HEALTHCAB_misc_cabinet_health_10",
+	Health_Cabinet_misc_cabinet_health_11 = "HEALTHCAB_misc_cabinet_health_11",
+	Health_Cabinet_misc_cabinet_health_2 = "HEALTHCAB_misc_cabinet_health_2",
+	Health_Cabinet_misc_cabinet_health_3 = "HEALTHCAB_misc_cabinet_health_3",
+	Health_Cabinet_misc_cabinet_health_4 = "HEALTHCAB_misc_cabinet_health_4",
+	Health_Cabinet_misc_cabinet_health_5 = "HEALTHCAB_misc_cabinet_health_5",
+	Call_Artillery_ar_al1_bunker = "CALLARTILLERY_ar_al1_bunker",
+	Call_Artillery_ar_ax_call_bunker_1 = "CALLARTILLERY_ar_ax_call_bunker_1",
+	Call_Artillery_ar_ax_spawn_1 = "CALLARTILLERY_ar_ax_spawn_1",
+	Call_Artillery_ar_bunker_2 = "CALLARTILLERY_ar_bunker_2",
+	Artillery_S_ar_al_axexit = "ARTILLERY_S_ar_al_axexit",
+	Artillery_S_ar_ax_alexit_1 = "ARTILLERY_S_ar_ax_alexit_1",
+	Artillery_S_ar_ax_alexit_2 = "ARTILLERY_S_ar_ax_alexit_2",
+	Checkpoint_axis_flag = "CHECKPOINT_axis_flag",
+	Flag_rocket_fuel = "FLAG_rocket_fuel",
+	Flag_v2_docs = "FLAG_v2_docs",
+	Cappoint_Dropoff = "CAPPOINT_Dropoff",
+	Build_Command_Post = "BUILD_Command_Post",
+	Build_NORTH_GATE = "BUILD_NORTH_GATE",
+	Build_SOUTH_GATE = "BUILD_SOUTH_GATE",
+	Plant_Command_Post = "PLANT_Command_Post",
+	Plant_FX5U_PROJECT_ROOM_DOOR = "PLANT_FX5U_PROJECT_ROOM_DOOR",
+	Plant_FX5U_SCHEMATICS = "PLANT_FX5U_SCHEMATICS",
+	Plant_NORTH_GATE = "PLANT_NORTH_GATE",
+	Plant_SOUTH_GATE = "PLANT_SOUTH_GATE",
+	Plant_XF5U_1 = "PLANT_XF5U_1",
+	Plant_XF5U_2 = "PLANT_XF5U_2",
+	Plant_XF5U_3 = "PLANT_XF5U_3",
+	Mount_291 = "MOUNTMG42_291",
+	Mount_774 = "MOUNTMG42_774",
+	Mount_r_bigdoor = "MOUNTMG42_r_bigdoor",
+	Repair_291 = "REPAIRMG42_291",
+	Repair_774 = "REPAIRMG42_774",
+	Repair_r_bigdoor = "REPAIRMG42_r_bigdoor",
+	Mobile_MG42_mg_al1_trees = "MOBILEMG42_mg_al1_trees",
+	Mobile_MG42_mg_ax_projectdoor = "MOBILEMG42_mg_ax_projectdoor",
+	Snipe_s_alliedbunker_1 = "SNIPE_s_alliedbunker_1",
+	Snipe_s_alliedbunker_2 = "SNIPE_s_alliedbunker_2",
+	Snipe_s_alliedbunker_3 = "SNIPE_s_alliedbunker_3",
+	Snipe_s_alliedtop_1 = "SNIPE_s_alliedtop_1",
+	Snipe_s_ax_cabinet_1 = "SNIPE_s_ax_cabinet_1",
+	Snipe_s_ax_cabinet_2 = "SNIPE_s_ax_cabinet_2",
+	Snipe_s_cp_1 = "SNIPE_s_cp_1",
+	Snipe_s_cp_2 = "SNIPE_s_cp_2",
+	Snipe_s_hangartop_1 = "SNIPE_s_hangartop_1",
+	Snipe_s_hangartop_2 = "SNIPE_s_hangartop_2",
+	Snipe_s_radio_1 = "SNIPE_s_radio_1",
+	Snipe_s_radio_2 = "SNIPE_s_radio_2",
+
+	Navigation =
+	{
+		// cs: TODO: use pt_useswitch instead of this unreliable hack
+		opendoor =
+		{
+			navigate = function(_this)
+			{
+				if ( !Map.BigDoor )
+				{
+					if ( !Map.BigDoorInfo ) {
+						Map.BigDoorInfo = Util.WpNameInfo("bigdoorpt");
+					}
+
+					if ( _this.Goto(Map.BigDoorInfo.position) == EVENT.PATH_SUCCESS )
+					{
+						_this.AddAimRequest(Priority.High, "facing", Map.BigDoorInfo.facing);
+
+						while( !Map.BigDoor )
+						{
+							_this.Bot.HoldButton(BTN.USE, 0.5);
+							yield();
+						}
+					}
+				}
+				sleep(1);
+			},
+		},
+		waterway =
+		{
+			navigate = function(_this)
+			{
+				if (!Map.NoWay)
+				{
+					if ( !Map.TunnelWpInfo ) {
+						Map.TunnelWpInfo = Util.WpNameInfo("tunnel");
+					}
+
+					if ( _this.Goto(Map.TunnelWpInfo.position) == EVENT.PATH_SUCCESS )
+					{
+						_this.AddAimRequest(Priority.High, "facing", Map.TunnelWpInfo.facing);
+						_this.Bot.HoldButton(BTN.FORWARD, 0.5);
+					}
+				}
+				sleep(1);
+			},
+		},
+		tunnelladder_1pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 3);
+				sleep(3);
+			},
+		},
+		tunnelladder_2pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 3);
+				sleep(3);
+			},
+		},
+		breakout_2pt =
+		{
+			navigate = function(_this)
+			{
+				if ( !Map.Breakout2Info ) {
+					Map.Breakout2Info = Util.WpNameInfo("breakout_2");
+				}
+
+				if ( _this.Goto(Map.Breakout2Info.position) == EVENT.PATH_SUCCESS )
+				{
+					_this.AddAimRequest(Priority.High, "facing", Map.Breakout2Info.facing);
+					_this.Bot.HoldButton(BTN.FORWARD, 4);
+					sleep(3);
+				}
+			},
+		},
+	},
+
+	Switches =
+	{
+		BigDoor =
+		{
+			Enabled = true,
+			//Debug = true,
+			WaypointName = "bigdoorpt",
+			LimitBots = 1,
+			LimitTeam = 0, // disabled initially.
+			LimitClass = (1<<CLASS.ENGINEER),
+			Priority = 0.7,
+			AimPosition = Vector3(13483.875,10215.748,505.723),
+		},
+
+		Switch1 =
+		{
+			Enabled = true,
+			//Debug = true,
+			WaypointName = "Switch_1",
+			LimitBots = 1,
+			LimitTeam = 0, // disabled initially.
+			LimitClass = (1<<CLASS.COVERTOPS),
+			Priority = 0.7,
+			AimPosition = Vector3(19819.115,8574.624,159.125),
+		},
+
+		Switch2 =
+		{
+			Enabled = true,
+			//Debug = true,
+			WaypointName = "Switch_2",
+			LimitBots = 1,
+			LimitTeam = 0, // disabled initially.
+			LimitClass = (1<<CLASS.ENGINEER),
+			Priority = 0.7,
+			AimPosition = Vector3(20108.875,8485.271,-385.835),
+		},
+
+		Switch3 =
+		{
+			Enabled = true,
+			//Debug = true,
+			WaypointName = "Switch_3",
+			LimitBots = 1,
+			LimitTeam = 0, // disabled initially.
+			LimitClass = (1<<CLASS.COVERTOPS),
+			Priority = 0.7,
+			AimPosition = Vector3(19431.875,8440.828,148.929),
+		},
+
+		Switch4 =
+		{
+			Enabled = true,
+			//Debug = true,
+			WaypointName = "Switch_4",
+			LimitBots = 1,
+			LimitTeam = 0, // disabled initially.
+			LimitClass = (1<<CLASS.ENGINEER),
+			Priority = 0.7,
+			AimPosition = Vector3(19506.008,8092.125,-387.545),
+		},
+	},
+
+	//CP stuff
+	Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	//XF5U planes
+	XF5U_1_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Plane1 = "true";
+
+		if ( Map.Plane2 && Map.Plane3 )
+		{
+			Map.Switches.BigDoor.LimitTeam = (1<<TEAM.AXIS);
+			Map.Switches.Switch1.LimitTeam = (1<<TEAM.AXIS);
+			Map.Switches.Switch3.LimitTeam = (1<<TEAM.AXIS);
+
+			//open path now to get access to the next level
+			Wp.SetWaypointFlag("nextlvl","closed",false);
+
+			Groups.DisableAllies(Groups.group2);
+			Groups.DisableAxis(Groups.group1);
+			Groups.EnableAllies(Groups.group4);
+			Groups.EnableAxis(Groups.group3);
+
+			if ( Map.Plane1 && Map.Talk && MAP_TALK )
+			{
+
+				foreach ( id and bot in BotTable )
+				{
+					if ( bot.GetTeam() == TEAM.AXIS )
+					{
+						r = RandRange(0,10);
+						if( r < 2 )
+						{
+							bot.SayVoice(VOICE.ENEMY_WEAK);
+						}
+						else if( r > 8 )
+						{
+							sleep(1.2);
+							bot.ExecCommand("vsay_team FTAttack");
+						}
+					}
+					if ( bot.GetTeam() == TEAM.ALLIES )
+					{
+						r = RandRange(0,10);
+						if( r < 2 )
+						{
+							bot.SayVoice(VOICE.DEFEND_OBJECTIVE);
+						}
+						else if( r > 8 )
+						{
+							sleep(1.2);
+							bot.ExecCommand("vsay_team FTFallBack");
+						}
+					}
+				}
+			}
+
+			Util.MapDebugPrint( "all planes destroyed", true );
+		}
+
+		Util.MapDebugPrint( "XF5U_1_Destroyed" );
+	},
+
+	XF5U_2_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Plane2 = "true";
+
+		if ( Map.Plane1 && Map.Plane3 )
+		{
+			Map.Switches.BigDoor.LimitTeam = (1<<TEAM.AXIS);
+			Map.Switches.Switch1.LimitTeam = (1<<TEAM.AXIS);
+			Map.Switches.Switch3.LimitTeam = (1<<TEAM.AXIS);
+
+			//open path now to get access to the next level
+			Wp.SetWaypointFlag("nextlvl","closed",false);
+
+			Groups.DisableAllies(Groups.group2);
+			Groups.DisableAxis(Groups.group1);
+			Groups.EnableAllies(Groups.group4);
+			Groups.EnableAxis(Groups.group3);
+
+			if ( Map.Plane2 && Map.Talk && MAP_TALK )
+			{
+
+				foreach ( id and bot in BotTable )
+				{
+					if ( bot.GetTeam() == TEAM.AXIS )
+					{
+						r = RandRange(0,10);
+						if( r < 2 )
+						{
+							bot.SayVoice(VOICE.ENEMY_WEAK);
+						}
+						else if( r > 8 )
+						{
+							sleep(1.2);
+							bot.ExecCommand("vsay_team FTAttack");
+						}
+					}
+					if ( bot.GetTeam() == TEAM.ALLIES )
+					{
+						r = RandRange(0,10);
+						if( r < 2 )
+						{
+							bot.SayVoice(VOICE.DEFEND_OBJECTIVE);
+						}
+						else if( r > 8 )
+						{
+							sleep(1.2);
+							bot.ExecCommand("vsay_team FTFallBack");
+						}
+					}
+				}
+			}
+
+			Util.MapDebugPrint( "all planes destroyed", true );
+		}
+
+		Util.MapDebugPrint( "XF5U_2_Destroyed" );
+	},
+
+	XF5U_3_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Plane3 = "true";
+
+		if ( Map.Plane1 && Map.Plane2 )
+		{
+			Map.Switches.BigDoor.LimitTeam = (1<<TEAM.AXIS);
+			Map.Switches.Switch1.LimitTeam = (1<<TEAM.AXIS);
+			Map.Switches.Switch3.LimitTeam = (1<<TEAM.AXIS);
+
+			//open path now to get access to the next level
+			Wp.SetWaypointFlag("nextlvl","closed",false);
+
+			Groups.DisableAllies(Groups.group2);
+			Groups.DisableAxis(Groups.group1);
+			Groups.EnableAllies(Groups.group4);
+			Groups.EnableAxis(Groups.group3);
+
+			if ( Map.Plane3 && Map.Talk && MAP_TALK )
+			{
+
+				foreach ( id and bot in BotTable )
+				{
+					if ( bot.GetTeam() == TEAM.AXIS )
+					{
+						r = RandRange(0,10);
+						if( r < 2 )
+						{
+							bot.SayVoice(VOICE.ENEMY_WEAK);
+						}
+						else if( r > 8 )
+						{
+							sleep(1.2);
+							bot.ExecCommand("vsay_team FTAttack");
+						}
+					}
+					if ( bot.GetTeam() == TEAM.ALLIES )
+					{
+						r = RandRange(0,10);
+						if( r < 2 )
+						{
+							bot.SayVoice(VOICE.DEFEND_OBJECTIVE);
+						}
+						else if( r > 8 )
+						{
+							sleep(1.2);
+							bot.ExecCommand("vsay_team FTFallBack");
+						}
+					}
+				}
+			}
+
+			Util.MapDebugPrint( "all planes destroyed", true );
+		}
+
+		Util.MapDebugPrint( "XF5U_3_Destroyed" );
+	},
+
+	//Gates
+	NORTH_GATE_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "NORTH_GATE_Built" );
+	},
+
+	SOUTH_GATE_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "SOUTH_GATE_Built" );
+	},
+
+	NORTH_GATE_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "NORTH_GATE_Destroyed" );
+	},
+
+	SOUTH_GATE_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "SOUTH_GATE_Destroyed" );
+	},
+
+	//Detroyable doors
+	FX5U_PROJECT_ROOM_DOOR_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group4);
+		Groups.DisableAxis(Groups.group3);
+		Groups.EnableAllies(Groups.group6);
+		Groups.EnableAxis(Groups.group5);
+
+		Util.MapDebugPrint( "FX5U_PROJECT_ROOM_DOOR_Destroyed" );
+	},
+
+	FX5U_SCHEMATICS_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "FX5U_SCHEMATICS_Destroyed" );
+	},
+
+	//Objectives
+	rocket_fuel_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group6);
+		Groups.DisableAxis(Groups.group5);
+		Groups.EnableAllies(Groups.group8);
+		Groups.EnableAxis(Groups.group7);
+
+		Util.MapDebugPrint( "rocket_fuel_Taken" );
+	},
+
+	rocket_fuel_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group8);
+		Groups.DisableAxis(Groups.group7);
+		Groups.EnableAllies(Groups.group6);
+		Groups.EnableAxis(Groups.group5);
+
+		Util.MapDebugPrint( "rocket_fuel_Returned" );
+	},
+
+	rocket_fuel_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group8);
+		Groups.DisableAxis(Groups.group7);
+		Groups.EnableAllies(Groups.group6);
+		Groups.EnableAxis(Groups.group5);
+
+		Map.Obj1 = "true";
+
+		if ( Map.Obj2 )
+		{
+			ETUtil.WinningChat( TEAM.AXIS );
+			ETUtil.LosingChat( TEAM.ALLIES );
+		}
+
+		Util.MapDebugPrint( "rocket_fuel_Captured" );
+	},
+
+	v2_docs_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group6);
+		Groups.DisableAxis(Groups.group5);
+		Groups.EnableAllies(Groups.group8);
+		Groups.EnableAxis(Groups.group7);
+
+		Util.MapDebugPrint( "v2_docs_Taken" );
+	},
+
+	v2_docs_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group8);
+		Groups.DisableAxis(Groups.group7);
+		Groups.EnableAllies(Groups.group6);
+		Groups.EnableAxis(Groups.group5);
+
+		Util.MapDebugPrint( "v2_docs_Returned" );
+	},
+
+	v2_docs_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group8);
+		Groups.DisableAxis(Groups.group7);
+		Groups.EnableAllies(Groups.group6);
+		Groups.EnableAxis(Groups.group5);
+
+		Map.Obj2 = "true";
+
+		if ( Map.Obj1 )
+		{
+			ETUtil.WinningChat( TEAM.AXIS );
+			ETUtil.LosingChat( TEAM.ALLIES );
+		}
+
+		Util.MapDebugPrint( "v2_docs_Captured" );
+	},
+
+	axis_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Switches.Switch1.LimitTeam = 0;
+		Map.Switches.Switch3.LimitTeam = 0;
+
+		Util.MapDebugPrint( "axis_flag_Axis_Captured" );
+	},
+
+	axis_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "axis_flag_Allies_Captured" );
+	},
+
+	//Switchstuff and checks
+	Lift1Move =  function( trigger )
+	{
+    	vec = ToVector(trigger.Action);
+
+		if ( vec.z > 38 )
+		{
+			Util.MapDebugPrint( "lift 1 is coming up", true );
+			sleep(15.0);
+
+			Map.Lift1Status = "up";
+			Map.Lift1Up = true;
+
+			if ( Map.Lift1Up && Map.SwitchOneStatus == "up" )
+			{
+				Wp.SetWaypointFlag("Lift1_1","closed",false);
+				Wp.SetWaypointFlag("Lift1_2","closed",true);
+				SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_lift1.*" );
+				Util.MapDebugPrint( "lift1 is ready upstairs", true );
+			}
+		}
+		else if ( vec.z < -38 )
+		{
+			Util.MapDebugPrint( "lift 1 is going down", true );
+			sleep(15.0);
+
+			Map.Lift1Status = "down";
+			Map.Lift1Down = true;
+
+			if ( Map.Lift1Down && Map.Pulled1 )
+			{
+				Wp.SetWaypointFlag("Lift1_2","closed",false);
+				SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_a_lift1.*" );
+				Util.MapDebugPrint( "lift1 is ready downstairs", true );
+			}
+		}
+	},
+
+	Switch1Move = function( trigger )
+	{
+		vec = ToVector(trigger.Action);
+
+		if ( vec.z < -14 )
+		{
+			//Util.MapDebugPrint( "switch1 pulled down" );
+			sleep(1.0);
+			Wp.SetWaypointFlag("Lift1_1","closed",false);
+			Map.SwitchOneStatus = "down";
+			Map.Pulled1 = true;
+
+			Map.Switches.Switch1.LimitTeam = 0;
+			Map.Switches.Switch2.LimitTeam = (1<<TEAM.ALLIES);
+			Util.MapDebugPrint( "SwitchOne is now: " + Map.SwitchOneStatus, true );
+		}
+		else if ( vec.z > 14 )
+		{
+			//Util.MapDebugPrint( "switch1 pulled up" );
+			sleep(1.0);
+
+			Map.SwitchOneStatus = "up";
+
+			Map.Switches.Switch1.LimitTeam = (1<<TEAM.AXIS);
+			Map.Switches.Switch2.LimitTeam = 0;
+			Util.MapDebugPrint( "SwitchOne is now: " + Map.SwitchOneStatus, true );
+		}
+	},
+
+	Lift2Move =  function( trigger )
+	{
+    	vec = ToVector(trigger.Action);
+
+		if ( vec.z > 38 )
+      	{
+			Util.MapDebugPrint( "lift 2 is coming up", true );
+			sleep(15.0);
+
+			Map.Lift2Status = "up";
+			Map.Lift2Up = true;
+
+			if ( Map.Lift2Up && Map.SwitchThreeStatus == "up" )
+			{
+				Wp.SetWaypointFlag("Lift2_1","closed",false);
+				Wp.SetWaypointFlag("Lift2_2","closed",true);
+				SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_lift2.*" );
+				Util.MapDebugPrint( "lift2 is ready upstairs", true );
+			}
+		}
+		else if ( vec.z < -38 )
+      	{
+			Util.MapDebugPrint( "lift 2 is going down", true );
+			sleep(15.0);
+
+			Map.Lift2Status = "down";
+			Map.Lift2Down = true;
+
+			if ( Map.Lift2Down && Map.Pulled3 )
+			{
+				Wp.SetWaypointFlag("Lift2_2","closed",false);
+				SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_a_lift2.*" );
+				Util.MapDebugPrint( "lift2 is ready downstairs", true );
+			}
+		}
+	},
+
+	Switch3Move = function( trigger )
+	{
+		vec = ToVector(trigger.Action);
+
+		if ( vec.z < -14 )
+		{
+			//Util.MapDebugPrint( "switch3 pulled down" );
+			sleep(1.0);
+			Wp.SetWaypointFlag("Lift2_1","closed",false);
+			Map.SwitchThreeStatus = "down";
+			Map.Pulled3 = true;
+
+			Map.Switches.Switch3.LimitTeam = 0;
+			Map.Switches.Switch4.LimitTeam = (1<<TEAM.ALLIES);
+			Util.MapDebugPrint( "Switch3 is now " + Map.SwitchThreeStatus, true );
+		}
+		else if ( vec.z > 14 )
+		{
+			//Util.MapDebugPrint( "switch3 pulled up" );
+			sleep(1.0);
+
+			Map.SwitchThreeStatus = "up";
+
+			Map.Switches.Switch3.LimitTeam = (1<<TEAM.AXIS);
+			Map.Switches.Switch4.LimitTeam = 0;
+			Util.MapDebugPrint( "Switch3 is now " + Map.SwitchThreeStatus, true );
+		}
+	},
+
+	check_BigDoor = function ()
+	{
+		wpOne = Util.WpNameInfo("tracestart");
+		wpTwo = Util.WpNameInfo("traceend");
+
+		while( !Map.BigDoor )
+		{
+			tr = TraceLine( wpOne.position, wpTwo.position, null, TRACE.SHOT, 0, false );
+
+			if ( tr.fraction < 1 )
+			{
+				if ( Map.Debug )
+					{ DrawDebugLine(wpOne.position, wpTwo.position, COLOR.RED, 0.25); }
+			}
+			else
+			{
+				if ( Map.Debug )
+					{ DrawDebugLine(wpOne.position, wpTwo.position, COLOR.GREEN, 0.25); }
+
+				Map.BigDoor = true;
+				Wp.SetWaypointFlag("door","closed",false);
+
+			}
+
+			if ( Map.Bigdoor )
+			{
+				Map.Switches.BigDoor.LimitTeam = 0;
+				Util.MapDebugPrint( "Switch disabled ", true);
+			}
+
+			 sleep(0.25);
+		}
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_a_door" );
+
+		Util.MapDebugPrint( "BigDoor open" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	thread(Map.check_BigDoor);
+
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Command_Post_Built );
+	OnTrigger( "^3ALLIES HAVE CONSTRUCTED THE NORTH GATE!!!", Map.NORTH_GATE_Built );
+	OnTrigger( "^3ALLIES HAVE CONSTRUCTED THE SOUTH GATE!!!", Map.SOUTH_GATE_Built );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Command_Post_Destroyed );
+	OnTrigger( "^3AXIS HAVE DESTROYED THE XF4U PROJECT ROOM DOOR!!!", Map.FX5U_PROJECT_ROOM_DOOR_Destroyed );
+	OnTrigger( "^3AXIS HAVE DESTROYED THE XF4U SCHEMATICS SAFE DOOR!!!", Map.FX5U_SCHEMATICS_Destroyed );
+	OnTrigger( "^3THE NORTH GATE HAS BEEN BREACHED!!!", Map.NORTH_GATE_Destroyed );
+	OnTrigger( "^3THE SOUTH GATE HAS BEEN BREACHED!!!", Map.SOUTH_GATE_Destroyed );
+	OnTrigger( "^3AXIS HAVE DESTROYED THE XF5U #1!!!", Map.XF5U_1_Destroyed );
+	OnTrigger( "^3AXIS HAVE DESTROYED THE XF5U #2!!!", Map.XF5U_2_Destroyed );
+	OnTrigger( "^3AXIS HAVE DESTROYED THE XF5U #3!!!", Map.XF5U_3_Destroyed );
+	OnTrigger( "^3THE AXIS HAVE STOLEN THE FORMULA!!!", Map.rocket_fuel_Taken );
+	OnTrigger( "^3THE ALLIES HAVE RETURNED THE XF5U FUEL FORMULA!!!", Map.rocket_fuel_Returned );
+	OnTrigger( "^3THE AXIS HAVE TRANSMITTED THE FX4U FUEL FORMULA!!!", Map.rocket_fuel_Captured );
+	OnTrigger( "^3THE AXIS HAVE STOLEN THE FX4U DOCS!!!", Map.v2_docs_Taken );
+	OnTrigger( "^3THE ALLIES HAVE RETURNED THE XF4U DOCS!!!", Map.v2_docs_Returned );
+	OnTrigger( "^3THE AXIS HAVE TRANSMITTED THE XF4U DOCS!!!", Map.v2_docs_Captured );
+	OnTrigger( "^3THE AXIS HAVE CAPUTRED THE LAB FORWARD SPAWN!!!", Map.axis_flag_Axis_Captured );
+	OnTrigger( "^3THE ALLIES HAVE PUSHED THE AXIS BACK AND CAPTURED THE LAB!!!", Map.axis_flag_Allies_Captured );
+
+	//Liftand Switchtrigger
+	OnTrigger( "lift_1_goto", Map.Lift1Move );    	//Moving Lift1
+	OnTrigger( "lift_2_goto", Map.Lift2Move );    	//Moving Lift 2
+	OnTrigger( "lever1_goto", Map.Switch1Move );    //Switch1 handle
+	OnTrigger( "lever3_goto", Map.Switch3Move );    //Switch3 handle
+
+	//Destroy Main goals
+	SetGoalPriority( "PLANT_.*", 0.9 );
+	SetGoalPriority( "BUILD_.*", 0.6 );
+
+	//close path , we will open it later if planes are destroyed
+	Wp.SetWaypointFlag("nextlvl","closed",true);
+	//open it when bigdoor is open
+	Wp.SetWaypointFlag("door","closed",true);
+	// close path to elevators, open if its needed ( Lifts in Position )
+	Wp.SetWaypointFlag("Lift1_1","closed",false);
+	Wp.SetWaypointFlag("Lift1_2","closed",true);
+	Wp.SetWaypointFlag("Lift2_1","closed",false);
+	Wp.SetWaypointFlag("Lift2_2","closed",true);
+
+	//set max users for goals
+	Util.SetMaxUsersInProgress( 2, "BUILD.*" );
+	Util.SetMaxUsersInProgress( 2, "PLANT.*" );
+	Util.SetMaxUsersInProgress( 1, "SNIPE.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_d_alliedtop.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_d_cp.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_d_xf5u_hangar.*" );
+	Util.SetMaxUsersInProgress( 1, "ATTACK_a_cp.*" );
+	Util.SetMaxUsersInProgress( 1, "MOUNTMG42.*" );
+
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=120, MaxCampTime=120});
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=60, MaxCampTime=120});
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=30, MaxCampTime=60});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=60, MaxCampTime=120});
+
+	//clear all goals
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+
+	Util.EnableGoal("ROUTE.*"); //enable routing for both teams
+
+	//enable part 1 goals
+	Groups.EnableAllies(Groups.group2);
+	Groups.EnableAxis(Groups.group1);
+
+	//Routes
+	MapRoutes =
+	{
+		PLANT_XF5U_1 =
+		{
+			ROUTE_r_axisspawn_1 =
+			{
+				ROUTE_r_ax1_tunnelstart =
+				{
+					ROUTE_r_ax1_tunnelladder_1 =
+					{
+						ROUTE_r_ax1_tunnelsplit_1 =
+						{
+							ROUTE_r_ax1_tunnelladder_2 = { ROUTE_r_ax1_cabinet = {}, },
+						},
+					},
+				},
+				ROUTE_r_ax1_doorexit =
+				{
+					ROUTE_r_ax1_split_1 =
+					{
+						ROUTE_r_ax1_rightway = {},
+						Weight = 4,
+						ROUTE_r_ax1_cabinet = { ROUTE_r_uppertunnel = {}, },
+					},
+				},
+			},
+		},
+		MOUNTMG42_774 =
+		{
+			ROUTE_r_alliedspawn_1 =
+			{
+				ROUTE_r_alliedexit_l = { ROUTE_r_stairs_inside = {}, },
+			},
+		},
+		DEFEND_d_cp_1 =
+		{
+			ROUTE_r_alliedspawn_1 =
+			{
+				ROUTE_r_alliedexit_r =
+				{
+					ROUTE_r_al1_mainexit = { ROUTE_r_cp = {}, },
+				},
+				ROUTE_r_alliedexit_l =
+				{
+					ROUTE_r_al1_mainexit = { ROUTE_r_cp = {}, },
+				},
+			},
+		},
+		DEFEND_d_alliedtop_1 =
+		{
+			ROUTE_r_alliedspawn_1 =
+			{
+				ROUTE_r_alliedexit_r = { ROUTE_r_stairs_inside = {}, },
+				ROUTE_r_alliedexit_l = { ROUTE_r_stairs_inside = {}, },
+			},
+		},
+		PLANT_FX5U_PROJECT_ROOM_DOOR =
+		{
+			ROUTE_r_axisspawn_2 =
+			{
+				ROUTE_r_lifts =
+				{
+					ROUTE_r_lift_1 = {},
+					ROUTE_r_lift_2 = {},
+				},
+				ROUTE_r_ax2_leftexit =
+				{
+					ROUTE_r_ax2_tunnel =
+					{
+						ROUTE_r_ax2_ladder_1 = {},
+						ROUTE_r_ax2_ladder_2 = {},
+					},
+				},
+			},
+		},
+	};
+
+	//copy some routes
+	MapRoutes.PLANT_XF5U_3 = MapRoutes.PLANT_XF5U_1 ;
+	MapRoutes.PLANT_XF5U_2 = MapRoutes.PLANT_XF5U_1 ;
+	MapRoutes.PLANT_Command_Post = MapRoutes.PLANT_XF5U_1 ;
+	MapRoutes.BUILD_Command_Post = MapRoutes.PLANT_XF5U_1 ;
+	MapRoutes.CALLARTILLERY_ar_ax_call_bunker_1 = MapRoutes.PLANT_XF5U_1 ;
+	MapRoutes.CALLARTILLERY_ar_bunker_2 = MapRoutes.PLANT_XF5U_1 ;
+	MapRoutes.MOBILEMG42_mg_al1_trees = MapRoutes.MOUNTMG42_774;
+	MapRoutes.ATTACK_a_cp_1 = MapRoutes.PLANT_XF5U_1;
+	MapRoutes.ATTACK_a_cp_2 = MapRoutes.PLANT_XF5U_1;
+	MapRoutes.ATTACK_a_cp_3 = MapRoutes.PLANT_XF5U_1;
+	MapRoutes.DEFEND_d_cp_2 = MapRoutes.DEFEND_d_cp_1;
+	MapRoutes.DEFEND_d_cp_3 = MapRoutes.DEFEND_d_cp_1;
+	MapRoutes.DEFEND_d_alliedtop_2 = MapRoutes.DEFEND_d_alliedtop_1;
+	MapRoutes.DEFEND_d_alliedtop_3 = MapRoutes.DEFEND_d_alliedtop_1;
+	MapRoutes.DEFEND_d_alliedtop_4 = MapRoutes.DEFEND_d_alliedtop_1;
+	MapRoutes.DEFEND_d_alliedtop_5 = MapRoutes.DEFEND_d_alliedtop_1;
+	MapRoutes.DEFEND_d_alliedtop_6 = MapRoutes.DEFEND_d_alliedtop_1;
+	MapRoutes.DEFEND_d_alliedtop_7 = MapRoutes.DEFEND_d_alliedtop_1;
+	MapRoutes.SNIPE_s_alliedtop_1 = MapRoutes.DEFEND_d_alliedtop_1;
+
+	//set up the Switches and Routes
+	Util.UpdateSwitchData();
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	 bot.TargetBreakableDist = 100.0;
+	 bot.MaxViewDistance = 2500;
+
+	if( class == CLASS.COVERTOPS )
+	{
+		if ( bot.HasWeapon(WEAPON.K43) || bot.HasWeapon(WEAPON.GARAND))
+		{
+			bot.MaxViewDistance = 10000.0;
+		}
+	}
+};
+
+global Groups =
+{
+	//Axis part 1
+	group1 =
+	{
+		Map.Build_Command_Post,
+		Map.Plant_Command_Post,
+		Map.Call_Artillery_ar_ax_call_bunker_1,
+		Map.Call_Artillery_ar_ax_spawn_1,
+		Map.Call_Artillery_ar_bunker_2,
+		Map.Artillery_S_ar_ax_alexit_1,
+		Map.Artillery_S_ar_ax_alexit_2,
+		Map.Mount_291,
+		Map.Repair_291,
+		Map.Plant_XF5U_3,
+		Map.Plant_XF5U_2,
+		Map.Plant_XF5U_1,
+		"ATTACK_a_cp.*",
+		"ATTACK_a_plane.*",
+		"SNIPE_s_ax_cabinet_1",
+		"SNIPE_s_ax_cabinet_2",
+	},
+
+	//Allies part 1
+	group2 =
+	{
+		Map.Build_Command_Post,
+		Map.Plant_Command_Post,
+		Map.Mount_774,
+		Map.Repair_774,
+		Map.Mobile_MG42_mg_al1_trees,
+		Map.Call_Artillery_ar_al1_bunker,
+		Map.Artillery_S_ar_al_axexit_1,
+		Map.Artillery_S_ar_ax_alexit_2,
+		"DEFEND_d_cp.*",
+		"DEFEND_d_alliedtop.*",
+		"DEFEND_d_xf5u_hangar.*",
+		"SNIPE_s_alliedbunker_1",
+		"SNIPE_s_alliedbunker_2",
+		"SNIPE_s_alliedbunker_3",
+		"SNIPE_s_alliedtop_1",
+		"SNIPE_s_hangartop_1",
+		"SNIPE_s_hangartop_2",
+	},
+
+	//Axis part 2
+	group3 =
+	{
+		//Map.Plant_NORTH_GATE,
+		//Map.Plant_SOUTH_GATE,
+		Map.Plant_FX5U_PROJECT_ROOM_DOOR,
+		"ATTACK_a_door",
+		"ATTACK_a_projectdoor.*",
+	},
+
+	//Allies part 2
+	group4 =
+	{
+		Map.Build_NORTH_GATE,
+		Map.Build_SOUTH_GATE,
+		"DEFEND_d_projectdoor.*",
+	},
+
+	//Axis part 3
+	group5 =
+	{
+		Map.Plant_NORTH_GATE,
+		Map.Plant_SOUTH_GATE,
+		Map.Checkpoint_axis_flag,
+		Map.Flag_rocket_fuel,
+		Map.Plant_FX5U_SCHEMATICS,
+		Map.Flag_v2_docs,
+		Map.Cappoint_Dropoff,
+		"ATTACK_a_flag",
+	},
+
+	//Allies part 3
+	group6 =
+	{
+		Map.Build_NORTH_GATE,
+		Map.Build_SOUTH_GATE,
+		Map.Checkpoint_axis_flag,
+		"DEFEND_d_projectdoor.*",
+		"DEFEND_d_docs.*",
+		"DEFEND_d_fuel.*",
+	},
+
+	//Axis obj taken , if returned go back to group 5
+	group7 =
+	{
+		Map.Flag_v2_docs,
+		Map.Flag_rocket_fuel,
+		Map.Cappoint_Dropoff,
+		"ATTACK_a_radio.*",
+		"SNIPE_s_radio.*",
+	},
+
+	//Allies defend radio , if obj returned go back to group 6
+	group8 =
+	{
+		"DEFEND_d_radio.*",
+	},
+
+	EnableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, goal );
+			Util.MapDebugPrint("EnableAllies: enabling " + goal, true);
+		}
+	},
+
+	EnableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, goal );
+			Util.MapDebugPrint("EnableAxis: enabling " + goal, true);
+		}
+	},
+
+	DisableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, goal );
+			Util.MapDebugPrint("DisableAllies: disabling " + goal, true);
+		}
+	},
+
+	DisableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, goal );
+			Util.MapDebugPrint("DisableAxis: disabling " + goal, true);
+		}
+	},
+};

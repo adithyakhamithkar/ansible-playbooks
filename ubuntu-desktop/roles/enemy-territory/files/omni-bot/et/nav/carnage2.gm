@@ -1,0 +1,1495 @@
+//==========================================================================================
+//
+//	carnage2.gm
+//
+//	Who   		When		What
+//------------------------------------------------------------------------------------------
+//	Native12	17 May 2012	Initial Script
+//	Native12	27 May 2012	First release
+//	Native12	05.06.2012	Routes, Coverspots, Roles, new goals
+//
+//==========================================================================================
+//	
+
+global Map =
+{
+	Debug = 0, // please set to zero before distributing your script
+	ShowMovers = false,
+	
+	Axis_Transmission_Radio_Dyno = 0,
+	Axis_base_gate_Dyno = 0,
+	Command_Post_Dyno = 0,
+	axis_basement_MG_Gun_Dyno = 0,
+	beach_bunker_door_Dyno = 0,
+	bunker_door_Dyno = 0,
+	canyon_bunker_MG42_gun_Dyno = 0,
+	power_generator_Dyno = 0,
+	
+	Axis_Flag = true,
+	Generator_destroyed = false,
+	Radio_destroyed = false,
+	Base_gate_Destroyed = false,
+	BunkerDoor_Destroyed = false,
+	Allied_CP_Built = false,
+	Axis_CP_Built = false,
+	hatch_destroyed = false,
+	MainBunkerMG42Built = false,
+	
+	Roles =
+	{
+		AXIS =
+		{
+			AllBots = true, // each bot is considered for a role
+			DEFENDER1 =	//DEFEND in Canyon bunker
+			{
+				numbots = 7,
+				crucialClass = CLASS.ENGINEER,
+			},
+			DEFENDER2 =	//DEFEND near Forward spawn
+			{
+				numbots = 7,
+				crucialClass = CLASS.SOLDIER,
+			},
+			DEFENDER3 =	//DEFEND in Axis base back bunker
+			{
+				numbots = 4,
+				crucialClass = CLASS.ENGINEER,
+			},
+		},
+		ALLIES =
+		{
+			AllBots = true, // each bot is considered for a role
+			ATTACKER1 =
+			{
+				numbots = 7,
+				crucialClass = CLASS.ENGINEER,
+			},
+			ATTACKER2 =
+			{
+				numbots = 7,
+				crucialClass = CLASS.ENGINEER,
+			},
+		},
+	},
+	
+	Navigation =
+	{
+		//  	/bot waypoint_setproperty paththrough Navigation_PT:ladder
+		ladder =	//ladder in Axis spawn in Canyon bunker
+		{
+			navigate = function(_this)
+			{
+				wpTable = {};
+				Wp.GetWaypointByName("ladder", wpTable);
+				if ( _this.Goto(wpTable.position) == EVENT.PATH_SUCCESS )
+				{
+					_this.AddAimRequest(Priority.VeryHigh, "facing", wpTable.facing);
+					sleep(0.351);
+					_this.Bot.HoldButton(BTN.WALK, 0.6);
+					_this.Bot.HoldButton(BTN.FORWARD, 1.75);
+					sleep(1.75);
+					_this.AddAimRequest(Priority.VeryHigh, "facing", Vector3(0.778436,-0.014779,-0.627550));
+					sleep(0.1);
+					_this.Bot.HoldButton(BTN.FORWARD, 0.5);
+					sleep(0.5);
+				}
+			},
+		},
+		//  	/bot waypoint_setproperty paththrough Navigation_PT:hatch
+		hatch =		//hatch in Axis basement spawn (spawn No. 4)
+		{
+			gotowp = "Hatch", 	// waypoint for the bot to go to before doing anything else
+			EvalFunc = function()	// if this function returns false, navigation will not run
+			{
+				return !Map.hatch_destroyed;
+			},
+
+			navigate = function(_this)
+			{
+				if ( Map.hatch_destroyed )
+				{
+					yield();
+					return;
+				}
+
+				_this.AddWeaponRequest(Priority.High, WEAPON.KNIFE);
+				_this.AddAimRequest(Priority.High, "position", Vector3(6183.361816, 3092.908936, 1278.125000));
+				_this.AddAimRequest(Priority.High, "facing", Vector3(0.039793, -0.002521, -0.999205));
+
+				while( !Map.hatch_destroyed )
+				{
+					_this.Bot.HoldButton(BTN.CROUCH, 1);
+					_this.Bot.HoldButton(BTN.ATTACK1, 1);
+					yield();
+				}
+
+				_this.ReleaseAimRequest();
+				_this.ReleaseWeaponRequest();
+			},
+		},
+	},
+	
+	SetStart = function()
+	{
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_CanyonBunker_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_canyon_bunker_MG42_gun" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_MainBunker_1" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_Axis_MainBunker_3" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_main_bunker_MG42_gun" );
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_ForwardSpawn_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_Axis_Start_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Command_Post" );
+		Map.SetSpawn();
+	},
+	
+	SetSpawn = function()
+	{
+		yield();
+		foreach(bot in BotTable)
+		{
+			Map.SetSpawn1(bot);
+		}
+	},
+	
+	SetSpawn1 = function(bot)
+	{
+		if ( bot.GetTeam() == TEAM.AXIS )
+		{
+			if ( !Map.Base_gate_Destroyed and !Map.BunkerDoor_Destroyed )
+			{
+				if ( bot.HasRole( ROLE.DEFENDER1 ) or bot.HasRole( ROLE.DEFENDER2 ) )
+				{
+					bot.ChangeSpawnPoint(3);
+				}
+				else if ( bot.HasRole( ROLE.DEFENDER3 ) )
+				{
+					bot.ChangeSpawnPoint(6);
+				}
+				else
+				{
+					bot.ChangeSpawnPoint(3);
+				}
+			}
+			else
+			{
+				if ( bot.HasRole( ROLE.DEFENDER3 ) )
+				{
+					bot.ChangeSpawnPoint(6);
+				}
+				else if ( bot.HasRole( ROLE.DEFENDER1 ) and !Map.Radio_destroyed )	//DEFEND near Transmission radio
+				{
+					bot.ChangeSpawnPoint(1);
+				}
+				else if ( bot.HasRole( ROLE.DEFENDER2 ) and !Map.Generator_destroyed )	//DEFEND near Power generator
+				{
+					bot.ChangeSpawnPoint(4);
+				}
+				else
+				{
+					if ( !Map.Radio_destroyed and Map.Generator_destroyed )
+					{
+						bot.ChangeSpawnPoint(1);
+					}
+					else if ( Map.Radio_destroyed and !Map.Generator_destroyed )
+					{
+						bot.ChangeSpawnPoint(4);
+					}
+					else
+					{
+						if ( bot.HasRole( ROLE.DEFENDER3 ) )
+						{
+							bot.ChangeSpawnPoint(6);
+						}
+						else
+						{
+							bot.ChangeSpawnPoint(0);
+						}
+					}
+				}
+			}
+		}
+	},
+	
+	beach_bunker_door_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.beach_bunker_door_Dyno += 1;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_beach_bunker_door_.*" );
+		
+		Util.MapDebugPrint( "beach_bunker_door_Planted" );
+	},
+	
+	beach_bunker_door_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.beach_bunker_door_Dyno -= 1;
+		
+		Util.MapDebugPrint( "beach_bunker_door_Defused" );
+	},
+	
+	beach_bunker_door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.beach_bunker_door_Dyno = 0;
+		
+		Wp.SetWaypointFlag( "window", "closed", true );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_beach_bunker_door" );
+		
+		Util.MapDebugPrint( "beach_bunker_door_Destroyed" );
+	},
+	
+	oldcityflag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Axis_Flag = false;
+		
+		// Disable offset 0 & 1 for right MG42 in main bunker
+		GetGoal("MOUNTMG42_mg1gun").AimVectors =
+		{ Vec3(-0.953, 0.239, -0.189), Vec3(-0.699, 0.711, -0.075), Vec3(-0.824, -0.538, -0.177) };
+		// Disable offset 0 & 1 for left MG42 in main bunker
+		GetGoal("MOUNTMG42_mg1gun_1").AimVectors =
+		{ Vec3(-0.858, -0.477, -0.192), Vec3(-0.915, 0.367, -0.165), Vec3(-0.642, 0.765, -0.042), Vec3(-0.628, -0.749, -0.210) };
+		// Disable offset 0, 1 & 2 for left MG42 in canyon bunker
+		GetGoal("MOUNTMG42_mg3gun_1").AimVectors =
+		{ Vec3(0.673, -0.622, -0.400), Vec3(0.904, -0.403, -0.142) };
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allied_Start_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_oldcityflag" );
+
+		Util.ClearRoleForGoals( ".*_Axis_ForwardSpawn_.*", ROLE.DEFENDER2 );
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_ForwardSpawn_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_Axis_CanyonBunker_3" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_Axis_CanyonBunker_4" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_Axis_CanyonBunker_5" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_Axis_CanyonBunker_6" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_mg3gun" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_mg3gun" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Axis_CanyonBunker_1" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_oldcityflag" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_Yard" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_Yard" );
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_MainBunker_.*" );
+		
+		if ( !Map.BunkerDoor_Destroyed and !Map.BunkerDoor_Destroyed )
+		{
+			Util.SetRoleForGoals( "CHECKPOINT_oldcityflag", ROLE.DEFENDER2 );
+		}
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allied_DefendFlag_.*" );
+		
+		if ( !Map.MainBunkerMG42Built )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "GRENADE_Allied_DefendFlag_12" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SMOKEBOMB_Allied_DefendFlag_.*" );
+		}
+		
+		Map.SetSpawn();
+		
+		Util.MapDebugPrint( "oldcityflag_Allies_Captured" );
+	},
+	
+	oldcityflag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Axis_Flag = true;
+		
+		Util.ClearRoleForGoals( "CHECKPOINT_oldcityflag", ROLE.DEFENDER2 );
+		
+		// Disable offset 2, 3 & 4 for right MG42 in main bunker
+		GetGoal("MOUNTMG42_mg1gun").AimVectors =
+		{ Vec3(-0.985, -0.143, -0.100), Vec3(-0.905, -0.414, -0.099) };
+		// Disable offset 2, 3, 4 & 5 for left MG42 in main bunker
+		GetGoal("MOUNTMG42_mg1gun_1").AimVectors =
+		{ Vec3(-0.912, -0.397, -0.106), Vec3(-0.993, -0.055, -0.100) };
+		// Disable offset 3 & 4 for left MG42 in canyon bunker
+		GetGoal("MOUNTMG42_mg3gun_1").AimVectors =
+		{ Vec3(-0.561, -0.814, -0.152), Vec3(-0.878, -0.436, -0.199), Vec3(-0.268, -0.884, -0.383) };
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_oldcityflag" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Axis_MainBunker_2" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_Axis_MainBunker_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_Yard" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_Yard" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allied_DefendFlag_.*" );
+		
+		if ( !Map.BunkerDoor_Destroyed )
+		{
+			Util.SetRoleForGoals( ".*_Axis_ForwardSpawn_.*", ROLE.DEFENDER2 );
+		}
+		
+		if ( !Map.BunkerDoor_Destroyed )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_ForwardSpawn_.*" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_Axis_ForwardSpawn_1" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_ForwardSpawn_2" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_ForwardSpawn_3" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_ForwardSpawn_7" );
+		}
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_CanyonBunker_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_mg3gun" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_mg3gun" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allied_Start_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_oldcityflag" );
+		
+		Map.SetSpawn();
+		
+		Util.MapDebugPrint( "oldcityflag_Axis_Captured" );
+	},
+	
+	bunker_door_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.bunker_door_Dyno += 1;
+		
+		Util.MapDebugPrint( "bunker_door_Planted" );
+	},
+	
+	bunker_door_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.bunker_door_Dyno -= 1;
+		
+		Util.MapDebugPrint( "bunker_door_Defused" );
+	},
+	
+	bunker_door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		if ( Map.bunker_door_Dyno > 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_bunker_door_.*" );
+		}
+		
+		Map.bunker_door_Dyno = 0;
+		Map.BunkerDoor_Destroyed = true;
+		
+		Util.EnableGoal("ROUTE_BunkerDoor");
+		
+		Util.ClearRoleForGoals( "BUILD_Command_Post", ROLE.DEFENDER3 );
+		Util.ClearRoleForGoals( "PLANT_Command_Post", ROLE.DEFENDER3 );
+		
+		if ( !Map.Base_gate_Destroyed )
+		{
+			Util.ClearRoleForGoals( ".*_Axis_CanyonBunker_.*", ROLE.DEFENDER1 );
+			
+			Util.ClearRoleForGoals( "PLANTMINE_Axis_Start_.*", ROLE.DEFENDER3 );
+			
+			Util.ClearRoleForGoals( ".*", ROLE.DEFENDER2 );
+			
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam()  == TEAM.AXIS )
+				{
+					WeaponTable.SetWeaponAvailability( CLASS.SOLDIER, WEAPON.MOBILE_MG42, true );
+				}
+			}
+		}
+		
+		SetGoalPriority( "CHECKPOINT_oldcityflag", 0.55, TEAM.AXIS, 0 );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_bunker_door" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_Axis_MainBunkerDoorDestroyed" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_north_ammocabinet_3" );
+		
+		if ( !Map.Base_gate_Destroyed )
+		{
+			Util.SetRoleForGoals( "MOUNTMG42_Yard", ROLE.DEFENDER1 );
+			
+			Util.SetRoleForGoals( "MOUNTMG42_mg2gun", ROLE.DEFENDER2 );
+			Util.SetRoleForGoals( "MOUNTMG42_axis_basement_MG_Gun", ROLE.DEFENDER2 );
+			
+			if ( !Map.Generator_destroyed )
+			{
+				Util.SetRoleForGoals( ".*_Axis_PowerGenerator_.*", ROLE.DEFENDER2 );		//DEFEND near Power generator
+				
+				SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_axis_basement_MG_Gun" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_axis_basement_MG_Gun_1" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_PowerGenerator_1" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_PowerGenerator_2" );
+				
+				SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_power_generator" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_PowerGenerator_1" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_PowerGenerator_2" );
+			}
+			
+			if ( !Map.Radio_destroyed )
+			{
+				Util.SetRoleForGoals( ".*_Axis_TransmissionRadio_.*", ROLE.DEFENDER1 );		//DEFEND near Transmission radio
+				
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_TransmissionRadio_1" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_TransmissionRadio_2" );
+				
+				SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Axis_Transmission_Radio" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_TransmissionRadio_1" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_TransmissionRadio_2" );
+			}
+		}
+		
+		if ( Map.Axis_CP_Built )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Command_Post" );
+		}
+		
+		Util.MapDebugPrint( "bunker_door_Destroyed" );
+	},
+	
+	Axis_base_gate_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Axis_base_gate_Dyno += 1;
+		
+		if ( Map.bunker_door_Dyno > 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_bunker_door_.*" );	//more important is defuse Axis base gate
+		}
+		
+		Util.MapDebugPrint( "Axis_base_gate_Planted" );
+	},
+	
+	Axis_base_gate_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Axis_base_gate_Dyno -= 1;
+		
+		if ( Map.Axis_base_gate_Dyno == 0 )
+		{
+			if ( !Map.BunkerDoor_Destroyed and Map.bunker_door_Dyno > 0 )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFUSE_bunker_door_.*" );
+			}
+		}
+		
+		Util.MapDebugPrint( "Axis_base_gate_Defused" );
+	},
+	
+	Axis_base_gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		if ( Map.Axis_base_gate_Dyno > 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Axis_base_gate_.*" );
+		}
+		
+		if ( !Map.BunkerDoor_Destroyed and Map.bunker_door_Dyno > 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFUSE_bunker_door_.*" );
+		}
+		
+		Map.Axis_base_gate_Dyno = 0;
+		
+		// Disable offset 0 & 1 for right MG42 in main bunker
+		GetGoal("MOUNTMG42_mg1gun").AimVectors =
+		{ Vec3(-0.953, 0.239, -0.189), Vec3(-0.699, 0.711, -0.075), Vec3(-0.824, -0.538, -0.177) };
+		// Disable offset 0 & 1 for left MG42 in main bunker
+		GetGoal("MOUNTMG42_mg1gun_1").AimVectors =
+		{ Vec3(-0.858, -0.477, -0.192), Vec3(-0.915, 0.367, -0.165), Vec3(-0.642, 0.765, -0.042), Vec3(-0.628, -0.749, -0.210) };
+		// Disable offset 0, 1 & 2 for left MG42 in canyon bunker
+		GetGoal("MOUNTMG42_mg3gun_1").AimVectors =
+		{ Vec3(0.673, -0.622, -0.400), Vec3(0.904, -0.403, -0.142) };
+		
+		Map.Axis_Flag = false;
+		Map.Base_gate_Destroyed = true;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "HEALTHCAB_north_healthcabinet" );
+		
+		Util.EnableGoal("ROUTE_BaseGate");
+		
+		Util.ClearRoleForGoals( ".*", ROLE.DEFENDER1 );
+		
+		Util.ClearRoleForGoals( "PLANTMINE_Axis_Start_.*", ROLE.DEFENDER3 );
+		
+		Util.ClearRoleForGoals( ".*", ROLE.DEFENDER2 );
+		
+		Util.SetRoleForGoals( "MOUNTMG42_Yard", ROLE.DEFENDER1 );
+		
+		Util.SetRoleForGoals( "MOUNTMG42_mg2gun", ROLE.DEFENDER2 );
+		Util.SetRoleForGoals( "MOUNTMG42_axis_basement_MG_Gun", ROLE.DEFENDER2 );
+		
+		foreach ( id and bot in BotTable )
+		{
+			if ( bot.GetTeam()  == TEAM.AXIS )
+			{
+				WeaponTable.SetWeaponAvailability( CLASS.SOLDIER, WEAPON.MOBILE_MG42, true );
+			}
+		}
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_ForwardSpawn_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_CanyonBunker_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_canyon_bunker_MG42_gun" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_mg3gun.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_mg3gun.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANTMINE_Axis_Start_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_oldcityflag" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allied_Start_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Axis_base_gate" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allied_DefendFlag_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_oldcityflag" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_MainBunker_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_Yard" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_Yard" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_north_.*" );
+		
+		if ( Map.MainBunkerMG42Built )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "GRENADE_Allied_DefendFlag_12" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SMOKEBOMB_Allied_DefendFlag_.*" );
+		}
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_north_.*" );
+		
+		if ( !Map.Generator_destroyed )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_axis_basement_MG_Gun" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_axis_basement_MG_Gun_1" );
+			
+			if ( !Map.Radio_destroyed )
+			{
+				Util.SetRoleForGoals( ".*_Axis_PowerGenerator_.*", ROLE.DEFENDER2 );		//DEFEND near Power generator
+				
+				SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_PowerGenerator_1" );
+				SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_PowerGenerator_2" );
+				SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_PowerGenerator_7" );
+				SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_PowerGenerator_8" );
+				
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_PowerGenerator_1" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_PowerGenerator_2" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_PowerGenerator_9" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_PowerGenerator_10" );
+			}
+			else
+			{
+				Util.ClearRoleForGoals( ".*", ROLE.DEFENDER1 );
+				Util.ClearRoleForGoals( ".*", ROLE.DEFENDER2 );
+				
+				Util.ClearRoleForGoals( ".*", ROLE.ATTACKER1 );
+				Util.ClearRoleForGoals( ".*", ROLE.ATTACKER2 );
+				
+				SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_PowerGenerator_.*" );
+				
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_PowerGenerator_.*" );
+			}
+			
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_power_generator" );
+		}
+		
+		if ( !Map.Radio_destroyed )
+		{
+			if ( !Map.Generator_destroyed )
+			{
+				Util.SetRoleForGoals( ".*_Axis_TransmissionRadio_.*", ROLE.DEFENDER1 );		//DEFEND near Transmission radio
+				
+				SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_TransmissionRadio_1" );
+				SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_TransmissionRadio_2" );
+				SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_TransmissionRadio_7" );
+				SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_TransmissionRadio_9" );
+				
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_TransmissionRadio_1" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_TransmissionRadio_2" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_TransmissionRadio_3" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_TransmissionRadio_4" );
+			}
+			else
+			{
+				Util.ClearRoleForGoals( ".*", ROLE.DEFENDER1 );
+				Util.ClearRoleForGoals( ".*", ROLE.DEFENDER2 );
+				
+				Util.ClearRoleForGoals( ".*", ROLE.ATTACKER1 );
+				Util.ClearRoleForGoals( ".*", ROLE.ATTACKER2 );
+				
+				SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_TransmissionRadio_.*" );
+				
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_TransmissionRadio_.*" );
+			}
+			
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Axis_Transmission_Radio" );
+		}
+		
+		Map.SetSpawn();
+		
+		Util.MapDebugPrint( "Axis_base_gate_Destroyed" );
+	},
+	
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Allied_CP_Built = true;
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Command_Post" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Command_Post" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Command_Post" );
+		
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+	
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Axis_CP_Built = true;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Command_Post" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Command_Post" );
+		
+		if ( Map.BunkerDoor_Destroyed )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Command_Post" );
+		}
+		
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+	
+	Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Command_Post_Dyno += 1;
+		
+		if ( Map.Axis_CP_Built )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Command_Post_.*" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFUSE_Command_Post_.*" );
+		}
+		
+		Util.MapDebugPrint( "Command_Post_Planted" );
+	},
+	
+	Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Command_Post_Dyno -= 1;
+		
+		Util.MapDebugPrint( "Command_Post_Defused" );
+	},
+	
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Command_Post_Dyno = 0;
+		Map.Allied_CP_Built = false;
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Command_Post" );
+		
+		if ( Map.BunkerDoor_Destroyed )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Post" );
+		}
+		
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+	
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Command_Post_Dyno = 0;
+		Map.Axis_CP_Built = false;
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Command_Post" );
+		
+		if ( Map.BunkerDoor_Destroyed )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Post" );
+		}
+		
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+	
+	axis_basement_MG_Gun_1_Built = function( trigger )	//near ventilators
+	{
+		if ( TestMap )
+			{ return; }
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_axis_basement_MG_Gun" );
+		
+		if ( Map.Generator_destroyed )
+		{
+			if ( !Map.Base_gate_Destroyed )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_mg2gun" );
+				SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_mg2gun" );
+			}
+			else
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_mg2gun" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_mg2gun" );
+			}
+		}
+		else
+		{
+			if ( Map.BunkerDoor_Destroyed or Map.Base_gate_Destroyed )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_mg2gun" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_mg2gun" );
+			}
+		}
+		
+		Util.MapDebugPrint( "axis_basement_MG_Gun_1_Built" );
+	},
+	
+	axis_basement_MG_Gun_1_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.axis_basement_MG_Gun_Dyno = 0;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_mg2gun" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_mg2gun" );
+		
+		if ( Map.BunkerDoor_Destroyed or Map.Base_gate_Destroyed )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_axis_basement_MG_Gun" );
+		}
+		
+		Util.MapDebugPrint( "axis_basement_MG_Gun_1_Destroyed" );
+	},
+	
+	axis_basement_MG_Gun_2_Built = function( trigger )	//in window - entrance hall to the power generator
+	{
+		if ( TestMap )
+			{ return; }
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_axis_basement_MG_Gun_1" );
+		
+		if ( Map.Generator_destroyed )
+		{
+			if ( !Map.Base_gate_Destroyed )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_axis_basement_MG_Gun" );
+				SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_axis_basement_MG_Gun" );
+			}
+			else
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_axis_basement_MG_Gun" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_axis_basement_MG_Gun" );
+			}
+		}
+		else
+		{
+			if ( Map.BunkerDoor_Destroyed or Map.Base_gate_Destroyed )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_axis_basement_MG_Gun" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_axis_basement_MG_Gun" );
+			}
+		}
+		
+		Util.MapDebugPrint( "axis_basement_MG_Gun_2_Built" );
+	},
+	
+	axis_basement_MG_Gun_2_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.axis_basement_MG_Gun_Dyno = 0;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_axis_basement_MG_Gun" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_axis_basement_MG_Gun" );
+		
+		if ( Map.BunkerDoor_Destroyed or Map.Base_gate_Destroyed )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_axis_basement_MG_Gun_1" );
+		}
+		
+		Util.MapDebugPrint( "axis_basement_MG_Gun_2_Destroyed" );
+	},
+	
+	canyon_bunker_MG42_gun_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_canyon_bunker_MG42_gun" );
+		
+		if ( !Map.Base_gate_Destroyed )
+		{
+			Util.SetRoleForGoals( "MOUNTMG42_mg3gun.*", ROLE.DEFENDER1 );
+			Util.SetRoleForGoals( "REPAIRMG42_mg3gun.*", ROLE.DEFENDER1 );
+			
+			if ( Map.Axis_Flag )
+			{
+				// Disable offset 3 & 4 for left MG42 in canyon bunker
+				GetGoal("MOUNTMG42_mg3gun_1").AimVectors =
+				{ Vec3(-0.561, -0.814, -0.152), Vec3(-0.878, -0.436, -0.199), Vec3(-0.268, -0.884, -0.383) };
+				
+				SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_mg3gun.*" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_mg3gun.*" );
+			}
+			else
+			{
+				// Disable offset 0, 1 & 2 for left MG42 in canyon bunker
+				GetGoal("MOUNTMG42_mg3gun_1").AimVectors =
+				{ Vec3(0.673, -0.622, -0.400), Vec3(0.904, -0.403, -0.142) };
+				
+				SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_mg3gun_1" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_mg3gun_1" );
+			}
+		}
+		
+		Util.MapDebugPrint( "canyon_bunker_MG42_gun_Built" );
+	},
+	
+	canyon_bunker_MG42_gun_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.canyon_bunker_MG42_gun_Dyno = 0;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_mg3gun.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_mg3gun.*" );
+		
+		if ( !Map.Base_gate_Destroyed )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_canyon_bunker_MG42_gun" );
+		}
+		
+		Util.MapDebugPrint( "canyon_bunker_MG42_gun_Destroyed" );
+	},
+	
+	main_bunker_MG42_gun_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.MainBunkerMG42Built = true;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_main_bunker_MG42_gun" );
+		
+		if ( !Map.Axis_Flag )
+		{
+			// Disable offset 0 & 1 for right MG42 in main bunker
+			GetGoal("MOUNTMG42_mg1gun").AimVectors =
+			{ Vec3(-0.953, 0.239, -0.189), Vec3(-0.699, 0.711, -0.075), Vec3(-0.824, -0.538, -0.177) };
+			// Disable offset 0 & 1 for left MG42 in main bunker
+			GetGoal("MOUNTMG42_mg1gun_1").AimVectors =
+			{ Vec3(-0.858, -0.477, -0.192), Vec3(-0.915, 0.367, -0.165), Vec3(-0.642, 0.765, -0.042), Vec3(-0.628, -0.749, -0.210) };
+			
+			SetAvailableMapGoals( TEAM.ALLIES, true, "GRENADE_Allied_DefendFlag_12" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SMOKEBOMB_Allied_DefendFlag_.*" );
+		}
+		else
+		{
+			// Disable offset 2, 3 & 4 for right MG42 in main bunker
+			GetGoal("MOUNTMG42_mg1gun").AimVectors =
+			{ Vec3(-0.985, -0.143, -0.100), Vec3(-0.905, -0.414, -0.099) };
+			// Disable offset 2, 3, 4 & 5 for left MG42 in main bunker
+			GetGoal("MOUNTMG42_mg1gun_1").AimVectors =
+			{ Vec3(-0.912, -0.397, -0.106), Vec3(-0.993, -0.055, -0.100) };
+		}
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_mg1gun.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_mg1gun.*" );
+		
+		Util.MapDebugPrint( "main_bunker_MG42_gun_Built" );
+	},
+	
+	main_bunker_MG42_gun_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.MainBunkerMG42Built = false;
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_main_bunker_MG42_gun" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "GRENADE_Allied_DefendFlag_12" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SMOKEBOMB_Allied_DefendFlag_.*" );
+		
+		Util.MapDebugPrint( "main_bunker_MG42_gun_Destroyed" );
+	},
+	
+	Axis_Transmission_Radio_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Axis_Transmission_Radio_Dyno += 1;
+		
+		Util.MapDebugPrint( "Axis_Transmission_Radio_Planted" );
+	},
+	
+	Axis_Transmission_Radio_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Axis_Transmission_Radio_Dyno -= 1;
+		
+		Util.MapDebugPrint( "Axis_Transmission_Radio_Defused" );
+	},
+	
+	Axis_Transmission_Radio_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Axis_Transmission_Radio_Dyno = 0;
+		Map.Radio_destroyed = true;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_TransmissionRadio_.*" );
+		Util.ClearRoleForGoals( ".*", ROLE.DEFENDER1 );
+		Util.ClearRoleForGoals( ".*", ROLE.DEFENDER2 );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Axis_Transmission_Radio" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Allied_TransmissionRadio_.*" );
+		Util.ClearRoleForGoals( ".*", ROLE.ATTACKER1 );
+		Util.ClearRoleForGoals( ".*", ROLE.ATTACKER2 );
+		
+		if ( Map.Generator_destroyed )
+		{
+			Util.MapDebugPrint( "^5Allies_Win" );
+			
+			sleep(1);
+			ETUtil.WinningChat( TEAM.ALLIES );
+			sleep(1.5);
+			ETUtil.LosingChat( TEAM.AXIS );
+		}
+		else
+		{
+			SetGoalPriority( "MOUNTMG42_axis_basement_MG_Gun", 0.7, TEAM.AXIS, 0 );
+			SetGoalPriority( "MOUNTMG42_Yard", 0.69, TEAM.AXIS, 0 );
+			
+			SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_PowerGenerator_.*" );
+			
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_PowerGenerator_.*" );
+		}
+		
+		Map.SetSpawn();
+		
+		Util.MapDebugPrint( "Axis_Transmission_Radio_Destroyed" );
+	},
+	
+	power_generator_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.power_generator_Dyno += 1;
+		
+		Util.MapDebugPrint( "power_generator_Planted" );
+	},
+	
+	power_generator_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.power_generator_Dyno -= 1;
+		
+		Util.MapDebugPrint( "power_generator_Defused" );
+	},
+	
+	power_generator_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.power_generator_Dyno = 0;
+		Map.Generator_destroyed = true;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_PowerGenerator_.*" );
+		Util.ClearRoleForGoals( ".*", ROLE.DEFENDER1 );
+		Util.ClearRoleForGoals( ".*", ROLE.DEFENDER2 );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_power_generator" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Allied_PowerGenerator_.*" );
+		Util.ClearRoleForGoals( ".*", ROLE.ATTACKER1 );
+		Util.ClearRoleForGoals( ".*", ROLE.ATTACKER2 );
+		
+		if ( Map.Radio_destroyed )
+		{
+			Util.MapDebugPrint( "^5Allies_Win" );
+			
+			sleep(1);
+			ETUtil.WinningChat( TEAM.ALLIES );
+			sleep(1.5);
+			ETUtil.LosingChat( TEAM.AXIS );
+		}
+		else
+		{
+			SetGoalPriority( "MOUNTMG42_axis_basement_MG_Gun", 0.7, TEAM.AXIS, 0 );
+			SetGoalPriority( "MOUNTMG42_mg2gun", 0.69, TEAM.AXIS, 0 );
+			
+			SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_TransmissionRadio_.*" );
+			
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_TransmissionRadio_.*" );
+		}
+		
+		Map.SetSpawn();
+		
+		Util.MapDebugPrint( "power_generator_Destroyed" );
+	},
+	
+	Thirty_second = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "^5Thirty_second" );
+		
+		sleep(30);
+		
+		if ( !Map.Generator_destroyed or !Map.Radio_destroyed )
+		{
+			Util.MapDebugPrint( "^5Axis_Win" );
+			
+			sleep(1);
+			
+			ETUtil.WinningChat( TEAM.AXIS );
+			sleep(1.5);
+			ETUtil.LosingChat( TEAM.ALLIES );
+		}
+	},
+	
+	Hatch_exploded = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.hatch_destroyed = true;
+		
+		Util.MapDebugPrint( "^5Hatch_exploded" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// Register callback functions
+	OnTrigger( "Planted at the beach bunker door.", Map.beach_bunker_door_Planted );
+	OnTrigger( "Planted at beach bunker door.", Map.beach_bunker_door_Planted );	//for nitmod
+	OnTrigger( "Defused at the beach bunker door.", Map.beach_bunker_door_Defused );
+	OnTrigger( "Defused at beach bunker door.", Map.beach_bunker_door_Defused );	//for nitmod
+	OnTrigger( "Allies have blown the lower beach bunker door!", Map.beach_bunker_door_Destroyed );
+	
+	OnTrigger( "Allies capture the forward spawn!", Map.oldcityflag_Allies_Captured );
+	OnTrigger( "Axis reclaim the forward spawn!", Map.oldcityflag_Axis_Captured );
+	
+	OnTrigger( "Planted at the Axis base gate.", Map.Axis_base_gate_Planted );
+	OnTrigger( "Planted at Axis base gate.", Map.Axis_base_gate_Planted );	//for nitmod
+	OnTrigger( "Defused at the Axis base gate.", Map.Axis_base_gate_Defused );
+	OnTrigger( "Defused at Axis base gate.", Map.Axis_base_gate_Defused );	//for nitmod
+	OnTrigger( "Allies have breached axis base main gate!", Map.Axis_base_gate_Destroyed );
+	
+	OnTrigger( "Planted at the bunker door.", Map.bunker_door_Planted );
+	OnTrigger( "Planted at bunker door.", Map.bunker_door_Planted );	//for nitmod
+	OnTrigger( "Defused at the bunker door.", Map.bunker_door_Defused );
+	OnTrigger( "Defused at bunker door.", Map.bunker_door_Defused );	//for nitmod
+	OnTrigger( "Allies have blown the main beach bunker door!", Map.bunker_door_Destroyed );
+	
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "Planted at the Command Post.", Map.Command_Post_Planted );
+	OnTrigger( "Planted at Command Post.", Map.Command_Post_Planted );	//for nitmod
+	OnTrigger( "Defused at the Command Post.", Map.Command_Post_Defused );
+	OnTrigger( "Defused at Command Post.", Map.Command_Post_Defused );	//for nitmod
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	
+	OnTrigger( "Axis basement MG gun #1 constructed", Map.axis_basement_MG_Gun_1_Built );
+	OnTrigger( "Axis basement MG gun #1 disabled", Map.axis_basement_MG_Gun_1_Destroyed );
+	
+	OnTrigger( "Axis basement MG gun #2 constructed", Map.axis_basement_MG_Gun_2_Built );
+	OnTrigger( "Axis basement MG gun #2 disabled", Map.axis_basement_MG_Gun_2_Destroyed );
+	
+	OnTrigger( "canyon bunker MG42 guns constructed", Map.canyon_bunker_MG42_gun_Built );
+	OnTrigger( "canyon bunker MG42 guns disabled", Map.canyon_bunker_MG42_gun_Destroyed );
+	
+	OnTrigger( "Main beach bunker MG42 guns constructed", Map.main_bunker_MG42_gun_Built );
+	OnTrigger( "Main beach bunker MG42 guns disabled", Map.main_bunker_MG42_gun_Destroyed );
+	
+	OnTrigger( "Planted at the Axis Transmission Radio.", Map.Axis_Transmission_Radio_Planted );
+	OnTrigger( "Planted at Axis Transmission Radio.", Map.Axis_Transmission_Radio_Planted );	//for nitmod
+	OnTrigger( "Defused at the Axis Transmission Radio.", Map.Axis_Transmission_Radio_Defused );
+	OnTrigger( "Defused at Axis Transmission Radio.", Map.Axis_Transmission_Radio_Defused );	//for nitmod
+	OnTrigger( "the Axis Transmission Radio Destroyed.", Map.Axis_Transmission_Radio_Destroyed );
+	
+	OnTrigger( "Planted at the power generator.", Map.power_generator_Planted );
+	OnTrigger( "Planted at power generator.", Map.power_generator_Planted );	//for nitmod
+	OnTrigger( "Defused at the power generator.", Map.power_generator_Defused );
+	OnTrigger( "Defused at power generator.", Map.power_generator_Defused );	//for nitmod
+	OnTrigger( "the power generator Destroyed.", Map.power_generator_Destroyed );
+	
+	OnTrigger( "thirty second warning.", Map.Thirty_second );
+	
+	OnTrigger( "GRENADE_Hatch Exploded.", Map.Hatch_exploded );
+	
+	foreach ( id and bot in BotTable )
+	{
+		if ( bot.GetTeam()  == TEAM.AXIS )
+		{
+			WeaponTable.SetWeaponAvailability( CLASS.SOLDIER, WEAPON.MOBILE_MG42, true );
+		}
+		else
+		{
+			WeaponTable.SetWeaponAvailability( CLASS.SOLDIER, WEAPON.PANZERFAUST, true );
+		}
+	}
+	
+	Util.DisableGoal( ".*", true ); // all but routes
+	
+	SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allied_Start_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_oldcityflag" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_beach_bunker_door" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "GRENADE_Fence_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "HEALTHCAB_north_healthcabinet" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_north_ammocabinet_1" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Axis_base_gate" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_bunker_door" );
+	
+	SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_north_healthcabinet" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_north_ammocabinet" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_north_ammocabinet_1" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_north_ammocabinet_2" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_north_ammocabinet_3" );
+	
+	//MG42_guns are destructible only by grenade, satchel, panza or support fire
+	
+	//Axis roles:
+	Util.SetRoleForGoals( ".*_Axis_CanyonBunker_.*", ROLE.DEFENDER1 );		//DEFEND in Axis base building
+	Util.SetRoleForGoals( "BUILD_canyon_bunker_MG42_gun", ROLE.DEFENDER1 );
+	
+	Util.SetRoleForGoals( "PLANTMINE_Axis_Start_.*", ROLE.DEFENDER2 );		//DEFEND near Forward spawn
+	Util.SetRoleForGoals( ".*_Axis_ForwardSpawn_.*", ROLE.DEFENDER2 );
+	
+	Util.SetRoleForGoals( ".*_Axis_MainBunker_.*", ROLE.DEFENDER3 );		//DEFEND in Axis base back bunker
+	Util.SetRoleForGoals( "BUILD_main_bunker_MG42_gun", ROLE.DEFENDER3 );
+	Util.SetRoleForGoals( "MOUNTMG42_mg1gun.*", ROLE.DEFENDER3 );
+	Util.SetRoleForGoals( "REPAIRMG42_mg1gun.*", ROLE.DEFENDER3 );
+	Util.SetRoleForGoals( "BUILD_Command_Post", ROLE.DEFENDER3 );
+	Util.SetRoleForGoals( "PLANT_Command_Post", ROLE.DEFENDER3 );
+	Util.SetRoleForGoals( "PLANTMINE_Axis_Start_.*", ROLE.DEFENDER3 );
+	
+	//Allied roles:
+	Util.SetRoleForGoals( "ATTACK_Allied_TransmissionRadio_.*", ROLE.ATTACKER1 );
+	
+	Util.SetRoleForGoals( "ATTACK_Allied_PowerGenerator_.*", ROLE.ATTACKER2 );
+	
+	SetGoalPriority( "DEFEND_Axis_CanyonBunker_1", 0.52, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_MainBunker_1", 0.52, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_ForwardSpawn_2", 0.52, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_ForwardSpawn_3", 0.52, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_ForwardSpawn_5", 0.51, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_ForwardSpawn_6", 0.51, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_ForwardSpawn_7", 0.51, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_PowerGenerator_1", 0.6, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_PowerGenerator_7", 0.6, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_TransmissionRadio_1", 0.6, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_TransmissionRadio_2", 0.6, TEAM.AXIS, 0 );
+	SetGoalPriority( "PLANTMINE_Axis_Start_1", 0.795, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "PLANTMINE_Axis_Start_2", 0.795, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "PLANTMINE_Axis_Start_6", 0.795, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "PLANTMINE_Axis_Start_8", 0.795, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "PLANTMINE_Axis_Start_9", 0.795, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "PLANTMINE_Axis_Start_12", 0.795, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "MOBILEMG42_Axis_ForwardSpawn_1", 0.95, TEAM.AXIS, CLASS.SOLDIER );
+	SetGoalPriority( "MOUNTMG42_axis_basement_MG_Gun", 0.69, TEAM.AXIS, 0 );
+	SetGoalPriority( "PLANT_Command_Post", 0.6, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_Command_Post", 0.81, TEAM.AXIS, CLASS.COVERTOPS );
+	
+	SetGoalPriority( "PLANT_beach_bunker_door", 0.82, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_Axis_base_gate", 0.815, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_bunker_door", 0.815, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "ATTACK_Allied_PowerGenerator_1", 0.6, TEAM.ALLIES, 0 );
+	SetGoalPriority( "ATTACK_Allied_PowerGenerator_2", 0.6, TEAM.ALLIES, 0 );
+	SetGoalPriority( "ATTACK_Allied_TransmissionRadio_1", 0.6, TEAM.ALLIES, 0 );
+	SetGoalPriority( "ATTACK_Allied_TransmissionRadio_2", 0.6, TEAM.ALLIES, 0 );
+	SetGoalPriority( "PLANT_Command_Post", 0.6, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_Command_Post", 0.83, TEAM.ALLIES, CLASS.COVERTOPS );
+	
+	Wp.SetWaypointFlag( "window", "closed", false );
+	
+	Util.AddUseWp( "BUILD_canyon_bunker_MG42_gun", "build_canyon_mg42" );
+	Util.AddUseWp( "PLANT_Axis_base_gate", "plantAxisBaseGate_1" );
+	Util.AddUseWp( "PLANT_Axis_base_gate", "plantAxisBaseGate_2" );
+	Util.AddUseWp( "PLANT_power_generator", "PlantPowerGenerator_1" );
+	Util.AddUseWp( "PLANT_power_generator", "PlantPowerGenerator_2" );
+	Util.AddUseWp( "PLANT_power_generator", "PlantPowerGenerator_3" );
+	Util.AddUseWp( "PLANT_power_generator", "PlantPowerGenerator_4" );
+	
+	NP1 = OnTriggerRegion(AABB(1599.125,-0.251,1025.125,1792.875,189.271,1099.125), RegionTrigger.DisableBotPush);		//trigger - long ladder in Axis base building #1
+	DCM1 = OnTriggerRegion(AABB(1599.125,-0.251,1025.125,1792.875,189.271,1099.125), RegionTrigger.DisableCombatMovement);
+	NP2 = OnTriggerRegion(AABB(1952.947,-286.098,1025.125,2066.577,-109.200,1129.390), RegionTrigger.DisableBotPush);	//trigger - jump down from window in Axis base building #1
+	DCM2 = OnTriggerRegion(AABB(1952.947,-286.098,1025.125,2066.577,-109.200,1129.390), RegionTrigger.DisableCombatMovement);
+	NP3 = OnTriggerRegion(AABB(3694.960,572.004,1045.125,3903.733,881.480,1463.721), RegionTrigger.DisableBotPush);		//trigger - steel ladder outside base
+	DCM3 = OnTriggerRegion(AABB(3694.960,572.004,1045.125,3903.733,881.480,1463.721), RegionTrigger.DisableCombatMovement);
+	NP4 = OnTriggerRegion(AABB(2319.126,-271.457,641.125,2472.873,-121.227,950.324), RegionTrigger.DisableBotPush);		//trigger - ladder from forward spawn => base gate
+	DCM4 = OnTriggerRegion(AABB(2319.126,-271.457,641.125,2472.873,-121.227,950.324), RegionTrigger.DisableCombatMovement);
+	NP5 = OnTriggerRegion(AABB(2345.967,-1261.085,641.125,2550.846,-1046.127,951.809), RegionTrigger.DisableBotPush);	//trigger - ladder from forward spawn => bunker door
+	DCM5 = OnTriggerRegion(AABB(2345.967,-1261.085,641.125,2550.846,-1046.127,951.809), RegionTrigger.DisableCombatMovement);
+	NP6 = OnTriggerRegion(AABB(2975.274,831.129,1281.125,3194.272,990.669,1389.278), RegionTrigger.DisableBotPush);		//trigger - jump to transmission radio from wall
+	DCM6 = OnTriggerRegion(AABB(2975.274,831.129,1281.125,3194.272,990.669,1389.278), RegionTrigger.DisableCombatMovement);
+	NP7 = OnTriggerRegion(AABB(5840.125,1405.679,1069.125,5927.172,1676.864,1183.652), RegionTrigger.DisableBotPush);	//trigger - around "DEFEND_Axis_PowerGenerator_1"
+	DCM8 = OnTriggerRegion(AABB(3686.956,-82.655,1045.125,3778.210,65.174,1167.790), RegionTrigger.DisableCombatMovement);	//trigger - jump down next to main bunker
+	
+	// Max users per goal
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	
+	MapRoutes =
+	{
+		CHECKPOINT_oldcityflag =
+		{
+			ROUTE_Allied_BeachSpawn =
+			{
+				ROUTE_BeachBunker =
+				{
+					Weight=3,
+					ROUTE_BeachBunker_2 =
+					{
+						
+					},
+				},
+				ROUTE_LeftWay =
+				{
+					
+				},
+				ROUTE_RightWay =
+				{
+					
+				},
+			},
+		},
+		PLANT_Axis_Transmission_Radio =
+		{
+			ROUTE_ForwardSpawn =
+			{
+				ROUTE_BaseGate =
+				{
+					Weight=2,
+					ROUTE_MG42_Yard =
+					{
+						ROUTE_BackLadder =
+						{
+							
+						},
+
+					},
+				},
+				ROUTE_BunkerDoor =
+				{
+					ROUTE_CP =
+					{
+						ROUTE_SteelStaircase =
+						{
+							
+						},
+					},
+					ROUTE_HallToPowerGenerator_1 =
+					{
+						ROUTE_BasementMG42 =
+						{
+							
+						},
+					},
+				},
+			},
+		},
+		PLANT_power_generator =
+		{
+			ROUTE_ForwardSpawn =
+			{
+				ROUTE_BaseGate =
+				{
+					ROUTE_BasementMG42 =
+					{
+						ROUTE_HallToPowerGenerator_2 =
+						{
+							
+						},
+						ROUTE_BackHallToPowerGenerator =
+						{
+							
+						},
+					},
+				},
+				ROUTE_BunkerDoor =
+				{
+					Weight=2,
+					ROUTE_HallToPowerGenerator_1 =
+					{
+						ROUTE_HallToPowerGenerator_2 =
+						{
+							
+						},
+						ROUTE_BackHallToPowerGenerator =
+						{
+							
+						},
+					},
+				},
+			},
+		},
+		MOBILEMG42_Axis_MainBunkerDoorDestroyed =
+		{
+			ROUTE_TransmissionRadioSpawn =
+			{
+				ROUTE_BackSpawn =
+				{
+					ROUTE_Navigate =
+					{
+						ROUTE_NearPowerGenerator =
+						{
+							ROUTE_HallToPowerGenerator_1 =
+							{
+								
+							},
+						},
+					},
+				},
+				ROUTE_UnderTransmissionRadioSpawn =
+				{
+					ROUTE_UnderBackSpawn =
+					{
+						ROUTE_NearPowerGenerator =
+						{
+							ROUTE_HallToPowerGenerator_1 =
+							{
+								
+							},
+						},
+					},
+				},
+			},
+			ROUTE_UnderTransmissionRadioSpawn =
+			{
+				ROUTE_UnderBackSpawn =
+				{
+					ROUTE_NearPowerGenerator =
+					{
+						ROUTE_HallToPowerGenerator_1 =
+						{
+							
+						},
+					},
+				},
+			},
+			ROUTE_AxisBaseBuildingSpawn =
+			{
+				ROUTE_BasementMG42 =
+				{
+					Weight=3,
+					ROUTE_HallToPowerGenerator_1 =
+					{
+						
+					},
+				},
+				ROUTE_SteelStaircase =
+				{
+					ROUTE_CP =
+					{
+						
+					},
+				},
+			},
+			ROUTE_UnderAxisBaseBuildingSpawn =
+			{
+				ROUTE_BasementMG42 =
+				{
+					Weight=3,
+					ROUTE_HallToPowerGenerator_1 =
+					{
+						
+					},
+				},
+				ROUTE_SteelStaircase =
+				{
+					ROUTE_CP =
+					{
+						
+					},
+				},
+			},
+		},
+	};
+	
+	MapRoutes["ATTACK_Allied_PowerGenerator_.*"] = MapRoutes.PLANT_power_generator;
+	MapRoutes["ATTACK_Allied_TransmissionRadio_.*"] = MapRoutes.PLANT_Axis_Transmission_Radio;
+	
+	Util.Routes(MapRoutes);
+	
+	Util.DisableGoal("ROUTE_BaseGate");
+	Util.DisableGoal("ROUTE_BunkerDoor");
+	
+	Map.SetStart();
+	
+	Util.MapDebugPrint( "^3Omni-bot map script by ^1n^2a^4t^8i^3v^5e12 ^3for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	// Uncomment for shootable breakables
+	bot.TargetBreakableDist = 150.0;
+	
+	foreach ( id and bot in BotTable )
+	{
+		if ( bot.GetTeam()  == TEAM.AXIS )
+		{
+			WeaponTable.SetWeaponAvailability( CLASS.SOLDIER, WEAPON.MOBILE_MG42, true );
+		}
+		else
+		{
+			WeaponTable.SetWeaponAvailability( CLASS.SOLDIER, WEAPON.PANZERFAUST, true );
+		}
+	}
+	
+	Map.SetSpawn1(bot);
+	
+	// Only set MaxViewDistance on maps with limited sight (e.g. fog)
+	//~bot.MaxViewDistance = 2400;
+};

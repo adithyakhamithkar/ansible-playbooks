@@ -1,0 +1,49 @@
+// Map script by [UJE]Niek
+global Map =
+{
+	SnipeMap = true,
+
+	Navigation =
+	{
+		wait =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.Say("^1Sup^4er^1Man!");
+				timeout = 7;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele1 =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.Say("^1Spi^4der^1man!");
+				timeout = 7;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+	},
+};
+
+global OnMapLoad = function()
+{
+	SetMapGoalProperties("SNIPE.*", { MinCampTime=30, MaxCamptime=50,});
+	
+	Util.LimitToTeam( TEAM.AXIS, "SNIPE_axis.*" );
+	Util.LimitToTeam( TEAM.ALLIES, "SNIPE_allied.*" );
+	Util.MapDebugPrint( "OnMapLoad", true );
+};
+
+global OnBotJoin = function( bot )
+{
+	Util.ChangeToSniperWeapons(bot);
+};

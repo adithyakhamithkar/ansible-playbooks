@@ -1,0 +1,597 @@
+/*
+===============================================================================
+sp_delivery_te.gm script file
+Combination by: crapshoot - Red Dwarf - Stoned-Aimlezz for Omni-Bot v.0.71 -  dated 05-11-2008
+
+Some minor changes by d00d February 6th 2009:
+- added some routes
+- merged function Golddoorsclose with loading_doors_close
+- merged Golddoorsopen with loading_doors_open (same triggers were used)
+- fixed priority of some goals (initial settings were way too high in some cases)
+- sorted some of the lines in this script for readability
+===============================================================================
+*/
+
+global Map =
+{
+	MapName = "sp_delivery_te",
+	Debug = false,
+
+	// The Forward Bunker Flag
+	Checkpoint_forwardbunkerflag = "CHECKPOINT_forwardbunkerflag",
+
+	// Gold Bars
+	Flag_axis_gold1 = "FLAG_axis_gold1",
+	Flag_axis_gold2 = "FLAG_axis_gold2",
+
+	// Buildable Gold Button
+	Build_Door_Controls = "BUILD_Door_Controls",
+	Plant_Door_Controls = "PLANT_Door_Controls",
+	Goldbutton = "Goldbutton",
+
+	// Dynomitable  East + West Walls
+	Plant_East_Wall = "PLANT_East_Wall",
+	Plant_West_Wall = "PLANT_West_Wall",
+
+	// Gold Cap Points - crapshoot
+	Cappoint_Goldcap_1 = "CAPPOINT_Goldcap_1",
+	Cappoint_Goldcap_2 = "CAPPOINT_Goldcap_2",
+
+	// Keep track of some variables for reference
+	cap1status = true, // available 
+	cap2status = true, // available 
+	FlagStat = 0, //1 allies, 0 axis ( or nobody )
+	WestStat = 0,
+	EastStat = 0,
+	DoorStat = 0,
+	GoldStat = 0,
+	ElevatorStatus = "Bottom",
+
+	Defend = 
+	{
+		MaxBots = 2,
+		Users = {},
+	},	
+        
+	Switches =
+	{
+		Goldbutton =
+		{
+			Debug = false,
+			Enabled = false, //crapshoot: set this to false, enabled when controls built
+			Priority = 1.2,
+			WaypointName = "Goldbutton",
+			LimitBots = 2,
+			LimitTeam = (1<<TEAM.ALLIES),
+			LimitClass = Util.AllClasses,
+			Timeout = 1000,
+			AimPosition = Vector3(1617.301,3626.875,111.497),
+		},
+
+		elevator =
+		{
+			Enabled = true,
+			Priority = 0, //cs: always set to 0 when using path through
+			WaypointName = "elevator",
+			AimPosition = Vector3(1591.875,2666.291,-141.341),
+			
+			// cs: example for GotoAsync usage
+			//UseAsync = true,
+			//AsyncTimeout = 3000,
+
+			//cs: the bots will wait until elevator is at top
+			Wait = function()
+			{
+				if ( Map.ElevatorStatus == "Top" )
+				{
+					sleep(1);
+					return true;
+				}
+				return false;
+			},
+		},
+	},
+
+	ElevatorTop = function(trigger)
+	{
+		Map.ElevatorStatus = "Top";
+	},
+
+	ElevatorBottom = function(trigger)
+	{
+		Map.ElevatorStatus = "Bottom";
+	},
+
+	ElevatorDoor = function(trigger)
+	{
+		vel = ToVector(trigger.Action);
+
+		//cs: only need to check this at bottom
+		if ( Map.ElevatorStatus == "Bottom" )
+		{
+			if ( vel.y > 0 )
+			{
+				Map.ElevatorStatus == "Moving";
+				Map.Switches.elevator.Enabled = false;
+			}
+			else
+			{
+				//Util.MapDebugPrint("opening");
+				Map.Switches.elevator.Enabled = true;
+			}
+		}
+	},
+
+	Door_Controls_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//crapshoot: enable the button now
+		Map.Switches.Goldbutton.Enabled = true;
+                
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_axis_gold1" );
+
+		// Remove this goal since it can't be achieved
+		Util.RemoveGoal("CHECKPOINT_forwardbunkerflag");
+		Util.RemoveGoal("BUILD_Door_Controls");
+
+		Util.MapDebugPrint( "^3Door Controls Built - ^1trigger" );
+	},
+
+	//  The Loading doors : open
+	loading_doors_open = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.DoorStat = 1;
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_Axis_doordefense_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_Axisgoldcapdef_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_alliesdoorcontrolattack_.*" );
+                //SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AlliesButtondefense.*" ); // leave these on
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Axisgoldcapdef_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_Fake_.*" );
+                
+		Map.CheckCappoints();
+
+		Map.Switches.Goldbutton.LimitTeam = (1<<TEAM.AXIS);
+
+		Util.MapDebugPrint( "^3loading_doors_open" );
+	},
+
+	//  The Loading doors : closed
+	loading_doors_close = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		Map.DoorStat = 0;
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_Axis_doordefense_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_Axisgoldcapdef_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_alliesdoorcontrolattack_.*" );
+                SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_AlliesButtondefense.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Axisgoldcapdef_.*" );
+
+		sleep(1.5); // wait a moment while doors are closing
+		Map.Switches.Goldbutton.LimitTeam = (1<<TEAM.ALLIES);
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_Goldcap_2" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_Goldcap_1" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_Fake_.*" );
+
+		Util.MapDebugPrint( "^3loading_doors_close" );
+	},
+
+	// Red Dwarf - Status
+	Westwall = function(trigger)
+	{
+		Map.WestStat = 1;
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_West_Wall" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "Plant_West_Wall" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_forwardbunkerflag" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Door_Controls" );
+
+		if (Map.EastStat == 1)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Door_Controls" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Alliedfirstdynodefense.*" );
+		}
+                
+                Util.MapDebugPrint( "Westwall" );
+	},
+
+	Eastwall = function(trigger)
+	{
+		Map.EastStat = 1;
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_East_Wall" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_East_Wall" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_forwardbunkerflag" );
+
+		if (Map.WestStat == 1)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Door_Controls" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Alliedfirstdynodefense.*" );
+		}
+                
+                Util.MapDebugPrint( "Eastwall" );
+	},
+
+	// East Wall Triggers : - Planted - Defuse - Destroyed
+	East_Wall_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+                        
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_East_Wall" );
+                
+		Util.MapDebugPrint( "^1East_Wall_Planted" );
+	},
+
+	East_Wall_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+                        
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_East_Wall" );
+                
+		Util.MapDebugPrint( "East_Wall_Defused" );
+	},
+
+	 // West Wall Triggers : - Planted - Defuse - Destroyed
+	West_Wall_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "Plant_West_Wall" );
+                
+		Util.MapDebugPrint( "^1West_Wall_Planted" );
+	},
+
+	West_Wall_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+                        
+		SetAvailableMapGoals( TEAM.ALLIES, true, "Plant_West_Wall" );
+                
+		Util.MapDebugPrint( "West_Wall_Defused" );
+	},
+
+	AlliesCap = function(trigger)
+	{
+		Map.FlagStat = 1;
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Alliedfirstdynodefense.*" );
+		//SetAvailableMapGoals( TEAM.ALLIES, false, "PANZER_Alliesfirst.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_Alliesfirst_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_Axis_first.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_Axis_first_2" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_675" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_676" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_forwardbunkerflag" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_alliesdoorcontrolattack_.*" );
+                SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_AlliesButtondefense.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Door_Controls" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_Axis_doordefense_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_forwardbunkerflag" );
+		SetGoalPriority( "ATTACK_Axis_doordefense_.*", 0.6, TEAM.AXIS );
+		SetGoalPriority( "ATTACK_AxisFlagdefense_.*", 0.6, TEAM.AXIS );
+		SetGoalPriority( "BUILD_Door_Controls", 1.0, TEAM.ALLIES );
+                
+		Util.MapDebugPrint( "AlliesCap" );
+	},
+
+	AxisCap = function(trigger)
+	{
+		Map.FlagStat = 0;
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_alliesdoorcontrolattack_.*" );
+                SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AlliesButtondefense.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_forwardbunkerflag" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_Axis_doordefense_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_forwardbunkerflag" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_AxisFlagdefense_.*" );
+		SetGoalPriority( "ATTACK_Axis_doordefense_.*", 0.5, TEAM.AXIS );
+		SetGoalPriority( "ATTACK_AxisFlagdefense_.*", 0.2, TEAM.AXIS );
+
+		if ( Map.EastStat == 0 || Map.WestStat == 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Door_Controls" );
+		}
+                
+		Util.MapDebugPrint( "AxisCap" );
+	},
+
+	AlliesSec = function(trigger)
+	{
+		Map.FlagStat = 1;
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Alliedfirstdynodefense.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Door_Controls" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_forwardbunkerflag" );
+		//SetAvailableMapGoals( TEAM.ALLIES, false, "PANZER_Alliesfirst.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_East_Wall" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "Plant_West_Wall" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_Alliesfirst_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_alliesdoorcontrolattack_.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_Axis_first.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_AxisFlagdefense_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_Axis_first_2" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_forwardbunkerflag" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_675" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_676" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_Axis_doordefense_.*" );
+
+		SetGoalPriority( "DEFUSE_East_Wall.*", 0.0, TEAM.AXIS, CLASS.ENGINEER, true );
+		SetGoalPriority( "DEFUSE_West_Wall.*", 0.0, TEAM.AXIS, CLASS.ENGINEER, true );
+		SetGoalPriority( "ATTACK_Axis_doordefense_.*", 1.0, TEAM.AXIS );
+		SetGoalPriority( "ATTACK_AxisFlagdefense_.*", 0.5, TEAM.AXIS );
+                
+		Util.MapDebugPrint( "AlliesSec" );
+	},
+
+	Goldtaken = function(trigger)
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_Fake_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axiscapdef_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Axisgoldcapdef_.*" );
+		if ( Map.DoorStat == 1) // if door is open ...
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_Fake_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_Axis_doordefense_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_Axisgoldcapdef_.*" );
+		}
+                
+		Util.MapDebugPrint( "GoldTaken" );
+	},
+
+	Goldintercept = function(trigger)
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Axiscapdef_.*" );
+	},
+        
+	CheckCappoints = function()
+	{
+		// set availability to the current status. 
+		SetAvailableMapGoals( TEAM.ALLIES, Map.cap1status, "CAPPOINT_GoldCap_1" );
+		SetAvailableMapGoals( TEAM.ALLIES, Map.cap2status, "CAPPOINT_GoldCap_2" );
+	},        
+	
+	GoldCap1_Captured = function(trigger)
+	{
+		Util.DisableGoal( "CAPPOINT_Goldcap_1" );
+		Map.cap1status = false;
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_axis_gold2" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "FLAG_axis_gold1" );
+		Util.MapDebugPrint( "GoldCap1_Captured" );
+	},
+	
+	GoldCap2_Captured = function(trigger)
+	{
+		Util.DisableGoal( "CAPPOINT_Goldcap_2" );
+		Map.cap2status = false;
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_axis_gold2" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "FLAG_axis_gold1" );
+		Util.MapDebugPrint( "GoldCap2_Captured" );
+	},        
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// OnTrigger_section
+	OnTrigger( "Axis reclaim the Forward Bunker!", Map.AxisCap );
+	OnTrigger( "Allies capture the Forward Bunker!", Map.AlliesCap );
+	OnTrigger( "Allies have secured the forward bunker.", Map.AlliesSec );
+	OnTrigger( "Allies have damaged the West Wall", Map.Westwall );
+	OnTrigger( "Allies have damaged the East Wall", Map.Eastwall );
+	OnTrigger( "The Allies have stolen a gold crate!", Map.Goldtaken );
+	OnTrigger( "The Axis have intercepted the stolen gold crate!", Map.Goldintercept );
+	OnTrigger( "Door Controls have been constructed.", Map.Door_Controls_Built );
+	OnTrigger( "The Loading Doors are Opening!", Map.loading_doors_open );
+	OnTrigger( "The Loading Doors are Closing!", Map.loading_doors_close );
+
+	// cs: elevator status
+	OnTrigger( "top_l_door_Moving", Map.ElevatorTop );
+	OnTrigger( "bottom_l_door_Moving", Map.ElevatorBottom );
+	OnTrigger( "eldoor_l_goto", Map.ElevatorDoor );
+        
+	// cs: new triggers for cappoints
+	OnTrigger( "Allies captured truckbed_trigger1", Map.GoldCap1_Captured );
+	OnTrigger( "Allies captured truckbed_trigger2", Map.GoldCap2_Captured );
+
+	// Move plant goals
+	Util.SetGoalOffset( 120, 0, -98, "PLANT_West_Wall" );
+	Util.SetGoalOffset( -127, 75, -98, "PLANT_East_Wall" );
+
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=5, MaxCampTime=20});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=20, MaxCampTime=50});
+
+	SetGoalPriority( "PLANT_East_Wall", 1.0, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_West_Wall", 1.0, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "BUILD_Door_Controls", 1.0, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "FLAG_axis_gold1", 1.2, TEAM.ALLIES );
+	SetGoalPriority( "FLAG_axis_gold2", 1.2, TEAM.ALLIES );
+	SetGoalPriority( "DEFEND_.*", 0.8, TEAM.ALLIES, CLASS.FIELDOPS );
+	SetGoalPriority( "DEFEND_.*", 0.8, TEAM.AXIS, CLASS.FIELDOPS );
+	SetGoalPriority( "MOBILEMG42_676", 1.0 );
+	SetGoalPriority( "MOBILEMG42_675", 1.0 );
+	SetGoalPriority( "CAPPOINT.*", 1.1 );
+	SetGoalPriority( Map.Checkpoint_forwardbunkerflag, 1.0, TEAM.AXIS );
+
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_East_Wall" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_West_Wall" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_Alliesfirst_.*" );
+	//SetAvailableMapGoals( TEAM.ALLIES, true, "PANZER_Alliesfirst.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Alliedfirstdynodefense.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Checkpoint_forwardbunkerflag );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_Fake_.*" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_675" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_676" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_Axis_first_2" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_Axis_first.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_AxisFlagdefense_.*" );
+
+	Util.SetMaxUsers( 1, "MOUNT.*" );
+	Util.SetMaxUsers( 1, "CAMP.*" );
+	Util.SetMaxUsers( 1, "ATTACK.*" );
+	Util.SetMaxUsers( 1, "DEFEND.*" );
+
+	// remove this goal since it can't be achieved
+	Util.RemoveGoal("PLANT_Door_Controls");
+
+	// makes sure cappoints are disabled at map start
+	Util.DisableGoal("CAPPOINT_Goldcap.*");
+        
+        // some dedicated defense spots so allies will defend the button
+        Util.SetRoleForGoals( "DEFEND_AlliesButtondefense.*", ROLE.DEFENDER );
+        SetGoalPriority( "DEFEND_AlliesButtondefense.*", 0.7, TEAM.ALLIES );
+
+	// routes
+	MapRoutes =
+	{
+		ATTACK_Alliedfirstdynodefense_1 =
+		{
+			ROUTE_allied_spawn =
+			{
+				ROUTE_west1 = {},
+				ROUTE_west2 = {},
+				ROUTE_east1 = {},
+			},
+		},
+                CAPPOINT_Goldcap_1 = 
+                {
+                        ROUTE_GoldGrab =
+                        {
+                                ROUTE_Lower1 =
+                                {
+                                        ROUTE_Lower4 = { ROUTE_Lower6 = {}, },
+                                        ROUTE_Lower5 = { ROUTE_Lower6 = {}, },                                        
+                                        ROUTE_Lower2 = { Weight = 2,  ROUTE_Lower7 = { }, },
+                                },
+                                ROUTE_Top1 =
+                                {
+                                        ROUTE_Lower4 = { ROUTE_Lower6 = {}, },
+                                        ROUTE_Lower5 = { ROUTE_Lower6 = {}, },
+                                        ROUTE_Lower7 = { Weight = 2, },
+                                },
+                        },
+                },
+                BUILD_Door_Controls = 
+                {
+                        ROUTE_FlagSpawn = 
+                        {
+                                ROUTE_FSEast1 =
+                                {
+                                        ROUTE_Lower1 =
+                                        {
+                                                ROUTE_Lower3 =
+                                                {
+                                                        ROUTE_Lower4 = 
+                                                        {
+                                                                ROUTE_topstairs = {},
+                                                        },
+                                                        ROUTE_Lower5 = 
+                                                        {
+                                                                ROUTE_topele = {},
+                                                        },                                                        
+                                                },
+                                        },
+                                },
+                                ROUTE_FSWest1 =
+                                {
+                                        ROUTE_Lower1 =
+                                        {
+                                                ROUTE_Lower3 =
+                                                {
+                                                        ROUTE_Lower4 = 
+                                                        {
+                                                                ROUTE_topstairs = {},
+                                                        },
+                                                        ROUTE_Lower5 = 
+                                                        {
+                                                                ROUTE_topele = {},
+                                                        },                                                        
+                                                },
+                                        },                                
+                                },
+                                ROUTE_FSEast2 =
+                                {
+                                        ROUTE_Top1 =
+                                        {
+                                                ROUTE_Top2 = { ROUTE_Top4 = {}, },
+                                                ROUTE_Top3 = {},
+                                        },
+                                },
+                                ROUTE_FSWest2 =
+                                {
+                                        ROUTE_Top1 =
+                                        {
+                                                ROUTE_Top2 = { ROUTE_Top4 = {}, },
+                                                ROUTE_Top3 = {},
+                                        },                                
+                                },                                
+                        },
+                },
+                ATTACK_Axisgoldcapdef_1 =
+                {
+                        ROUTE_FlagSpawn =
+                        {
+                                ROUTE_Lower1 =
+                                {
+                                        ROUTE_Lower4 = { ROUTE_Lower6 = {}, },
+                                        ROUTE_Lower5 = { ROUTE_Lower6 = {}, },                                        
+                                        ROUTE_Lower2 = { Weight = 2,  ROUTE_Lower7 = { }, },
+                                },
+                                ROUTE_Top1 =
+                                {
+                                        ROUTE_Lower4 = { ROUTE_Lower6 = {}, },
+                                        ROUTE_Lower5 = { ROUTE_Lower6 = {}, },
+                                        ROUTE_Lower7 = { Weight = 2, },
+                                },                        
+                        },
+                },
+	};
+	MapRoutes.ATTACK_Alliedfirstdynodefense_2 = MapRoutes.ATTACK_Alliedfirstdynodefense_1;
+	MapRoutes.ATTACK_Alliedfirstdynodefense_3 = MapRoutes.ATTACK_Alliedfirstdynodefense_1;
+	MapRoutes.ATTACK_Alliedfirstdynodefense_4 = MapRoutes.ATTACK_Alliedfirstdynodefense_1;
+	MapRoutes.ATTACK_Alliedfirstdynodefense_5 = MapRoutes.ATTACK_Alliedfirstdynodefense_1;
+	MapRoutes.ATTACK_Alliedfirstdynodefense_6 = MapRoutes.ATTACK_Alliedfirstdynodefense_1;
+	MapRoutes.ATTACK_Alliedfirstdynodefense_7 = MapRoutes.ATTACK_Alliedfirstdynodefense_1;
+	MapRoutes.ATTACK_Alliedfirstdynodefense_8 = MapRoutes.ATTACK_Alliedfirstdynodefense_1;
+	MapRoutes.PLANT_East_Wall = MapRoutes.ATTACK_Alliedfirstdynodefense_1;
+	MapRoutes.PLANT_West_Wall = MapRoutes.ATTACK_Alliedfirstdynodefense_1;
+        MapRoutes.ATTACK_Axisgoldcapdef_2 = MapRoutes.ATTACK_Axisgoldcapdef_1;
+        MapRoutes.ATTACK_Axisgoldcapdef_3 = MapRoutes.ATTACK_Axisgoldcapdef_1;
+        MapRoutes.ATTACK_Axisgoldcapdef_4 = MapRoutes.ATTACK_Axisgoldcapdef_1;
+        MapRoutes.ATTACK_Axisgoldcapdef_5 = MapRoutes.ATTACK_Axisgoldcapdef_1;
+        MapRoutes.ATTACK_Axisgoldcapdef_6 = MapRoutes.ATTACK_Axisgoldcapdef_1;
+        MapRoutes.ATTACK_alliesdoorcontrolattack_1 = MapRoutes.BUILD_Door_Controls;
+        MapRoutes.ATTACK_alliesdoorcontrolattack_2 = MapRoutes.BUILD_Door_Controls;
+        MapRoutes.ATTACK_alliesdoorcontrolattack_4 = MapRoutes.BUILD_Door_Controls;
+        MapRoutes.DEFEND_AlliesButtondefense = MapRoutes.BUILD_Door_Controls;
+        MapRoutes.DEFEND_AlliesButtondefense_1 = MapRoutes.BUILD_Door_Controls;
+	
+	Util.Routes(MapRoutes);
+	Util.UpdateSwitchData();
+	Util.MapDebugPrint( "Omni-bot map script for sp_delivery_te executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	if ( bot.GetTeam() == TEAM.ALLIES )
+	{
+		if ( tableCount(Map.Defend.Users) < Map.Defend.MaxBots )
+		{
+			Map.Defend.Users[ bot.GetGameId() ] = true;
+			bot.SetRoles(ROLE.DEFENDER);
+		}
+	}
+};

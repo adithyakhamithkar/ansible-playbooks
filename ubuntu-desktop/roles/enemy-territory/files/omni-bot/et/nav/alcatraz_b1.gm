@@ -1,0 +1,511 @@
+//==========================================================================================
+//
+//	alcatraz_b1.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	palota	03 August 2010	Initial Script
+//	palota	10	November	2011	disable allied MG42 after axis capture the flag
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	ShowMovers = false,
+	Movers = { "MOVER_hostage", "MOVER_ship" },
+
+	phase = 0,
+	hostageDead = false,
+	grateDoor1Opened = false,
+	grateDoor2Opened = false,
+
+	Navigation =
+	{
+		grate1 =
+		{
+			EvalFunc = function(_this)
+			{
+				return !Map.grateDoor1Opened && _this.Bot.GetTeam()==TEAM.AXIS;
+			},
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.High, "position", Vector3(2259.587, -505.125, 843.902));
+				_this.Goto(Vector3(2260.560, -539.842, 808.125));
+				sleep(0.5);
+				_this.Bot.PressButton(BTN.USE);
+			}
+		},
+		grate2 =
+		{
+			EvalFunc = function(_this)
+			{
+				return !Map.grateDoor2Opened && _this.Bot.GetTeam()==TEAM.AXIS;
+			},
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.High, "position", Vector3(2211.750, 486.875, 845.041));
+				_this.Goto(Vector3(2211.321, 445.769, 808.125));
+				sleep(0.3);
+				_this.Bot.PressButton(BTN.USE);
+			}
+		},
+	},
+
+	Defend_Key1 = function( trigger )
+	{
+		sleep(20);
+		SetAvailableMapGoals(TEAM.ALLIES, true, "DEFEND_key1.*" );
+		Util.MapDebugPrint( "Defend_Key1" );
+	},
+
+	Back_Door_Destroyed = function()
+	{
+		if(Map.phase<10)
+		{
+			Map.phase=10;
+			SetAvailableMapGoals(TEAM.AXIS, false, "ATTACK_main_door.*" );
+			SetAvailableMapGoals(TEAM.AXIS, true, "FLAG_industry_key" );
+			SetAvailableMapGoals(TEAM.AXIS, true, "CAPPOINT_key1" );
+			SetAvailableMapGoals(TEAM.AXIS, true, "ATTACK_industry.*" );
+			SetAvailableMapGoals(TEAM.AXIS, true, "HEALTHCAB_building64" );
+			SetAvailableMapGoals(TEAM.AXIS, true, "MOBILEMORTAR_lower" );
+			SetAvailableMapGoals(TEAM.ALLIES, true, "AMMOCAB_key2.*" );
+			SetAvailableMapGoals(TEAM.ALLIES, true, "MOBILEMG42_industry1" );
+			SetAvailableMapGoals(TEAM.ALLIES, true, "SNIPE_roof1" );
+			Util.EnableGoal( "AMMOCAB_key1_room" );
+			Util.EnableGoal( "HEALTHCAB_industry" );
+		}
+	},
+
+	Back_Door_Lower_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_lower_door" );
+		Map.Back_Door_Destroyed();
+		Util.MapDebugPrint( "Back_Door_Lower_Destroyed" );
+	},
+
+	Back_Door_upper_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_upper_back_door" );
+		Map.Back_Door_Destroyed();
+		Util.MapDebugPrint( "Back_Door_upper_Destroyed" );
+	},
+
+	industry_key_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals(TEAM.ALLIES, true, "DEFEND_industry.*" );
+		Util.MapDebugPrint( "industry_key_Taken" );
+	},
+
+	industry_key_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "industry_key_Returned" );
+	},
+
+	industry_key_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.phase=20;
+		SetAvailableMapGoals(TEAM.ALLIES, false, "DEFEND_key1.*" );
+		SetAvailableMapGoals(TEAM.ALLIES, false, "MOBILEMORTAR_upper" );
+		SetAvailableMapGoals(TEAM.AXIS, false, "FLAG_industry_key" );
+		SetAvailableMapGoals(TEAM.AXIS, false, "CAPPOINT_key1" );
+		SetAvailableMapGoals(TEAM.AXIS, false, "ATTACK_industry.*" );
+		SetAvailableMapGoals(TEAM.AXIS, true, "FLAG_jail_key" );
+		SetAvailableMapGoals(TEAM.AXIS, true, "CAPPOINT_key2" );
+		SetAvailableMapGoals(TEAM.AXIS, true, "ATTACK_main_door.*" );
+		SetAvailableMapGoals(TEAM.AXIS, true, "AMMOCAB_key2.*" );
+		Util.MapDebugPrint( "industry_key_Secured" );
+	},
+
+	jail_key_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals(TEAM.AXIS, false, "MOBILEMORTAR_lower" );
+		SetAvailableMapGoals(TEAM.ALLIES, false, "AIRSTRIKE_mg" );
+		SetAvailableMapGoals(TEAM.ALLIES, true, "DEFEND_main_door.*" );
+		Util.MapDebugPrint( "jail_key_Taken" );
+	},
+
+	jail_key_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals(TEAM.ALLIES, false, "DEFEND_main_door.*" );
+		Util.MapDebugPrint( "jail_key_Returned" );
+	},
+
+	jail_key_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		sleep(3); //wait until the door is opened
+		Map.phase=30;
+		SetAvailableMapGoals(TEAM.ALLIES, false, "DEFEND_industry.*" );
+		SetAvailableMapGoals(TEAM.ALLIES, false, "MOBILEMG42_industry.*" );
+		SetAvailableMapGoals(TEAM.ALLIES, false, "DEFEND_main_door.*" );
+		SetAvailableMapGoals(TEAM.ALLIES, false, "ATTACK_lower.*" );
+		SetAvailableMapGoals(TEAM.AXIS, false, "FLAG_jail_key" );
+		SetAvailableMapGoals(TEAM.AXIS, false, "CAPPOINT_key2" );
+		SetAvailableMapGoals(TEAM.AXIS, false, "ATTACK_main_door.*" );
+		SetAvailableMapGoals(TEAM.AXIS, false, "BUILD_Axis_Escort_Boat" );
+		SetAvailableMapGoals(TEAM.AXIS, true, "PLANT_.*c_Cell" ); //PLANT_DRiRelc_Cell or PLANT_1D0Ri^1R0el1^0c_Cell
+		SetAvailableMapGoals(TEAM.AXIS, true, "BUILD_Command_Post" );
+		SetAvailableMapGoals(TEAM.AXIS, true, "CHECKPOINT_depotflag" );
+		SetAvailableMapGoals(TEAM.AXIS, true, "ATTACK_prison.*" );
+		SetAvailableMapGoals(TEAM.ALLIES, true, "DEFEND_prison.*" );
+		SetAvailableMapGoals(TEAM.ALLIES, true, "PLANT_backyard_wall.*" );
+		Util.DisableGoal("SNIPE.*");
+		Util.DisableGoal(".*Axis_MG42_Construction");
+		Util.DisableGoal("MOUNT_boat");
+		Util.EnableGoal("HEALTHCAB_dining.*");
+		Util.EnableGoal("AMMOCAB_command_post.*");
+		Util.EnableGoal("AMMOCAB_.*_grate");
+		Util.EnableGoal("PLANT_Command_Post");
+		Map.SetHostage(true);
+
+		foreach (bot in BotTable)
+		{
+			//kill sniper
+			if (bot.GetPosition().z > 1600){ bot.ExecCommand("kill"); }
+		}
+		Util.MapDebugPrint( "jail_key_Secured" );
+	},
+
+	Flag_Allies = function( trigger )
+	{
+		Util.SetPercentInProgress(90, "CHECKPOINT_depotflag");
+		Util.MapDebugPrint( "Flag_Allies" );
+	},
+
+	Flag_Axis = function( trigger )
+	{
+		Util.SetPercentInProgress(30, "CHECKPOINT_depotflag");
+		Util.DisableGoal( ".*_Allied_MG42_Construction" );
+		Util.MapDebugPrint( "Flag_Axis" );
+	},
+
+	grate_door1_trigger = function( trigger )
+	{
+		vel = ToVector(trigger.Action);
+		Map.grateDoor1Opened = (vel.z < 0);
+	},
+
+	grate_door2_trigger = function( trigger )
+	{
+		vel = ToVector(trigger.Action);
+		Map.grateDoor2Opened = (vel.z < 0);
+	},
+
+	Cell_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals(TEAM.AXIS, true, "BUILD_.*c_lock" ); //BUILD_DRiRelc_lock or BUILD_1D0Ri^1R0el1^0c_lock
+		SetAvailableMapGoals(TEAM.ALLIES, true, "DEFEND_cell.*" );
+		Util.MapDebugPrint( "Cell_Destroyed" );
+	},
+
+	SetHostage = function(dead)
+	{
+		Map.hostageDead = dead;
+		if(dead){ escort = 99; }else{ escort = 4; }
+		Util.SetMaxUsersInUse(escort, "ESCORT_hostage");
+
+		foreach ( bot in BotTable )
+		{
+			if(!dead && bot.GetTeam()==TEAM.ALLIES){ t=0; }else{ t=999999; }
+			bot.IgnoreTarget(Map.hostageEntity, t);
+		}
+	},
+
+	SetSpawn1 = function(bot)
+	{
+		if(bot.GetTeam()==TEAM.AXIS)
+		{
+			if(Map.phase < 40){
+				bot.ChangeSpawnPoint(0);
+			}else{
+				//escorting hostage
+				if(Map.phase < 50){
+					bot.ChangeSpawnPoint(2); //flag
+				}else if(Map.phase < 60){
+					bot.ChangeSpawnPoint(RandInt(1,2));
+				}else{
+					bot.ChangeSpawnPoint(1); //boat
+				}
+			}
+		}
+		//disable artillery
+		if(Map.phase >= 40 && bot.GetClass()==CLASS.FIELDOPS){
+			bot.GetWeapon(WEAPON.BINOCULARS).PrimaryFire.SetTargetBias(CLASS.SOLDIER, 0);
+			bot.GetWeapon(WEAPON.BINOCULARS).PrimaryFire.SetTargetBias(CLASS.MEDIC, 0);
+			bot.GetWeapon(WEAPON.BINOCULARS).PrimaryFire.SetTargetBias(CLASS.ENGINEER, 0);
+			bot.GetWeapon(WEAPON.BINOCULARS).PrimaryFire.SetTargetBias(CLASS.FIELDOPS, 0);
+			bot.GetWeapon(WEAPON.BINOCULARS).PrimaryFire.SetTargetBias(CLASS.COVERTOPS, 0);
+		}
+	},
+
+	SetSpawn = function()
+	{
+		foreach(bot in BotTable)
+		{
+			Map.SetSpawn1(bot);
+		}
+	},
+
+	Hostage_Released = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.phase=40;
+		Map.SetSpawn();
+		SetAvailableMapGoals(TEAM.ALLIES, false, "DEFEND_cell.*" );
+		SetAvailableMapGoals(TEAM.ALLIES, false, "DEFEND_prison.*" );
+		SetAvailableMapGoals(TEAM.AXIS, false, "ATTACK_prison.*" );
+		SetAvailableMapGoals(TEAM.AXIS, true, "ESCORT_hostage" );
+		SetAvailableMapGoals(TEAM.ALLIES, true, "ESCORT_hostage_allies" );
+		SetAvailableMapGoals(TEAM.ALLIES, true, "PLANTMINE_south_east.*" );
+		Map.SetHostage(false);
+		Util.OnTriggerPosition("MOVER_hostage", "main_door", 100.0, Map.Hostage_main_door);
+		Util.MapDebugPrint( "Hostage_Released" );
+	},
+
+	Hostage_main_door = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, true, "PLANTMINE_industry.*" );
+		Util.OnTriggerPosition("MOVER_hostage", "south_west", 150.0, Map.Hostage_south_west);
+		Util.MapDebugPrint( "Hostage_main_door" );
+	},
+
+	Hostage_south_west = function( trigger )
+	{
+		Map.phase=50;
+		Map.SetSpawn();
+		Util.SetMaxUsersInProgress(1, "ESCORT_hostage_allies");
+		SetAvailableMapGoals(TEAM.ALLIES, false, "PLANTMINE_south_east.*" );
+		Util.OnTriggerPosition("MOVER_hostage", "industry_tower", 200.0, Map.Hostage_industry_tower);
+		Util.MapDebugPrint( "Hostage_south_west" );
+	},
+
+	Hostage_industry_tower = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, false, "PLANTMINE_industry.*" );
+		SetAvailableMapGoals(TEAM.ALLIES, true, "SNIPE_roof1" );
+		Util.OnTriggerPosition("MOVER_hostage", "industry_front", 300.0, Map.Hostage_industry_front);
+		Util.MapDebugPrint( "Hostage_industry_tower" );
+	},
+
+	Hostage_industry_front = function( trigger )
+	{
+		Map.phase=60;
+		Map.SetSpawn();
+		SetAvailableMapGoals(TEAM.ALLIES, false, "SNIPE_roof1" );
+		SetAvailableMapGoals(TEAM.AXIS, true, "BUILD_Axis_MG42_Construction" );
+		SetAvailableMapGoals(TEAM.AXIS, true, "REPAIRMG42_Axis_MG42_Construction" );
+		SetAvailableMapGoals(TEAM.AXIS, true, "BUILD_Axis_Escort_Boat" );
+		SetAvailableMapGoals(TEAM.ALLIES, true, "PLANT_Axis_MG42_Construction" );
+		SetAvailableMapGoals(TEAM.ALLIES, true, "ATTACK_lower.*" );
+		SetAvailableMapGoals(TEAM.ALLIES, true, "MOBILEMORTAR_industry" );
+		Util.SetMaxUsersInProgress(50, "ESCORT_hostage_allies");
+		Util.OnTriggerPosition("MOVER_hostage", "tree", 350.0, Map.Hostage_tree);
+		Util.MapDebugPrint( "Hostage_industry_front" );
+	},
+
+	Hostage_tree = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.AXIS, true, "MOUNTMG42_Axis_MG42_Construction" );
+		SetAvailableMapGoals(TEAM.AXIS, true, "MOUNT_boat" );
+		Util.MapDebugPrint( "Hostage_tree" );
+	},
+
+	Hostage_Killed = function( trigger )
+	{
+		Map.SetHostage(true);
+		Util.MapDebugPrint( "Hostage_Killed" );
+	},
+
+	Hostage_Revived = function( trigger )
+	{
+		Map.SetHostage(false);
+		Util.MapDebugPrint( "Hostage_Revived" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// Register callback functions
+	OnTrigger( "^1D^0Ri*^1R^0el^1!^0c* ^5has been taken hostage.", Map.Defend_Key1 );
+	OnTrigger( "axis_capture_depotflag", Map.Flag_Axis );
+	OnTrigger( "axis_reclaims_depotflag", Map.Flag_Axis );
+	OnTrigger( "allies_reclaims_depotflag", Map.Flag_Allies );
+	OnTrigger( "Axis Have Blown Lower Back Door!", Map.Back_Door_Lower_Destroyed );
+	OnTrigger( "Axis Have Blown Upper Back Door!", Map.Back_Door_upper_Destroyed );
+	OnTrigger( "Axis have stolen The Industry Key!", Map.industry_key_Taken );
+	OnTrigger( "Flag returned industry_key!", Map.industry_key_Returned );
+	OnTrigger( "Axis captured industrykey_holder", Map.industry_key_Secured );
+	OnTrigger( "Axis have stolen The Jail Main Door Key!", Map.jail_key_Taken );
+	OnTrigger( "Flag returned jail_key!", Map.jail_key_Returned );
+	OnTrigger( "Axis captured jailkey_holder", Map.jail_key_Secured );
+	OnTrigger( "Axis have breached the ^1D^0Ri*^1R^0el^1!^0c* Cell Door!", Map.Cell_Destroyed );
+	OnTrigger( "^1D^0Ri*^1R^0el^1!^0c*^5 has been released", Map.Hostage_Released );
+	OnTrigger( "lever1_goto", Map.grate_door1_trigger );
+	OnTrigger( "lever2_goto", Map.grate_door2_trigger );
+	//OnTrigger( "Allies have breached the BackYard Wall!", Map.backyard_wall_Destroyed );
+	OnTrigger( "^5The VIP has been killed..", Map.Hostage_Killed );
+	OnTrigger( "^5The VIP has been revived..", Map.Hostage_Revived );
+
+	Util.DisableGoal( ".*", true );
+	foreach (goal in { "ATTACK_main_door.*", "PLANT_.*Back_Door_Lower", "PLANT_.*Back_Door_upper",
+		"BUILD_Axis_MG42_Construction", "MOUNTMG42_Axis_MG42_Construction", "REPAIRMG42_Axis_MG42_Construction",
+		"PLANT_Allied_MG42_Construction", "BUILD_Axis_Escort_Boat", "MOUNT_boat" }){
+		SetAvailableMapGoals( TEAM.AXIS, true, goal );
+	}
+	foreach (goal in { "BUILD_Command_Post", "PLANT_Axis_MG42_Construction",
+		"BUILD_Allied_MG42_Construction", "MOUNTMG42_Allied_MG42_Construction", "REPAIRMG42_Allied_MG42_Construction",
+		"CHECKPOINT_depotflag", "HEALTHCAB_building64", "AIRSTRIKE_mg", "MOBILEMORTAR_upper", "ATTACK_lower.*" }){
+		SetAvailableMapGoals( TEAM.ALLIES, true, goal );
+	}
+	SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_lower_door" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_upper_back_door" );
+
+	SetGoalPriority("PLANT_Allied_MG42_Construction", 0.6, TEAM.AXIS, CLASS.ENGINEER);
+	SetGoalPriority("PLANT_Axis_MG42_Construction", 0.6, TEAM.ALLIES, CLASS.ENGINEER);
+	SetGoalPriority("DEFUSE_backyard_wall.*", 0, TEAM.AXIS, CLASS.ENGINEER, true);
+	SetGoalPriority("DEFEND_cell.*", 0.51);
+	SetGoalPriority("DEFEND_key1.*", 0.47);
+	SetGoalPriority("ATTACK_lower.*", 0.45);
+	SetGoalPriority("BUILD_Axis_Escort_Boat", 0.8);
+	SetGoalPriority("PLANT_.*Back_Door_Lower", 0.91);
+	SetGoalPriority("PLANT_.*c_Cell", 0.85);
+	SetGoalPriority("PLANTMINE_south_east.*", 0.9);
+	SetGoalPriority("SNIPE.*", 0.85);
+	SetGoalPriority("FLAG.*", 0.7);
+
+	// Max users per goal
+	Util.SetMaxUsersInProgress(50, "ESCORT_hostage.*");
+	Util.SetMaxUsersInUse( 2, "ATTACK_.*" );
+	Util.SetMaxUsersInProgress( 4, "ATTACK_.*" );
+	Util.SetMaxUsersInProgress( 2, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, ".*_Command_Post" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "PLANT_backyard_wall.*" );
+
+	// Camp times
+	SetMapGoalProperties( "DEFEND_.*", {mincamptime=30, maxcamptime=100} );
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=60, MaxCampTime=300} );
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=900, MaxCampTime=900} );
+
+	Util.SetGoalOffset(-30, -30, 0, "REPAIRMG42_Axis_MG42_Construction");
+	Util.AddUsePoint("REPAIRMG42_Axis_MG42_Construction", Vec3(2290, 2870, 184));
+
+	g=GetGoal("PLANT_Allies_Back_Door_upper");
+	if(g==null){ g=GetGoal("PLANT_8The_4Allies_8Back_Door_upper"); }
+	g.AddUsePoint(Vector3(4801,1271,696));
+	g.AddUsePoint(Vector3(4875,1272,696));
+
+	Map.hostageEntity = GetGoal("MOVER_hostage").GetEntity();
+
+	MapRoutes =
+	{
+		FLAG_jail_key = {
+			ROUTE_axis_spawn = {
+				ROUTE_north_trees = {
+					ROUTE_industry_north = {},
+					ROUTE_industry_back = {},
+				},
+				ROUTE_north_outside = {
+					ROUTE_industry_south = {},
+					ROUTE_industry_back = {},
+				},
+				ROUTE_north_water = {
+					ROUTE_industry_north = {},
+					ROUTE_industry_south = {},
+				},
+			},
+		},
+		CAPPOINT_key2 = {
+			ROUTE_key2 = {
+				ROUTE_north_outside = {},
+				ROUTE_industry_back = { Weight=2, ROUTE_south_outside = {} },
+				ROUTE_north_water = {},
+			},
+		},
+		DEFEND_industry7 = {
+			ROUTE_flag = { ROUTE_south_outside = {} },
+		},
+		CHECKPOINT_depotflag = {
+			ROUTE_backyard = {
+				ROUTE_corridor_north = { Weight=2 },
+				ROUTE_corridor_south = {},
+				ROUTE_south_outside = { Weight=5 },
+			},
+		},
+	};
+	routePrison =
+	{
+		ROUTE_flag = {
+			ROUTE_corridor_north = {},
+			ROUTE_corridor_south = {},
+		},
+		ROUTE_axis_spawn = {
+			ROUTE_corridor_north = {},
+			ROUTE_corridor_south = {},
+		},
+	};
+	if (GetGoal("BUILD_DRiRelc_lock")!=null){
+		MapRoutes.BUILD_DRiRelc_lock = routePrison;
+		MapRoutes.PLANT_DRiRelc_Cell = routePrison;
+	}else{
+		MapRoutes["BUILD_1D0Ri^1R0el1^0c_lock"] = routePrison;
+		MapRoutes["PLANT_1D0Ri^1R0el1^0c_Cell"] = routePrison;
+	}
+	MapRoutes.ATTACK_prison1 = routePrison;
+	MapRoutes.ATTACK_prison2 = routePrison;
+	MapRoutes.ATTACK_prison3 = routePrison;
+	MapRoutes.ATTACK_industry1 = MapRoutes.FLAG_jail_key;
+	MapRoutes.ATTACK_industry2 = MapRoutes.ATTACK_industry1;
+	MapRoutes.ATTACK_industry3 = MapRoutes.ATTACK_industry1;
+	MapRoutes.DEFEND_industry2 = MapRoutes.DEFEND_industry7;
+	MapRoutes.DEFEND_industry3 = MapRoutes.DEFEND_industry7;
+	MapRoutes.CAPPOINT_key1 = { ROUTE_key1 = MapRoutes.FLAG_jail_key.ROUTE_axis_spawn };
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 120.0;
+	bot.MaxViewDistance = 4500;
+	Map.SetSpawn1(bot);
+	if (Map.phase>=40 && (Map.hostageDead || bot.GetTeam()==TEAM.AXIS)){
+		bot.IgnoreTarget(Map.hostageEntity, 999999);
+	}
+};

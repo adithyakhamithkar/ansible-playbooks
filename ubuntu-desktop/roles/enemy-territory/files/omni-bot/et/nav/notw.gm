@@ -1,0 +1,488 @@
+/********************************************************
+Script and waypoints made by  >WES< P!NNAN & >WES< GRANNY
+********************************************************/
+// Tardis  01 February	2011 Fixed Script
+//
+//==========================================================================================
+global Map =
+{
+	Debug = 0, // please set to zero before distributing your script
+	ShowMovers = false,
+	//set Talk to false if you don't want the bots to talk ingame !
+	Talk = true,
+
+	Ammo_Cabinet_south_ammocabinet = "AMMOCAB_south_ammocabinet",
+	Ammo_Cabinet_the_ammocabinet = "AMMOCAB_the_ammocabinet",
+	Health_Cabinet_south_healthcabinet = "HEALTHCAB_south_healthcabinet",
+	Checkpoint_depot_flag = "CHECKPOINT_depot_flag",
+	Build_Allied_MG = "BUILD_Allied_MG",
+	Build_Allied_Town_MG = "BUILD_Allied_Town_MG",
+	Build_Axis_MG = "BUILD_Axis_MG",
+	Build_Command_Post = "BUILD_Command_Post",
+	Build_Stacheldraht = "BUILD_Stacheldraht",
+	Build_Town_Door = "BUILD_Town_Door",
+	Plant_Allied_MG = "PLANT_Allied_MG",
+	Plant_Allied_Town_MG = "PLANT_Allied_Town_MG",
+	Plant_Axis_MG = "PLANT_Axis_MG",
+	Plant_Command_Post = "PLANT_Command_Post",
+	Plant_Radio_Equipment = "PLANT_Radio_Equipment",
+	Plant_Secret_Documents = "PLANT_Secret_Documents",
+	Plant_Stacheldraht = "PLANT_Stacheldraht",
+	Plant_Town_Door = "PLANT_Town_Door",
+	Plant_Town_Wall = "PLANT_Town_Wall",
+	Mount_1273 = "MOUNTMG42_1273",
+	Mount_1772 = "MOUNTMG42_1772",
+	Mount_26 = "MOUNTMG42_26",
+	Mount_Allied_MG = "MOUNTMG42_Allied_MG",
+	Mount_Allied_Town_MG = "MOUNTMG42_Allied_Town_MG",
+	Mount_Axis_MG = "MOUNTMG42_Axis_MG",
+	Repair_1273 = "REPAIRMG42_1273",
+	Repair_1772 = "REPAIRMG42_1772",
+	Repair_26 = "REPAIRMG42_26",
+	Repair_Allied_MG = "REPAIRMG42_Allied_MG",
+	Repair_Allied_Town_MG = "REPAIRMG42_Allied_Town_MG",
+	Repair_Axis_MG = "REPAIRMG42_Axis_MG",
+	Mobile_MG42_mg_al_1 = "MOBILEMG42_mg_al_1",
+	Mobile_MG42_mg_al_2 = "MOBILEMG42_mg_al_2",
+
+	Navigation =
+	{
+		ladder2 =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 2);
+				sleep(2);
+			},
+		},
+	},
+
+	//CP stuff
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	//MG stuff
+	Allied_MG_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_MG_Built" );
+	},
+
+	Allied_Town_MG_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Town_MG_Built" );
+	},
+
+	Axis_MG_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_MG_Built" );
+	},
+
+	Allied_MG_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_MG_Destroyed" );
+	},
+
+	Allied_Town_MG_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Town_MG_Destroyed" );
+	},
+
+	Axis_MG_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_MG_Destroyed" );
+	},
+
+	//Dynamitable stuff
+	Stacheldraht_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Stacheldraht_Built" );
+	},
+
+	Town_Door_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Town_Door_Built" );
+	},
+
+	Stacheldraht_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Stacheldraht_Destroyed" );
+	},
+
+	Town_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group4);
+		Groups.DisableAxis(Groups.group3);
+		Groups.EnableAllies(Groups.group6);
+		Groups.EnableAxis(Groups.group5);
+
+		Util.MapDebugPrint( "Town_Door_Destroyed" );
+	},
+
+	Town_Wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group4);
+		Groups.DisableAxis(Groups.group3);
+		Groups.EnableAllies(Groups.group6);
+		Groups.EnableAxis(Groups.group5);
+
+		Util.MapDebugPrint( "Town_Wall_Destroyed" );
+	},
+
+	//Primary Obj
+	Radio_Equipment_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Obj2 = true;
+
+		if ( Map.Obj1 )
+		{
+			ETUtil.WinningChat( TEAM.AXIS );
+			ETUtil.LosingChat( TEAM.ALLIES );
+		}
+
+		Util.MapDebugPrint( "Radio_Equipment_Destroyed" );
+	},
+
+	Secret_Documents_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Obj1 = true;
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_a_obj_1" );
+
+		if ( Map.Obj2 )
+		{
+			ETUtil.WinningChat( TEAM.AXIS );
+			ETUtil.LosingChat( TEAM.ALLIES );
+		}
+
+		Util.MapDebugPrint( "Secret_Documents_Destroyed" );
+	},
+
+	//Flagstuff
+	depot_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group2);
+		Groups.DisableAxis(Groups.group1);
+		Groups.EnableAllies(Groups.group4);
+		Groups.EnableAxis(Groups.group3);
+
+		Util.MapDebugPrint( "depot_flag_Axis_Captured" );
+	},
+
+	depot_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group4);
+		Groups.DisableAxis(Groups.group3);
+		Groups.EnableAllies(Groups.group2);
+		Groups.EnableAxis(Groups.group1);
+
+		Util.MapDebugPrint( "depot_flag_Allies_Captured" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "Allied Team have built the MG Nest!!", Map.Allied_MG_Built );
+	OnTrigger( "Allied Team have built the Town MG Nest!!", Map.Allied_Town_MG_Built );
+	OnTrigger( "Axis Team have built the MG Nest!!", Map.Axis_MG_Built );
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "Allies build the Barbed Pamela Wire thingy", Map.Stacheldraht_Built );
+	OnTrigger( "Allies build the Town Door.", Map.Town_Door_Built );
+	OnTrigger( "Axis have destroyed the MG Nest!!", Map.Allied_MG_Destroyed );
+	OnTrigger( "Axis have destroyed the Town MG Nest!!", Map.Allied_Town_MG_Destroyed );
+	OnTrigger( "Allies have destroyed the MG Nest!!", Map.Axis_MG_Destroyed );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "Axis team has destroyed the Radio Equipment!", Map.Radio_Equipment_Destroyed );
+	OnTrigger( "Axis have destroyed the Secret Documents!", Map.Secret_Documents_Destroyed );
+	OnTrigger( "Axis have destroyed the Stacheldraht !", Map.Stacheldraht_Destroyed );
+	OnTrigger( "Axis have destroyed the Town Door.", Map.Town_Door_Destroyed );
+	OnTrigger( "Axis have destroyed the Town Wall !!!", Map.Town_Wall_Destroyed );
+	OnTrigger( "Axis reclaim the Flag!", Map.depot_flag_Axis_Captured );
+	OnTrigger( "Allies capture the Flag!", Map.depot_flag_Allies_Captured );
+
+	//set max users for goals
+	Util.SetMaxUsersInProgress( 2, "BUILD.*" );
+	Util.SetMaxUsersInProgress( 2, "PLANT.*" );
+	Util.SetMaxUsersInProgress( 1, "SNIPE.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_d_alliedtop.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_d_cp.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_d_xf5u_hangar.*" );
+	Util.SetMaxUsersInProgress( 1, "ATTACK_a_cp.*" );
+	Util.SetMaxUsersInProgress( 1, "MOUNTMG42.*" );
+	Util.SetMaxUsersInProgress( 3, "CHECKPOINT.*" );
+	
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=120, MaxCampTime=240});
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=60, MaxCampTime=120});
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=30, MaxCampTime=60});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=60, MaxCampTime=120});
+
+	//clear all goals
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+
+	Util.EnableGoal("ROUTE.*"); //enable routing for both teams
+
+	//enable part 1 goals
+	Groups.EnableAllies(Groups.group2);
+	Groups.EnableAxis(Groups.group1);
+
+	//Routes
+	MapRoutes =
+	{
+		CHECKPOINT_depot_flag =
+		{
+			ROUTE_r_axisspawn_1 =
+			{
+				ROUTE_r_ax_exit_1 =
+				{
+					ROUTE_r_right_hill_1 =
+					{
+						ROUTE_r_right_hill_2 =
+						{
+							ROUTE_r_right_hill_3 =
+							{
+								ROUTE_r_right_hill_4 =
+								{
+									ROUTE_r_right_hill_5 = {ROUTE_r_entrance = {},},
+								},
+							},
+							ROUTE_r_right_hill_6 =
+							{
+								ROUTE_r_right_hill_7 =
+								{
+									ROUTE_r_right_hill_8 =
+									{
+										ROUTE_r_right_hill_9 = {ROUTE_r_backentrance = {}, },
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_r_ax_exit_3 =
+				{
+					ROUTE_r_hill_1 =
+					{
+						ROUTE_r_hill_2 =
+						{
+							ROUTE_r_hill_3 = {ROUTE_r_entrance = {},},
+						},
+					},
+					ROUTE_r_left_hill_1 =
+					{
+						ROUTE_r_left_hill_2 =
+						{
+							ROUTE_r_left_hill_3 =
+							{
+								ROUTE_r_left_hill_4 =
+								{
+									ROUTE_r_left_hill_5 = {ROUTE_r_entrance = {},},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+
+	};
+
+	//Copy some routes
+	MapRoutes.ATTACK_a_flagpoint_8 = MapRoutes.CHECKPOINT_depot_flag;
+
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+// Uncomment for shootable breakables
+
+global OnBotJoin = function( bot )
+{
+	 bot.TargetBreakableDist = 100.0;
+	 bot.MaxViewDistance = 2500;
+};
+
+global Groups =
+{
+	//Axis part 1
+	group1 =
+	{
+		Map.Checkpoint_depot_flag,
+		"ATTACK_a_flagpoint.*",
+	},
+
+	//Allies part 1
+	group2 =
+	{
+		Map.Build_Command_Post,
+		Map.Build_Allied_Town_MG,
+		Map.Checkpoint_depot_flag,
+		Map.Mount_Allied_Town_MG,
+		Map.Repair_Allied_Town_MG,
+		"DEFEND_d_flagpoint.*",
+		"SNIPE_s_al_window_1",
+	},
+
+	//Axis part 2
+	group3 =
+	{
+		Map.Build_Command_Post,
+		Map.Plant_Allied_Town_MG,
+		Map.Plant_Command_Post,
+		Map.Plant_Stacheldraht,
+		Map.Plant_Town_Door,
+		Map.Plant_Town_Wall,
+		"ATTACK_a_town.*",
+	},
+
+	//Allies part 2
+	group4 =
+	{
+		Map.Checkpoint_depot_flag,
+		Map.Build_Allied_MG,
+		Map.Build_Stacheldraht,
+		Map.Build_Town_Door,
+		Map.Mount_Allied_MG,
+		Map.Mobile_MG42_mg_al_1,
+		Map.Repair_Allied_MG,
+		"DEFEND_d_town.*",
+	},
+
+	//Axis part 3
+	group5 =
+	{
+		Map.Plant_Secret_Documents,
+		Map.Plant_Radio_Equipment,
+		Map.Plant_Stacheldraht,
+		Map.Plant_Town_Door,
+		Map.Plant_Town_Wall,
+		"ATTACK_a_obj.*",
+	},
+
+	//Allies part 3
+	group6 =
+	{
+		Map.Build_Allied_MG,
+		Map.Build_Stacheldraht,
+		Map.Build_Town_Door,
+		Map.Mount_Allied_MG,
+		Map.Mobile_MG42_mg_al_2,
+		Map.Repair_Allied_MG,
+		"DEFEND_d_obj.*",
+	},
+
+	EnableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, goal );
+			Util.MapDebugPrint("EnableAllies: enabling " + goal, true);
+		}
+	},
+
+	EnableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, goal );
+			Util.MapDebugPrint("EnableAxis: enabling " + goal, true);
+		}
+	},
+
+	DisableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, goal );
+			Util.MapDebugPrint("DisableAllies: disabling " + goal, true);
+		}
+	},
+
+	DisableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, goal );
+			Util.MapDebugPrint("DisableAxis: disabling " + goal, true);
+		}
+	},
+};

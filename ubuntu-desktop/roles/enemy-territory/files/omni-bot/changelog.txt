@@ -1,0 +1,338 @@
+---------------------------------------------------------------
+0.83 ET Change Log
+
+ETBlight and Bastard mods are supported
+
+=== BOT ===
+Added cvar omnibot_logsize (maximal file size in KB), -1 will disable logs, 0 will overwrite file every match
+Added script goal property LimitToNoClass
+Added you can pass 0 for all teams to MapGoal.SetAvailable and MapGoal.SetAvailableInitial
+Added WeaponFireMode.AimOffsetZ
+Changed log files are written to omni-bot/et/logs (if the folder exists)
+Changed initialization is logged only if LogInfo is true in omni-bot.cfg
+Changed waypoint property is cleared if value is empty string
+Improved Server table is immediately updated when players connect or disconnect
+Improved help command is sorted
+Fixed memory leak caused by GameMonkey threads
+Fixed crash in AddBot if bot is kicked in ClientUserinfoChanged
+Fixed jumplow waypoint flag did not work at tank barrier or pile of box crates
+Fixed weapon mask was 64-bit and could not be used for mod specific weapons, now it's 128-bit
+Fixed InFieldOfView returned correct result only if bot had same Z coordinate as enemy
+Fixed DrawTrajectory was not accurate
+Fixed CalcTrajectory always returned null
+Fixed CheckCharged parameter of HasAnyWeapon
+Fixed Utils::ConvertString returned true even if string could not be converted
+Fixed some console commands expected integer parameters, but got float
+Fixed waypoint connection remained closed after blockable flag was removed
+Fixed new connection between blockable waypoints was not blockable
+Fixed crash if there was error in waypoints file
+Fixed bot killed himself after command bot.Enable(false)
+Fixed stuckage if paththrough navigation called Goto to unreachable destination
+Fixed soldier with mortar waited forever if some aim vector was out of range
+Fixed aim vector of mortar and script goals was sometimes imprecise
+Fixed bot sometimes could not reload if two weapons needed to be reloaded
+Fixed GetRandomWeapon
+Fixed indentation in log files
+
+=== MOD ===
+Added display scriptName and targetName for /entitylist command
+Fixed fake client lua script exploit
+
+=== GOALS ===
+Added target property to MOBILEMORTAR goal
+Added coversplit property to PLANT goal
+Added multiple aim modes for MOUNT goal, they can be set by ETUtil.SetAimModeForMount
+Added Stance property to DEFUSE goal, can be set only from trigger and only "prone" value is permitted
+Changed ATTACK goals are limited to 3 bots in progress
+Changed AIRSTRIKE,ARTILLERY,MOBILEMG42,MOBILEMORTAR,SNIPE goals are limited to 1 bot in progress
+Changed bot on CAMP goal selects his primary weapon (shotgun, panzer, ...)
+Changed bot can say "Hold your fire" more than once per match
+Improved priority to pick up medkits depends on current health
+Improved ESCORT goal, stucked bot can jump or repath
+Improved MOBILEMORTAR orientation when goal has multiple facings
+Fixed REVIVE goal in some mods if dead players have health<=0, but don't have DEAD entity flag
+Fixed MOUNT goal was not blackboard delayed after Timeout
+Fixed bot killed himself if he stucked near tank and then successfully mounted the tank
+Fixed stance property could be set to wrong values
+
+=== SCRIPTS ===
+Added ability to give unique names for re-usable region triggers
+Added sniper war and panzer war in Jaymod or n!tmod are detected in autoexec
+Changed Util.ListTableMembers prints both keys and values
+Fixed Server.MinBots
+Fixed script errors when bot is kicked from server
+
+=== WEAPONS ===
+Changed VENOM aim offset and aim tolerance
+Changed engineer will not detach rifle grenade on camp goals
+Changed weapon desirabilities
+Fixed bots always aimed at head with mod specific weapons (shotgun, mp34, sak47, ppsh, rpd, ...)
+Fixed bots could not use ammo cabinets when they have some mod specific weapons (stg44, mp34, m79, madsen, ...)
+Improved skilled soldiers can reload mobile mg42 in NoQuarter or n!tmod
+Improved melee weapon is used to attack only if distance is within range
+Optimized some weapons cannot be reloaded and some weapons don't require ammo
+Removed unused weapon properties
+
+=== COMMANDS ===
+Added trigger_bounds command supports writing the RegionTrigger.Create function call to file
+Added optional TRACE parameter to showentityinfo command
+Changed command botgoal prints MapGoal name, not ScriptGoal name
+Fixed difficulty command could not change difficulty of newly added bots, dead bots or bots waiting for a medic
+Fixed difficulty could not be set to -1 which means random difficulty
+Fixed difficulty could be set to 7, but maximal difficulty is 6
+Improved command ab is much faster, it can add 20 bots per second
+Improved command waypoint_view prints error message if drawing is impossible
+
+=== WAYPOINTS ===
+1944_huertgen
+2dom1
+afd_beta5
+ammodepot
+barrocas_base_b8
+byzantine
+cherbourg
+country_road_jp
+denoflions_etdual
+duplex_towers
+es_alamo_sniper
+es_garden_sniper
+es_ziggurath_sniper_night_b2
+et_mor2_night
+field_hq_b4
+flame-guards
+fueldump_uvf
+intel_center
+kings1
+lostparadise
+mlb_daybreak
+mp_base
+mp_theriver_2nd
+negoshk_b2
+op_lucky_a2
+password2
+resurrection
+snatch2
+tankbuster
+uje_convoy_final
+uje_fantasie_sniper
+uje_oil
+uje_parking_sniper
+uje_snowy_sniper
+uje_warzone
+
+---------------------------------------------------------------
+
+0.82 ET Change Log
+
+=== BOT ===
+Optimized path planner (thx palota)
+Optimized sensory memory (thx palota)
+Updated ladder navigation (thx palota)
+Fixed ENT_ENTER_RADIUS to fire if bot is already within radius (thx palota)
+Fixed QueryGoals to randomly shuffle all returned goals (thx palota)
+Fixed ScriptGoal.LimitTo issues (thx palota)
+Fixed SetAvailableMapGoals was enabling all goals if parameter 3 was not a string
+Disable LookAroundState at doors (thx palota)
+Fixed Route nodes to work on slopes (thx palota)
+Fixed SetMapGoalProperties to work inside trigger functions (thx palota)
+Fixed MapGoal.RemoveWithEntity (thx palota)
+Fixed logger error masks (thx palota)
+Fixed OnSpawn callback was being called twice (thx palota)
+Fixed some events were not always fired (thx palota)
+Fixed paththrough goals were able to be interrupted (thx palota)
+Fixed ignore player command to work on players that are mounted on fixed mg42's (thx palota)
+Added paththrough property set on waypoint does not require reload (thx palota)
+Fixed b.HasRole, b.HasPowerUp, b.HasAnyEntityFlag, and b.HasEntityFlag to check all parameters
+Changed PostMapLoad to not require a map script
+Fixed mg.SetRoles and mg.ClearRoles to preserve existing roles
+Fixed b.SetRoles and b.ClearRoles to preserve existing roles
+Fixed duplicate GetPriority calls when a bot spawned
+Fixed crash in waypoint_mirror command
+Aliased ET_CLASSEX_TREASURE as TRIPMINE to preserve compatibility with mods
+Fixed script goal OnSpawn callback
+Fixed option table parameter in GotoRandomAsync and GotoRandom script functions
+Fixed potential buffer overrun in CheckWaypointForGoal
+Updated PHYSFS from 1.1.1 to 2.0.2
+
+=== MODS ===
+Added support for tripmine usage in silEnT mod ( thx gaoesa and TheSilencer )
+Fixed weapon usage for some etnam and silEnt mod weapons
+Fixed several weapon id conflicts
+Fixed remove weapon event to not be called when a bot goes to limbo
+Fixed defuse event to always be fired
+Fixed suicide flag for bots to be cleared on death
+Fixed b.IsWeaponCharged() for Adrenaline in NoQuarter
+
+=== GOALS ===
+Improved Revive goal behavior
+Added support for interrupting Defuse goals for higher priority Defuse goals
+Fixed high cpu utilization in goal_paththrough_navigation (thx palota)
+Fixed bug in UseCabinet goals that was causing high cpu usage (thx palota)
+Improved goal selection to be random for equal priority goals rather than sequential (thx palota)
+Optimized goal_useswitch (thx palota)
+Fixed goal_paththrough_useswitch behavior while bots are riding in movers (thx palota)
+Fixed bots could not shoot fixed mg42 if reloading while mounted (thx palota)
+Fixed bots aim position after being revived in goal_mobilemg42 (thx palota)
+Fixed goal_checkstuck to allow enough time for revived bots to be able to move (thx palota)
+Updated goal_combatmovement to include unscoped sniper weapons (thx palota)
+Fixed several issues with goal_covertops (thx palota)
+Optimized goal_voicechat and goal_deliversupplies (thx palota)
+Fixed issues in goal_watchforprojectile (thx palota)
+Fixed evaluation used by bots to determine when to reload (thx palota)
+Fixed FlagReturn goal to not query for "Flag.*" (thx palota)
+Improved goals file to not save RandomUsePoint or Range if the value is 0 (thx palota)
+Added optional UseAsync property to goal_paththrough_useswitch
+Fixed dispenseammo to not activate when a bot is revived (thx palota )
+Added traceline property to grenade goal  (thx palota )
+Added count property to grenade goal to limit number of grenades thrown  (thx palota )
+Disabled 0.71 style high level script goals
+Fixed weapon restriction related issues in camp goals
+Added several improvements to goal_checkstuck  (thx palota )
+Added bots will search for unarmed dynamite at plant goals
+Added disablecm property to camp type goals to disable combat movement
+Added several improvements to goal_selectweapons  (thx palota )
+Fixed issues with goal_paththrough_artillery
+Added support for healing with needle in deliversupplies goal
+Fixed issues with delivering supplies to mortar and mobilemg42 camp locations  (thx palota )
+Improved goal_mobilemg42 aiming  (thx palota )
+Added "peek" stance to camp type goals for duck and cover emulation
+Moved checkpoint goal to script
+Moved defuse goal to script
+Moved repairmg42 goal to script
+Moved revive goal to script
+Fixed distance tolerance for plantmine and mortar goals
+Added Range property to script goals
+Added RandomUsePoint property for randomizing position for bot to use a goal
+Fixed bots sometimes not delivering objectives
+
+=== SCRIPTS ===
+Added InitializeRoutes script function for Map scripts
+Added regular expression support for route tables (thx palota )
+Added Util.ScriptDebugPrint with filtering capability
+Added support for passing a table of roles to util functions that set and clear roles
+Fixed issues in server_manager.gm
+Deprecated ETUtil.SelectWeapon() (thx palota )
+Added ability to globally disable specific weapons for bots
+Added et_weapontables.gm  (thx palota )
+Fixed issues with the role manager (thx palota )
+Moved ClassPrimaryWeaponChoice from global to bot
+Removed death event from class manager (thx palota )
+Added ETUtil.GetTimeElapsed()
+Added new botnames script that allows users to specify bots per team and a preferred weapon
+Added Util.FindClosestGoal() (thx d00d )
+Fixed secondary weapon usage for heavy weapon bots to not rely on targeting system (thx palota )
+Fixed ETUtil.WarpToGoalOffset (thx palota )
+Added silEnT mod weapon scripts
+Added etnam weapon scripts
+Fixed script errors on bot disconnect in goal_voicechat
+Seperated class manager logic into et_classmanager.gm for global accessibility
+
+=== COMMANDS ===
+Added bot goto and bot wait commands for testbot (thx palota)
+Added waypoint_split command (thx palota)
+Added /bot warpto command can be used for paththrough points (thx palota)
+Fixed error in /bot drawspawns command (thx palota)
+Added waypoint_startover command which removes all waypoints without flags or properties
+Added saveusepoint command (thx d00d )
+Added writeplayerpos command (thx d00d )
+
+=== WAYPOINTS ===
+Several fixes, updates, and new maps supported. See the Assembla repository logs for details
+
+=== TOOLS ===
+Updated DMS (thx MickyP)
+Updated Notepad++ for omnibot (thx d00d)
+
+---------------------------------------------------------------
+
+0.81 ET Change Log
+
+=== BOT ===
+Fixed kickbot crash in older Windows versions
+Fixed pathfinder crash
+Fixed region trigger related crashes
+Fixed SetAvailableMapGoals
+Fixed SetGoalPriority
+Fixed SetGoalGroup
+Fixed goals being interrupted by other goal types with same priority as current goal
+Fixed script goals being activated too early when bots spawned
+Fixed InWater flag not being auto added to waypoints
+Fixed issues with GetNearest related to entities that shared a classname with weapons
+Fixed GetRandomDestination to only return reachable points
+Fixed ScriptGoal event threads not being killed on bot exit
+Added bots will press jump when headed towards waypoints with the InWater flag
+Added goal loading time output
+Added SetIgnoreEntFlags weapon property
+Added rendering of RegionTrigger names
+Improved ladder navigation
+Updated boost libraries to version 1_44_0
+
+=== MODS ===
+Fixed goal names to not include color strings
+Added support for NoQuarter WP_JOHNSON (thx Irata)
+Added conversion of panzerfaust request to bazooka for allied bots in NoQuarter
+
+=== GOALS ===
+Moved MountMg42 goal to script and added support for user defined facings
+Moved MobileMG42 goal to script
+Fixed version number in mapgoal_capturehold
+Fixed random aim mode for mount goal
+Fixed goal_paththrough_artillery to abort if no line of sight to an arty target
+Fixed gotowp support in goal_paththrough_navigation
+Fixed goal_combatmovement to ensure that GetTargetInfo returns valid data
+Fixed velocity check in goal_indisguise
+Fixed mapgoal_explosive to not create on load
+Fixed manually added health and ammo cabinet goals to create on load
+Fixed region trigger name in mapgoal_plantmine
+Fixed plant goal coverspot occupied flag not being cleared on bot death
+Fixed bots to not use rifle nades when they have a plant goal active
+Fixed revive goal sometimes never enabled (thx 0x0000 and Demetrius)
+Fixed InProgress limitations for FLAG_ goals
+Fixed issues with askforammo and askforhealth goals
+Fixed potential issues with ammo and health cabinet goals
+Added paththrough function to goal_build for custom behavior scripting (thx palota)
+Added bots planting dynamite will abort if a teammate drops a satchel (thx palota)
+Added mapgoal_dynamite for use when target has no usable OID
+Added cure poison with needle support to goal_deliversupplies
+Added caching of trace results in goal_paththrough_artillery
+Added ability to force routing to build goals with offsets defined
+Added missing finish criteria in goal_covertops
+Added cover spot timeout to plant goal(s)
+Added jump stance property to build goal for build goals in water (thx palota)
+Changed stuckage check goal to write separate logs for each map
+Changed paththrough_useswitch goal so that the wait function overrides any exit conditions
+Changed plant goal coverspot selection to be random rather than sequential (thx palota)
+Improved goal_escort to allow escorting bots to assist in building of vehicle (thx palota)
+Improved bots ability to mount mg42's
+Improved plant goal aim location (thx palota)
+Increased priority of deliver supplies goal and limited distance to 1500 units
+Lowered default priority of repairMG42 goal
+
+=== SCRIPT ===
+Fixed MapGoal.GetPriority
+Fixed role manager to auto increment class manager minclass counts when crucialClass is set
+Fixed role manager crucialClass
+Added Util.BotChat function
+Added Util.CatName function
+Added Util.SetCustomProperty function
+Added ETUtil.WinningChat and ETUtil.LosingChat functions
+Added EvalFunc support to goal_paththrough_navigation
+Added spawn point and voice macro support to role manager
+Added optional viewDistance parameter to Util.ChangeToSniperWeapons
+Added CLASS.DYNAMITE_ENT, CLASS.MORTAR_ENT, CLASS.SATCHEL_ENT, and CLASS.LANDMINE_ENT
+Added re-usable region triggers for spotting and announcing enemies or all clear (thx d00d)
+Added waypoint GUID support to the warpto command (thx d00d)
+Moved class manager to script goal with several functional improvements (thx palota)
+
+=== COMMANDS ===
+Added optional filter param for debugtriggers
+Added fix_waterwps to add InWater flag to waypoints near water surface
+Added draw_paththrough 0|1 for rendering 3D text over paththrough waypoints
+
+=== WAYPOINTS ===
+Several fixes, updates, and new maps supported. See the Assembla repository logs for details.
+
+=== TOOLS ===
+Updated DMS (thx MickyP)
+Updated Notepad++ for omnibot (thx d00d)
+

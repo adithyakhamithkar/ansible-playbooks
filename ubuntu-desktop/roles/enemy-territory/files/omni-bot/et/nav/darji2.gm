@@ -1,0 +1,883 @@
+//Found some old waypoints and decided to make a script to go with them.
+//Uploaded waypoints, added routing and bots will try to defend their flags.
+//Script done by :)BOK(: Naerling
+
+global Map =
+{
+	Flag_alli_1st_flag = "FLAG_alli_1st_flag",
+	Flag_alli_2nd_flag = "FLAG_alli_2nd_flag",
+	Flag_alli_3rd_flag = "FLAG_alli_3rd_flag",
+	Flag_alli_4th_flag = "FLAG_alli_4th_flag",
+	Flag_alli_5th_flag = "FLAG_alli_5th_flag",
+	Flag_alli_6th_flag = "FLAG_alli_6th_flag",
+	Flag_alli_7th_flag = "FLAG_alli_7th_flag",
+	Flag_axis_1st_flag = "FLAG_axis_1st_flag",
+	Flag_axis_2nd_flag = "FLAG_axis_2nd_flag",
+	Flag_axis_3rd_flag = "FLAG_axis_3rd_flag",
+	Flag_axis_4th_flag = "FLAG_axis_4th_flag",
+	Flag_axis_5th_flag = "FLAG_axis_5th_flag",
+	Flag_axis_6th_flag = "FLAG_axis_6th_flag",
+	Flag_axis_7th_flag = "FLAG_axis_7th_flag",
+	Cappoint_1780 = "CAPPOINT_1780",
+	Cappoint_681 = "CAPPOINT_681",
+	Build_Command_Post = "BUILD_Command_Post",
+	Plant_Command_Post = "PLANT_Command_Post",
+	Mount_1386 = "MOUNTMG42_1386",
+	Mount_244 = "MOUNTMG42_244",
+	Repair_1386 = "REPAIRMG42_1386",
+	Repair_244 = "REPAIRMG42_244",
+	Snipe_1259 = "SNIPE_1259",
+	Snipe_1541 = "SNIPE_1541",
+	Snipe_1661 = "SNIPE_1661",
+	Snipe_2212 = "SNIPE_2212",
+	Snipe_2262 = "SNIPE_2262",
+	Snipe_2263 = "SNIPE_2263",
+	Snipe_2264 = "SNIPE_2264",
+	Snipe_2265 = "SNIPE_2265",
+	Snipe_2266 = "SNIPE_2266",
+	Snipe_2267 = "SNIPE_2267",
+	Snipe_2268 = "SNIPE_2268",
+	Snipe_2269 = "SNIPE_2269",
+	Snipe_2274 = "SNIPE_2274",
+	Snipe_842 = "SNIPE_842",
+
+	Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Built" );
+	},
+
+	Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Destroyed" );
+	},
+
+	alli_1st_flag_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_alli_att_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_def_.*" );
+
+		Util.MapDebugPrint( "alli_1st_flag_Taken" );
+	},
+
+	alli_2nd_flag_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_alli_att_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_def_.*" );
+
+		Util.MapDebugPrint( "alli_2nd_flag_Taken" );
+	},
+
+	alli_3rd_flag_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_alli_att_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_def_.*" );
+
+		Util.MapDebugPrint( "alli_3rd_flag_Taken" );
+	},
+
+	alli_4th_flag_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_alli_att_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_def_.*" );
+
+		Util.MapDebugPrint( "alli_4th_flag_Taken" );
+	},
+
+	alli_5th_flag_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_alli_att_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_def_.*" );
+
+		Util.MapDebugPrint( "alli_5th_flag_Taken" );
+	},
+
+	alli_6th_flag_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_alli_att_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_def_.*" );
+
+		Util.MapDebugPrint( "alli_6th_flag_Taken" );
+	},
+
+	alli_7th_flag_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_alli_att_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_def_.*" );
+
+		Util.MapDebugPrint( "alli_7th_flag_Taken" );
+	},
+
+	axis_1st_flag_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_alli_def_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_att_.*" );
+
+		Util.MapDebugPrint( "axis_1st_flag_Taken" );
+	},
+
+	axis_2nd_flag_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_alli_def_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_att_.*" );
+
+		Util.MapDebugPrint( "axis_2nd_flag_Taken" );
+	},
+
+	axis_3rd_flag_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_alli_def_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_att_.*" );
+
+		Util.MapDebugPrint( "axis_3rd_flag_Taken" );
+	},
+
+	axis_4th_flag_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_alli_def_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_att_.*" );
+
+		Util.MapDebugPrint( "axis_4th_flag_Taken" );
+	},
+
+	axis_5th_flag_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_alli_def_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_att_.*" );
+
+		Util.MapDebugPrint( "axis_5th_flag_Taken" );
+	},
+
+	axis_6th_flag_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_alli_def_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_att_.*" );
+
+		Util.MapDebugPrint( "axis_6th_flag_Taken" );
+	},
+
+	axis_7th_flag_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_alli_def_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_att_.*" );
+
+		Util.MapDebugPrint( "axis_7th_flag_Taken" );
+	},
+
+	axis_flag_returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_alli_def_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_att_.*" );
+
+		Util.MapDebugPrint( "axis_flag_returned" );
+	},
+
+	alli_flag_returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_alli_att_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_def_.*" );
+
+		Util.MapDebugPrint( "alli_flag_returned" );
+	},
+
+	axis_score = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.G_CHEER);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.SayVoice(VOICE.COMMAND_COMPLETED);
+					}
+				}
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.SORRY);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.SayVoice("VOICE.NEGATIVE");
+					}
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "axis_score" );
+	},
+
+	alli_score = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.G_CHEER);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.SayVoice(VOICE.COMMAND_COMPLETED);
+					}
+				}
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.SORRY);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.SayVoice("VOICE.NEGATIVE");
+					}
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "alli_score" );
+	},
+
+	axis_win = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		ETUtil.WinningChat( TEAM.AXIS );
+		ETUtil.LosingChat( TEAM.ALLIES );
+		Util.MapDebugPrint( "axis_win" );
+	},
+
+	alli_win = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "alli_win" );
+	},
+
+	CAPPOINT_1780_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "CAPPOINT_1780_Captured" );
+	},
+
+	CAPPOINT_681_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "CAPPOINT_681_Captured" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "^1Axis 1st flag is stolen!", Map.axis_1st_flag_Taken );
+	OnTrigger( "^1Axis 2nd flag is stolen!", Map.axis_2nd_flag_Taken );
+	OnTrigger( "^1Axis 3rd flag is stolen!", Map.axis_3rd_flag_Taken );
+	OnTrigger( "^1Axis 4th flag is stolen!", Map.axis_4th_flag_Taken );
+	OnTrigger( "^1Axis 5th flag is stolen!", Map.axis_5th_flag_Taken );
+	OnTrigger( "^1Axis 6th flag is stolen!", Map.axis_6th_flag_Taken );
+	OnTrigger( "^1Axis 7th flag is stolen!", Map.axis_7th_flag_Taken );
+
+	OnTrigger( "^1The Allied Forces' 1st flag is stolen!", Map.alli_1st_flag_Taken );
+	OnTrigger( "^1The Allied Forces' 2nd flag is stolen!", Map.alli_2nd_flag_Taken );
+	OnTrigger( "^1The Allied Forces' 3rd flag is stolen!", Map.alli_3rd_flag_Taken );
+	OnTrigger( "^1The Allied Forces' 4th flag is stolen!", Map.alli_4th_flag_Taken );
+	OnTrigger( "^1The Allied Forces' 5th flag is stolen!", Map.alli_5th_flag_Taken );
+	OnTrigger( "^1The Allied Forces' 6th flag is stolen!", Map.alli_6th_flag_Taken );
+	OnTrigger( "^1The Allied Forces' 7th flag is stolen!", Map.alli_7th_flag_Taken );
+
+	OnTrigger("^1The Allied Forces' 1st flag is returned!", Map.alli_flag_returned);
+	OnTrigger("^1The Allied Forces' 2nd flag is returned!", Map.alli_flag_returned);
+	OnTrigger("^1The Allied Forces' 3rd flag is returned!", Map.alli_flag_returned);
+	OnTrigger("^1The Allied Forces' 4th flag is returned!", Map.alli_flag_returned);
+	OnTrigger("^1The Allied Forces' 5th flag is returned!", Map.alli_flag_returned);
+	OnTrigger("^1The Allied Forces' 6th flag is returned!", Map.alli_flag_returned);
+	OnTrigger("^1The Allied Forces' 7th flag is returned!", Map.alli_flag_returned);
+
+	OnTrigger("^1Axis 1st flag is returned!", Map.axis_flag_returned);
+	OnTrigger("^1Axis 2nd flag is returned!", Map.axis_flag_returned);
+	OnTrigger("^1Axis 1st flag is returned!", Map.axis_flag_returned);
+	OnTrigger("^1Axis 3rd flag is returned!", Map.axis_flag_returned);
+	OnTrigger("^1Axis 4th flag is returned!", Map.axis_flag_returned);
+	OnTrigger("^1Axis 5th flag is returned!", Map.axis_flag_returned);
+	OnTrigger("^1Axis 6th flag is returned!", Map.axis_flag_returned);
+	OnTrigger("^1Axis 7th flag is returned!", Map.axis_flag_returned);
+
+	OnTrigger("^1Allied Forces score 1 point!", Map.alli_score);
+	OnTrigger("^1Allied Forces now have 2 points in total.", Map.alli_score);
+	OnTrigger("^1Allied Forces now have 3 points in total.", Map.alli_score);
+	OnTrigger("^1Allied Forces now have 4 points in total.", Map.alli_score);
+	OnTrigger("^1Allied Forces now have 5 points in total.", Map.alli_score);
+	OnTrigger("^1Allied Forces now have 6 points in total.", Map.alli_score);
+	OnTrigger("^1Allied Forces reaches 7 points (max score).", Map.alli_win);
+
+	OnTrigger("^1Axis score a point! They now have 1 point in total.", Map.axis_score);
+	OnTrigger("^1The Axis team scores! Axis have 2 points in total, at the moment.", Map.axis_score);
+	OnTrigger("^1Axis have 3 points in total now!", Map.axis_score);
+	OnTrigger("^1Team Axis scores a point! They now have 4 points, all in all.", Map.axis_score);
+	OnTrigger("^1Team Axis now have 5 points in total.", Map.axis_score);
+	OnTrigger("^1Team Axis have 6 points in total.", Map.axis_score);
+	OnTrigger("^1Team Axis reaches 7 points (max score).", Map.axis_win);
+
+	OnTrigger( "MISSING_STRING", Map.CAPPOINT_1780_Captured );
+	OnTrigger( "MISSING_STRING", Map.CAPPOINT_681_Captured );
+	OnTrigger( "MISSING_STRING", Map.Command_Post_Built );
+	OnTrigger( "MISSING_STRING", Map.Command_Post_Destroyed );
+
+	//~SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	//~SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+
+	Util.SetMaxUsersInProgress( 1, "BUILD.*" );
+	Util.SetMaxUsersInProgress( 1, "PLANT.*" );
+	Util.SetMaxUsersInProgress( 1, "ATTACK.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND.*" );
+	Util.SetMaxUsersInUse( 1, "BUILD.*" );
+	Util.SetMaxUsersInUse( 1, "PLANT.*" );
+
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=60, MaxCampTime=60});
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=60, MaxCampTime=120});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=60, MaxCampTime=120});
+
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_alli_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_axis_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_alli_.*" );
+
+	SetGoalPriority( "ATTACK_alli_.*", 0.56 );
+	SetGoalPriority( "DEFEND_axis_.*", 0.56 );
+
+	//Routes
+	MapRoutes =
+	{
+		FLAG_axis_1st_flag =
+		{
+			ROUTE_al_spawn =
+			{
+				ROUTE_a1 =
+				{
+					ROUTE_b2 = {},
+					ROUTE_a2 =
+					{
+						ROUTE_a3 =
+						{
+							ROUTE_a4 =
+							{
+								ROUTE_a5 = {},
+							},
+						},
+					},
+				},
+				ROUTE_b1 =
+				{
+					ROUTE_b2 =
+					{
+						ROUTE_b3 =
+						{
+							ROUTE_b4 =
+							{
+								ROUTE_b5 =
+								{
+									ROUTE_b6 = {},
+								},
+								ROUTE_b7 = {},
+							},
+						},
+					},
+					ROUTE_c1 =
+					{
+						ROUTE_b2 = {},
+						ROUTE_a2 =
+						{
+							ROUTE_a3 =
+							{
+								ROUTE_a4 =
+								{
+									ROUTE_a5 = {},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_d1 =
+				{
+					ROUTE_d2 =
+					{
+						ROUTE_d3 =
+						{
+							ROUTE_b2 =
+							{
+								ROUTE_b3 =
+								{
+									ROUTE_b4 =
+									{
+										ROUTE_b5 =
+										{
+											ROUTE_b6 = {},
+										},
+										ROUTE_b7 = {},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_al_spawn2 =
+			{
+				ROUTE_b1 =
+				{
+					ROUTE_b2 =
+					{
+						ROUTE_b3 =
+						{
+							ROUTE_b4 =
+							{
+								ROUTE_b5 =
+								{
+									ROUTE_b6 = {},
+								},
+								ROUTE_b7 = {},
+							},
+						},
+					},
+					ROUTE_d4 =
+					{
+						ROUTE_d5 =
+						{
+							ROUTE_d6 =
+							{
+								ROUTE_b4 =
+								{
+									ROUTE_b5 =
+									{
+										ROUTE_b6 = {},
+									},
+									ROUTE_b7 = {},
+								},
+								ROUTE_a3 =
+								{
+									ROUTE_a4 =
+									{
+										ROUTE_a5 = {},
+									},
+								},
+							},
+						},
+					},
+					ROUTE_c1 =
+					{
+						ROUTE_a2 =
+						{
+							ROUTE_a3 = {},
+						},
+						ROUTE_b3 =
+						{
+							ROUTE_b4 =
+							{
+								ROUTE_b5 =
+								{
+									ROUTE_b6 = {},
+								},
+								ROUTE_b7 = {},
+							},
+						},
+					},
+				},
+				ROUTE_d1 =
+				{
+					ROUTE_d2 =
+					{
+						ROUTE_d3 =
+						{
+							ROUTE_d4 =
+							{
+								ROUTE_d5 =
+								{
+									ROUTE_d6 =
+									{
+										ROUTE_b4 =
+										{
+											ROUTE_b5 =
+											{
+												ROUTE_b6 = {},
+											},
+											ROUTE_b7 = {},
+										},
+										ROUTE_a3 =
+										{
+											Weight = 0.7,
+											ROUTE_a4 =
+											{
+												ROUTE_a5 = {},
+											},
+										},
+									},
+								},
+							},
+							ROUTE_c1 =
+							{
+								ROUTE_a2 =
+								{
+									ROUTE_a3 =
+									{
+										ROUTE_a4 =
+										{
+											ROUTE_a5 = {},
+										},
+									},
+								},
+							},
+							ROUTE_b2 =
+							{
+								ROUTE_b3 =
+								{
+									ROUTE_b4 =
+									{
+										ROUTE_b5 =
+										{
+											ROUTE_b6 = {},
+										},
+										ROUTE_b7 = {},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_cp =
+			{
+				ROUTE_a3=
+				{
+					ROUTE_b3 =
+					{
+						ROUTE_b4 =
+						{
+							ROUTE_b5 =
+							{
+								ROUTE_b6 = {},
+							},
+							ROUTE_b7 = {},
+						},
+					},
+				},
+				ROUTE_b3 =
+				{
+					ROUTE_b4 =
+					{
+						ROUTE_b5 =
+						{
+							ROUTE_b6 = {},
+						},
+						ROUTE_b7 = {},
+					},
+				},
+			},
+		},
+		CAPPOINT_1780 =
+		{
+			ROUTE_axis_flags =
+			{
+				ROUTE_b6 =
+				{
+					ROUTE_b5 =
+					{
+						ROUTE_b4 =
+						{
+							ROUTE_b3 =
+							{
+								ROUTE_b2 =
+								{
+									ROUTE_d3 = {},
+								},
+								ROUTE_b3_2 = {},
+								ROUTE_d6 =
+								{
+									ROUTE_d5 = {},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_a5 =
+				{
+					ROUTE_a4 =
+					{
+						ROUTE_d6 =
+						{
+							ROUTE_d5 = {},
+						},
+						ROUTE_a3_2 =
+						{
+							ROUTE_a2 = {},
+							ROUTE_c1 = {},
+						},
+					},
+				},
+			},
+		},
+
+		FLAG_alli_1st_flag =
+		{
+			ROUTE_ax_spawn =
+			{
+				ROUTE_e1 =
+				{
+					ROUTE_d6 =
+					{
+						ROUTE_d5 =
+						{
+							ROUTE_e2 =
+							{
+								ROUTE_e3 = {},
+							},
+							ROUTE_f1 =
+							{
+								ROUTE_f2 =
+								{
+									ROUTE_f3 = {},
+									ROUTE_f4 =
+									{
+										ROUTE_f5 = {},
+									},
+								},
+							},
+						},
+					},
+					ROUTE_g1 =
+					{
+						ROUTE_b2 =
+						{
+							ROUTE_f1 =
+							{
+								ROUTE_f2 =
+								{
+									ROUTE_f3 = {},
+									ROUTE_f4 = {},
+								},
+							},
+						},
+						ROUTE_d4 =
+						{
+							ROUTE_e2 =
+							{
+								ROUTE_e3 = {},
+							},
+						},
+					},
+				},
+				ROUTE_h1 =
+				{
+					ROUTE_h2 =
+					{
+						ROUTE_g1 =
+						{
+							ROUTE_b2 =
+							{
+								ROUTE_d4 =
+								{
+									ROUTE_e2 =
+									{
+										ROUTE_e3 = {},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_cp =
+			{
+				ROUTE_b2 =
+				{
+					ROUTE_f1 =
+					{
+						ROUTE_f2 =
+						{
+							ROUTE_f3 = {},
+							ROUTE_f4 = {},
+						},
+					},
+				},
+				ROUTE_d4 =
+				{
+					ROUTE_e2 =
+					{
+						ROUTE_e3 = {},
+					},
+				},
+			},
+		},
+		CAPPOINT_681 =
+		{
+			ROUTE_e3 =
+			{
+				ROUTE_e2_2 =
+				{
+					ROUTE_d5 =
+					{
+						ROUTE_d6 =
+						{
+							ROUTE_b4 =
+							{
+								ROUTE_b5 = {},
+								ROUTE_b7 = {},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_f5 =
+			{
+				ROUTE_f4 =
+				{
+					ROUTE_f2 =
+					{
+						ROUTE_f1 =
+						{
+							ROUTE_g1 =
+							{
+								ROUTE_a3 = {},
+							},
+							ROUTE_b4 =
+							{
+								ROUTE_b5 = {},
+								ROUTE_b7 = {},
+							},
+						},
+						ROUTE_i1 =
+						{
+							Weight = 1.5,
+							ROUTE_b4 =
+							{
+								ROUTE_b5 = {},
+								ROUTE_b7 = {},
+							},
+						},
+						ROUTE_a3 = {},
+					},
+				},
+			},
+		},
+	};
+
+	//Copy some routes
+	MapRoutes.FLAG_axis_2nd_flag = MapRoutes.FLAG_axis_1st_flag;
+	MapRoutes.FLAG_axis_3rd_flag = MapRoutes.FLAG_axis_1st_flag;
+	MapRoutes.FLAG_axis_4th_flag = MapRoutes.FLAG_axis_1st_flag;
+	MapRoutes.FLAG_axis_5th_flag = MapRoutes.FLAG_axis_1st_flag;
+	MapRoutes.FLAG_axis_6th_flag = MapRoutes.FLAG_axis_1st_flag;
+	MapRoutes.FLAG_axis_7th_flag = MapRoutes.FLAG_axis_1st_flag;
+	MapRoutes.ATTACK_alli_def_1 = MapRoutes.FLAG_axis_1st_flag;
+	MapRoutes.ATTACK_alli_def_2 = MapRoutes.FLAG_axis_1st_flag;
+	MapRoutes.ATTACK_alli_def_3 = MapRoutes.FLAG_axis_1st_flag;
+	MapRoutes.ATTACK_alli_def_4 = MapRoutes.FLAG_axis_1st_flag;
+	MapRoutes.FLAG_alli_2nd_flag = MapRoutes.FLAG_alli_1st_flag;
+	MapRoutes.FLAG_axis_3rd_flag = MapRoutes.FLAG_axis_1st_flag;
+	MapRoutes.FLAG_axis_4th_flag = MapRoutes.FLAG_axis_1st_flag;
+	MapRoutes.FLAG_axis_5th_flag = MapRoutes.FLAG_axis_1st_flag;
+	MapRoutes.FLAG_axis_6th_flag = MapRoutes.FLAG_axis_1st_flag;
+	MapRoutes.FLAG_axis_7th_flag = MapRoutes.FLAG_axis_1st_flag;
+	MapRoutes.DEFEND_axis_def_1 = MapRoutes.FLAG_axis_1st_flag;
+	MapRoutes.DEFEND_axis_def_2 = MapRoutes.FLAG_axis_1st_flag;
+	MapRoutes.DEFEND_axis_def_3 = MapRoutes.FLAG_axis_1st_flag;
+	MapRoutes.DEFEND_axis_def_4 = MapRoutes.FLAG_axis_1st_flag;
+
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "Routes loaded", true );
+
+	Util.MapDebugPrint( "Botscript by ^0:)^1BOK^0(: ^1Naerling ^2for Darji2 map was successfully loaded!" );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 100.0;
+};

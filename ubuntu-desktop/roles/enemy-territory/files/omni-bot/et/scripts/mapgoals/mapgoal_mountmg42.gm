@@ -1,0 +1,193 @@
+this.GoalType = "MOUNTMG42";
+this.Version = 1;
+this.DefaultPriority = 0.7;
+this.DefaultMinCampTime = 15.0;
+this.DefaultMaxCamptime = 30.0;
+this.CreateOnLoad = false;
+this.RolePriorityBonus = 0.1;
+this.MaxUsers_InUse(1);
+this.MaxUsers_InProgress(2);
+this.RemoveWithEntity = false;
+
+//////////////////////////////////////////////////////////////////////////
+// Couple callbacks to enforce additional constraints on property values.
+CheckMinCamp = function(var)
+{
+	if(var <= this.MaxCampTime)
+	{
+		return true;
+	}
+	// returning any string is an error string
+	return "MinCampTime must be <= MaxCampTime";
+};
+CheckMaxCamp = function(var)
+{
+	if(var >= this.MinCampTime)
+	{
+		return true;
+	}
+	// returning any string is an error string
+	return "MaxCampTime must be >= MinCampTime";
+};
+
+this.Schema = Schema();
+this.Schema.MinCampTime = Validate.NumRange(0,9999).Default(2).CheckCallback(CheckMinCamp);
+this.Schema.MaxCampTime = Validate.NumRange(0,9999).Default(6).CheckCallback(CheckMaxCamp);
+this.Schema.AimVectors = Validate.TableOf("vector3").Default({});
+
+//////////////////////////////////////////////////////////////////////////
+
+this.InitNewGoal = function()
+{
+	this.Schema.Check(this);
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.UpgradeVersion = function(Props)
+{
+	// version 0 is string,string key/values from the old waypoint format
+	if(Props.Version==0)
+	{
+		// Version 1 Schema, upgrade from waypoint format
+		this.Schema.Check(Props);
+		this.SetPosition(this.GetPosition() + Util.WaypointGoalOffset);
+		Props.Version = 1;
+		Props.MinCampTime = this.DefaultMinCampTime;
+		Props.MaxCampTime = this.DefaultMaxCampTime;
+	}
+	else if(Props.Version == this.Version)
+	{
+		this.Schema.Check(Props);
+		this.MinCampTime = ToFloat(Props.MinCampTime,this.DefaultMinCamptime);
+		this.MaxCampTime = ToFloat(Props.MaxCampTime,this.DefaultMaxCamptime);
+		this.AimVectors = Props.AimVectors;
+
+		if(!this.Schema.Check(this))
+		{
+			this.DisableGoal(true);
+		}
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.Render = function(editMode)
+{
+	goalPos = this.GetPosition() + Vector3(0,0,8);
+	while(this.RenderGoal == true)
+	{
+		if(this.ExtraDebugText==null)
+		{
+			this.ExtraDebugText = "";
+			this.ExtraDebugText += format("CampTime: %g to %g secs.",ToFloat(this.MinCampTime),ToFloat(this.MaxCampTime));
+		}
+
+		this.RenderDefault();
+
+		if ( typeId(this.AimVectors) != 6 )
+		{
+			print(this.GetName(), "no aim vector table" );
+			block(0);
+		}
+		else
+		{
+			foreach ( id and face in this.AimVectors )
+			{
+				DrawArrow(goalPos,goalPos+face*64,COLOR.BLUE,2);
+				DrawText3d(goalPos+face*64,ToString(id),COLOR.WHITE,2,512);
+			}
+		}		
+		sleep(2);
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.SaveToTable = function(SaveTable)
+{
+	// save the goal specific properties
+	SaveTable.MaxCampTime = this.MaxCampTime;
+	SaveTable.MinCampTime = this.MinCampTime;
+	if(tableCount(this.AimVectors) > 0) { SaveTable.AimVectors = this.AimVectors; }
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.Help = function()
+{
+	print(this.GoalType,"goal, version",this.Version);
+	print("Optional:");
+	print("		mincamptime - minimum time a bot should camp at the goal");
+	print("		maxcamptime - maximum time a bot should camp at the goal");
+	print("		facing - direction(s) the bot should face while mounted");
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.SetProperty = function(property, value)
+{
+	switch(property)
+	{
+		case "mincamptime":
+		{
+			v = ToFloat(value);
+			if(this.Schema.MinCampTime.CheckPrintErrors(this,v))
+			{
+				this.MinCampTime = v;
+			}
+		}
+		case "maxcamptime":
+		{
+			v = ToFloat(value);
+			if(this.Schema.MaxCampTime.CheckPrintErrors(this,v))
+			{
+				this.MaxCampTime = v;
+			}
+		}
+		case "facing":
+		{
+			if ( value == "clearall" || value == "clear" )
+			{
+				tableClear(this.AimVectors);
+			}
+			else
+			{
+				i = ToInt(value);
+				if ( typeId(i) == 1)
+				{
+					// make em add sequentially
+					n = tableCount(this.AimVectors);
+					if ( i < 0 || i > n )
+					{
+						i = n;
+					}
+
+					playerFace = GetLocalFacing();
+					this.AimVectors[ i ] = playerFace;
+					print("Facing",i,"set to",playerFace);
+				}
+				else
+				{
+					print(this.GoalType, ": Invalid facing index, expecting int");
+				}
+			}
+		}		
+		default:
+		{
+			print(this.GoalType, ": Invalid property:", property);
+		}
+	}
+
+	this.ExtraDebugText = null;
+};
+
+//////////////////////////////////////////////////////////////////////////
+global CreateGui = function(object, guidef)
+{
+};
+//////////////////////////////////////////////////////////////////////////
+this.HudDisplay = function(window)
+{
+	this.CreateGuiFromSchema(this.Schema);
+};

@@ -1,0 +1,90 @@
+// This script contains functionality to trigger any available switches as set up in the global map table.
+/*
+example setup:
+global Map =
+{
+	Airstrike =
+	{
+		as1 =
+		{
+			Enabled = true,
+			Team = Util.AllTeams, // or (1<<TEAM.AXIS) or (1<<TEAM.ALLIES)
+			Facing = Vector3(-0.593,-0.392,0.703), // use this if no goto waypoint. /bot mypos shows facing
+			//NoPause = true, // optional: set this if you want them throw while running
+			//Waypoint = "spot_r2", // optional: defining this will have them go to given waypoint and then throw a/s
+		},
+	},
+
+	sometrigger = function(trigger)
+	{
+		//disable the paththrough a/s
+		Map.Airstrike.as1.Enabled = false;
+	},
+};
+
+this is the command to use of the waypoint for the given example
+/bot waypoint_setproperty paththrough Airstrike_PT:as1
+*/
+
+// These parameters are required
+this.Name = "Airstrike_PT";		// The name of the goal.
+this.Parent = "LowLevel";		// PathThrough states must be low level or they will not be used.
+
+this.LimitToWeapon( WEAPON.SMOKE_MARKER );
+
+this.OnPathThrough = function(data)
+{
+	if (this.IsActive()) {
+		return;
+	}
+
+	myTeamMask = (1<<this.Bot.GetTeam());
+
+	airstrike = Map.Airstrike[data];
+	if(airstrike) {
+		this.CurrentAirstrike = data;
+
+		if(airstrike.Enabled && (airstrike.Team & myTeamMask)
+			&& this.Bot.IsWeaponCharged(WEAPON.SMOKE_MARKER, 0))
+		{
+			return true;
+		}
+	}
+	else {
+		print("OnPathThrough no airstrike", data);
+	}
+
+	this.CurrentAirstrike = null;
+	return false;
+};
+
+this.Update = function()
+{
+	airstrike = Map.Airstrike[this.CurrentAirstrike];
+
+	if(airstrike.Waypoint) {
+		wp = Util.WpNameInfo(airstrike.Waypoint);
+		facing = wp.facing * 1024;
+
+		if(!wp.position || this.Goto(wp.position) == EVENT.PATH_FAILED) {
+			this.Finished();
+		}
+	}
+	else {
+		facing = airstrike.Facing * 1024;
+		assert(facing);
+
+		if(!airstrike.NoPause) {
+			if(this.Goto(this.Bot.GetPosition()) == EVENT.PATH_FAILED) {
+				this.Finished();
+			}
+		}
+	}
+
+	this.AddAimRequest(Priority.High, "facing", facing);
+	this.AddWeaponRequest(Priority.High, WEAPON.SMOKE_MARKER );
+	this.BlockForWeaponChange( WEAPON.SMOKE_MARKER );
+	this.Bot.HoldButton(BTN.ATTACK1, 0.5);
+	sleep(1);
+	this.Finished();
+};

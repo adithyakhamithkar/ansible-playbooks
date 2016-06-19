@@ -1,0 +1,32 @@
+if (GetModName()!="etpub" || GetCvar("g_etnamFlags")==0){ return; }
+
+//////////////////////////////////////////////////////////////////////////
+
+WEAPON.LAW = 106; 		// Defined into g_etbot_interface.cpp
+
+//////////////////////////////////////////////////////////////////////////
+// Overall weapon properties.
+this.Name = "LAW";
+this.WeaponId = WEAPON.LAW;
+this.PrimaryFire.AmmoType = WEAPON.LAW;
+
+//////////////////////////////////////////////////////////////////////////
+// Set some weapon properties that affect some internal logic.
+this.PrimaryFire.WeaponType = "projectile";
+this.PrimaryFire.ProjectileSpeed = 2500;
+this.PrimaryFire.RequiresAmmo = true;
+this.PrimaryFire.WaterProof = false;
+//~ this.PrimaryFire.SplashDamage = true;
+this.PrimaryFire.InheritsVelocity = false;
+this.PrimaryFire.ProjectileGravity = 0.0;
+this.PrimaryFire.NeedsCharged = true;
+
+this.PrimaryFire.AimOffsetZ = -20;
+
+this.PrimaryFire.SetTargetBias(CLASS.VEHICLE_HVY, 1);
+this.PrimaryFire.DefaultDesirability = 0.2;
+//~ this.PrimaryFire.SetDesirabilityRange(256, 500, 0.4);
+this.PrimaryFire.SetDesirabilityRange(400, 4000, 0.8);
+
+this.PrimaryFire.LowAmmoThreshold = 1;
+this.PrimaryFire.LowAmmoPriority = 0.8;

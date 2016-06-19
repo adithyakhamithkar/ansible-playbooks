@@ -1,0 +1,1533 @@
+//==========================================================================================
+//
+//	beta_low_mount_ass.gm
+//
+//	Who              	When		What
+//------------------------------------------------------------------------------------------
+//	native12		20 March 2012	Initial Script
+//	native12		07.05.2012	First release
+//	native12		10.05.2012	Coverspots, minor changes in gm & ways
+//
+//==========================================================================================
+//	beta_low_mount_ass.gm		10.05.2012
+//	beta_low_mount_ass_goals.gm	10.05.2012
+//
+//==========================================================================================
+
+global Map =
+{
+	Debug = 0, // please set to zero before distributing your script
+	ShowMovers = false,
+
+	Radar_Room_Dyno = 0,
+	Radio_Equipment_Dyno = 0,
+	Radio_Tower_Dyno = 0,
+	Sewer_Entrance_Dyno = 0,
+	garage_door_switch_Dyno = 0,
+	
+	AxisFlag = true,
+	GarageDoorOpened = false,
+	GarageDoorDestroyed = false,
+	RadioTowerDestroyed = false,
+	RadioEquipmentDestroyed = false,
+	RadarRoomDestroyed = false,
+	SewerEntranceDestroyed = false,
+	One_Left = false,
+	
+	Alliesincomplex = 0,
+	AlliedEngsIncomplex = 0,
+	
+	Roles =
+	{
+		AXIS =
+		{
+			AllBots = true, // each bot is considered for a role
+			DEFENDER1 =	//DEFEND_RadioEquipment_1
+			{
+				numbots = 1,
+				crucialClass = CLASS.COVERTOPS,
+			},
+			DEFENDER2 =	//DEFEND_RadarRoom_1
+			{
+				numbots = 1,
+				crucialClass = CLASS.ENGINEER,
+			},
+			DEFENDER3 =	//DEFEND_RadioTower_1
+			{
+				numbots = 1,
+				crucialClass = CLASS.ENGINEER,
+			},
+		},
+	},
+	
+	Navigation =
+	{
+		//	/bot waypoint_setproperty paththrough Navigation_PT:bunkerladder
+		bunkerladder =
+		{
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.VeryHigh, "facing", Vector3(0.438520,-0.012658,-0.898632));
+				_this.Bot.HoldButton( BTN.CROUCH, 1.5 );
+				_this.Bot.HoldButton( BTN.WALK, 1.5 );
+				_this.Bot.HoldButton( BTN.FORWARD, 1.5 );
+				sleep(1.5);
+			},
+		},
+	},
+	
+	Sewer_Entrance_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Sewer_Entrance_Dyno += 1;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Sewer_Entrance_.*" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_SewerEntrance" );
+		
+		if ( !Map.One_Left )
+		{
+			if ( Map.Alliesincomplex == 0 )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_SewerTunnel_.*" );
+			}
+		}
+		
+		Util.MapDebugPrint("^5Sewer_Entrance_Planted" );
+	},
+	
+	Sewer_Entrance_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Sewer_Entrance_Dyno -= 1;
+		
+		Util.MapDebugPrint("^5Sewer_Entrance_Defused" );
+	},
+	
+	Sewer_Entrance_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Sewer_Entrance_Dyno = 0;
+		
+		Map.SewerEntranceDestroyed = true;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_SewerEntrance" );
+		
+		Util.MapDebugPrint("^5Sewer_Entrance_Destroyed" );
+	},
+	
+	Radio_Tower_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Radio_Tower_Dyno += 1;
+		
+		if ( Map.garage_door_switch_Dyno > 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_garage_door_switch_.*" );
+		}
+		
+		Util.MapDebugPrint("^5Radio_Tower_Planted" );
+	},
+	
+	Radio_Tower_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Radio_Tower_Dyno -= 1;
+		
+		if ( Map.Radio_Tower_Dyno == 0 and Map.Radio_Equipment_Dyno == 0 and Map.Radar_Room_Dyno == 0 )
+		{
+			if ( Map.garage_door_switch_Dyno > 0 and !Map.GarageDoorDestroyed )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFUSE_garage_door_switch_.*" );
+			}
+		}
+		
+		Util.MapDebugPrint("^5Radio_Tower_Defused" );
+	},
+	
+	Radio_Tower_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		if ( Map.Radio_Tower_Dyno > 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Radio_Tower_.*" );
+		}
+		
+		Map.Radio_Tower_Dyno = 0;
+		
+		Map.RadioTowerDestroyed = true;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_RadioTower_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_RadioTower_11" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_RadioTower_.*" );
+		
+		if ( Map.RadarRoomDestroyed )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_complex_roof" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_complex_roof" );
+		}
+		
+		if ( !Map.RadioEquipmentDestroyed and Map.RadarRoomDestroyed )
+		{
+			Map.One_Left = true;
+			
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, ".*_RadioTowerRope_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_.*" );
+			
+			if ( Map.garage_door_switch_Dyno > 0)
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_garage_door_switch_.*" );
+			}
+			
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadioEquipment_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_RadioEquipment_.*" );
+			
+			if ( Map.AxisFlag )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_Axis_1" );
+			}
+		}
+		if ( Map.RadioEquipmentDestroyed and !Map.RadarRoomDestroyed )
+		{
+			Map.One_Left = true;
+			
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, ".*_RadioTowerRope_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_.*" );
+			
+			SetGoalPriority( "REPAIRMG42_complex_roof", 0.7, TEAM.AXIS, CLASS.ENGINEER );
+			
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_complex_roof" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_complex_roof" );
+			
+			if ( Map.garage_door_switch_Dyno > 0)
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_garage_door_switch_.*" );
+			}
+			
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadarRoom_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_RadarRoom_.*" );
+			
+			if ( Map.AxisFlag )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_Axis_1" );
+			}
+		}
+		
+		if ( Map.RadioEquipmentDestroyed and Map.RadarRoomDestroyed )
+		{
+			Util.MapDebugPrint( "^5Allies_Win" );
+			
+			sleep(1);
+			
+			ETUtil.WinningChat( TEAM.ALLIES );
+			sleep(1.5);
+			ETUtil.LosingChat( TEAM.AXIS );
+		}
+		
+		Util.MapDebugPrint("^5Radio_Tower_Destroyed" );
+	},
+	
+	Radio_Equipment_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Radio_Equipment_Dyno += 1;
+		
+		if ( Map.garage_door_switch_Dyno > 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_garage_door_switch_.*" );
+		}
+		
+		Util.MapDebugPrint("^5Radio_Equipment_Planted" );
+	},
+	
+	Radio_Equipment_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Radio_Equipment_Dyno -= 1;
+		
+		if ( Map.Radio_Tower_Dyno == 0 and Map.Radio_Equipment_Dyno == 0 and Map.Radar_Room_Dyno == 0 )
+		{
+			if ( Map.garage_door_switch_Dyno > 0 and !Map.GarageDoorDestroyed )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFUSE_garage_door_switch_.*" );
+			}
+		}
+		
+		Util.MapDebugPrint("^5Radio_Equipment_Defused" );
+	},
+	
+	Radio_Equipment_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		if ( Map.Radio_Equipment_Dyno > 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Radio_Equipment_.*" );
+		}
+		
+		Map.Radio_Equipment_Dyno = 0;
+		
+		Map.RadioEquipmentDestroyed = true;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_RadioEquipment_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_RadioEquipment_11" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_RadioEquipment_.*" );
+		
+		if ( !Map.RadioTowerDestroyed and Map.RadarRoomDestroyed )
+		{
+			Map.One_Left = true;
+			
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, ".*_RadioTowerRope_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_.*" );
+			
+			SetGoalPriority( "REPAIRMG42_complex_roof", 0.7, TEAM.AXIS, CLASS.ENGINEER );
+			
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_complex_roof" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_complex_roof" );
+			
+			if ( Map.garage_door_switch_Dyno > 0)
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_garage_door_switch_.*" );
+			}
+			
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadioTower_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_RadioTower_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_RadioTowerRope_5" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_RadioTowerRope_4" );
+			
+			if ( Map.AxisFlag )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_Axis_1" );
+			}
+		}
+		if ( Map.RadioTowerDestroyed and !Map.RadarRoomDestroyed )
+		{
+			Map.One_Left = true;
+			
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, ".*_RadioTowerRope_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_.*" );
+			
+			SetGoalPriority( "REPAIRMG42_complex_roof", 0.7, TEAM.AXIS, CLASS.ENGINEER );
+			
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_complex_roof" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_complex_roof" );
+			
+			if ( Map.garage_door_switch_Dyno > 0)
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_garage_door_switch_.*" );
+			}
+			
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadarRoom_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_RadarRoom_.*" );
+			
+			if ( Map.AxisFlag )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_Axis_1" );
+			}
+		}
+		
+		if ( Map.RadioTowerDestroyed and Map.RadarRoomDestroyed )
+		{
+			Util.MapDebugPrint( "^5Allies_Win" );
+			
+			sleep(1);
+			
+			ETUtil.WinningChat( TEAM.ALLIES );
+			sleep(1.5);
+			ETUtil.LosingChat( TEAM.AXIS );
+		}
+		
+		Util.MapDebugPrint("^5Radio_Equipment_Destroyed" );
+	},
+	
+	Radar_Room_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Radar_Room_Dyno += 1;
+		
+		if ( Map.garage_door_switch_Dyno > 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_garage_door_switch_.*" );
+		}
+		
+		Util.MapDebugPrint("^5Radar_Room_Planted" );
+	},
+	
+	Radar_Room_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Radar_Room_Dyno -= 1;
+		
+		if ( Map.Radio_Tower_Dyno == 0 and Map.Radio_Equipment_Dyno == 0 and Map.Radar_Room_Dyno == 0 )
+		{
+			if ( Map.garage_door_switch_Dyno > 0 and !Map.GarageDoorDestroyed )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFUSE_garage_door_switch_.*" );
+			}
+		}
+		
+		Util.MapDebugPrint("^5Radar_Room_Defused" );
+	},
+	
+	Radar_Room_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		if ( Map.Radar_Room_Dyno > 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Radar_Room_.*" );
+		}
+		
+		Map.Radar_Room_Dyno = 0;
+		
+		Map.RadarRoomDestroyed = true;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_RadarRoom_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_RadarRoom_11" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_RadarRoom_.*" );
+		
+		if ( Map.RadioTowerDestroyed )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_complex_roof" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_complex_roof" );
+		}
+		
+		if ( !Map.RadioTowerDestroyed and Map.RadioEquipmentDestroyed )
+		{
+			Map.One_Left = true;
+			
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, ".*_RadioTowerRope_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_.*" );
+			
+			SetGoalPriority( "REPAIRMG42_complex_roof", 0.7, TEAM.AXIS, CLASS.ENGINEER );
+			
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_complex_roof" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_complex_roof" );
+			
+			if ( Map.garage_door_switch_Dyno > 0)
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_garage_door_switch_.*" );
+			}
+			
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadioTower_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_RadioTower_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_RadioTowerRope_5" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_RadioTowerRope_4" );
+			
+			if ( Map.AxisFlag )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_Axis_1" );
+			}
+		}
+		if ( Map.RadioTowerDestroyed and !Map.RadioEquipmentDestroyed )
+		{
+			Map.One_Left = true;
+			
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, ".*_RadioTowerRope_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_.*" );
+			
+			if ( Map.garage_door_switch_Dyno > 0)
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_garage_door_switch_.*" );
+			}
+			
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadioEquipment_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_RadioEquipment_.*" );
+			
+			if ( Map.AxisFlag )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_Axis_1" );
+			}
+		}
+		
+		if ( Map.RadioTowerDestroyed and Map.RadioEquipmentDestroyed )
+		{
+			Util.MapDebugPrint( "^5Allies_Win" );
+			
+			sleep(1);
+			
+			ETUtil.WinningChat( TEAM.ALLIES );
+			sleep(1.5);
+			ETUtil.LosingChat( TEAM.AXIS );
+		}
+		
+		Util.MapDebugPrint("^5Radar_Room_Destroyed" );
+	},
+	
+	garage_door_switch_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.garage_door_switch_Dyno += 1;
+		
+		if ( Map.One_Left )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_garage_door_switch_.*" );
+		}
+		else
+		{
+			if ( Map.Radio_Tower_Dyno == 0 and Map.Radio_Equipment_Dyno == 0 and Map.Radar_Room_Dyno == 0 )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFUSE_garage_door_switch_.*" );
+			}
+			else
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_garage_door_switch_.*" );
+			}
+		}
+		
+		Util.MapDebugPrint("^5garage_door_switch_Planted" );
+	},
+	
+	garage_door_switch_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.garage_door_switch_Dyno -= 1;
+		
+		Util.MapDebugPrint("^5garage_door_switch_Defused" );
+	},
+	
+	garage_door_switch_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		if ( Map.garage_door_switch_Dyno > 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_garage_door_switch_.*" );
+		}
+		
+		Map.garage_door_switch_Dyno = 0;
+		Map.GarageDoorDestroyed = true;
+		Map.GarageDoorOpened = true;
+		
+		Util.DisableGoal( "SWITCH_Garage_door" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_GarageSwitch_.*" );
+		
+		if ( Map.Alliesincomplex == 0 )
+		{
+			if ( Map.AxisFlag )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_Axis_1" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_GarageDoor" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_GarageDoor_.*" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_GarageDoor_5" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_GarageDoor_6" );
+			}
+		}
+		
+		Util.MapDebugPrint("^5garage_door_switch_Destroyed" );
+	},
+	
+	garage_lever = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		vel = ToVector(trigger.Action);
+		
+		if ( !Map.GarageDoorDestroyed )
+		{
+			if ( vel[ 0 ] == 45.00 )
+			{
+				Map.GarageDoorOpened = true;
+				
+				if( ETUtil.CountTeam( TEAM.AXIS ) < 5 )
+				{
+					Util.SetMaxUsers( 1, "SWITCH_Garage_door" );
+				}
+				else
+				{
+					Util.SetMaxUsers( 2, "SWITCH_Garage_door" );
+				}
+				
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_GarageSwitch_.*" );
+				
+				SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_Garage_door" );
+				SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_left_gun" );
+				SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_right_gun" );
+				
+				if ( Map.Alliesincomplex == 0 )
+				{
+					if ( Map.AxisFlag )
+					{
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_Axis_1" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_GarageDoor" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_GarageDoor_.*" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_GarageDoor_5" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_GarageDoor_6" );
+					}
+				}
+				
+				Util.MapDebugPrint("^5Garage door is opening");
+				
+				if ( !Map.One_Left )
+				{
+					sleep(5);
+					
+					if ( !Map.GarageDoorDestroyed and Map.GarageDoorOpened )
+					{
+						SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_Garage_door" );
+					}
+				}
+				else
+				{
+					sleep(5);
+					
+					if ( !Map.GarageDoorDestroyed and Map.GarageDoorOpened )
+					{
+						Util.SetMaxUsers( 1, "SWITCH_Garage_door" );
+						
+						SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_Garage_door" );
+					}
+				}
+			}
+		}
+		
+		if ( vel[ 0 ] == -45.00 )
+		{ 
+			Map.GarageDoorOpened = false;
+			
+			if( ETUtil.CountTeam( TEAM.ALLIES ) < 5 )
+			{
+				Util.SetMaxUsers( 1, "SWITCH_Garage_door" );
+			}
+			else
+			{
+				Util.SetMaxUsers( 2, "SWITCH_Garage_door" );
+			}
+			
+			SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_Garage_door" );
+			
+			Util.MapDebugPrint("^5Garage door is closing");
+			
+			sleep(5);
+			
+			if ( !Map.GarageDoorDestroyed )
+			{
+				Map.GarageDoorOpened = false;
+				
+				SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_GarageDoor" );
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_GarageDoor_.*" );
+				SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_GarageDoor_5" );
+				SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_GarageDoor_6" );
+				
+				SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_Garage_door" );
+				
+				if ( Map.AxisFlag )
+				{
+					SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_left_gun" );
+					SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_right_gun" );
+				}
+			}
+		}
+	},
+	
+	compound_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.AxisFlag = true;
+		
+		if( ETUtil.CountTeam( TEAM.ALLIES ) < 5 )
+		{
+			Util.SetMaxUsers( 1, "CHECKPOINT_.*" );
+		}
+		else
+		{
+			Util.SetMaxUsers( 2, "CHECKPOINT_.*" );
+		}
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_compound_flag" );
+		
+		if ( !Map.One_Left )
+		{
+			if ( Map.AlliedEngsIncomplex == 0 )
+			{
+				if ( Map.Alliesincomplex > 0 )
+				{
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_Axis_1" );
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_Axis_2" );
+					
+					if ( Map.GarageDoorOpened )
+					{
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_GarageDoor_.*" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_GarageDoor_5" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_GarageDoor_6" );
+					}
+					if ( !Map.GarageDoorDestroyed )
+					{
+						if ( !Map.GarageDoorOpened )
+						{
+							SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_GarageSwitch_1" );
+							SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_GarageSwitch_2" );
+						}
+					}
+				}
+				else
+				{
+					SetAvailableMapGoals( TEAM.AXIS, false, ".*_Flag_Axis_.*" );
+					SetAvailableMapGoals( TEAM.AXIS, false, ".*_RadioEquipment_.*" );
+					SetAvailableMapGoals( TEAM.AXIS, false, ".*_RadarRoom_.*" );
+					SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_RadioTower_.*" );
+					
+					if ( !Map.GarageDoorOpened )
+					{
+						if ( !Map.SewerEntranceDestroyed )
+						{
+							SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_SewerEntrance" );
+							SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_CaveLadder_.*" );
+						}
+						else
+						{
+							SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_SewerTunnel_.*" );
+							SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_CaveLadder_2" );
+							SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_CaveLadder_3" );
+						}
+					}
+					else
+					{
+						SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_GarageDoor" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_GarageDoor_.*" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_GarageDoor_5" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_GarageDoor_6" );
+						
+						if ( Map.SewerEntranceDestroyed )
+						{
+							SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_SewerTunnel_1" );
+							SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_SewerTunnel_4" );
+						}
+						
+						SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_GarageDoor" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_CaveLadder_3" );
+					}
+					
+					SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_RadioTower_11" );
+					SetAvailableMapGoals( TEAM.AXIS, true, ".*_RadioTowerRope_.*" );
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_LeftTower_.*" );
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RightTower_.*" );
+					SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_left_tower" );
+					SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_right_tower" );
+					SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_left_tower" );
+					SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_right_tower" );
+				}
+			}
+			else
+			{
+				if ( Map.AxisFlag )
+				{
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_Axis_1" );
+					
+					if ( Map.GarageDoorOpened )
+					{
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_GarageDoor_4" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_GarageDoor_5" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_GarageDoor_6" );
+					}
+					if ( !Map.GarageDoorDestroyed )
+					{
+						if ( !Map.GarageDoorOpened )
+						{
+							SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_GarageSwitch_1" );
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_Axis_1" );
+		}
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_compound_flag" );
+		
+		Util.MapDebugPrint("^5compound_flag_Axis_Captured" );
+	},
+	
+	compound_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.AxisFlag = false;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Flag_Axis_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_GarageDoor_.*" );
+		
+		if ( !Map.One_Left )
+		{
+			if( ETUtil.CountTeam( TEAM.AXIS ) < 5 )
+			{
+				Util.SetMaxUsers( 1, "CHECKPOINT_.*" );
+			}
+			else
+			{
+				Util.SetMaxUsers( 2, "CHECKPOINT_.*" );
+			}
+			
+			if ( Map.GarageDoorOpened )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_GarageDoor" );
+			}
+			
+			SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_compound_flag" );
+		}
+		else
+		{
+			Util.SetMaxUsers( 1, "CHECKPOINT_.*" );
+			
+			SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_compound_flag" );
+		}
+		
+		if ( !Map.GarageDoorOpened )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_left_gun" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_right_gun" );
+		}
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_compound_flag" );
+		
+		Util.MapDebugPrint("^5compound_flag_Allies_Captured" );
+	},
+	
+	right_gun = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		if ( trigger.Action == "70.80 -70.80 0.00" )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_right_gun" );
+			
+			Util.MapDebugPrint("^5right_gun_stopped" );
+			
+			sleep(5);
+			
+			if ( Map.AxisFlag and !Map.GarageDoorOpened )
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_right_gun" );
+			}
+			
+			Util.MapDebugPrint("^5right_gun_ready" );
+		}
+	},
+	
+	left_gun = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		if ( trigger.Action == "-70.80 -70.80 0.00" )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_left_gun" );
+			
+			Util.MapDebugPrint("^5left_gun_stopped" );
+			
+			sleep(5);
+			
+			if ( Map.AxisFlag and !Map.GarageDoorOpened )
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_left_gun" );
+			}
+			
+			Util.MapDebugPrint("^5left_gun_ready" );
+		}
+	},
+	
+	Thirty_second = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "^5Thirty_second" );
+		
+		sleep(30);
+		
+		if ( !Map.RadioTowerDestroyed or !Map.RadioEquipmentDestroyed or !Map.RadarRoomDestroyed )
+		{
+			Util.MapDebugPrint( "^5Axis_Win" );
+			
+			sleep(1);
+			
+			ETUtil.WinningChat( TEAM.AXIS );
+			sleep(1.5);
+			ETUtil.LosingChat( TEAM.ALLIES );
+		}
+	},
+	
+	Allies_in_complex =
+	{
+		Name = "Allies_in_complex",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if ( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				Map.Alliesincomplex += 1;
+				
+				Util.MapDebugPrint( "^5Allies entered into complex" );
+				
+				if ( GetEntClass(ent) == CLASS.ENGINEER )
+				{
+					Map.AlliedEngsIncomplex += 1;
+					
+					Util.MapDebugPrint( "^5Allied Engineer entered into complex" );
+				}
+				
+				if ( !Map.One_Left )
+				{
+					if ( Map.AxisFlag )
+					{
+						if ( Map.AlliedEngsIncomplex == 0 )
+						{
+							if ( Map.Alliesincomplex == 1 )	//it will run only once at first entry of allies
+							{
+								SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+								SetAvailableMapGoals( TEAM.AXIS, false, ".*_RadioTowerRope_.*" );
+								SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_.*" );
+								SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_.*" );
+								
+								if ( !Map.RadarRoomDestroyed )
+								{
+									SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_RadarRoom_11" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadarRoom_1" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadarRoom_2" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadarRoom_3" );
+								}
+								if ( !Map.RadioEquipmentDestroyed )
+								{
+									SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_RadioEquipment_11" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadioEquipment_1" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadioEquipment_2" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadioEquipment_3" );
+								}
+								if ( !Map.RadioTowerDestroyed )
+								{
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadioTower_1" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadioTower_2" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadioTower_3" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_RadioTower_11" );
+								}
+								
+								SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_Axis_1" );
+								SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_Axis_2" );
+								
+								if ( Map.GarageDoorOpened )
+								{
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_GarageDoor_.*" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_GarageDoor_5" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_GarageDoor_6" );
+								}
+								if ( !Map.GarageDoorDestroyed )
+								{
+									if ( !Map.GarageDoorOpened )
+									{
+										SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_GarageSwitch_1" );
+										SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_GarageSwitch_2" );
+									}
+								}
+							}
+						}
+						else
+						{
+							if ( Map.AlliedEngsIncomplex == 1 )	//it will run only once at first entry of engineer
+							{
+								SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+								SetAvailableMapGoals( TEAM.AXIS, false, ".*_RadioTowerRope_.*" );
+								SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_.*" );
+								SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_.*" );
+								
+								if ( !Map.RadarRoomDestroyed )
+								{
+									SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_RadarRoom_11" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadarRoom_.*" );
+								}
+								if ( !Map.RadioEquipmentDestroyed )
+								{
+									SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_RadioEquipment_11" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadioEquipment_.*" );
+								}
+								if ( !Map.RadioTowerDestroyed )
+								{
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadioTower_.*" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_RadioTower_11" );
+								}
+								
+								SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_Axis_1" );
+								
+								if ( Map.GarageDoorOpened )
+								{
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_GarageDoor_4" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_GarageDoor_5" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_GarageDoor_6" );
+								}
+								if ( !Map.GarageDoorDestroyed )
+								{
+									if ( !Map.GarageDoorOpened )
+									{
+										SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_GarageSwitch_1" );
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+			if ( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				Map.Alliesincomplex -= 1;
+				
+				Util.MapDebugPrint( "^5Ally left the complex" );
+				
+				if ( GetEntClass(ent) == CLASS.ENGINEER )
+				{
+					Map.AlliedEngsIncomplex -= 1;
+					
+					Util.MapDebugPrint( "^5Allied eng left the complex" );
+					
+					if ( Map.AlliedEngsIncomplex == 0 )
+					{
+						Util.MapDebugPrint( "^5Allied engineers aren't in complex" );
+					}
+				}
+				
+				if ( Map.Alliesincomplex == 0 )
+				{
+					Util.MapDebugPrint( "^5Allies aren't in complex" );
+				}
+				
+				if ( !Map.One_Left )
+				{
+					if ( Map.AxisFlag )
+					{
+						if ( Map.Alliesincomplex > 0 )
+						{
+							if ( Map.AlliedEngsIncomplex == 0 )
+							{
+								SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+								SetAvailableMapGoals( TEAM.AXIS, false, ".*_RadioTowerRope_.*" );
+								SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_.*" );
+								SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_.*" );
+								SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_RadioEquipment_.*" );
+								SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_RadarRoom_.*" );
+								SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_RadioTower_.*" );
+								
+								if ( !Map.RadarRoomDestroyed )
+								{
+									SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_RadarRoom_11" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadarRoom_1" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadarRoom_2" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadarRoom_3" );
+								}
+								if ( !Map.RadioEquipmentDestroyed )
+								{
+									SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_RadioEquipment_11" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadioEquipment_1" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadioEquipment_2" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadioEquipment_3" );
+								}
+								if ( !Map.RadioTowerDestroyed )
+								{
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadioTower_1" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadioTower_2" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RadioTower_3" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_RadioTower_11" );
+								}
+								
+								SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_Axis_1" );
+								SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_Axis_2" );
+								
+								if ( Map.GarageDoorOpened )
+								{
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_GarageDoor_.*" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_GarageDoor_5" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_GarageDoor_6" );
+								}
+								if ( !Map.GarageDoorDestroyed )
+								{
+									if ( !Map.GarageDoorOpened )
+									{
+										SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_GarageSwitch_1" );
+										SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_GarageSwitch_2" );
+									}
+								}
+							}
+						}
+						else
+						{
+							SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+							SetAvailableMapGoals( TEAM.AXIS, false, ".*_RadioTowerRope_.*" );
+							SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_.*" );
+							SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_.*" );
+							SetAvailableMapGoals( TEAM.AXIS, false, ".*_RadioEquipment_.*" );
+							SetAvailableMapGoals( TEAM.AXIS, false, ".*_RadarRoom_.*" );
+							SetAvailableMapGoals( TEAM.AXIS, false, ".*_RadioTower_.*" );
+							
+							if ( !Map.GarageDoorOpened )
+							{
+								if ( !Map.SewerEntranceDestroyed )
+								{
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_SewerEntrance" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_CaveLadder_.*" );
+								}
+								else
+								{
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_SewerTunnel_.*" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_CaveLadder_2" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_CaveLadder_3" );
+								}
+							}
+							else
+							{
+								SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_GarageDoor" );
+								SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_GarageDoor_.*" );
+								SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_GarageDoor_5" );
+								SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_GarageDoor_6" );
+								
+								if ( Map.SewerEntranceDestroyed )
+								{
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_SewerTunnel_1" );
+									SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_SewerTunnel_4" );
+								}
+								
+								SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_CaveLadder_3" );
+							}
+							
+							SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_RadioTower_11" );
+							SetAvailableMapGoals( TEAM.AXIS, true, ".*_RadioTowerRope_.*" );
+							SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_LeftTower_.*" );
+							SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RightTower_.*" );
+							SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_left_tower" );
+							SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_right_tower" );
+							SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_left_tower" );
+							SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_right_tower" );
+						}
+					}
+				}
+			}
+		},
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+	
+	// Register callback functions
+	OnTrigger( "Planted at the Sewer Entrance.", Map.Sewer_Entrance_Planted );
+	OnTrigger( "Planted at Sewer Entrance.", Map.Sewer_Entrance_Planted );	//for nitmod
+	OnTrigger( "Defused at the Sewer Entrance.", Map.Sewer_Entrance_Defused );
+	OnTrigger( "Defused at Sewer Entrance.", Map.Sewer_Entrance_Defused );	//for nitmod
+	OnTrigger( "The Allies has breached the sewer entrance!", Map.Sewer_Entrance_Destroyed );
+	
+	OnTrigger( "Planted at the Radio Tower!.", Map.Radio_Tower_Planted );
+	OnTrigger( "Planted at Radio Tower!.", Map.Radio_Tower_Planted );	//for nitmod
+	OnTrigger( "Defused at the Radio Tower!.", Map.Radio_Tower_Defused );
+	OnTrigger( "Defused at Radio Tower!.", Map.Radio_Tower_Defused );	//for nitmod
+	OnTrigger( "The Radio Tower has been destroyed!", Map.Radio_Tower_Destroyed );
+	
+	OnTrigger( "Planted at the Radar Room.", Map.Radar_Room_Planted );
+	OnTrigger( "Planted at Radar Room.", Map.Radar_Room_Planted );	//for nitmod
+	OnTrigger( "Defused at the Radar Room.", Map.Radar_Room_Defused );
+	OnTrigger( "Defused at Radar Room.", Map.Radar_Room_Defused );	//for nitmod
+	OnTrigger( "The Radar room has been destroyed!", Map.Radar_Room_Destroyed );
+	
+	OnTrigger( "Planted at the Radio Equipment.", Map.Radio_Equipment_Planted );
+	OnTrigger( "Planted at Radio Equipment.", Map.Radio_Equipment_Planted );	//for nitmod
+	OnTrigger( "Defused at the Radio Equipment.", Map.Radio_Equipment_Defused );
+	OnTrigger( "Defused at Radio Equipment.", Map.Radio_Equipment_Defused );	//for nitmod
+	OnTrigger( "The Radio Room has been destroyed!", Map.Radio_Equipment_Destroyed );
+	
+	OnTrigger( "Planted at the garage door switch.", Map.garage_door_switch_Planted );
+	OnTrigger( "Planted at garage door switch.", Map.garage_door_switch_Planted );	//for nitmod
+	OnTrigger( "Defused at the garage door switch.", Map.garage_door_switch_Defused );
+	OnTrigger( "Defused at garage door switch.", Map.garage_door_switch_Defused );	//for nitmod
+	OnTrigger( "The Allies have sabotaged the door control!", Map.garage_door_switch_Destroyed );
+	
+	OnTrigger( "Axis have reclaimed  the forward deployment zone!", Map.compound_flag_Axis_Captured );
+	OnTrigger( "Allies captured the forward deployment zone!", Map.compound_flag_Allies_Captured );
+	
+	OnTrigger( "garage_lever_start", Map.garage_lever );
+	
+	OnTrigger( "gunright_mover_goto", Map.right_gun );
+	OnTrigger( "gunleft_mover_goto", Map.left_gun );
+	
+	OnTrigger( "thirty second warning.", Map.Thirty_second );
+	
+	Util.DisableGoal( ".*", true ); // all but routes
+	
+	Util.EnableGoal( "HEALTHCAB_t1023" );
+	Util.EnableGoal( "HEALTHCAB_t52" );
+	Util.EnableGoal( "AMMOCAB_t1024" );
+	Util.EnableGoal( "AMMOCAB_t51" );
+	
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_complex_roof" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_left_tower" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_right_tower" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_complex_roof" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_left_tower" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_right_tower" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_SewerEntrance" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_CaveLadder_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, ".*_RadioTowerRope_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_LeftTower_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_RightTower_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_RadioTower_11" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_compound_flag" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_left_gun" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_right_gun" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_Garage_door" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_RadioEquipment_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_RadioTower_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_RadarRoom_.*" );
+	
+	ETUtil.LimitToClass("DEFEND_RadioTowerRope_2", TEAM.AXIS, CLASS.FIELDOPS, CLASS.ENGINEER, CLASS.COVERTOPS);
+	ETUtil.LimitToClass("DEFEND_RadioTowerRope_3", TEAM.AXIS, CLASS.ENGINEER, CLASS.FIELDOPS, CLASS.MEDIC);
+	
+	Util.SetRoleForTable( { "DEFEND_RadioEquipment_1" }, ROLE.DEFENDER1 );
+	Util.SetRoleForTable( { "DEFEND_RadarRoom_1" }, ROLE.DEFENDER2 );
+	Util.SetRoleForTable( { "DEFEND_RadioTower_1" }, ROLE.DEFENDER3 );
+	
+	SetGoalPriority( "MOUNTMG42_complex_roof", 0.45, TEAM.AXIS, 0 );
+	SetGoalPriority( "MOUNTMG42_left_tower", 0.506, TEAM.AXIS, 0 );
+	SetGoalPriority( "MOUNTMG42_right_tower", 0.506, TEAM.AXIS, 0 );
+	SetGoalPriority( "REPAIRMG42_.*", 0.506, TEAM.AXIS, CLASS.ENGINEER );
+	
+	SetGoalPriority( "DEFEND_SewerEntrance", 0.52, TEAM.AXIS, 0 );
+	
+	SetGoalPriority( "DEFEND_CaveLadder_.*", 0.505, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_CaveLadder_1", 0.51, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_CaveLadder_2", 0.51, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_CaveLadder_3", 0.52, TEAM.AXIS, 0 );
+	
+	SetGoalPriority( "DEFEND_GarageDoor_.*", 0.505, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_GarageDoor_3", 0.52, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_GarageDoor_4", 0.52, TEAM.AXIS, 0 );
+	
+	SetGoalPriority( "DEFEND_RadioTowerRope_.*", 0.505, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_RadioTowerRope_3", 0.51, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_RadioTowerRope_2", 0.52, TEAM.AXIS, 0 );
+	
+	SetGoalPriority( "DEFEND_SewerTunnel_.*", 0.51, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_SewerTunnel_4", 0.52, TEAM.AXIS, 0 );
+	
+	SetGoalPriority( "DEFEND_LeftTower_1", 0.5, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_RightTower_1", 0.5, TEAM.AXIS, 0 );
+	
+	SetGoalPriority( "DEFEND_Flag_Axis_2", 0.51, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Flag_Axis_1", 0.525, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Flag_Axis_.*", 0.5, TEAM.AXIS, CLASS.ENGINEER );
+	
+	SetGoalPriority( "CHECKPOINT_.*", 0.5, TEAM.AXIS, CLASS.ENGINEER );
+	
+	SetGoalPriority( "DEFEND_GarageSwitch_2", 0.504, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_GarageSwitch_1", 0.52, TEAM.AXIS, 0 );
+	
+	SetGoalPriority( "DEFEND_RadioEquipment_.*", 0.505, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_RadioEquipment_2", 0.51, TEAM.AXIS, 0 );
+	//SetGoalPriority( "DEFEND_RadioEquipment_1", 0.53, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_RadioEquipment_1", 0.72, TEAM.AXIS, 0 );	//more then checkpoint
+	
+	SetGoalPriority( "DEFEND_RadarRoom_.*", 0.505, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_RadarRoom_2", 0.51, TEAM.AXIS, 0 );
+	//SetGoalPriority( "DEFEND_RadarRoom_1", 0.53, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_RadarRoom_1", 0.72, TEAM.AXIS, 0 );	//more then checkpoint
+	SetGoalPriority( "DEFEND_RadarRoom_1", 0.72, TEAM.AXIS, CLASS.ENGINEER );	//more then checkpoint
+	
+	SetGoalPriority( "DEFEND_RadioTower_.*", 0.505, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_RadioTower_2", 0.51, TEAM.AXIS, 0 );
+	//SetGoalPriority( "DEFEND_RadioTower_1", 0.53, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_RadioTower_1", 0.72, TEAM.AXIS, 0 );	//more then checkpoint
+	SetGoalPriority( "DEFEND_RadioTower_1", 0.72, TEAM.AXIS, CLASS.ENGINEER );	//more then checkpoint
+	
+	SetGoalPriority( "MOBILEMG42_RadarRoom_11", 0.95, TEAM.AXIS, CLASS.SOLDIER );
+	SetGoalPriority( "MOBILEMG42_RadioEquipment_11", 0.95, TEAM.AXIS, CLASS.SOLDIER );
+	SetGoalPriority( "MOBILEMG42_RadioTower_11", 0.95, TEAM.AXIS, CLASS.SOLDIER );
+	SetGoalPriority( "MOBILEMG42_GarageDoor", 1.00, TEAM.AXIS, CLASS.SOLDIER );	//default priority
+	
+	SetGoalPriority( "ATTACK_RadioEquipment_1", 0.52, TEAM.ALLIES, 0 );
+	SetGoalPriority( "ATTACK_RadioEquipment_2", 0.51, TEAM.ALLIES, 0 );
+	SetGoalPriority( "ATTACK_RadioTower_1", 0.52, TEAM.ALLIES, 0 );
+	SetGoalPriority( "ATTACK_RadioTower_2", 0.51, TEAM.ALLIES, 0 );
+	SetGoalPriority( "ATTACK_RadarRoom_1", 0.52, TEAM.ALLIES, 0 );
+	SetGoalPriority( "ATTACK_RadarRoom_2", 0.51, TEAM.ALLIES, 0 );
+	
+	Util.AddUseWp( "PLANT_garage_door_switch", "Plant_switch" );
+	
+	// Max users per goal
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "SWITCH_.*" );
+	Util.SetMaxUsers( 1, "REPAIRMG42_.*" );
+	
+	ETUtil.SetCabinets();
+	
+	DCM1 = OnTriggerRegion(AABB( -2074.532,2887.097,1854.159,-1811.420,3322.155,2099.173 ), RegionTrigger.DisableCombatMovement);	//trigger - right side of the hill above the entrance to the underwater tunnel (near Radar room)
+	NP1 = OnTriggerRegion(AABB( -2074.532,2887.097,1854.159,-1811.420,3322.155,2099.173 ), RegionTrigger.DisableBotPush);
+	DCM2 = OnTriggerRegion(AABB( -2264.519,2369.859,737.125,-1745.288,2752.875,947.125 ), RegionTrigger.DisableCombatMovement);	//trigger - stairs in cave
+	NP2 = OnTriggerRegion(AABB( -2264.519,2369.859,737.125,-1745.288,2752.875,947.125 ), RegionTrigger.DisableBotPush);
+	DCM3 = OnTriggerRegion(AABB( 2397.237,968.041,873.125,3226.469,1814.041,1039.920 ), RegionTrigger.DisableCombatMovement);	//trigger - wooden bridge outside of complex
+	NP3 = OnTriggerRegion(AABB( 2397.237,968.041,873.125,3226.469,1814.041,1039.920 ), RegionTrigger.DisableBotPush);
+	NP4 = OnTriggerRegion(AABB( -772.061,3096.857,729.125,-527.478,3169.115,826.817 ), RegionTrigger.DisableBotPush);		//trigger - ladder in sewer entrance
+	DCM5 = OnTriggerRegion(AABB( -712.875,2471.441,961.125,-558.680,2761.122,1208.764 ), RegionTrigger.DisableCombatMovement);	//trigger - wooden boxes near sewer entrance ladder exit
+	NP5 = OnTriggerRegion(AABB( -712.875,2471.441,961.125,-558.680,2761.122,1208.764 ), RegionTrigger.DisableBotPush);
+	DCM6 = OnTriggerRegion(AABB( 691.727,1831.537,1719.949,1306.122,2408.523,2007.337 ), RegionTrigger.DisableCombatMovement);	//trigger - left tower - roof
+	DCM7 = OnTriggerRegion(AABB( -1557.750,1881.028,1715.423,-527.707,2643.284,2063.006 ), RegionTrigger.DisableCombatMovement);	//trigger - right tower - roof
+	DCM8 = OnTriggerRegion(AABB( 1044.595,2463.125,1561.225,1142.511,2602.749,1635.225 ), RegionTrigger.DisableCombatMovement);	//trigger - the top of long ladder in bunker
+	NP8 = OnTriggerRegion(AABB( 1044.595,2463.125,1561.225,1142.511,2602.749,1635.225 ), RegionTrigger.DisableBotPush);
+	DCM9 = OnTriggerRegion(AABB( -712.874,3031.275,961.125,-565.368,3118.585,1035.125 ), RegionTrigger.DisableCombatMovement);	//trigger - entrance into sewer in bunker
+	NP9 = OnTriggerRegion(AABB( -712.874,3031.275,961.125,-565.368,3118.585,1035.125 ), RegionTrigger.DisableBotPush);
+	DCM10 = OnTriggerRegion(AABB( 863.125,2010.557,1561.125,975.437,2169.312,1709.290 ), RegionTrigger.DisableCombatMovement);	//trigger - ladder in left tower
+	NP10 = OnTriggerRegion(AABB( 863.125,2010.557,1561.125,975.437,2169.312,1709.290 ), RegionTrigger.DisableBotPush);
+	DCM11 = OnTriggerRegion(AABB( -1440.609,2048.550,1561.125,-1314.354,2185.060,1702.130 ), RegionTrigger.DisableCombatMovement);	//trigger - ladder in right tower
+	NP11 = OnTriggerRegion(AABB( -1440.609,2048.550,1561.125,-1314.354,2185.060,1702.130 ), RegionTrigger.DisableBotPush);
+	DCM12 = OnTriggerRegion(AABB( -552.740,2334.604,1869.028,1926.370,2758.756,2122.449 ), RegionTrigger.DisableCombatMovement);	//trigger - hillside above the towers
+	DCM13 = OnTriggerRegion(AABB( -137.803,2831.127,961.125,440.875,3200.875,2198.952 ), RegionTrigger.DisableCombatMovement);	//trigger - steel staircase inside the bunker
+	NP13 = OnTriggerRegion(AABB( -137.803,2831.127,961.125,440.875,3200.875,2198.952 ), RegionTrigger.DisableBotPush);
+	DCM14 = OnTriggerRegion(AABB( -232.111,2960.299,961.125,-143.126,3128.142,1134.645 ), RegionTrigger.DisableCombatMovement);	//trigger - wooden boxes near garage door for goal MOBILEMG42_GarageDoor
+	NP14 = OnTriggerRegion(AABB( -232.111,2960.299,961.125,-143.126,3128.142,1134.645 ), RegionTrigger.DisableBotPush);
+	
+	BD1 = OnTriggerRegion(AABB(-1625.154,2343.125,934.801,-1343.730,2560.875,1087.125), RegionTrigger.BreakableDistance);	//wooden barrier - exit from cave
+	BD2 = OnTriggerRegion(AABB(862.814,2763.584,961.125,993.664,2905.700,1072.125), RegionTrigger.BreakableDistance);	//table in radio equipment room
+	
+	AlliesInComplex1 = OnTriggerRegion(AABB(-2054.869,1813.380,1561.125,1798.219,3431.255,3068.794), Map.Allies_in_complex);	//1st floor + outside
+	AlliesInComplex2 = OnTriggerRegion(AABB(-1487.585,2271.125,961.125,1256.875,3200.875,1622.218), Map.Allies_in_complex);		//inside without switch room & without sewer
+	AlliesInComplex3 = OnTriggerRegion(AABB(-712.875,1823.125,961.125,-415.125,2270.225,1129.853), Map.Allies_in_complex);		//garage switch room
+	
+	MapRoutes =
+	{
+		DEFEND_RadioTowerRope_1 =
+		{
+			ROUTE_Axis_RightSpawn =
+			{
+				ROUTE_Left_Tower_Ladder =
+				{
+					
+				},
+				ROUTE_Metal_Stairs =
+				{
+					Weight = 2,
+				},
+			},
+			ROUTE_Axis_RightSpawn_1 =
+			{
+				ROUTE_Left_Tower_Ladder =
+				{
+					
+				},
+				ROUTE_Metal_Stairs =
+				{
+					Weight = 2,
+				},
+			},
+			ROUTE_Axis_LeftSpawn =
+			{
+				ROUTE_Left_Tower_Ladder =
+				{
+					
+				},
+				ROUTE_Metal_Stairs =
+				{
+					Weight = 2,
+				},
+			},
+			ROUTE_Axis_LeftSpawn_1 =
+			{
+				ROUTE_Left_Tower_Ladder =
+				{
+					
+				},
+				ROUTE_Metal_Stairs =
+				{
+					Weight = 2,
+				},
+			},
+		},
+		DEFEND_RadarRoom_1 =
+		{
+			ROUTE_Axis_RightSpawn =
+			{
+				ROUTE_Right_Tower_Ladder =
+				{
+					
+				},
+				ROUTE_Metal_Stairs =
+				{
+					Weight = 2,
+				},
+				ROUTE_Left_Tower_Ladder =
+				{
+					Weight = 2,
+				},
+			},
+			ROUTE_Axis_RightSpawn_1 =
+			{
+				ROUTE_Right_Tower_Ladder =
+				{
+					
+				},
+				ROUTE_Metal_Stairs =
+				{
+					Weight = 2,
+				},
+				ROUTE_Left_Tower_Ladder =
+				{
+					Weight = 2,
+				},
+			},
+			ROUTE_Axis_LeftSpawn =
+			{
+				ROUTE_Right_Tower_Ladder =
+				{
+					
+				},
+				ROUTE_Metal_Stairs =
+				{
+					Weight = 2,
+				},
+				ROUTE_Left_Tower_Ladder =
+				{
+					Weight = 2,
+				},
+			},
+			ROUTE_Axis_LeftSpawn_1 =
+			{
+				ROUTE_Right_Tower_Ladder =
+				{
+					
+				},
+				ROUTE_Metal_Stairs =
+				{
+					Weight = 2,
+				},
+				ROUTE_Left_Tower_Ladder =
+				{
+					Weight = 2,
+				},
+			},
+		},
+		DEFEND_RadioEquipment_1 =
+		{
+			ROUTE_Axis_RightSpawn =
+			{
+				ROUTE_Metal_Stairs_Cabinets =
+				{
+					
+				},
+				ROUTE_Long_Ladder =
+				{
+					
+				},
+			},
+			ROUTE_Axis_RightSpawn_1 =
+			{
+				ROUTE_Metal_Stairs_Cabinets =
+				{
+					
+				},
+				ROUTE_Long_Ladder =
+				{
+					
+				},
+			},
+			ROUTE_Axis_LeftSpawn =
+			{
+				ROUTE_Metal_Stairs_Cabinets =
+				{
+					
+				},
+				ROUTE_Long_Ladder =
+				{
+					
+				},
+			},
+			ROUTE_Axis_LeftSpawn_1 =
+			{
+				ROUTE_Metal_Stairs_Cabinets =
+				{
+					
+				},
+				ROUTE_Long_Ladder =
+				{
+					
+				},
+			},
+		},
+	};
+	
+	//copy some routes
+	MapRoutes["DEFEND_RadioTower_.*"] = MapRoutes.DEFEND_RadarRoom_1;
+	MapRoutes["DEFEND_RadioTowerRope_.*"] = MapRoutes.DEFEND_RadioTowerRope_1;
+	MapRoutes.MOBILEMG42_RadarRoom_11 = MapRoutes.DEFEND_RadioTowerRope_1;
+	MapRoutes.MOBILEMG42_RadioTower_11 = MapRoutes.DEFEND_RadioTowerRope_1;
+	MapRoutes["DEFEND_RadarRoom_.*"] = MapRoutes.DEFEND_RadarRoom_1;
+	MapRoutes["DEFEND_RadioEquipment_.*"] = MapRoutes.DEFEND_RadioEquipment_1;
+	
+	Util.Routes(MapRoutes);
+	
+	Util.MapDebugPrint( "^3Omni-bot map script by ^1n^2a^4t^8i^3v^5e12 ^3for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	// Uncomment for shootable breakables
+	//bot.TargetBreakableDist = 150.0;
+	
+	Util.RandomBotSpawn( bot, TEAM.AXIS, 4 );
+	
+	foreach ( id and bot in BotTable )
+	{
+		if ( bot.GetTeam()  == TEAM.AXIS )
+		{
+			WeaponTable.SetWeaponAvailability( CLASS.SOLDIER, WEAPON.MOBILE_MG42, true );
+		}
+	}
+};

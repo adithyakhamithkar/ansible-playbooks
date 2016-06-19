@@ -1,0 +1,570 @@
+/********************************************************
+Script and waypoints made by  >WES< P!NNAN & >WES< GRANNY
+********************************************************/
+
+global Map =
+{
+	Debug = false,
+	Talk = true, //set this to false if you wont bots talking ingame
+	Quiet = true,
+	SafeBuilt = true,
+	SafeDestroyed = false,
+	DocsReturned = false,
+	FuelReturned = false,
+	CPStatus = 0, //not axis
+	
+	Ammo_Cabinet_north_ammocabinet = "AMMOCAB_north_ammocabinet",
+	Ammo_Cabinet_south_ammocabinet = "AMMOCAB_south_ammocabinet",
+	Health_Cabinet_north_healthcabinet = "HEALTHCAB_north_healthcabinet",
+	Health_Cabinet_south_healthcabinet = "HEALTHCAB_south_healthcabinet",
+	Checkpoint_forwardspawn1_flag = "CHECKPOINT_forwardspawn1_flag",
+	Flag_documents = "FLAG_documents",
+	Flag_fuel_can = "FLAG_fuel_can",
+	Cappoint_Dropoff = "CAPPOINT_Dropoff",
+	Build_Command_Post = "BUILD_Command_Post",
+	Build_documents_safe = "BUILD_documents_safe",
+	Plant_Command_Post = "PLANT_Command_Post",
+	Plant_Main_Entrance = "PLANT_Main_Entrance",
+	Plant_Side_Entrance = "PLANT_Side_Entrance",
+	Plant_documents_safe = "PLANT_documents_safe",
+	Mobile_MG42_mg_al_1 = "MOBILEMG42_mg_al_1",
+	Mobile_MG42_mg_al_2 = "MOBILEMG42_mg_al_2",
+	Mobile_MG42_mg_al_3 = "MOBILEMG42_mg_al_3",
+	Mobile_MG42_mg_al_4 = "MOBILEMG42_mg_al_4",
+	Mobile_MG42_mg_ax_1 = "MOBILEMG42_mg_ax_1",
+	Mobile_MG42_mg_ax_2 = "MOBILEMG42_mg_ax_2",
+	Mobile_Mortar_mo_al_1 = "MOBILEMORTAR_mo_al_1",
+	Mobile_Mortar_mo_ax_1 = "MOBILEMORTAR_mo_ax_1",
+	Snipe_s_al_hill = "SNIPE_s_al_hill",
+	Snipe_s_ax_hill = "SNIPE_s_ax_hill",
+	
+	Navigation =
+	{
+		ladders =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 3);
+				sleep(3);
+			},			
+		},
+	},
+	
+	//CP stuff
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+	
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.CPStatus = 1;
+			
+		// half the axis should spawn at the cp
+		foreach ( id and bot in BotTable )
+		{
+			if ( bot.GetTeam() == TEAM.AXIS )
+			{
+				if ( RandInt(0,1) < 1)
+				{
+					bot.ChangeSpawnPoint( 5 ); // cp 
+				}
+				else 
+				{
+					bot.ChangeSpawnPoint( 2 ); //flag
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+	
+	Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Destroyed" );
+	},
+
+	//Safe destroyed and rebuild
+	documents_safe_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.SafeBuilt = true;
+
+		Util.MapDebugPrint( "documents_safe_Built" );
+	},
+	
+	documents_safe_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.SafeDestroyed = true;
+
+		Util.MapDebugPrint( "documents_safe_Destroyed" );
+	},
+	
+	//Entrances
+	Main_Entrance_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Groups.DisableAllies(Groups.group4);
+		Groups.DisableAxis(Groups.group3);
+		Groups.EnableAllies(Groups.group6);
+		Groups.EnableAxis(Groups.group5);
+		
+		//open path for axis cause the door can be used by axis only now
+		Wp.SetWaypointFlag("Axisdoor","closed",false);
+		Wp.SetWaypointFlag("Axisdoor1","closed",false);
+		Wp.SetWaypointFlag("Allieddoor","closed",true);
+		Wp.SetWaypointFlag("Allieddoor1","closed",true);
+
+		Util.MapDebugPrint( "Main_Entrance_Destroyed" );
+	},
+
+	Side_Entrance_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Groups.DisableAllies(Groups.group4);
+		Groups.DisableAxis(Groups.group3);
+		Groups.EnableAllies(Groups.group6);
+		Groups.EnableAxis(Groups.group5);
+		
+		Util.MapDebugPrint( "Side_Entrance_Destroyed" );
+	},
+
+	//Obj stuff
+	documents_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Groups.DisableAllies(Groups.group6);
+		Groups.DisableAxis(Groups.group5);
+		Groups.EnableAllies(Groups.group8);
+		Groups.EnableAxis(Groups.group7);
+
+		Util.MapDebugPrint( "documents_Taken" );
+	},
+	
+	documents_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.DocsReturned = true;
+		
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.REINFORCE_OFF);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTAttack");
+					}
+				}
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.DEFEND_OBJECTIVE);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTFallBack");
+					}
+				}
+			}
+		}
+		
+		Util.MapDebugPrint( "documents_Returned" );
+	},
+	
+	documents_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Groups.DisableAllies(Groups.group8);
+		Groups.DisableAxis(Groups.group7);
+		Groups.EnableAllies(Groups.group6);
+		Groups.EnableAxis(Groups.group5);
+
+		Util.MapDebugPrint( "documents_Captured" );
+	},
+
+	fuel_can_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Groups.DisableAllies(Groups.group6);
+		Groups.DisableAxis(Groups.group5);
+		Groups.EnableAllies(Groups.group8);
+		Groups.EnableAxis(Groups.group7);
+		
+		Util.MapDebugPrint( "fuel_can_Taken" );
+	},
+	
+	fuel_can_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.FuelBack = true;
+		
+		Util.MapDebugPrint( "fuel_can_Returned" );
+	},
+	
+	fuel_can_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.FuelCap = true;
+			
+		Groups.DisableAllies(Groups.group8);
+		Groups.DisableAxis(Groups.group7);
+		Groups.EnableAllies(Groups.group6);
+		Groups.EnableAxis(Groups.group5);
+		
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.REINFORCE_OFF);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTAttack");
+					}
+				}
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.DEFEND_OBJECTIVE);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTFallBack");
+					}
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "fuel_can_Captured" );
+	},
+
+	Dropoff_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Dropoff_Captured" );
+	},
+	
+	//Flagstuff
+	forwardspawn1_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Groups.DisableAllies(Groups.group2);
+		Groups.DisableAxis(Groups.group1);
+		Groups.EnableAllies(Groups.group4);
+		Groups.EnableAxis(Groups.group3);
+
+		Util.MapDebugPrint( "forwardspawn1_flag_Axis_Captured" );
+	},
+
+	forwardspawn1_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Groups.DisableAllies(Groups.group4);
+		Groups.DisableAxis(Groups.group3);
+		Groups.EnableAllies(Groups.group2);
+		Groups.EnableAxis(Groups.group1);
+
+		Util.MapDebugPrint( "forwardspawn1_flag_Allies_Captured" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "Allies have rebuilt the safe!", Map.documents_safe_Built );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Command_Post_Destroyed );
+	OnTrigger( "Axis have destroyed the Main Entrance!", Map.Main_Entrance_Destroyed );
+	OnTrigger( "Axis have destroyed the Side Entrance!", Map.Side_Entrance_Destroyed );
+	OnTrigger( "Axis have destroyed the safe!", Map.documents_safe_Destroyed );
+	OnTrigger( "The Axis have stolen the documents!", Map.documents_Taken );
+	OnTrigger( "The Allies have returned the documents", Map.documents_Returned );
+	OnTrigger( "The Axis have secured the documents!", Map.documents_Captured );
+	OnTrigger( "The Axis have stolen the fuel!", Map.fuel_can_Taken );
+	OnTrigger( "The Allies have returned the fuel!", Map.fuel_can_Returned );
+	OnTrigger( "The Axis have refueled the plane!", Map.fuel_can_Captured );
+	//OnTrigger( "MISSING_STRING", Map.Dropoff_Captured );
+	OnTrigger( "Axis have captured the Forward Spawn!", Map.forwardspawn1_flag_Axis_Captured );
+	OnTrigger( "Allies reclaim the Forward Spawn!", Map.forwardspawn1_flag_Allies_Captured );
+	
+	//set offset for better reachable
+	Util.SetGoalOffset( 40, 0, 0, "PLANT_documents_safe" );
+	
+	//close path , we will open it later if maindoors are destroyed
+	Wp.SetWaypointFlag("Axisdoor","closed",true);
+	Wp.SetWaypointFlag("Axisdoor1","closed",true);
+	Wp.SetWaypointFlag("Allieddoor","closed",false);
+	Wp.SetWaypointFlag("Allieddoor1","closed",false);
+
+	//set max users for goals
+	Util.SetMaxUsersInProgress( 2, "BUILD.*" );
+	Util.SetMaxUsersInProgress( 2, "PLANT.*" );
+	Util.SetMaxUsersInProgress( 1, "SNIPE.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_d_start.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_d_obj.*" );
+	Util.SetMaxUsersInProgress( 1, "ATTACK_a_start.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_d_axisexit.*" );
+	Util.SetMaxUsersInProgress( 1, "ATTACK_a_alliedexit.*" );
+
+	
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=120, MaxCampTime=120});
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=60, MaxCampTime=120});
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=30, MaxCampTime=60});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=60, MaxCampTime=120});
+	
+	//clear all goals 
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+	
+	Util.EnableGoal("ROUTE.*"); //enable routing for both teams
+	
+	//enable part 1 goals
+	Groups.EnableAllies(Groups.group2);
+	Groups.EnableAxis(Groups.group1);
+	
+	//Routes
+	MapRoutes =
+	{	
+		CHECKPOINT_forwardspawn1_flag =
+		{
+			ROUTE_r_axisspawn_1 =
+			{
+				ROUTE_r_mainexit = {},
+				Weight = 2,
+				ROUTE_r_ax1_split_1 ={ ROUTE_r_plane = {}, },
+			},
+		},
+		CAPPOINT_Dropoff =
+		{
+			ROUTE_r_fuel_can =
+			{
+				ROUTE_r_maindoor = {},
+				ROUTE_r_balcony = { ROUTE_r_cp_exit = {}, },
+			},
+			ROUTE_r_document =
+			{
+				ROUTE_r_document_exit = 
+				{
+					ROUTE_r_cp_exit = {},
+					ROUTE_r_maindoor = {},
+				},
+				ROUTE_r_document_cellar =
+				{
+					ROUTE_r_cellar_exit =
+					{
+						ROUTE_r_behind_hill = { ROUTE_r_cp_exit = {}, },
+					},
+				},
+			},
+		},
+		DEFEND_d_plane_1 =
+		{
+			ROUTE_r_maindoor = {},
+			ROUT_r_cp_exit = {},
+		},
+	};
+	//copy some routes
+	MapRoutes.DEFEND_d_plane_2 = MapRoutes.DEFEND_d_plane_1;
+	MapRoutes.DEFEND_d_plane_3 = MapRoutes.DEFEND_d_plane_1;
+	MapRoutes.DEFEND_d_plane_4 = MapRoutes.DEFEND_d_plane_1;
+	MapRoutes.DEFEND_d_plane_5 = MapRoutes.DEFEND_d_plane_1;
+			
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "Script for Battle of Wolken 3B4 loaded" );
+};
+
+global OnBotJoin = function( bot )
+{
+	 bot.TargetBreakableDist = 100.0;
+	 bot.MaxViewDistance = 2500;
+	 
+	if( class == CLASS.COVERTOPS )
+	{
+        if ( bot.HasWeapon(WEAPON.K43) || bot.HasWeapon(WEAPON.GARAND))
+        {
+			Util.MapDebugPrint("Sniper joined");
+          	bot.MaxViewDistance = 10000.0;
+        }
+	}
+};
+
+global Groups =
+{
+	//Axis part 1
+	group1 =
+	{
+		Map.Checkpoint_forwardspawn1_flag,
+		Map.Mobile_MG42_mg_ax_1,
+		Map.Plant_Main_Entrance,
+		Map.Plant_Side_Entrance,
+		"ATTACK_a_start.*",
+		"MOBILEMORTAR_mo_ax_1.*",
+	},
+	
+	//Allies part 1
+	group2 =
+	{
+		Map.Checkpoint_forwardspawn1_flag,
+		Map.Mobile_MG42_mg_al_2,
+		Map.Mobile_MG42_mg_al_1,
+		"DEFEND_d_start.*",
+		"MOBILEMORTAR_mo_al_1.*",
+	},
+	
+	//Axis part 2
+	group3 =
+	{
+		Map.Plant_Main_Entrance,
+		Map.Plant_Side_Entrance,
+		"ATTACK_a_alliedexit.*",
+	},
+	
+	//Allied part 2
+	group4 =
+	{
+		Map.Build_documents_safe,
+		Map.Build_Command_Post,
+		Map.Plant_Command_Post,
+		"DEFEND_d_axisexit.*",
+	},
+	
+	//Axis part 3
+	group5 =
+	{
+		Map.Plant_documents_safe,
+		Map.Build_Command_Post,
+		Map.Plant_Command_Post,
+		Map.Plant_Main_Entrance,
+		Map.Plant_Side_Entrance,
+		Map.Mobile_MG42_mg_ax_2,
+		Map.Flag_documents,
+		Map.Flag_fuel_can,
+		Map.Cappoint_Dropoff,
+		"ATTACK_a_obj.*",
+		"SNIPE_s_ax_hill",
+	},
+	
+	//Allied part 3
+	group6 =
+	{
+		Map.Build_documents_safe,
+		Map.Build_Command_Post,
+		Map.Plant_Command_Post,
+		Map.Mobile_MG42_mg_al_3,
+		Map.Mobile_MG42_mg_al_4,
+		"DEFEND_d_obj.*",
+		"SNIPE_s_al_hill",
+	},
+	
+	//Axis part 3
+	group7 =
+	{
+		Map.Flag_documents,
+		Map.Flag_fuel_can,
+		Map.Cappoint_Dropoff,
+		"ATTACK_a_plane.*",
+	},
+	
+	//Allied part 3
+	group8 =
+	{
+		"DEFEND_d_plane.*",
+	},
+	
+	EnableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, goal );
+			Util.MapDebugPrint("EnableAllies: enabling " + goal, true);
+		}
+	},
+	
+	EnableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, goal );
+			Util.MapDebugPrint("EnableAxis: enabling " + goal, true);
+		}
+	},
+
+	DisableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, goal );
+			Util.MapDebugPrint("DisableAllies: disabling " + goal, true);
+		}
+	},
+
+	DisableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, goal );
+			Util.MapDebugPrint("DisableAxis: disabling " + goal, true);
+		}
+	},
+};

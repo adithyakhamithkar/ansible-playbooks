@@ -1,0 +1,692 @@
+global Map =
+{
+	ShowMovers = false,
+	Debug = false,
+	Quiet = true,
+	//set Talk to false if you don't want the bots talking ingame:
+	Talk = true,
+	Idol = false,
+	Arrive = false,
+	Door2open = false,
+	Doorclose = true,
+	Crane = false,
+	SwitchOne = false,
+
+	Ammo_Cabinet_t20 = "AMMOCAB_t20",
+	Ammo_Cabinet_t24 = "AMMOCAB_t24",
+	Ammo_Cabinet_t3 = "AMMOCAB_t3",
+	Health_Cabinet_t22 = "HEALTHCAB_t22",
+	Health_Cabinet_t4 = "HEALTHCAB_t4",
+	Call_Artillery_ar_al_1 = "CALLARTILLERY_ar_al_1",
+	Call_Artillery_ar_ax_1 = "CALLARTILLERY_ar_ax_1",
+	Artillery_S_ar_al_1 = "ARTILLERY_S_ar_al_1",
+	Artillery_S_ar_ax_1 = "ARTILLERY_S_ar_ax_1",
+	Flag_idol = "FLAG_idol",
+	Flag_staff = "FLAG_staff",
+	Cappoint_cap1 = "CAPPOINT_cap1",
+	Cappoint_cap2 = "CAPPOINT_cap2",
+	Build_Allied_Command_Post = "BUILD_Allied_Command_Post",
+	Build_Allied_MG42 = "BUILD_Allied_MG42",
+	Build_Ark = "BUILD_Ark",
+	Build_Axis_Command_Post = "BUILD_Axis_Command_Post",
+	Build_Axis_MG42 = "BUILD_Axis_MG42",
+	Build_Cave_Rock_Barrier = "BUILD_Cave_Rock_Barrier",
+	Build_Rock_Barrier = "BUILD_Rock_Barrier",
+	Build_Truck = "BUILD_Truck",
+	Plant_Allied_Command_Post = "PLANT_Allied_Command_Post",
+	Plant_Allied_MG42 = "PLANT_Allied_MG42",
+	Plant_Ark = "PLANT_Ark",
+	Plant_Axis_Command_Post = "PLANT_Axis_Command_Post",
+	Plant_Axis_MG42 = "PLANT_Axis_MG42",
+	Plant_Cave_Rock_Barrier = "PLANT_Cave_Rock_Barrier",
+	Plant_Rock_Barrier = "PLANT_Rock_Barrier",
+	Mount_766 = "MOUNTMG42_766",
+	Mount_786 = "MOUNTMG42_786",
+	Mount_Allied_MG42 = "MOUNTMG42_Allied_MG42",
+	Mount_Axis_MG42 = "MOUNTMG42_Axis_MG42",
+	Repair_766 = "REPAIRMG42_766",
+	Repair_786 = "REPAIRMG42_786",
+	Repair_Allied_MG42 = "REPAIRMG42_Allied_MG42",
+	Repair_Axis_MG42 = "REPAIRMG42_Axis_MG42",
+	Mobile_MG42_mg_axis_1 = "MOBILEMG42_mg_axis_1",
+	Mover_truck = "MOVER_truck",
+
+	Switches =
+	{
+		thecraneSwitch =
+		{
+			Enabled = true,
+			WaypointName = "crane_switch",
+			LimitBots = 1,
+			LimitTeam = 0, // disabled initially.
+			LimitClass = (1<<CLASS.SOLDIER) | (1<<CLASS.COVERTOPS) | (1<<CLASS.FIELDOPS) | (1<<CLASS.MEDIC) | (1<<CLASS.ENGINEER),
+			AimPosition = Vector3(8097.125,1440.439,-254.594),
+		},
+
+		SubAccessDoorSwitch =
+		{
+			Enabled = true,
+			WaypointName = "door_switch",
+			LimitBots = 1,
+			LimitTeam = 0, // disabled initially.
+			LimitClass = (1<<CLASS.SOLDIER) | (1<<CLASS.COVERTOPS) | (1<<CLASS.FIELDOPS) | (1<<CLASS.MEDIC) | (1<<CLASS.ENGINEER),
+			AimPosition = Vector3(6591.334,48.125,-42.112),
+		},
+	},
+
+	//CP stuff
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	//MG42 stuff
+	Allied_MG42_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_MG42_Built" );
+	},
+
+	Axis_MG42_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_MG42_Built" );
+	},
+
+	Allied_MG42_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_MG42_Destroyed" );
+	},
+
+	Axis_MG42_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_MG42_Destroyed" );
+	},
+
+	//Rock barriers
+	Cave_Rock_Barrier_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Cave_Rock_Barrier_Built" );
+	},
+
+	Rock_Barrier_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Rock_Barrier_Built" );
+	},
+
+	Cave_Rock_Barrier_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Cave_Rock_Barrier_Destroyed" );
+	},
+
+	Rock_Barrier_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Rock_Barrier_Destroyed" );
+	},
+
+	//truck stuff
+	Truck_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Truck_Built" );
+	},
+
+	Truck_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.SetPositionGoal( Map.Build_Truck, Map.Mover_truck );
+
+		Util.MapDebugPrint( "Truck_Destroyed" );
+	},
+
+	truck_reaches_temple = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+			Map.Arrive = true;
+
+		if ( Map.Idol  )
+		{
+			Groups.DisableAllies(Groups.group1);
+			Groups.EnableAllies(Groups.group9);
+
+			Util.MapDebugPrint( "go to truck", true );
+		}
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_truck" );
+
+		Util.MapDebugPrint( "truck_reaches_temple" );
+	},
+
+	truck_leaves_temple = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group3);
+		Groups.EnableAllies(Groups.group5);
+		Groups.DisableAxis(Groups.group4);
+		Groups.EnableAxis(Groups.group6);
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_truck" );
+
+		Util.MapDebugPrint( "truck_leaves_temple" );
+	},
+
+	truck_reaches_hangar = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Hangar = true;
+
+		Map.Switches.thecraneSwitch.LimitTeam = (1<<TEAM.ALLIES);
+		Map.Switches.SubAccessDoorSwitch.LimitTeam = (1<<TEAM.ALLIES);
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_truck" );
+		Groups.DisableAllies(Groups.group5);
+		Groups.EnableAllies(Groups.group7);
+		Groups.DisableAxis(Groups.group6);
+		Groups.EnableAxis(Groups.group8);
+
+		Util.MapDebugPrint( "truck_reaches_hangar" );
+	},
+
+	//Obj stuff
+	idol_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Idol = true;
+
+		if ( !Map.Arrive )
+		{
+			Groups.DisableAllies(Groups.group1);
+			Groups.EnableAllies(Groups.group3);
+
+			Util.MapDebugPrint( "go to hide position", true) ;
+		}
+
+		Util.MapDebugPrint( "idol_Taken" );
+	},
+
+	idol_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "idol_Returned" );
+	},
+
+	staff_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "staff_Taken" );
+	},
+
+	staff_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "staff_Returned" );
+	},
+
+	staff_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "staff_Secured" );
+	},
+
+	idol_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "idol_Secured" );
+	},
+
+	//Switches and Doors
+	door2_goto = function( trigger )
+	{
+		vec = ToVector( trigger.Action );
+
+		//Templedoor open
+		if ( vec.x > 15 )
+		{
+			sleep(3.0);
+			Groups.DisableAllies(Groups.group1);
+			Groups.EnableAllies(Groups.group3);
+			Groups.DisableAxis(Groups.group2);
+			Groups.EnableAxis(Groups.group4);
+
+			Map.Door2open = true;
+			Map.Templedoor = "open";
+		}
+
+		Util.MapDebugPrint( "Templedoor is now: " + Map.Templedoor);
+	},
+
+	sub_door_goto = function( trigger )
+	{
+		vec = ToVector( trigger.Action );
+
+		//Switchdoor open
+		if ( vec.z > 15 )
+		{
+			Map.Switches.SubAccessDoorSwitch.LimitTeam = (1<<TEAM.AXIS);
+
+			Map.Dooropen = true;
+			Map.Switchdoor = "open";
+		}
+
+		//Door close
+		if ( vec.z < 0 )
+		{
+
+			Map.Doorclose = true;
+			Map.Switchdoor = "closed";
+		}
+
+		Util.MapDebugPrint( "Switchdoor is now: " + Map.Switchdoor, true);
+	},
+
+	lever_goto = function( trigger )
+	{
+		vec = ToVector( trigger.Action );
+
+		//Lever up
+		if ( vec.z > 35 )
+		{
+			sleep(1.0);
+			Map.Lever = "up";
+
+			Map.Switches.SubAccessDoorSwitch.LimitTeam = (1<<TEAM.ALLIES);
+		}
+
+		//Lever down
+		if ( vec.z < 10 )
+		{
+			Map.SwitchOne = true;
+			sleep(1.0);
+			Map.Lever = "down";
+
+			Map.Switches.SubAccessDoorSwitch.LimitTeam = (1<<TEAM.AXIS);
+		}
+
+		Util.MapDebugPrint( "Lever is now: " + Map.Lever, true);
+	},
+
+	lift_switch_goto = function( trigger )
+	{
+		vec = ToVector( trigger.Action );
+
+		//Craneswitch up
+		if ( vec.z > 5 )
+		{
+			sleep(1.0);
+			Map.Craneswitch = "up";
+			Map.Craneback = true;
+
+			if ( Map.Hangar )
+			{
+				Map.Switches.thecraneSwitch.LimitTeam = (1<<TEAM.ALLIES);
+			}
+		}
+
+		//Cranetswitch down
+		if ( vec.z < 2 )
+		{
+			Map.Crane = true;
+			sleep(1.0);
+			Map.Craneswitch = "down";
+
+			if ( Map.Craneback )
+			{
+				Map.Switches.thecraneSwitch.LimitTeam = (1<<TEAM.AXIS);
+			}
+		}
+
+		Util.MapDebugPrint( "Craneswitch is now: " + Map.Craneswitch, true);
+	},
+	
+	truck_at_location = function( trigger )
+	{
+		switch(Map.VehicleLocation)
+		{
+			case 1:
+			{
+				Map.truck_reaches_temple();
+			}
+			case 2:
+			{
+				Map.truck_leaves_temple();
+			}
+			case 3:
+			{
+				Map.truck_reaches_hangar();
+			}
+		}
+		
+		Util.MapDebugPrint("truck at location " + Map.VehicleLocation, true);
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Allied team has constructed the Ridge MG Nest!", Map.Allied_MG42_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "Axis team has constructed the Cliff NG Nest!", Map.Axis_MG42_Built );
+	OnTrigger( "Axis team has built the Temple Rock Barrier!", Map.Cave_Rock_Barrier_Built );
+	OnTrigger( "Axis team has constructed the Outer Rock Barrier!", Map.Rock_Barrier_Built );
+	OnTrigger( "The Truck has been repaired!", Map.Truck_Built );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Axis team has destroyed the Ridge MG Nest!", Map.Allied_MG42_Destroyed );
+	OnTrigger( "The Truck has been damaged!", Map.Truck_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Cliff MG Nest!", Map.Axis_MG42_Destroyed );
+	OnTrigger( "Allied team has destroyed the Temple Rock Barrier!", Map.Cave_Rock_Barrier_Destroyed );
+	OnTrigger( "Allied team has destroyed the Outer Rock Barrier!", Map.Rock_Barrier_Destroyed );
+	OnTrigger( "Allied team has stolen the Idol!", Map.idol_Taken );
+	OnTrigger( "Axis team has returned the Idol!", Map.idol_Returned );
+	OnTrigger( "Allied team taken the Staff of Ra!", Map.staff_Taken );
+	OnTrigger( "Axis team has returned the Staff of Ra!", Map.staff_Returned );
+	OnTrigger( "Allied team has planted the Staff of Ra!", Map.staff_Secured );
+	OnTrigger( "Allied team has secured the Idol!", Map.idol_Secured );
+	OnTrigger( "truck at location", Map.truck_at_location );
+
+	//Moving triggers
+	OnTrigger( "door2_goto", Map.door2_goto );
+	OnTrigger( "lever_goto", Map.lever_goto );
+	OnTrigger( "sub_door_goto", Map.sub_door_goto );
+	OnTrigger( "lift_switch_goto", Map.lift_switch_goto );
+
+	//set offset for better reachable
+	Util.SetGoalOffset( -60, 0, -60, "PLANT_Rock_Barrier" );
+
+	//set up a positional trigger for the truck
+	l1 = OnTriggerRegion(AABB(639.971,4438.978,2.533,860.862,4734.594,79.221), RegionTrigger.VehicleTrigger);
+	l2 = OnTriggerRegion(AABB(1256.037,4423.003,3.684,1409.130,4811.576,89.773), RegionTrigger.VehicleTrigger);
+	l3 = OnTriggerRegion(AABB(5704.771,141.326,-104.875,5989.654,570.469,-26.875), RegionTrigger.VehicleTrigger);
+
+	//set max users for goals
+	Util.SetMaxUsersInProgress( 2, "BUILD.*" );
+	Util.SetMaxUsersInProgress( 2, "PLANT.*" );
+	Util.SetMaxUsersInProgress( 1, "SNIPE.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_.*" );
+	Util.SetMaxUsersInProgress( 1, "ATTACK_.*" );
+
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=120, MaxCampTime=120});
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=60, MaxCampTime=120});
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=30, MaxCampTime=60});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=60, MaxCampTime=120});
+
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+
+	Util.EnableGoal("ROUTE.*"); //enable routing for both teams
+
+	//enable part 1 goals
+	Groups.EnableAllies(Groups.group1);
+	Groups.EnableAxis(Groups.group2);
+
+	MapRoutes =
+	{
+		DEFEND_d_start_1 =
+		{
+			ROUTE_r_axisspawn_1 =
+			{
+				ROUTE_r_axis_exitstairs =
+				{
+					ROUTE_r_axis_exit_1 =
+					{
+						ROUTE_r_watertunnel_1 = { ROUTE_r_watertunnel_2 = {}, },
+					},
+				},
+			},
+		},
+		DEFEND_d_start_3 =
+		{
+			ROUTE_r_axisspawn_1 =
+			{
+				ROUTE_r_axis_exit_2 =
+				{
+					ROUTE_r_split_1 =
+					{
+						ROUTE_r_tunnel_1 =
+						{
+							ROUTE_r_tunnel_split =
+							{
+								ROUTE_r_tunnel_2 ={},
+								ROUTE_r_tunnel_3 ={},
+							},
+						},
+					},
+				},
+			},
+		},
+		MOUNTMG42_Axis_MG42 =
+		{
+			ROUTE_r_axisspawn_1 =
+			{
+				ROUTE_r_axis_exit_2 =
+				{
+					ROUTE_r_split_1 =
+					{
+						ROUTE_r_axis_hill_1 = { ROUTE_r_axis_hill_2 = {}, },
+					},
+				},
+			},
+		},
+
+	};
+
+	//copy some routes
+	MapRoutes.DEFEND_d_start_2 = MapRoutes.DEFEND_d_start_1;
+	MapRoutes.DEFEND_d_start_4 = MapRoutes.DEFEND_d_start_3;
+	MapRoutes.DEFEND_d_start_5 = MapRoutes.DEFEND_d_start_3;
+	MapRoutes.DEFEND_d_start_6 = MapRoutes.DEFEND_d_start_3;
+	MapRoutes.DEFEND_d_start_7 = MapRoutes.DEFEND_d_start_3;
+	MapRoutes.SNIPE_s_axis_hill = MapRoutes.MOUNTMG42_Axis_MG42;
+
+	Util.UpdateSwitchData();
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "Script loaded for Raiders" );
+};
+
+global OnBotJoin = function( bot )
+{
+	 bot.TargetBreakableDist = 100.0;
+};
+global Groups =
+{
+	//Allies part 1
+	group1 =
+	{
+		Map.Artillery_S_ar_al_1,
+		Map.Build_Truck,
+		Map.Flag_staff,
+		Map.Cappoint_cap1,
+		//Map.Build_Allied_MG42,
+		//Map.Mount_Allied_MG42,
+		Map.Plant_Cave_Rock_Barrier,
+		Map.Repair_Allied_MG42,
+		"ESCORT_truck",
+		"ATTACK_a_start_.*",
+	},
+
+	//Axis part 1
+	group2 =
+	{
+		Map.Artillery_S_ar_ax_1,
+		//Map.Build_Axis_MG42,
+		Map.Build_Cave_Rock_Barrier,
+		Map.Mobile_MG42_mg_axis_1,
+		//Map.Mount_Axis_MG42,
+		Map.Repair_Axis_MG42,
+		"DEFEND_d_start_.*",
+		"SNIPE_s_axis_hill",
+		"SNIPE_s_axis_1",
+	},
+
+	//Allies part 2
+	group3 =
+	{
+		Map.Build_Truck,
+		"ESCORT_truck",
+		Map.Flag_idol,
+		Map.Cappoint_hide,
+		Map.Plant_Rock_Barrier,
+		"ATTACK_a_temple_.*",
+	},
+
+	//Axis part 2
+	group4 =
+	{
+		Map.Build_Rock_Barrier,
+		"DEFEND_d_temple_.*",
+	},
+
+	//Allies part 3
+	group5 =
+	{
+		"ESCORT_truck",
+		Map.Build_Truck,
+		"ATTACK_a_hangar_.*",
+	},
+
+	//Axis part 3
+	group6 =
+	{
+		Map.Mount_766,
+		Map.Mount_786,
+		Map.Repair_766,
+		Map.Repair_786,
+		"DEFEND_d_hangar_.*",
+	},
+
+	//Allies part 4
+	group7 =
+	{
+		Map.Plant_Axis_Command_Post,
+		Map.Mobile_MG42_al_switch_1,
+		"ATTACK_a_switch_.*",
+	},
+
+	//Axis part 4
+	group8 =
+	{
+		Map.Build_Axis_Command_Post,
+		Map.Mobile_MG42_ax_switch_1,
+		"DEFEND_d_switch_.*",
+	},
+
+	group9 =
+	{
+		Map.Build_Truck,
+		"ESCORT_truck",
+		Map.Flag_idol,
+		Map.Cappoint_cap2,
+		Map.Plant_Rock_Barrier,
+		"ATTACK_a_temple_.*",
+	},
+
+	EnableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, goal );
+			Util.MapDebugPrint("EnableAllies: enabling " + goal, true);
+		}
+	},
+
+	EnableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, goal );
+			Util.MapDebugPrint("EnableAxis: enabling " + goal, true);
+		}
+	},
+
+	DisableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, goal );
+			Util.MapDebugPrint("DisableAllies: disabling " + goal, true);
+		}
+	},
+
+	DisableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, goal );
+			Util.MapDebugPrint("DisableAxis: disabling " + goal, true);
+		}
+	},
+};

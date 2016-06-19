@@ -1,0 +1,1484 @@
+global Map =
+{
+	ShowMovers = false,
+	Debug = false,
+	//set Talk to false if you don't want the Allied bots to cheer after victory:
+	Talk = true,
+	DefendingTeam = TEAM.AXIS,
+
+	Movers =
+	{
+		//retain these movers so we can make the bots ignore the
+		//corresponding targets later on
+		"MOVER_church_rubble",
+		"MOVER_at_gun",
+	},
+
+	Switches =
+	{
+		AT_GUN =
+		{
+			Enabled = true,
+			WaypointName = "AT Gun Switch",
+			LimitTeam = 0, // disabled initially.
+			LimitClass = (1<<CLASS.SOLDIER),
+		},
+	},
+
+	Build_tankbarrier = "BUILD_Tank_Barrier",
+	Build_side_entrance = "BUILD_Side_Entrance",
+	Build_lib_side_wall = "BUILD_Library_Side_Wall",
+	Build_boatbarrier2 = "BUILD_Boat_Barrier_2",
+	Build_allied_radio_built = "BUILD_Allied_Command_Post",
+	Build_axischurchmg42nest = "BUILD_Church_MG",
+	BUILD_AT_Gun = "BUILD_AT_Gun",
+	Build_boatbarrier1 = "BUILD_Boat_Barrier_1",
+	Build_tank_construct = "BUILD_Tank",
+	Build_axislibmg42nest = "BUILD_Library_MG",
+	Build_boat_construct = "BUILD_Speedboat",
+	Destroy_axischurchmg42nest = "PLANT_Church_MG",
+	Destroy_side_entrance = "PLANT_Side_Entrance",
+	Destroy_axis_radio_built = "PLANT_Axis_Command_Post",
+	Destroy_boatbarrier2 = "PLANT_Boat_Barrier_2",
+	Destroy_allied_radio_built = "PLANT_Allied_Command_Post",
+	Destroy_footbridge = "PLANT_Foot_Bridge",
+	Destroy_gun_construct = "PLANT_AT_Gun",
+	Destroy_tankbarrier = "PLANT_Tank_Barrier",
+	Destroy_axislibmg42nest = "PLANT_Library_MG",
+	Destroy_lib_side_wall = "PLANT_Library_Side_Wall",
+	Destroy_boatbarrier1 = "PLANT_Boat_Barrier_1",
+	Mount_alliedcampomg42 = "MOUNTMG42_Campo_MG",
+	Mount_axischurchmg42 = "MOUNTMG42_Church_MG",
+	Mount_axislibmg42 = "MOUNTMG42_Library_MG",
+	Repair_axischurchmg42 = "REPAIRMG42_Church_MG",
+	Repair_axislibmg42 = "REPAIRMG42_Library_MG",
+	Repair_alliedcampomg42 = "REPAIRMG42_Campo_MG",
+	Mover_tank = "MOVER_tank",
+	Mover_boat = "MOVER_boat",
+	Flag_relic = "FLAG_relic",
+	Flag_relic_dropped = "FLAG_relic_dropped",
+	Cappoint_429 = "CAPPOINT_429",
+
+	// region triggers for bot talk
+	iw1 = 0,
+	iw2 = 0,
+
+	//Status' for conditionals
+	TankBarrierStatus = 0, //not built
+	TankInView = false,
+	tank_past_gun = false,
+	tank_past_gate = false,
+	tank_near_barrier = false,
+	GunStatus = 1, //built
+	RelicSecured = false,
+	BoatStart = true,
+	FirstCorner = false,
+	FirstCornerB = false,
+	SecondCorner = false,
+	SecondCornerB = false,
+	FinalTurn = false,
+
+
+	//Dyno Counters
+	TankBarrierDyno = 0,
+
+	tank_construct_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "tank_construct_Built" );
+	},
+
+	boatbarrier1_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.RelicSecured )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Boat_Barrier_2" );
+		}
+
+		Util.MapDebugPrint( "boatbarrier1_Built" );
+	},
+
+	boatbarrier1_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "boatbarrier1_Planted" );
+	},
+
+	boatbarrier1_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "boatbarrier1_Destroyed" );
+	},
+
+	boatbarrier2_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "boatbarrier2_Built" );
+	},
+
+	boatbarrier2_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "boatbarrier2_Planted" );
+	},
+
+	boatbarrier2_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "boatbarrier2_Destroyed" );
+	},
+
+	tankbarrier_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.TankBarrierStatus = 1;
+
+		Util.MapDebugPrint( "tankbarrier_Built" );
+	},
+
+	tankbarrier_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.TankBarrierStatus = 0;
+
+		//reset the dyno counter
+		Map.TankBarrierDyno = 0;
+
+		Util.MapDebugPrint( "tankbarrier_Destroyed" );
+	},
+
+	lib_side_wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//enable the route node
+		Util.EnableGoal("ROUTE_lib_deck");
+		Util.EnableGoal("ROUTE_lib_deck2");
+
+		Util.MapDebugPrint( "lib_side_wall_Destroyed" );
+	},
+
+
+	side_entrance_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "side_entrance_Destroyed" );
+	},
+
+	tank_past_AT = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.TankInView = false;
+		Map.tank_past_gun = true;
+		Map.Switches.AT_GUN.LimitTeam = 0;
+
+		//shift the action
+		Groups.DisableAllies(Groups.group1);
+		Groups.DisableAxis(Groups.group2);
+		Groups.EnableAllies(Groups.group3);
+		Groups.EnableAxis(Groups.group4);
+
+		Util.IgnoreTargetGoalAllBots("MOVER_at_gun");
+		Util.MapDebugPrint( "tank_past_AT" );
+	},
+
+	tank_past_Barrier = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.tank_near_barrier = false;
+
+		//shift the action
+		Groups.DisableAllies(Groups.group5);
+		Groups.DisableAxis(Groups.group6);
+		Groups.EnableAllies(Groups.group7);
+		Groups.EnableAxis(Groups.group8);
+
+		Util.MapDebugPrint( "tank_past_Barrier" );
+	},
+
+	tank_in_sight = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.TankInView = true;
+
+		if ( Map.GunStatus == 1 )
+			{ Map.Switches.AT_GUN.LimitTeam = (1<<TEAM.AXIS); }
+
+		//start the thread for the next position trigger
+		Util.OnTriggerPosition( "MOVER_tank", "gatetrigger", 200.0,
+			Map.tank_at_gate );
+
+		Util.MapDebugPrint( "tank_in_sight" );
+	},
+
+	tank_hit = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Switches.AT_GUN.LimitTeam = 0;
+		sleep(10);
+		if ( Map.TankInView && Map.GunStatus == 1 )
+			{ Map.Switches.AT_GUN.LimitTeam = (1<<TEAM.AXIS); }
+
+		Util.MapDebugPrint( "tank_hit" );
+	},
+
+	tank_missed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Switches.AT_GUN.LimitTeam = 0;
+		sleep(10);
+		if ( Map.TankInView && Map.GunStatus == 1 )
+			{ Map.Switches.AT_GUN.LimitTeam = (1<<TEAM.AXIS); }
+
+		Util.MapDebugPrint( "tank_missed" );
+	},
+
+	gun_construct_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.GunStatus = 1;
+
+		if ( Map.TankInView )
+			{ Map.Switches.AT_GUN.LimitTeam = (1<<TEAM.AXIS); }
+
+		Util.MapDebugPrint( "gun_construct_Built" );
+	},
+
+	gun_construct_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.GunStatus = 0;
+
+		if ( Map.TankInView )
+			{ Map.Switches.AT_GUN.LimitTeam = 0; }
+
+		//Center and reposition the goal for reachability
+		Util.SetPositionGoal( "BUILD_AT_Gun", "MOVER_at_gun" );
+		Util.SetGoalOffset( 40, 40, 0, "BUILD_AT_Gun" );
+
+		Util.MapDebugPrint( "gun_construct_Destroyed" );
+	},
+
+	tank_at_gate = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//shift the axis early
+		Groups.DisableAxis(Groups.group4);
+		Groups.EnableAxis(Groups.group6);
+
+		//start the thread for the next positional trigger
+		Util.OnTriggerPosition( "MOVER_tank", "tbarrier", 200.0,
+			Map.tank_at_barrier );
+
+		Util.MapDebugPrint( "tank_at_gate" );
+	},
+
+	allies_captured_outpost = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.tank_past_gate = true;
+
+		//shift the allies
+		Groups.DisableAllies(Groups.group3);
+		Groups.EnableAllies(Groups.group5);
+
+		Util.MapDebugPrint( "allies_captured_outpost" );
+	},
+
+	tank_at_barrier = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.tank_near_barrier = true;
+
+		//focus on destroying barrier rather than building tank
+		if ( Map.TankBarrierStatus > 0 && Map.TankBarrierDyno < 1 )
+			{ SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Tank" ); }
+		else
+			{ SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Tank" ); }
+
+		Util.MapDebugPrint( "tank_at_barrier" );
+	},
+
+	tank_barrier_planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.TankBarrierDyno += 1;
+
+		//dyno is down, repair the tank if needed
+		if ( Map.tank_near_barrier )
+			{ SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Tank"); }
+
+		Util.MapDebugPrint( "tank_barrier_planted" );
+	},
+
+	tank_barrier_defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.TankBarrierDyno -= 1;
+
+		//no more dyno, back to focusing on the barrier
+		if ( Map.TankBarrierDyno < 1 && Map.tank_near_barrier )
+			{ SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Tank"); }
+
+		Util.MapDebugPrint( "tank_barrier_defused" );
+	},
+
+	library_doors_destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//shift the action
+		Groups.DisableAllies(Groups.group7);
+		Groups.DisableAxis(Groups.group8);
+		Groups.EnableAllies(Groups.group9);
+		Groups.EnableAxis(Groups.group10);
+
+		Util.DisableGoal("MOUNT_tank");
+
+		Map.iw1 = OnTriggerRegion( AABB(4125.973,4134.436,-231.448,4781.629,5291.188,210.477), RegionTrigger.IntrusionWarning );
+		Map.iw2 = OnTriggerRegion( AABB(4378.506,3970.378,-246.310,4580.530,4146.209,10.023), RegionTrigger.IntrusionWarning );
+
+		Util.MapDebugPrint( "library_doors_destroyed" );
+	},
+
+	relic_stolen = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//shift the action
+		Groups.DisableAllies(Groups.group9);
+		Groups.DisableAxis(Groups.group10);
+		Groups.EnableAllies(Groups.group11);
+		Groups.EnableAxis(Groups.group12);
+
+		Util.MapDebugPrint( "relic_stolen" );
+	},
+
+	relic_returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//shift the action
+		Groups.DisableAllies(Groups.group11);
+		Groups.DisableAxis(Groups.group12);
+		Groups.EnableAllies(Groups.group9);
+		Groups.EnableAxis(Groups.group10);
+
+		Util.MapDebugPrint( "relic_returned" );
+	},
+
+	relic_secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.RelicSecured = true;
+
+		//shift the action
+		Groups.DisableAllies(Groups.group11);
+		Groups.DisableAxis(Groups.group12);
+		Groups.EnableAllies(Groups.group13);
+		Groups.EnableAxis(Groups.group14);
+
+		DeleteTriggerRegion( Map.iw1 );
+		DeleteTriggerRegion( Map.iw2 );
+
+		Util.MapDebugPrint( "relic_secured" );
+	},
+
+	boat_stolen = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.IgnoreTargetGoalAllBots("MOVER_tank");
+
+		//set up the next position trigger
+		Util.OnTriggerPosition( "MOVER_boat", "passing_cp", 200.0,
+			Map.boat_past_cp );
+
+		Util.MapDebugPrint( "boat_stolen" );
+	},
+
+	boat_construct_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "boat_construct_Built" );
+	},
+
+	boat_construct_Damaged = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//center it every time it is damaged
+		Util.SetPositionGoal( "BUILD_Speedboat", "MOVER_boat" );
+
+		//bleh
+		if ( Map.BoatStart )
+			{ Util.SetGoalOffset( -20, 0, 60, "BUILD_Speedboat" ); }
+		else if ( Map.FirstCorner )
+			{ Util.SetGoalOffset( -30, 40, 60, "BUILD_Speedboat" ); }
+		else if ( Map.FirstCornerB )
+			{ Util.SetGoalOffset( 0, 35, 60, "BUILD_Speedboat" ); }
+		else if ( Map.SecondCorner )
+			{ Util.SetGoalOffset( 40, 35, 60, "BUILD_Speedboat" ); }
+		else if ( Map.SecondCornerB )
+			{ Util.SetGoalOffset( 40, 0, 60, "BUILD_Speedboat" ); }
+		else if ( Map.FinalTurn )
+			{ Util.SetGoalOffset( 0, 40, 60, "BUILD_Speedboat" ); }
+
+		Util.MapDebugPrint( "boat_construct_Damaged" );
+	},
+
+	boat_past_cp = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+
+		//set up the next position trigger
+		Util.OnTriggerPosition( "MOVER_boat", "firstcorner", 200.0, Map.boat_at_first_corner );
+
+		//shift the action
+		Groups.DisableAllies(Groups.group13);
+		Groups.DisableAxis(Groups.group14);
+		Groups.EnableAllies(Groups.group15);
+		Groups.EnableAxis(Groups.group16);
+
+		Util.MapDebugPrint( "boat_past_cp" );
+	},
+
+	boat_at_first_corner = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.BoatStart = false;
+		Map.FirstCorner = true;
+
+		//set up the next position trigger
+		Util.OnTriggerPosition( "MOVER_boat", "firstcornerb", 150.0,
+			Map.boat_at_first_cornerb );
+
+		Util.MapDebugPrint("boat at first corner");
+	},
+
+	boat_at_second_corner = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.FirstCornerB = false;
+		Map.SecondCorner = true;
+
+		//set up the next position trigger
+		Util.OnTriggerPosition( "MOVER_boat", "secondcornerb", 150.0,
+			Map.boat_at_second_cornerb );
+
+		Util.MapDebugPrint("boat at second corner");
+	},
+
+	boat_at_first_cornerb = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.FirstCorner = false;
+		Map.FirstCornerB = true;
+
+		//set up the next position trigger
+		Util.OnTriggerPosition( "MOVER_boat", "bbarrier1_marker", 200.0,
+			Map.boat_at_bbarrier1 );
+
+		Util.MapDebugPrint("boat at first cornerb");
+	},
+
+	boat_at_second_cornerb = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.SecondCorner = false;
+		Map.SecondCornerB = true;
+
+		//set up the next position trigger
+		Util.OnTriggerPosition( "MOVER_boat", "bbarrier2_marker", 200.0,
+			Map.boat_at_bbarrier2 );
+
+		Util.MapDebugPrint("boat at second cornerb");
+	},
+
+	boat_at_final_turn = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.SecondCornerB = false;
+		Map.FinalTurn = true;
+
+		Util.MapDebugPrint("boat at final turn");
+	},
+
+	boat_at_barrier1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//shift the action
+		Groups.DisableAllies(Groups.group15);
+		Groups.DisableAxis(Groups.group16);
+		Groups.EnableAllies(Groups.group17);
+		Groups.EnableAxis(Groups.group18);
+
+		Util.MapDebugPrint( "boat_at_bbarier1" );
+	},
+
+	boat_past_barrier1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//set up the next position trigger
+		Util.OnTriggerPosition( "MOVER_boat", "secondcorner", 200.0,
+			Map.boat_at_second_corner );
+
+		//shift the action
+		Groups.DisableAllies(Groups.group17);
+		Groups.DisableAxis(Groups.group18);
+		Groups.EnableAllies(Groups.group19);
+		Groups.EnableAxis(Groups.group20);
+
+		Util.MapDebugPrint( "boat_past_barrier1" );
+	},
+
+	boat_at_bbarrier2 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//set up the next position trigger
+		Util.OnTriggerPosition( "MOVER_boat", "finalturn", 200.0,
+			Map.boat_at_final_turn );
+
+		Util.MapDebugPrint( "boat_at_bbarier2" );
+	},
+
+	boat_past_barrier2 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "boat_past_barrier2" );
+	},
+
+	AlliesWon = function( trigger )
+	{
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint("AlliesWon");
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "Boat Barrier #1 has been constructed.", Map.boatbarrier1_Built );
+	OnTrigger( "The Tank has been repaired", Map.tank_construct_Built );
+	OnTrigger( "Boat Barrier #2 has been constructed.", Map.boatbarrier2_Built );
+	OnTrigger( "Tank Barrier has been constructed.", Map.tankbarrier_Built );
+	OnTrigger( "The Boat has been repaired!", Map.boat_construct_Built );
+	OnTrigger( "The AT Gun has been repaired!", Map.gun_construct_Built );
+	OnTrigger( "Planted at Boat Barrier #1.", Map.boatbarrier1_Planted );
+	OnTrigger( "Boat Barrier #1 has been destroyed.", Map.boatbarrier1_Destroyed );
+	OnTrigger( "Allies have destroyed the Library Side Wall!", Map.lib_side_wall_Destroyed );
+	OnTrigger( "Planted at Boat Barrier #2.", Map.boatbarrier2_Planted );
+	OnTrigger( "Boat Barrier #2 has been destroyed.", Map.boatbarrier2_Destroyed );
+	OnTrigger( "Tank Barrier has been destroyed.", Map.tankbarrier_Destroyed );
+	OnTrigger( "Allies have destroyed the Side Entrance!", Map.side_entrance_Destroyed );
+	OnTrigger( "The AT Gun has been damaged!", Map.gun_construct_Destroyed );
+	OnTrigger( "The Boat has been damaged!", Map.boat_construct_Damaged );
+	OnTrigger( "The Tank is past the Tank Barrier!", Map.tank_past_Barrier );
+	OnTrigger( "Allied team has destroyed the Library Doors!", Map.library_doors_destroyed );
+	OnTrigger( "Allies have stolen The Relic!", Map.relic_stolen );
+	OnTrigger( "Flag returned relic!", Map.relic_returned );
+	OnTrigger( "Allied team has secured the Relic!", Map.relic_secured );
+	OnTrigger( "The Allies have stolen the boat!", Map.boat_stolen );
+	OnTrigger( "The Boat is past Boat Barrier #1!", Map.boat_past_barrier1 );
+	OnTrigger( "The Boat is past Boat Barrier #2!", Map.boat_past_barrier2 );
+	OnTrigger( "Planted at the Tank Barrier.", Map.tank_barrier_planted );
+	OnTrigger( "Defused at the Tank Barrier.", Map.tank_barrier_defused );
+	OnTrigger( "AT Gun fired and hit the tank!", Map.tank_hit );
+	OnTrigger( "AT Gun fired and missed the tank!", Map.tank_missed );
+	OnTrigger( "Allied team has captured the Outpost!", Map.allies_captured_outpost );
+	OnTrigger( "Allied team escaped with the Relic!", Map.AlliesWon );
+
+	//set up a positional trigger for the tank
+	Util.OnTriggerPosition( "MOVER_tank", "tank_route2", 200.0, Map.tank_in_sight );
+	Util.OnTriggerPosition( "MOVER_tank", "Past_AT", 200.0, Map.tank_past_AT );
+
+
+	//remove the truck as a goal
+	Util.RemoveGoal("MOVER_truck");
+
+	//set up the switch (AT gun)
+	Util.UpdateSwitchData();
+
+	//offset goals for reachability
+	Util.SetGoalOffset( 0, -75, 0, "PLANT_Tank_Barrier" );
+	Util.SetGoalOffset( 0, 0, 125, "PLANT_Boat_Barrier_1" );
+	Util.SetGoalOffset( 0, 0, 120, "PLANT_Boat_Barrier_2" );
+	Util.SetGoalOffset( 10, 10, -30, "BUILD_Boat_Barrier_2" );
+	Util.SetGoalPosition( 1504, 2623, -149, "PLANT_Foot_Bridge" );
+	Util.SetGoalOffset( 0, 0, -50, "PLANT_Foot_Bridge" );
+	Util.SetGoalOffset( 0, 35, 0, "BUILD_Tank_Barrier" );
+	Util.SetGoalPosition( 4741, 2642, -183, "BUILD_Library_MG" );
+	Util.SetGoalPosition( 1613.363, 2579.845, -190.875, "BUILD_Foot_Bridge" );
+	Util.SetGoalPosition( 1832.413, -1735.810, -215.875, "PLANT_Boat_Barrier_1" );
+	Util.SetGoalPosition( 1367.288, 1403.951, -199.875, "PLANT_Boat_Barrier_2" );
+	Util.SetGoalPosition( 2004.391, 31.875, -129.861, "PLANT_Tank_Barrier" );
+
+	//set max users for goals
+	Util.SetMaxUsersInProgress( 1, "GRENADE_.*" );
+	Util.SetMaxUsersInProgress( 1, "MOBILEM.*" );
+	Util.SetMaxUsersInProgress( 2, "BUILD.*" );
+	Util.SetMaxUsersInProgress( 2, "PLANT.*" );
+	Util.SetMaxUsersInProgress( 1, "SNIPE.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_at.*" );
+	Util.SetMaxUsersInProgress( 1, "ATTACK_at.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_libdoor.*" );
+	Util.SetMaxUsersInProgress( 1, "ATTACK_libdoor.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_relic.*" );
+	Util.SetMaxUsersInProgress( 2, "MOUNTMG42.*" );
+	Util.SetMaxUsersInProgress( 6, "FLAG_.*" );
+
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=30, MaxCampTime=120} );
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=15, MaxCampTime=120} );
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=5, MaxCampTime=40} );
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=15, MaxCampTime=50} );
+	SetGoalPriority( "ATTACK_deliver.*", 0.6);
+	SetGoalPriority( "DEFEND_deliver.*", 0.6);
+	SetGoalPriority( "DEFEND_relic_defend_1", 0.6);
+	SetGoalPriority( "DEFEND_relic_defend_2", 0.6);
+	SetGoalPriority( "DEFEND_relic_defend_3", 0.6);
+	SetGoalPriority( "DEFEND_relic_defend_13", 0.6);
+	SetGoalPriority( "DEFEND_relic_defend_14", 0.6);
+	SetGoalPriority( "DEFEND_cz1_defend.*", 0.6);
+	SetGoalPriority( "DEFEND_bb1_defend.*", 0.6);
+	SetGoalPriority( "ATTACK_cz1_attack.*", 0.6);
+	SetGoalPriority( "ATTACK_bb1_attack.*", 0.6);
+	SetGoalPriority( "DEFEND_bb2_defend.*", 0.6);
+	SetGoalPriority( "ATTACK_bb2_attack.*", 0.6);
+
+	//clear all goals
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+
+	//enable phase 1 goals
+	Groups.EnableAllies(Groups.group1);
+	Groups.EnableAxis(Groups.group2);
+
+	//enable goals that can be active the entire round
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_429" );
+	Util.EnableGoal("ROUTE.*"); //enables for both teams
+
+	// set max. users
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42.*" );
+	Util.SetMaxUsers( 1, "REPAIRMG42_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "SWITCH_.*" );
+	Util.SetMaxUsers( 1, "BUILD_.*" );
+	Util.SetMaxUsers( 1, "PLANT_.*" );
+
+	//disable some routes
+	Util.DisableGoal("ROUTE_lib_deck");
+
+	MapRoutes =
+	{
+		ATTACK_at_attack_1 =
+		{
+			ROUTE_AllySpawn =
+			{
+				ROUTE_cp_route =
+				{
+					ROUTE_cp_right_split = {},
+					ROUTE_alley2 = {},
+					ROUTE_balcony_stairs =
+					{
+						ROUTE_wood_stairs = { ROUTE_gate_flank = {}, },
+					},
+				},
+				ROUTE_alley =
+				{
+					ROUTE_south_caffe = {},
+					ROUTE_alley3 =
+					{
+						ROUTE_north_caffe = {},
+						ROUTE_wood_stairs = { ROUTE_gate_flank = {}, },
+					},
+				},
+				ROUTE_tank_route =
+				{
+					Weight = 2,
+					ROUTE_south_caffe = {},
+					ROUTE_tank_route2 =
+					{
+						ROUTE_tank_route3 = {},
+						ROUTE_north_alley =
+						{
+							ROUTE_north_alley2 = { ROUTE_north_alley3 = {}, },
+						},
+					},
+				},
+			},
+		},
+		DEFEND_at_defend_1 =
+		{
+			ROUTE_HotelSpawn =
+			{
+				ROUTE_sw_exit = {},
+				ROUTE_nw_exit = {},
+				ROUTE_south_exit =
+				{
+					ROUTE_gate_flank = {},
+					ROUTE_tunnel = {},
+				},
+			},
+		},
+		DEFEND_at_defend_9 =
+		{
+			ROUTE_HotelSpawn =
+			{
+				ROUTE_nw_exit =
+				{
+					ROUTE_north_alley3 =
+					{
+						ROUTE_north_alley2 =
+						{
+							ROUTE_north_alley = {},
+						},
+					},
+				},
+			},
+		},
+		DEFEND_gate_defend_1 =
+		{
+			ROUTE_HotelSpawn =
+			{
+				ROUTE_sw_exit = {},
+				ROUTE_south_exit = {},
+			},
+		},
+		ATTACK_gate_attack_1 =
+		{
+			ROUTE_AllySpawn =
+			{
+				ROUTE_cp_route =
+				{
+					ROUTE_cp_right_split = {},
+					ROUTE_alley2 = {},
+					ROUTE_balcony_stairs =
+					{
+						ROUTE_wood_stairs = { ROUTE_gate_flank = {}, },
+					},
+				},
+				ROUTE_alley =
+				{
+					ROUTE_south_caffe = {},
+					ROUTE_alley3 =
+					{
+						ROUTE_north_caffe = {},
+						ROUTE_wood_stairs = { ROUTE_gate_flank = {}, },
+					},
+				},
+				ROUTE_tank_route =
+				{
+					Weight = 2,
+					ROUTE_south_caffe = {},
+					ROUTE_tank_route2 = {},
+				},
+			},
+		},
+		DEFEND_tbarrier_defend_1 =
+		{
+			ROUTE_AxisSpawn =
+			{
+				ROUTE_canal = { Weight = 3, },
+				ROUTE_rs_north =
+				{
+					Weight = 2,
+					ROUTE_bridge =
+					{
+						ROUTE_bbarrier2_route = { ROUTE_bbarrier2_route2 = {}, },
+						ROUTE_ha_route = {},
+					},
+				},
+			},
+		},
+		ATTACK_tbarrier_attack_1 =
+		{
+			ROUTE_HotelSpawn =
+			{
+				ROUTE_bbarrier2_route = {},
+				ROUTE_south_exit = {},
+			},
+		},
+		DEFEND_libdoor_defend_1 =
+		{
+			ROUTE_AxisSpawn =
+			{
+				ROUTE_canal = {},
+				ROUTE_rs_north =
+				{
+					Weight = 2,
+					ROUTE_bridge = {},
+				},
+			},
+		},
+		ATTACK_libdoor_attack_1 =
+		{
+			ROUTE_HotelSpawn =
+			{
+				ROUTE_south_exit =
+				{
+					Weight = 2,
+					ROUTE_tr1 = {},
+					ROUTE_tr2 = {},
+				},
+				ROUTE_bbarrier2_route = {},
+				ROUTE_fb_route = {},
+			},
+		},
+		DEFEND_relic_defend_1 =
+		{
+			ROUTE_AxisSpawn =
+			{
+				ROUTE_canal = { ROUTE_ha_route = {}, },
+				ROUTE_rs_north = { Weight = 2, },
+				ROUTE_rs_alley =
+				{
+					Weight = 2,
+					ROUTE_rs_alley2 = {},
+				},
+			},
+		},
+		FLAG_relic =
+		{
+			ROUTE_HotelSpawn =
+			{
+				ROUTE_south_exit =
+				{
+					Weight = 2,
+					ROUTE_tr1 = {},
+					ROUTE_tr2 = {},
+				},
+				ROUTE_bbarrier2_route = {},
+				ROUTE_fb_route =
+				{
+					ROUTE_fb_route2 =
+					{
+						ROUTE_fb_route3 =
+						{
+							ROUTE_fb_route4 =
+							{
+								ROUTE_lib_deck = { Weight = 3, },
+								ROUTE_sw_corner = {},
+							},
+						},
+					},
+				},
+			},
+		},
+		CAPPOINT_429 =
+		{
+			ROUTE_relicgrab =
+			{
+				ROUTE_spiral =
+				{
+					Weight = 3,
+					ROUTE_lib_deck2 = {},
+				},
+				ROUTE_sw_corner = {},
+			},
+		},
+		DEFEND_deliver_defend_1 =
+		{
+			ROUTE_AxisSpawn =
+			{
+				ROUTE_rs_north = {},
+				ROUTE_rs_alley =
+				{
+					ROUTE_rs_alley2 = {},
+				},
+			},
+		},
+		ATTACK_deliver_attack_1 =
+		{
+			ROUTE_HotelSpawn =
+			{
+				ROUTE_south_exit =
+				{
+					Weight = 2,
+					ROUTE_tr1 = {},
+					ROUTE_tr2 = {},
+				},
+				ROUTE_bbarrier2_route = { Weight = 2, },
+				ROUTE_fb_route =
+				{
+					ROUTE_fb_route2 =
+					{
+						ROUTE_fb_route3 = { ROUTE_fb_route4 = {}, },
+					},
+				},
+			},
+		},
+		DEFEND_cz1_defend_1 =
+		{
+			ROUTE_AxisSpawn =
+			{
+				ROUTE_cz1_door1 = {},
+				ROUTE_cz1_door2 = {},
+			},
+		},
+		ATTACK_cz1_attack_1 =
+		{
+			ROUTE_HotelSpawn =
+			{
+				ROUTE_sink = {},
+				ROUTE_tr3 = {},
+			},
+		},
+		DEFEND_bb2_defend_1 =
+		{
+			ROUTE_AxisSpawn =
+			{
+				ROUTE_bridge =
+				{
+					Weight = 3,
+					ROUTE_bbarrier2_route = {},
+				},
+				ROUTE_canal = { ROUTE_tr1 = {}, },
+			},
+		},
+		ATTACK_bb2_attack_1 =
+		{
+			ROUTE_HotelSpawn =
+			{
+				ROUTE_sidewall = {},
+				ROUTE_south_exit = { ROUTE_bbarrier2_route = {}, },
+			},
+		},
+	};
+
+	//copy some routes
+	MapRoutes.ATTACK_at_attack_2 = MapRoutes.ATTACK_at_attack_1;
+	MapRoutes.ATTACK_at_attack_3 = MapRoutes.ATTACK_at_attack_1;
+	MapRoutes.ATTACK_at_attack_4 = MapRoutes.ATTACK_at_attack_1;
+	MapRoutes.ATTACK_at_attack_5 = MapRoutes.ATTACK_at_attack_1;
+	MapRoutes.ATTACK_at_attack_6 = MapRoutes.ATTACK_at_attack_1;
+	MapRoutes.ATTACK_at_attack_7 = MapRoutes.ATTACK_at_attack_1;
+	MapRoutes.ATTACK_at_attack_8 = MapRoutes.ATTACK_at_attack_1;
+	MapRoutes.ATTACK_at_attack_9 = MapRoutes.ATTACK_at_attack_1;
+	MapRoutes.ATTACK_at_attack_10 = MapRoutes.ATTACK_at_attack_1;
+	MapRoutes.ATTACK_at_attack_11 = MapRoutes.ATTACK_at_attack_1;
+	MapRoutes.ATTACK_at_attack_12 = MapRoutes.ATTACK_at_attack_1;
+	MapRoutes.ATTACK_at_attack_13 = MapRoutes.ATTACK_at_attack_1;
+	MapRoutes.ATTACK_at_attack_14 = MapRoutes.ATTACK_at_attack_1;
+	MapRoutes.ATTACK_at_attack_15 = MapRoutes.ATTACK_at_attack_1;
+	MapRoutes.DEFEND_at_defend_2 = MapRoutes.DEFEND_at_defend_1;
+	MapRoutes.DEFEND_at_defend_3 = MapRoutes.DEFEND_at_defend_1;
+	MapRoutes.DEFEND_at_defend_4 = MapRoutes.DEFEND_at_defend_1;
+	MapRoutes.DEFEND_at_defend_5 = MapRoutes.DEFEND_at_defend_1;
+	MapRoutes.DEFEND_at_defend_6 = MapRoutes.DEFEND_at_defend_1;
+	MapRoutes.DEFEND_at_defend_7 = MapRoutes.DEFEND_at_defend_1;
+	MapRoutes.DEFEND_at_defend_8 = MapRoutes.DEFEND_at_defend_1;
+	MapRoutes.DEFEND_at_defend_10 = MapRoutes.DEFEND_at_defend_1;
+	MapRoutes.DEFEND_at_defend_11 = MapRoutes.DEFEND_at_defend_1;
+	MapRoutes.DEFEND_at_defend_12 = MapRoutes.DEFEND_at_defend_1;
+	MapRoutes.DEFEND_at_defend_13 = MapRoutes.DEFEND_at_defend_1;
+	MapRoutes.DEFEND_at_defend_14 = MapRoutes.DEFEND_at_defend_1;
+	MapRoutes.DEFEND_at_defend_15 = MapRoutes.DEFEND_at_defend_9;
+	MapRoutes.DEFEND_gate_defend_2 = MapRoutes.DEFEND_gate_defend_1;
+	MapRoutes.DEFEND_gate_defend_3 = MapRoutes.DEFEND_gate_defend_1;
+	MapRoutes.DEFEND_gate_defend_4 = MapRoutes.DEFEND_gate_defend_1;
+	MapRoutes.DEFEND_gate_defend_5 = MapRoutes.DEFEND_gate_defend_1;
+	MapRoutes.DEFEND_gate_defend_6 = MapRoutes.DEFEND_gate_defend_1;
+	MapRoutes.DEFEND_gate_defend_7 = MapRoutes.DEFEND_gate_defend_1;
+	MapRoutes.ATTACK_gate_attack_2 = MapRoutes.ATTACK_gate_attack_1;
+	MapRoutes.ATTACK_gate_attack_3 = MapRoutes.ATTACK_gate_attack_1;
+	MapRoutes.ATTACK_gate_attack_4 = MapRoutes.ATTACK_gate_attack_1;
+	MapRoutes.ATTACK_gate_attack_5 = MapRoutes.ATTACK_gate_attack_1;
+	MapRoutes.ATTACK_gate_attack_6 = MapRoutes.ATTACK_gate_attack_1;
+	MapRoutes.ATTACK_gate_attack_7 = MapRoutes.ATTACK_gate_attack_1;
+	MapRoutes.DEFEND_tbarrier_defend_2 = MapRoutes.DEFEND_tbarrier_defend_1;
+	MapRoutes.DEFEND_tbarrier_defend_3 = MapRoutes.DEFEND_tbarrier_defend_1;
+	MapRoutes.DEFEND_tbarrier_defend_4 = MapRoutes.DEFEND_tbarrier_defend_1;
+	MapRoutes.DEFEND_tbarrier_defend_5 = MapRoutes.DEFEND_tbarrier_defend_1;
+	MapRoutes.DEFEND_tbarrier_defend_6 = MapRoutes.DEFEND_tbarrier_defend_1;
+	MapRoutes.DEFEND_tbarrier_defend_7 = MapRoutes.DEFEND_tbarrier_defend_1;
+	MapRoutes.DEFEND_tbarrier_defend_8 = MapRoutes.DEFEND_tbarrier_defend_1;
+	MapRoutes.ATTACK_tbarrier_attack_2 = MapRoutes.ATTACK_tbarrier_attack_1;
+	MapRoutes.ATTACK_tbarrier_attack_3 = MapRoutes.ATTACK_tbarrier_attack_1;
+	MapRoutes.ATTACK_tbarrier_attack_4 = MapRoutes.ATTACK_tbarrier_attack_1;
+	MapRoutes.ATTACK_tbarrier_attack_5 = MapRoutes.ATTACK_tbarrier_attack_1;
+	MapRoutes.ATTACK_tbarrier_attack_6 = MapRoutes.ATTACK_tbarrier_attack_1;
+	MapRoutes.ATTACK_tbarrier_attack_7 = MapRoutes.ATTACK_tbarrier_attack_1;
+	MapRoutes.ATTACK_tbarrier_attack_8 = MapRoutes.ATTACK_tbarrier_attack_1;
+	MapRoutes.DEFEND_libdoor_defend_2 = MapRoutes.DEFEND_libdoor_defend_1;
+	MapRoutes.DEFEND_libdoor_defend_3 = MapRoutes.DEFEND_tbarrier_defend_1;
+	MapRoutes.DEFEND_libdoor_defend_4 = MapRoutes.DEFEND_tbarrier_defend_1;
+	MapRoutes.DEFEND_libdoor_defend_5 = MapRoutes.DEFEND_tbarrier_defend_1;
+	MapRoutes.DEFEND_libdoor_defend_6 = MapRoutes.DEFEND_tbarrier_defend_1;
+	MapRoutes.DEFEND_libdoor_defend_7 = MapRoutes.DEFEND_tbarrier_defend_1;
+	MapRoutes.DEFEND_libdoor_defend_8 = MapRoutes.DEFEND_tbarrier_defend_1;
+	MapRoutes.DEFEND_libdoor_defend_11 = MapRoutes.DEFEND_tbarrier_defend_1;
+	MapRoutes.DEFEND_libdoor_defend_12 = MapRoutes.DEFEND_tbarrier_defend_1;
+	MapRoutes.DEFEND_libdoor_defend_13 = MapRoutes.DEFEND_tbarrier_defend_1;
+	MapRoutes.DEFEND_libdoor_defend_14 = MapRoutes.DEFEND_tbarrier_defend_1;
+	MapRoutes.DEFEND_libdoor_defend_15 = MapRoutes.DEFEND_tbarrier_defend_1;
+	MapRoutes.ATTACK_libdoor_attack_2 = MapRoutes.ATTACK_libdoor_attack_1;
+	MapRoutes.ATTACK_libdoor_attack_3 = MapRoutes.ATTACK_libdoor_attack_1;
+	MapRoutes.ATTACK_libdoor_attack_4 = MapRoutes.ATTACK_libdoor_attack_1;
+	MapRoutes.ATTACK_libdoor_attack_5 = MapRoutes.ATTACK_libdoor_attack_1;
+	MapRoutes.ATTACK_libdoor_attack_6 = MapRoutes.ATTACK_libdoor_attack_1;
+	MapRoutes.ATTACK_libdoor_attack_7 = MapRoutes.ATTACK_libdoor_attack_1;
+	MapRoutes.ATTACK_libdoor_attack_8 = MapRoutes.ATTACK_libdoor_attack_1;
+	MapRoutes.ATTACK_libdoor_attack_9 = MapRoutes.ATTACK_libdoor_attack_1;
+	MapRoutes.ATTACK_libdoor_attack_10 = MapRoutes.ATTACK_libdoor_attack_1;
+	MapRoutes.ATTACK_libdoor_attack_11 = MapRoutes.ATTACK_libdoor_attack_1;
+	MapRoutes.ATTACK_libdoor_attack_12 = MapRoutes.ATTACK_libdoor_attack_1;
+	MapRoutes.ATTACK_libdoor_attack_13 = MapRoutes.ATTACK_libdoor_attack_1;
+	MapRoutes.DEFEND_relic_defend_2 = MapRoutes.DEFEND_relic_defend_1;
+	MapRoutes.DEFEND_relic_defend_3 = MapRoutes.DEFEND_relic_defend_1;
+	MapRoutes.DEFEND_relic_defend_4 = MapRoutes.DEFEND_relic_defend_1;
+	MapRoutes.DEFEND_relic_defend_5 = MapRoutes.DEFEND_relic_defend_1;
+	MapRoutes.DEFEND_relic_defend_6 = MapRoutes.DEFEND_relic_defend_1;
+	MapRoutes.DEFEND_relic_defend_7 = MapRoutes.DEFEND_relic_defend_1;
+	MapRoutes.DEFEND_relic_defend_8 = MapRoutes.DEFEND_relic_defend_1;
+	MapRoutes.DEFEND_relic_defend_9 = MapRoutes.DEFEND_relic_defend_1;
+	MapRoutes.DEFEND_relic_defend_10 = MapRoutes.DEFEND_relic_defend_1;
+	MapRoutes.DEFEND_relic_defend_11 = MapRoutes.DEFEND_relic_defend_1;
+	MapRoutes.DEFEND_relic_defend_12 = MapRoutes.DEFEND_relic_defend_1;
+	MapRoutes.DEFEND_relic_defend_13 = MapRoutes.DEFEND_relic_defend_1;
+	MapRoutes.DEFEND_relic_defend_14 = MapRoutes.DEFEND_relic_defend_1;
+	MapRoutes.DEFEND_relic_defend_15 = MapRoutes.DEFEND_relic_defend_1;
+	MapRoutes.ATTACK_relic_attack_1 = MapRoutes.FLAG_relic;
+	MapRoutes.ATTACK_relic_attack_2 = MapRoutes.FLAG_relic;
+	MapRoutes.ATTACK_relic_attack_3 = MapRoutes.FLAG_relic;
+	MapRoutes.ATTACK_relic_attack_4 = MapRoutes.FLAG_relic;
+	MapRoutes.ATTACK_relic_attack_5 = MapRoutes.FLAG_relic;
+	MapRoutes.ATTACK_relic_attack_6 = MapRoutes.FLAG_relic;
+	MapRoutes.ATTACK_relic_attack_7 = MapRoutes.FLAG_relic;
+	MapRoutes.DEFEND_deliver_defend_2 = MapRoutes.DEFEND_deliver_defend_1;
+	MapRoutes.DEFEND_deliver_defend_3 = MapRoutes.DEFEND_deliver_defend_1;
+	MapRoutes.DEFEND_deliver_defend_4 = MapRoutes.DEFEND_deliver_defend_1;
+	MapRoutes.DEFEND_deliver_defend_5 = MapRoutes.DEFEND_deliver_defend_1;
+	MapRoutes.DEFEND_deliver_defend_6 = MapRoutes.DEFEND_deliver_defend_1;
+	MapRoutes.ATTACK_deliver_attack_2 = MapRoutes.ATTACK_deliver_attack_1;
+	MapRoutes.ATTACK_deliver_attack_3 = MapRoutes.ATTACK_deliver_attack_1;
+	MapRoutes.ATTACK_deliver_attack_4 = MapRoutes.ATTACK_deliver_attack_1;
+	MapRoutes.DEFEND_cz1_defend_2 = MapRoutes.DEFEND_cz1_defend_1;
+	MapRoutes.DEFEND_cz1_defend_3 = MapRoutes.DEFEND_cz1_defend_1;
+	MapRoutes.DEFEND_cz1_defend_4 = MapRoutes.DEFEND_cz1_defend_1;
+	MapRoutes.DEFEND_cz1_defend_5 = MapRoutes.DEFEND_cz1_defend_1;
+	MapRoutes.ATTACK_cz1_attack_2 = MapRoutes.ATTACK_cz1_attack_1;
+	MapRoutes.ATTACK_cz1_attack_3 = MapRoutes.ATTACK_cz1_attack_1;
+	MapRoutes.ATTACK_cz1_attack_4 = MapRoutes.ATTACK_cz1_attack_1;
+	MapRoutes.ATTACK_cz1_attack_5 = MapRoutes.ATTACK_cz1_attack_1;
+	MapRoutes.DEFEND_bb1_defend_1 = MapRoutes.DEFEND_cz1_defend_1;
+	MapRoutes.DEFEND_bb1_defend_2 = MapRoutes.DEFEND_cz1_defend_1;
+	MapRoutes.DEFEND_bb1_defend_3 = MapRoutes.DEFEND_cz1_defend_1;
+	MapRoutes.ATTACK_bb1_attack_1 = MapRoutes.ATTACK_cz1_attack_1;
+	MapRoutes.ATTACK_bb1_attack_2 = MapRoutes.ATTACK_cz1_attack_1;
+	MapRoutes.ATTACK_bb1_attack_3 = MapRoutes.ATTACK_cz1_attack_1;
+	MapRoutes.DEFEND_bb2_defend_2 = MapRoutes.DEFEND_bb2_defend_1;
+	MapRoutes.DEFEND_bb2_defend_3 = MapRoutes.DEFEND_bb2_defend_1;
+	MapRoutes.DEFEND_bb2_defend_4 = MapRoutes.DEFEND_bb2_defend_1;
+	MapRoutes.ATTACK_bb2_attack_2 = MapRoutes.ATTACK_bb2_attack_1;
+	MapRoutes.ATTACK_bb2_attack_3 = MapRoutes.ATTACK_bb2_attack_1;
+	MapRoutes.ATTACK_bb2_attack_4 = MapRoutes.ATTACK_bb2_attack_1;
+
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.MaxViewDistance = 2500;
+
+	Util.IgnoreTargetGoal( bot, "MOVER_church_rubble" );
+
+	if ( Map.RelicSecured )
+		{ Util.IgnoreTargetGoal( bot, "MOVER_tank" ); }
+
+	if ( Map.tank_past_gun )
+		{ Util.IgnoreTargetGoal( bot, "MOVER_at_gun" ); }
+};
+
+//a group table for help with managing phases (experimental)
+//be sure to disable groups before enabling other groups in triggers
+global Groups =
+{
+	//allies phase 1
+	group1 =
+	{
+		"BUILD_Tank",
+		"MOUNTMG42_874",
+		"REPAIRMG42_874",
+		"AMMOCAB_campo_ammocabinet",
+		"HEALTHCAB_campo_healthcabinet",
+		"MOUNT_tank",
+		"ATTACK_at_attack.*",
+		"MOBILEMORTAR_allies_start.*",
+		"SNIPE_campo_allied.*",
+		"GRENADE_at_gun"
+	},
+
+	//axis phase 1
+	group2 =
+	{
+		"MOUNTMG42_734",
+		"REPAIRMG42_734",
+		"BUILD_Tank_Barrier",
+		"AMMOCAB_campo_ammocabinet",
+		"HEALTHCAB_campo_healthcabinet",
+		"BUILD_AT_Gun",
+		"MOBILEMORTAR_axis_start.*",
+		"DEFEND_at_defend.*",
+		"CALLARTILLERY_at_defend.*",
+		"ARTILLERY_.*",
+		"SNIPE_campo_axis.*",
+		"SNIPE_alley_axis.*",
+		"ROUTE_nw_exit", //so it gets deactivated next phase
+	},
+
+	//allies phase 2 - tank past AT Gun
+	group3 =
+	{
+		"BUILD_Tank",
+		"PLANT_Side_Entrance",
+		"MOUNT_tank",
+		"ATTACK_gate_attack.*",
+		"ATTACK_at_attack_7",
+		"ATTACK_at_attack_12",
+		"ATTACK_at_attack_14",
+		"ATTACK_at_attack_15",
+	},
+
+	//axis phase 2 - tank past AT Gun
+	group4 =
+	{
+		"BUILD_Tank_Barrier",
+		"MOUNTMG42_734",
+		"REPAIRMG42_734",
+		"DEFEND_gate_defend.*",
+		"DEFEND_at_defend_5",
+		"DEFEND_at_defend_10",
+		"DEFEND_at_defend_11",
+		"DEFEND_at_defend_14",
+		"SNIPE_alley_axis.*",
+		"SNIPE_church.*",
+		"MOBILEMG42_church.*",
+	},
+
+	//allies phase 3 - captured outpost
+	group5 =
+	{
+		"PLANT_Side_Entrance",
+		"BUILD_Tank",
+		"PLANT_Tank_Barrier",
+		"MOUNT_tank",
+		"ATTACK_tbarrier_attack.*",
+	},
+
+	//axis phase 3 - tank passing gate
+	group6 =
+	{
+		"BUILD_Tank_Barrier",
+		"AMMOCAB_island_ammocabinet",
+		"HEALTHCAB_island_healthcabinet",
+		"DEFEND_tbarrier_defend.*",
+		"SNIPE_tb_axis.*",
+		"GRENADE_boat",
+		"GRENADE_boat2"
+	},
+
+	//allies phase 4 - tank past barrier
+	group7 =
+	{
+		"PLANT_Side_Entrance",
+		"BUILD_Tank",
+		"MOUNT_tank",
+		"AMMOCAB_island_ammocabinet",
+		"HEALTHCAB_island_healthcabinet",
+		"ATTACK_libdoor_attack.*",
+		"ATTACK_tbarrier_attack_5",
+		"ATTACK_tbarrier_attack_6",
+	},
+
+	//axis phase 4 - tank past barrier
+	group8 =
+	{
+		"MOUNTMG42_798",
+		"REPAIRMG42_798",
+		"AMMOCAB_island_ammocabinet",
+		"HEALTHCAB_island_healthcabinet",
+		"DEFEND_libdoor_defend.*",
+		"SNIPE_lib_axis.*",
+		"MOBILEMORTAR_axis_library.*",
+		"GRENADE_boat",
+		"GRENADE_boat2"
+	},
+
+	//allies phase 5 - library doors destroyed
+	group9 =
+	{
+		"PLANT_Boat_Barrier_1",
+		"PLANT_Library_Side_Wall",
+		"FLAG_relic",
+		"MOUNT_tank",
+		"MOBILEMORTAR_allies_library.*",
+		"ATTACK_relic_attack.*",
+		"ATTACK_libdoor_attack_12",
+		"ATTACK_libdoor_attack_13",
+	},
+
+	//axis phase 5 - library doors destroyed
+	group10 =
+	{
+		//barrier 2 is enabled when this is constructed
+		"BUILD_Boat_Barrier_1",
+		"MOUNTMG42_798",
+		"REPAIRMG42_798",
+		"MOBILEMORTAR_axis_library.*",
+		"DEFEND_relic_defend.*",
+		"SNIPE_lib_axis.*",
+		"DEFEND_lib_axis.*",
+		"GRENADE_boat",
+		"GRENADE_boat2"
+	},
+
+	//allies - relic stolen
+	group11=
+	{
+		"PLANT_Library_Side_Wall",
+		"PLANT_Boat_Barrier_1",
+		"MOBILEMORTAR_allies_library.*",
+		"ATTACK_deliver_attack.*",
+		"ATTACK_libdoor_attack_6",
+		"ATTACK_libdoor_attack_12",
+		"ATTACK_libdoor_attack_13",
+		"ATTACK_relic_attack_1",
+		"ATTACK_relic_attack_7",
+	},
+
+	//axis - relic stolen
+	group12=
+	{
+		"BUILD_Boat_Barrier_1",
+		"MOUNTMG42_798",
+		"BUILD_Speedboat",
+		"MOBILEMORTAR_axis_library.*",
+		"DEFEND_deliver_defend.*",
+		"DEFEND_relic_defend_4",
+		"DEFEND_relic_defend_7",
+		"DEFEND_relic_defend_9",
+		"DEFEND_relic_defend_15",
+		"SNIPE_lib_axis.*",
+		"GRENADE_boat",
+		"GRENADE_boat2"
+	},
+
+	//allies - relic secured
+	group13=
+	{
+		"PLANT_Boat_Barrier_1",
+		"ESCORT_boat",
+		"BUILD_Speedboat",
+		"ATTACK_libdoor_attack.*",
+		"ATTACK_tbarrier_attack_5",
+		"ATTACK_tbarrier_attack_6",
+	},
+
+	//axis - relic secured
+	group14=
+	{
+		"BUILD_Boat_Barrier_1",
+		"DEFEND_libdoor_defend.*",
+		"SNIPE_lib_axis.*",
+		"SNIPE_bridge",
+	},
+
+	//allies - boat past cp
+	group15 =
+	{
+		"PLANT_Boat_Barrier_1",
+		"ESCORT_boat",
+		"BUILD_Speedboat",
+		"ATTACK_cz1_attack.*",
+		"ATTACK_libdoor_attack_4",
+		"ATTACK_libdoor_attack_9",
+		"ATTACK_libdoor_attack_10",
+		"ATTACK_tbarrier_attack_1",
+		"ATTACK_tbarrier_attack_5",
+		"SNIPE_bb1_allies.*",
+	},
+
+	//axis - boat past cp
+	group16 =
+	{
+		"BUILD_Boat_Barrier_1",
+		"BUILD_Boat_Barrier_2",
+		"DEFEND_cz1_defend.*",
+		"DEFEND_tbarrier_defend_1",
+		"DEFEND_tbarrier_defend_2",
+		"DEFEND_tbarrier_defend_3",
+		"DEFEND_tbarrier_defend_4",
+		"DEFEND_tbarrier_defend_8",
+		"SNIPE_bb1_axis.*",
+		"SNIPE_bridge",
+	},
+
+	//allies - boat at barrier 1
+	group17 =
+	{
+		"PLANT_Boat_Barrier_2",
+		"ESCORT_boat",
+		"BUILD_Speedboat",
+		"ATTACK_bb1_attack.*",
+		"ATTACK_cz1_attack_3",
+		"ATTACK_cz1_attack_4",
+		"ATTACK_libdoor_attack_4",
+		"ATTACK_libdoor_attack_9",
+		"ATTACK_libdoor_attack_10",
+		"ATTACK_tbarrier_attack_1",
+		"ATTACK_tbarrier_attack_5",
+	},
+
+	//axis - boat at barrier 1
+	group18 =
+	{
+		"BUILD_Boat_Barrier_2",
+		"DEFEND_bb1_defend.*",
+		"DEFEND_cz1_defend_3",
+		"DEFEND_cz1_defend_5",
+		"DEFEND_tbarrier_defend_1",
+		"DEFEND_tbarrier_defend_2",
+		"DEFEND_tbarrier_defend_3",
+		"DEFEND_tbarrier_defend_4",
+		"DEFEND_tbarrier_defend_8",
+	},
+
+	//allies - boat past barrier 1
+	group19 =
+	{
+		"PLANT_Boat_Barrier_2",
+		"ESCORT_boat",
+		"BUILD_Speedboat",
+		"ATTACK_bb2_attack.*",
+		"ATTACK_libdoor_attack_8",
+		"ATTACK_libdoor_attack_11",
+		"ATTACK_tbarrier_attack_8",
+	},
+
+	//axis - boat past barrier 1
+	group20 =
+	{
+		"BUILD_Boat_Barrier_2",
+		"DEFEND_bb2_defend.*",
+		"DEFEND_tbarrier_defend_2",
+		"DEFEND_tbarrier_defend_5",
+		"DEFEND_libdoor_defend_14",
+		"SNIPE_bb2_axis.*",
+	},
+
+	EnableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, goal );
+			Util.MapDebugPrint("EnableAllies: enabling " + goal, true);
+		}
+	},
+
+	EnableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, goal );
+			Util.MapDebugPrint("EnableAxis: enabling " + goal, true);
+		}
+	},
+
+	DisableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, goal );
+			Util.MapDebugPrint("DisableAllies: disabling " + goal, true);
+		}
+	},
+
+	DisableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, goal );
+			Util.MapDebugPrint("DisableAxis: disabling " + goal, true);
+		}
+	},
+};

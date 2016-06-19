@@ -1,0 +1,98 @@
+//
+// NOTE: THIS IS A TEST SCRIPT ONLY! NOT TO BE USED FOR REGULAR PLAY
+//
+global Map =
+{
+	debug_decel = false,
+	num_attackers = 0,
+	num_defenders = 0,
+	DontDispenseAmmo = true,
+	debug_regiontrigger = false,
+
+	DeathMatch = 1,
+
+	Classes = function()
+	{
+		Server.MinClassCount[TEAM.AXIS][CLASS.SOLDIER] = 1;
+		Server.MinClassCount[TEAM.AXIS][CLASS.MEDIC] = 2;
+		Server.MinClassCount[TEAM.AXIS][CLASS.ENGINEER] = 2;
+		Server.MinClassCount[TEAM.AXIS][CLASS.COVERTOPS] = 1;
+		Server.MinClassCount[TEAM.AXIS][CLASS.FIELDOPS] = 2;
+
+		Server.MinClassCount[TEAM.ALLIES][CLASS.SOLDIER] = 1;
+		Server.MinClassCount[TEAM.ALLIES][CLASS.MEDIC] = 2;
+		Server.MinClassCount[TEAM.ALLIES][CLASS.ENGINEER] = 2;
+		Server.MinClassCount[TEAM.ALLIES][CLASS.COVERTOPS] = 1;
+		Server.MinClassCount[TEAM.ALLIES][CLASS.FIELDOPS] = 2;
+	},
+
+	crashme =
+	{
+		Name = "crashme",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function()
+		{
+			DeleteTriggerRegion("crashme");
+		},
+		OnExit = function()
+		{
+			DeleteTriggerRegion("crashme");
+		},
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// crash test for DeleteTriggerRegion
+	if ( Map.debug_regiontrigger ) {
+		crashme = OnTriggerRegion(AABB(310.648,375.502,1.125,667.926,540.118,91.125),Map.crashme);
+		ExecCommand("drawtriggers");
+	}
+
+	//ExecCommand("draw_goals on");
+
+	SetMapGoalProperties( "CAMP_.*", {MinCampTime=10, MaxCampTime=20});
+
+	Util.SetMaxUsersInProgress(4, "CAMP.*");
+	Util.SetMaxUsersInUse(1, "CAMP.*");
+	//Util.SetMaxUsers( 1, "CAMP.*" );
+	//Util.SetMaxUsers( 1, "AIRSTRIKE.*" );
+
+	Util.DisableGoal(".*");
+
+	// SetAvailableMapGoals( TEAM.AXIS, true, "bogus_name_test");
+	//Util.EnableGoal("CAMP_.*");
+	// Util.EnableGoal("AIRSTRIKE.*");
+
+	// g = GetGoal("CAMP_test2");
+	// if (g)
+	// {
+		// g.SetRoles(ROLE.DEFENDER,ROLE.ATTACKER,ROLE.ATTACKER2);
+	// }
+
+	if( Map.debug_decel)
+	{
+		ExecCommand("kickall");
+		ExecCommand("testbot 1 2");
+		sleep(2);
+		ExecCommand("wb deceltest");
+	}
+
+	WeaponTable.SetWeaponAvailability(CLASS.SOLDIER, WEAPON.FLAMETHROWER, false);
+
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+
+global OnBotJoin = function( bot )
+{
+	if ( Map.num_attackers == 0 )
+	{
+		Map.num_attackers += 1;
+		//bot.SetRoles(ROLE.ATTACKER);
+	}
+
+};

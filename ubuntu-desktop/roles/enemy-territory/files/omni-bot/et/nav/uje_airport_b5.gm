@@ -1,0 +1,514 @@
+//==========================================================================================
+//
+//	uje_airport_b5.gm
+//
+//	Who  	When		What
+//------------------------------------------------------------------------------------------
+//	|TP|kaos	11 November 2011	r2 script
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+
+	Airfield_side_door_Dyno = 0,
+	Allied_Command_Post_Dyno = 0,
+	Axis_Command_Post_Dyno = 0,
+	Axis_Controls_Dyno = 0,
+	Axis_Main_Airfield_entrance_Dyno = 0,
+	Axis_Main_Airfield_entrance_1_Dyno = 0,
+	Cargo_plane_1_Dyno = 0,
+	Second_Cargoplane_Dyno = 0,
+
+	Ammo_Cabinet_ammo5 = "AMMOCAB_ammo5",
+	Ammo_Cabinet_ammo8 = "AMMOCAB_ammo8",
+	Ammo_Cabinet_cabinet_ammo = "AMMOCAB_cabinet_ammo",
+	Health_Cabinet_cabinet_health = "HEALTHCAB_cabinet_health",
+	Health_Cabinet_health5 = "HEALTHCAB_health5",
+	Health_Cabinet_health8 = "HEALTHCAB_health8",
+	Checkpoint_oldcityflag = "CHECKPOINT_oldcityflag",
+	Build_Airfield_side_door = "BUILD_Airfield_side_door",
+	Build_Allied_Command_Post = "BUILD_Allied_Command_Post",
+	Build_Axis_Command_Post = "BUILD_Axis_Command_Post",
+	Plant_Airfield_side_door = "PLANT_Airfield_side_door",
+	Plant_Allied_Command_Post = "PLANT_Allied_Command_Post",
+	Plant_Axis_Command_Post = "PLANT_Axis_Command_Post",
+	Plant_Axis_Controls = "PLANT_Axis_Controls",
+	Plant_Axis_Main_Airfield_entrance = "PLANT_Axis_Main_Airfield_entrance",
+	Plant_Axis_Main_Airfield_entrance_1 = "PLANT_Axis_Main_Airfield_entrance_1",
+	Plant_Cargo_plane_1 = "PLANT_Cargo_plane_1",
+	Plant_Second_Cargoplane = "PLANT_Second_Cargoplane",
+	Snipe_sn_1 = "SNIPE_sn_1",
+	Snipe_sn_2 = "SNIPE_sn_2",
+	Attack_b0_1 = "ATTACK_b0_1",
+	Attack_b0_2 = "ATTACK_b0_2",
+	Attack_b0_3 = "ATTACK_b0_3",
+	Attack_b0_4 = "ATTACK_b0_4",
+	Attack_b0_5 = "ATTACK_b0_5",
+	Attack_b0_6 = "ATTACK_b0_6",
+	Attack_b0_7 = "ATTACK_b0_7",
+	Attack_b0_8 = "ATTACK_b0_8",
+	Attack_b0_9 = "ATTACK_b0_9",
+	Attack_c_1 = "ATTACK_c_1",
+	Attack_c_2 = "ATTACK_c_2",
+	Attack_c_3 = "ATTACK_c_3",
+	Attack_p1_1 = "ATTACK_p1_1",
+	Attack_p1_2 = "ATTACK_p1_2",
+	Attack_p1_3 = "ATTACK_p1_3",
+	Attack_p2_1 = "ATTACK_p2_1",
+	Attack_p2_2 = "ATTACK_p2_2",
+	Attack_p2_3 = "ATTACK_p2_3",
+	Defend_c_1 = "DEFEND_c_1",
+	Defend_c_2 = "DEFEND_c_2",
+	Defend_c_3 = "DEFEND_c_3",
+	Defend_c_4 = "DEFEND_c_4",
+	Defend_c_5 = "DEFEND_c_5",
+	Defend_ex_1 = "DEFEND_ex_1",
+	Defend_ex_2 = "DEFEND_ex_2",
+	Defend_ex_3 = "DEFEND_ex_3",
+	Defend_ex_4 = "DEFEND_ex_4",
+	Defend_ex_5 = "DEFEND_ex_5",
+	Defend_ex_6 = "DEFEND_ex_6",
+	Defend_ex_7 = "DEFEND_ex_7",
+	Defend_ex_8 = "DEFEND_ex_8",
+	Defend_ex_9 = "DEFEND_ex_9",
+	Defend_p1_1 = "DEFEND_p1_1",
+	Defend_p1_2 = "DEFEND_p1_2",
+	Defend_p1_3 = "DEFEND_p1_3",
+	Defend_p2_1 = "DEFEND_p2_1",
+	Defend_p2_2 = "DEFEND_p2_2",
+	Defend_p2_3 = "DEFEND_p2_3",
+	Defend_p2_4 = "DEFEND_p2_4",
+	Defend_r0_1 = "DEFEND_r0_1",
+	Defend_r0_2 = "DEFEND_r0_2",
+	Defend_r0_3 = "DEFEND_r0_3",
+	Defend_r0_4 = "DEFEND_r0_4",
+	Defend_r0_5 = "DEFEND_r0_5",
+	Defend_r0_6 = "DEFEND_r0_6",
+	Defend_r0_7 = "DEFEND_r0_7",
+	Defend_r0_8 = "DEFEND_r0_8",
+	Defend_r0_9 = "DEFEND_r0_9",
+
+	Airfield_side_door_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Airfield_side_door_Built" );
+	},
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Airfield_side_door_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Airfield_side_door_Dyno += 1;
+		Util.MapDebugPrint( "Airfield_side_door_Planted" );
+	},
+
+	Allied_Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Allied_Command_Post_Dyno += 1;
+		Util.MapDebugPrint( "Allied_Command_Post_Planted" );
+	},
+
+	Axis_Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Command_Post_Dyno += 1;
+		Util.MapDebugPrint( "Axis_Command_Post_Planted" );
+	},
+
+	Axis_Controls_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Axis_Controls_Dyno += 1;
+		SetGoalPriority( "ATTACK_c.*", 0.95, TEAM.ALLIES );
+		SetGoalPriority( "DEFEND_c.*", 0.95, TEAM.AXIS );
+		Util.MapDebugPrint( "Axis_Controls_Planted" );
+	},
+
+	Axis_Main_Airfield_entrance_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Main_Airfield_entrance_Dyno += 1;
+		SetGoalPriority( "ATTACK_b0_4", 0.95, TEAM.ALLIES );
+		SetGoalPriority( "ATTACK_b0_5", 0.95, TEAM.ALLIES );
+		SetGoalPriority( "ATTACK_b0_6", 0.95, TEAM.ALLIES );
+		SetGoalPriority( "ATTACK_b0_7", 0.95, TEAM.ALLIES );
+		SetGoalPriority( "ATTACK_b0_8", 0.95, TEAM.ALLIES );
+		SetGoalPriority( "DEFEND_r0_2", 0.95, TEAM.AXIS );
+		SetGoalPriority( "DEFEND_r0_3", 0.95, TEAM.AXIS );
+		SetGoalPriority( "DEFEND_r0_7", 0.95, TEAM.AXIS );
+		SetGoalPriority( "DEFEND_r0_8", 0.95, TEAM.AXIS );
+		Util.MapDebugPrint( "Axis_Main_Airfield_entrance_Planted" );
+	},
+
+	Axis_Main_Airfield_entrance_1_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Main_Airfield_entrance_1_Dyno += 1;
+		Util.MapDebugPrint( "Axis_Main_Airfield_entrance_1_Planted" );
+	},
+
+	Cargo_plane_1_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Cargo_plane_1_Dyno += 1;
+		SetGoalPriority( "ATTACK_p1.*", 0.95, TEAM.ALLIES );
+		SetGoalPriority( "DEFEND_p1.*", 0.95, TEAM.AXIS );
+		Util.MapDebugPrint( "Cargo_plane_1_Planted" );
+	},
+
+	Second_Cargoplane_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Second_Cargoplane_Dyno += 1;
+		SetGoalPriority( "ATTACK_p2.*", 0.95, TEAM.ALLIES );
+		SetGoalPriority( "DEFEND_p2.*", 0.95, TEAM.AXIS );
+		Util.MapDebugPrint( "Second_Cargoplane_Planted" );
+	},
+
+	Airfield_side_door_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Airfield_side_door_Dyno -= 1;
+		Util.MapDebugPrint( "Airfield_side_door_Defused" );
+	},
+
+	Allied_Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Allied_Command_Post_Dyno -= 1;
+		Util.MapDebugPrint( "Allied_Command_Post_Defused" );
+	},
+
+	Axis_Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Command_Post_Dyno -= 1;
+		Util.MapDebugPrint( "Axis_Command_Post_Defused" );
+	},
+
+	Axis_Controls_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Controls_Dyno -= 1;
+		SetGoalPriority( "ATTACK_c.*", 0.5, TEAM.ALLIES );
+		SetGoalPriority( "DEFEND_c.*", 0.5, TEAM.AXIS );
+		Util.MapDebugPrint( "Axis_Controls_Defused" );
+	},
+
+	Axis_Main_Airfield_entrance_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Axis_Main_Airfield_entrance_Dyno -= 1;
+		SetGoalPriority( "ATTACK_b0_4", 0.5, TEAM.ALLIES );
+		SetGoalPriority( "ATTACK_b0_5", 0.5, TEAM.ALLIES );
+		SetGoalPriority( "ATTACK_b0_6", 0.5, TEAM.ALLIES );
+		SetGoalPriority( "ATTACK_b0_7", 0.5, TEAM.ALLIES );
+		SetGoalPriority( "ATTACK_b0_8", 0.5, TEAM.ALLIES );
+		SetGoalPriority( "DEFEND_r0_2", 0.5, TEAM.AXIS );
+		SetGoalPriority( "DEFEND_r0_3", 0.5, TEAM.AXIS );
+		SetGoalPriority( "DEFEND_r0_7", 0.5, TEAM.AXIS );
+		SetGoalPriority( "DEFEND_r0_8", 0.5, TEAM.AXIS );
+		Util.MapDebugPrint( "Axis_Main_Airfield_entrance_Defused" );
+	},
+
+	Axis_Main_Airfield_entrance_1_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Main_Airfield_entrance_1_Dyno -= 1;		
+		Util.MapDebugPrint( "Axis_Main_Airfield_entrance_1_Defused" );
+	},
+
+	Cargo_plane_1_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Cargo_plane_1_Dyno -= 1;
+		SetGoalPriority( "ATTACK_p1.*", 0.5, TEAM.ALLIES );
+		SetGoalPriority( "DEFEND_p1.*", 0.5, TEAM.AXIS );
+		Util.MapDebugPrint( "Cargo_plane_1_Defused" );
+	},
+
+	Second_Cargoplane_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Second_Cargoplane_Dyno -= 1;
+		SetGoalPriority( "ATTACK_p2.*", 0.5, TEAM.ALLIES );
+		SetGoalPriority( "DEFEND_p2.*", 0.5, TEAM.AXIS);
+		Util.MapDebugPrint( "Second_Cargoplane_Defused" );
+	},
+
+	Airfield_side_door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Airfield_side_door_Dyno = 0;
+
+		Util.MapDebugPrint( "Airfield_side_door_Destroyed" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Allied_Command_Post_Dyno = 0;
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Command_Post_Dyno = 0;
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	Axis_Controls_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Controls_Dyno = 0;
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_c.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_c.*" );
+		
+		Util.MapDebugPrint( "Axis_Controls_Destroyed" );
+	},
+
+	Axis_Main_Airfield_entrance_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Main_Airfield_entrance_Dyno = 0;
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Axis_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Allied_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_r0.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_ex.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_p1.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_p2.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_c.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_.*" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Allied_Command_Post" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Axis_Main_Airfield_entrance" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Airfield_side_door" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Axis_Command_Post" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Axis_Controls" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Cargo_plane_1" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Second_Cargoplane" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_b0.*" );	
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_p1.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_p2.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_c.*" );
+
+		Util.MapDebugPrint( "Axis_Main_Airfield_entrance_Destroyed" );
+	},
+
+	Axis_Main_Airfield_entrance_1_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Main_Airfield_entrance_1_Dyno = 0;
+
+		Util.MapDebugPrint( "Axis_Main_Airfield_entrance_1_Destroyed" );
+	},
+
+	Cargo_plane_1_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Cargo_plane_1_Dyno = 0;
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_p1.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_p1.*" );
+
+		Util.MapDebugPrint( "Cargo_plane_1_Destroyed" );
+	},
+
+	Second_Cargoplane_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Second_Cargoplane_Dyno = 0;
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_p2.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_p2.*" );
+
+		Util.MapDebugPrint( "Second_Cargoplane_Destroyed" );
+	},
+
+	oldcityflag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "oldcityflag_Axis_Captured" );
+	},
+
+	oldcityflag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Axis_Main_Airfield_entrance" );
+
+		Util.MapDebugPrint( "oldcityflag_Allies_Captured" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// Register callback functions
+	OnTrigger( "the side door has been contructed", Map.Airfield_side_door_Built );
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "Planted at the Airfield ide door.", Map.Airfield_side_door_Planted );
+	OnTrigger( "Planted at the Allied Command Post.", Map.Allied_Command_Post_Planted );
+	OnTrigger( "Planted at the Axis Command Post.", Map.Axis_Command_Post_Planted );
+	OnTrigger( "Planted at The Axis Controls.", Map.Axis_Controls_Planted );
+	OnTrigger( "Planted at the Axis Main Airfield entrance.", Map.Axis_Main_Airfield_entrance_Planted );
+	OnTrigger( "Planted at the Axis Main Airfield entrance.", Map.Axis_Main_Airfield_entrance_1_Planted );
+	OnTrigger( "Planted at Cargo plane 1.", Map.Cargo_plane_1_Planted );
+	OnTrigger( "Planted at The Second Cargoplane.", Map.Second_Cargoplane_Planted );
+	OnTrigger( "Defused at the Airfield side door.", Map.Airfield_side_door_Defused );
+	OnTrigger( "Defused at the Allied Command Post.", Map.Allied_Command_Post_Defused );
+	OnTrigger( "Defused at the Axis Command Post.", Map.Axis_Command_Post_Defused );
+	OnTrigger( "Defused at The Axis Controls.", Map.Axis_Controls_Defused );
+	OnTrigger( "Defused at the Axis Main Airfield entrance.", Map.Axis_Main_Airfield_entrance_Defused );
+	OnTrigger( "Defused at the Axis Main Airfield entrance.", Map.Axis_Main_Airfield_entrance_1_Defused );
+	OnTrigger( "Defused at Cargo plane 1.", Map.Cargo_plane_1_Defused );
+	OnTrigger( "Defused at The Second Cargoplane.", Map.Second_Cargoplane_Defused );
+	OnTrigger( "the side door has been destroyed", Map.Airfield_side_door_Destroyed );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "Allies have destroyed the Axis Airfield Controls", Map.Axis_Controls_Destroyed );
+	OnTrigger( "Allies have gained acces to the Airfield", Map.Axis_Main_Airfield_entrance_Destroyed );
+	OnTrigger( "Allied team has destroyed the Cargoplane !", Map.Cargo_plane_1_Destroyed );
+	OnTrigger( "Allies have destroyed the Cargoplane !", Map.Second_Cargoplane_Destroyed );
+	OnTrigger( "Axis reclaim the Garage!", Map.oldcityflag_Axis_Captured );
+	OnTrigger( "Allies capture the garage!", Map.oldcityflag_Allies_Captured );
+
+	//INITIAL
+	Util.DisableGoal( "PLANT_Axis_Main_Airfield_entrance_1", true ); // all but routes
+	SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Axis_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Allied_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_r0.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_ex.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_p1.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_p2.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_c.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_.*" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Allied_Command_Post" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Axis_Main_Airfield_entrance" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Airfield_side_door" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Axis_Command_Post" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Axis_Controls" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Cargo_plane_1" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Second_Cargoplane" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_b0.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_c.*" );	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_p1.*" );	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_p2.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_.*" );
+	
+	SetGoalPriority( "PLANT_Allied_Command_Post", 0.0, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_Axis_Command_Post", 0.0, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "BUILD_Axis_Command_Post", 0.51, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "BUILD_Allied_Command_Post", 0.51, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "ATTACK_.*", 0.5, TEAM.ALLIES );
+	SetGoalPriority( "DEFEND_.*", 0.5, TEAM.AXIS );
+	SetGoalPriority( "SNIPE_.*", 0.5, TEAM.AXIS );
+
+	// Max users per goal
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "PLANT_.*" );
+
+	// Camp times
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=30, MaxCampTime=60} );
+	SetMapGoalProperties( "DEFEND_ex.*", {MinCampTime=5, MaxCampTime=15} );
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=30, MaxCampTime=60} );
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=60} );
+	
+	//PLANES DYNAMITE
+	Util.SetGoalPosition( 1645.471, 1083.700, -713.220, "PLANT_Cargo_plane_1" );
+	Util.SetGoalPosition( 3080.022, 2004.712, -701.955, "PLANT_Second_Cargoplane" );
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	// Uncomment for shootable breakables
+	//~bot.TargetBreakableDist = 90.0;
+	// Only set MaxViewDistance on maps with limited sight (e.g. fog)
+	//~bot.MaxViewDistance = 2400;
+};

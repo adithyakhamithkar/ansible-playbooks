@@ -1,0 +1,74 @@
+// The new weapon instance is passed to this function as the 'this'
+// Properties can be set like this.Property = x
+
+//////////////////////////////////////////////////////////////////////////
+// Overall weapon properties.
+this.Name = "Shotgun";				// Name is used for debug output and other readable outputs.
+this.WeaponId = WEAPON.NONE;		// This Id MUST match the numeric weapon id expected by the interface.
+this.MinUseTime = 2.0;				// The min amount of time a weapon is used. Useful for reducing weapon switching oscillations.
+
+//////////////////////////////////////////////////////////////////////////
+// Set some weapon properties that affect some internal logic.
+this.PrimaryFire.WeaponType = "instant";    	// The type of weapon this is. Helps determine usage behavior. Valid values: "melee", "instant", "projectile"
+this.PrimaryFire.ShootButton = BTN.ATTACK1; 	// The button to use to fire the weapon. defaults to BTN.ATTACK1.
+this.PrimaryFire.ProjectileSpeed = 1000;    	// If the WeaponType is "projectile", this projectile speed is used in the aim calculations
+this.PrimaryFire.RequiresAmmo = true;    		// weapon requires ammo to fire. if false ammo won't be checked, default is true
+this.PrimaryFire.WaterProof = false;    		// weapon can work underwater. if false desirability will default to 0 when underwater, default false
+this.PrimaryFire.InheritsVelocity = false;  	// weapon inherits velocity from shooter, rather than being shot with independent velocity. default is false
+this.PrimaryFire.ProjectileGravity = 0.0;		// What ratio of the games gravity is applied to the projectile, default 0.0
+this.PrimaryFire.MinChargeTime = 0;				// The min amount of time the weapon must be 'charged' before firing(by holding down fire button)
+this.PrimaryFire.MaxChargeTime = 0;				// The max amount of time the weapon must be 'charged' before firing(by holding down fire button)
+this.PrimaryFire.DelayAfterFiring = 0.0;		// Time the bot will ignore this weapon choice after shooting.
+this.PrimaryFire.IgnoreReload = false;			// Don't consider this weapon for reloading when looking for weapons that need reloading.
+this.PrimaryFire.FireOnRelease = false;			// Fires when the fire key is released instead of pressed in
+this.PrimaryFire.UseMortarTrajectory = false; 	// Weapon should use the mortar style trajectory when firing.
+this.PrimaryFire.MaxAimError = Vector2(0, 0);	// used only if AdjustAim=0, Aim error to apply to aiming system. x = horizontal, y = vertical, default Vector2(0,0)
+this.PrimaryFire.AimOffset = Vector3(0, 0, 0);	// used only if AdjustAim=0, 3d Offset the weapon should add to the targets position, default Vector3(0,0,0)
+this.PrimaryFire.AimOffsetZ = 0;            	// used only if AdjustAim=1, vertical offset that is added to the target position
+this.PrimaryFire.RequiresTargetOutside = false; // Does the weapon require the target to be outdoors?
+this.PrimaryFire.RequiresShooterOutside = false; // Does the weapon require the shooter to be outdoors?
+
+// By default, no weapon should shoot at heavy vehicles
+this.PrimaryFire.SetTargetBias(CLASS.VEHICLE_HVY, 0);
+
+// By default, no weapon should shoot at breakables
+this.PrimaryFire.SetTargetBias(CLASS.BREAKABLE, 0);
+
+// The default desirability when the bot a) Has no target, or b) No desirability window matches. default is 0.0
+this.PrimaryFire.DefaultDesirability = 0.0;
+
+// Set some distance windows and the desirability they should use.
+// Undefined ranges default to DefaultDesirability.
+// Note: The order of these is important. The first matching range which has the highest desirability is used by the bot.
+//~ this.PrimaryFire.SetDesirabilityRange(0, 64, 0.8);
+
+// If this function is defined in the weapon, the bot will make script callbacks to support more complex calculations
+// to determine the desirability of the weapon. Frequent script callbacks can get expensive, so use the above methods
+// as much as possible to let the bot calculate the desirability internally based on parameters set by script.
+// Default behavior is 0 desirability.
+
+//this.PrimaryFire.CalculateDefaultDesirability = function(weapon, bot)
+//{
+//	return 0;
+//};
+
+//this.PrimaryFire.CalculateDesirability = function(weapon, bot, targetInfo)
+//{
+//    return 0;
+//};
+
+// If this function is defined, it will be called to allow the script to calculate the point on the enemy to aim at.
+// Frequent script callbacks can get expensive, so use the above methods as much as possible to let
+// the bot calculate the desirability internally based on parameters set by script.
+// Default behavior is to aim at the targets position, based on the WeaponType specified above.
+// Projectile weapons will automatically lead the target, instant & melee will aim at the targets position.
+//this.PrimaryFire.CalculateAimPoint = function(weapon, bot, targetInfo)
+//{
+//    return targetInfo.LastPosition;
+//};
+
+//////////////////////////////////////////////////////////////////////////
+// Secondary Fire Properties
+
+
+

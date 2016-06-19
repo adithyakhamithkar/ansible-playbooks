@@ -1,0 +1,371 @@
+/*********************************************
+Pathing updated and script by **PCZ** >M@t3o$<
+Correspondant WAY file size : 52,1 Ko (53 368 octets)
+Last Update : 22 October 2009
+*********************************************/
+
+global Map =
+{
+	Ammo_Cabinet_south_ammocabinet = "AMMOCAB_south_ammocabinet",
+	Health_Cabinet_south_healthcabinet = "HEALTHCAB_south_healthcabinet",
+	Checkpoint_oldcityflag = "CHECKPOINT_oldcityflag",
+	Build_Command_Post = "BUILD_Command_Post",
+	Build_Foot_Bridge = "BUILD_Foot_Bridge",
+	Plant_Command_Post = "PLANT_Command_Post",
+	Plant_Foot_Bridge = "PLANT_Foot_Bridge",
+	Plant_Old_City_Wall = "PLANT_Old_City_Wall",
+	Plant_Red_Pillar = "PLANT_Red_Pillar",
+	Plant_Yellow_Pillar = "PLANT_Yellow_Pillar",
+	Mount_OldCityMG42 = "MOUNTMG42_OldCityMG42",
+	Repair_OldCityMG42 = "REPAIRMG42_OldCityMG42",
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Foot_Bridge_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+                SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_AxisRight3" );
+                SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Foot_Bridge );
+
+		Util.MapDebugPrint( "Foot_Bridge_Built" );
+	},
+	
+	Red_Pillar_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+                SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_RPillar.*" );
+
+		Util.MapDebugPrint( "Red_Pillar_Planted" );
+	},
+	
+	Yellow_Pillar_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_YPillar.*" );
+
+		Util.MapDebugPrint( "Yellow_Pillar_Planted" );
+	},
+	
+	Red_Pillar_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_RPillar.*" );
+
+		Util.MapDebugPrint( "Red_Pillar_Defused" );
+	},
+	
+	Yellow_Pillar_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_YPillar.*" );
+
+		Util.MapDebugPrint( "Yellow_Pillar_Defused" );
+	},
+
+	Old_City_Wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+                SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_Delta.*" );
+                SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Red_Pillar );
+                SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Yellow_Pillar );
+                SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_Bravo.*" );
+                SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_RPillar.*" );
+                SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_YPillar.*" );
+                SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_Foot_Bridge);
+        
+                SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Charlie.*" );
+                SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Red.*" );
+                SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Yellow.*" );
+                SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Command_Post );
+                SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Alpha.*" );
+                SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_Foot_Bridge);
+                SetAvailableMapGoals( TEAM.ALLIES, false, Map.Checkpoint_oldcityflag );
+                
+                SetAvailableMapGoals( TEAM.AXIS, false, "AMMO_.*" );
+                SetAvailableMapGoals( TEAM.AXIS, false, "HEALTH_.*" );
+                SetAvailableMapGoals( TEAM.ALLIES, false, "AMMO_.*" );
+                SetAvailableMapGoals( TEAM.ALLIES, false, "HEALTH_.*" );
+		
+		Util.MapDebugPrint( "Old_City_Wall_Destroyed" );
+	},
+
+	Foot_Bridge_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_AxisRight3" );
+
+		Util.MapDebugPrint( "Foot_Bridge_Destroyed" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+	
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	Red_Pillar_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+                SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_RPillar.*" );
+                SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Red.*" );
+
+		Util.MapDebugPrint( "Red_Pillar_Destroyed" );
+	},
+	
+	Yellow_Pillar_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+                SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_YPillar.*" );
+                SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Yellow.*" );
+
+		Util.MapDebugPrint( "Yellow_Pillar_Destroyed" );
+	},
+
+	Allies_Capture_Flag = function( trigger )
+ 	{
+		if ( TestMap )
+			{ return; }
+			
+                SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Foot_Bridge );
+                SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Foot_Bridge );
+ 
+ 		Util.MapDebugPrint( "Allies_Capture_Flag" );
+ 	},
+
+ 	Axis_Capture_Flag = function( trigger )
+ 	{
+		if ( TestMap )
+			{ return; }
+			
+                SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_Foot_Bridge );
+        
+                SetAvailableMapGoals( TEAM.ALLIES, true, Map.Checkpoint_oldcityflag );
+                SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_Foot_Bridge );
+ 
+ 		Util.MapDebugPrint( "Axis_Capture_Flag" );
+ 	},
+	
+	Axis_Win = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		foreach ( id and bot in BotTable )
+		{
+			if ( bot.GetTeam() == TEAM.ALLIES )
+			{
+				r = RandRange(0,10);
+				if( r < 2 )
+				{
+					bot.SayVoice(VOICE.G_NEGATIVE);
+				}
+				else if( r > 8 )
+				{
+					sleep(1.2);
+					bot.ExecCommand("vsay_team FTDisarmDynamite");
+				}
+			}
+			if ( bot.GetTeam() == TEAM.AXIS )
+			{
+				r = RandRange(0,10);
+				if( r < 2 )
+				{
+					bot.SayVoice(VOICE.G_AFFIRMATIVE);
+				}
+				else if( r > 8 )
+				{
+					sleep(1.2);
+					bot.SayVoice(VOICE.G_CHEER);
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "Axis_Win" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ ETUtil.AutoTestMap(); }
+
+	// *** TRIGGERS ***
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "^s*^1Axis has constructed the Foot Bridge!^s*", Map.Foot_Bridge_Built );
+	OnTrigger( "^s*^1Axis have destroyed the ^sYellow Pillar! ^s*", Map.Yellow_Pillar_Destroyed );
+	OnTrigger( "^s*^$Allies has destroyed the Foot Bridge! ^s*", Map.Foot_Bridge_Destroyed );
+	OnTrigger( "^s*^1Axis have gained access to the underground!^s*", Map.Old_City_Wall_Destroyed );
+	OnTrigger( "^s*^jAxis has destroyed the ^1Red Pillar!^s*", Map.Red_Pillar_Destroyed );
+	OnTrigger( "^S* ^TAllies reclaim the City! ^S*", Map.Allies_Capture_Flag );
+	OnTrigger( "^s*^1Axis capture the City!^s*", Map.Axis_Capture_Flag );
+ 	OnTrigger( "^s*^1Both Pillars destroyed!^YEMERGENCY EVACUATION!^s*", Map.Axis_Win );
+	
+	OnTrigger( "Planted at The Red Pillar.", Map.Red_Pillar_Planted );
+	OnTrigger( "Planted at The Yellow Pillar.", Map.Yellow_Pillar_Planted );
+	OnTrigger( "Defused at The Red Pillar.", Map.Red_Pillar_Defused );
+	OnTrigger( "Defused at The Yellow Pillar.", Map.Yellow_Pillar_Defused );
+	
+	// *** INITIAL AVAILABILITY OF GOALS ***
+	SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_Bravo.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Foot_Bridge );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Old_City_Wall );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Checkpoint_oldcityflag );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_AxisRight3" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_OldCityMG42" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_OldCityMG42" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Alpha.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Charlie.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Red.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Yellow.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_Command_Post );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_OldCityMG42" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_OldCityMG42" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Checkpoint_oldcityflag );
+	
+	// *** PRIORITY ***
+	SetGoalPriority( "ATTACK_Bravo.*", 0.6 );
+	SetGoalPriority( Map.Plant_Command_Post, 0.7 );
+	SetGoalPriority( Map.Checkpoint_oldcityflag, 0.7 );
+	SetGoalPriority( Map.Build_Foot_Bridge, 0.8 );
+	SetGoalPriority( Map.Plant_Old_City_Wall, 0.8 );
+	SetGoalPriority( Map.Plant_Red_Pillar, 0.9 );
+	SetGoalPriority( Map.Plant_Yellow_Pillar, 0.9 );
+	
+	SetGoalPriority( "ATTACK_Delta_.*", 0.6 );
+	SetGoalPriority( "ATTACK_RPillar_.*", 0.8 );
+	SetGoalPriority( "ATTACK_YPillar_.*", 0.8 );
+	
+	Util.SetGoalOffset( -50, 30, -50, "PLANT_Old_City_Wall" );
+	Util.SetGoalOffset( -100, -100, -50, "PLANT_Yellow_Pillar" );
+	Util.SetGoalOffset( 100, -100, -50, "PLANT_Red_Pillar" );
+	
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=60, MaxCampTime=120});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=60, MaxCampTime=120});
+	
+	// *** ROUTES ***
+	MapRoutes =
+	{
+		CHECKPOINT_oldcityflag =
+		{
+			ROUTE_AxisSpawn1 =
+			{
+				ROUTE_AxisLeft1 =
+				{
+					ROUTE_AxisLeft2 =
+					{
+						ROUTE_AxisLeft2_1 = {},
+						ROUTE_AxisLeft2_2 = {},
+						ROUTE_AxisLeft2_3 = {},
+					},
+				},
+				ROUTE_AxisMiddle1 =
+				{
+					ROUTE_AxisMiddle2 =
+					{
+						ROUTE_AxisMiddle3 = {},
+					},
+				},
+				ROUTE_AxisRight1 =
+				{
+					ROUTE_AxisRight2 =
+					{
+						ROUTE_AxisRight3 = {},
+					},
+				},
+			},
+		},
+		
+		PLANT_Red_Pillar =
+		{
+			ROUTE_AxisSpawn2 =
+			{
+				ROUTE_Bunker =
+				{
+					ROUTE_RedPillar1 =
+					{
+						ROUTE_RedPillar2 = {},
+					},
+				},
+			},
+		},
+		
+		PLANT_Yellow_Pillar =
+		{
+			ROUTE_AxisSpawn2 =
+			{
+				ROUTE_Bunker =
+				{
+					ROUTE_YellowPillar1 =
+					{
+						ROUTE_YellowPillar2 = {},
+					},
+				},
+			},
+		},
+	};
+	
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for Paris-Bastille Beta 3 by **PCZ** >M@t3o$<." );
+};
+
+global OnBotJoin = function( bot )
+{
+        bot.TargetBreakableDist = 100.0;
+        w = bot.GetWeapon(WEAPON.THOMPSON);
+        w.PrimaryFire.SetTargetBias(CLASS.BREAKABLE, 1.2);
+        w = bot.GetWeapon(WEAPON.MP40);
+        w.PrimaryFire.SetTargetBias(CLASS.BREAKABLE, 1.2);
+
+        // crapshoot: lower priority of knife at close range so they keep shooting breakables with primary
+        w = bot.GetWeapon(WEAPON.KNIFE);
+        w.PrimaryFire.SetDesirabilityRange(0, 48, 0.6);
+};

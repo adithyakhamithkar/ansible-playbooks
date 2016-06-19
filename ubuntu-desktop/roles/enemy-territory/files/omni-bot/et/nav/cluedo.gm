@@ -1,0 +1,2142 @@
+// cluedo.gm by IRATA [for Omni-bot version 0.61]
+// Updated for Omni-bot version 0.8  by Tardis ~ 18 June 2010 for cluedo 1.3
+//
+//
+// History:
+// - Fixed Switches Tardis ~ 17 December 2010
+// - let bots talk? added ~ Tardis ~ 18 June 2010  ~  End Game Only
+// - maybe let bots use transporter-switches - added paththough only ~ Tardis ~ 18 June 2010
+// - add some nice sniper-spots outside added ~ Tardis ~ 18 June 2010
+// - routing would be great added ~ Tardis ~ 18 June 2010
+// - more waypoints outside ? - added ~ Tardis ~ 18 June 2010
+// - resetAT just sets ATTACK/DEFENCE to false - taken out not used ~ Tardis ~ 18 June 2010
+// - Spelling ~ billard = Billiard ~ Tardis ~ 18 June 2010
+
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+	Allied_Command_Post_Dyno = 0,
+	Axis_Command_Post_Dyno = 0,
+	Neutral_Command_Post_Dyno = 0,
+	lever_greenPos = 1, //switch is up initially
+	lever_whitePos = 1, //switch is up initially
+	lever_plumPos = 1, //switch is up initially
+	lever_scarlettPos = 1, //switch is up initially
+	lever_mustardPos = 1, //switch is up initially
+	lever_peacockPos = 1, //switch is up initially
+	lever_monkPos = 1, //switch is up initially
+	billiardroom_flag_Axis_Captured = false,
+	billiardroom_flag_Allies_Captured = false,
+	conservatory_flag_Axis_Captured = false,
+	conservatory_flag_Allies_Captured = false,
+	diningroom_flag_Axis_Captured = false,
+	diningroom_flag_Allies_Captured = false,
+	kitchen_flag_Axis_Captured = false,
+	kitchen_flag_Allies_Captured  = false,
+	library_flag_Axis_Captured = false,
+	library_flag_Allies_Captured = false,
+	lounge_flag_Axis_Captured = false,
+	lounge_flag_Allies_Captured = false,
+	study_flag_Axis_Captured = false,
+	study_flag_Allies_Captured = false,
+	Switches_conservatory_Enabled = false,
+	Switches_kitchen_Enabled = false,
+	Switches_study_Enabled = false,
+	Switches_lounge_Enabled = false,
+	Switches_diningroom_Enabled = false,
+	Switches_billiardroom_Enabled = false,
+	Switches_library_Enabled = false,
+	lever_green_Enabled = false, //conservatory
+	lever_white_Enabled = false, //kitchen
+	lever_plum_Enabled = false, //study
+	lever_scarlett_Enabled = false, //lounge
+	lever_mustard_Enabled = false, //diningroom
+	lever_peacock_Enabled = false, //billiardroom
+	lever_monk_Enabled = false, //library
+	DoorOpen = false,
+	DoorClosed = true, // door is closed at start 
+	Talk = true, //set Talk to false if you don't want the bots to cheer after winning game:
+
+	doorStart = Vector3(2109.987, 998.996, 24),
+	doorEnd = Vector3(2110.159, 860.252, 24),
+	Navigation =
+	{
+		door =
+		{
+			gotowp = "door",
+			navigate = function(_this)
+			{
+				botId = _this.Bot.GetGameId();
+				for(i=0; i<15; i+=1) {
+					// cs: note: the second to last param as the bots own id makes sure the trace ignores the bot
+					tr = TraceLine(Map.doorStart, Map.doorEnd, null, TRACE.SHOT, botId, false);
+					if (tr.fraction < 1) {
+						sleep(0.2);
+					}
+					else {
+						if(i>0){ sleep(0.4); }
+						break;
+					}
+				}
+				
+				//_this.Bot.Say("door is open");
+			},
+		},
+	},
+// /bot waypoint_setproperty paththrough Navigation_PT:door
+//switches
+//conservatory
+	Switches =
+	{
+		conservatory =
+		{
+			Enabled = true,
+			Priority = 0, //always set to 0 when using path through
+			WaypointName = "conservatory",
+			AimPosition = Vec3(2495.988, 2943.875, 70.996),
+			LimitBots = 1,
+			Timeout = 1500,
+			LimitTeam = 0, // disabled initially.
+			Wait = function() // bot wait a bit for slow moving lever
+			{
+				if ( Map.lever_greenPos == 0 )
+				{
+					//wait 30 secs while the lever goes back up
+					sleep(30);
+					return true;
+				}
+				//always return false unless the lever is down:
+				return false;
+			},
+		},
+//kitchen
+		kitchen =
+		{
+			Enabled = true,
+			//Priority = 0, //always set to 0 when using path through
+			WaypointName = "kitchen",
+			AimPosition = Vec3(1727.841, 2943.875, 70.750),
+			LimitBots = 1,
+			Timeout = 1500,
+			LimitTeam = 0, // disabled initially.
+			Wait = function() // bot wait a bit for slow moving lever
+			{
+				if ( Map.lever_whitePos == 0 )
+				{
+					//wait 40 secs while the lever goes back up //Was 30 secs give player chance to get flag !
+					sleep(40);
+					return true;
+				}
+				//always return false unless the lever is down:
+				return false;
+			},
+		},
+//study
+		study =
+		{
+			Enabled = true,
+			Priority = 0, //always set to 0 when using path through
+			WaypointName = "study",
+			AimPosition = Vec3(3071.875, 1407.462, 71.276),
+			LimitBots = 1,
+			Timeout = 1500,
+			LimitTeam = 0, // disabled initially.
+			Wait = function() // bot wait a bit for slow moving lever
+			{
+				if ( Map.lever_plumPos == 0 )
+				{
+					//wait 30 secs while the lever goes back up
+					sleep(30);
+					return true;
+				}
+				//always return false unless the lever is down:
+				return false;
+			},
+		},
+//lounge
+		lounge =
+		{
+			Enabled = true,
+			Priority = 0, //always set to 0 when using path through
+			WaypointName = "lounge",
+			AimPosition = Vec3(1728.112, 960.125, 71.010),
+			LimitBots = 1,
+			Timeout = 1500,
+			LimitTeam = 0, // disabled initially.
+			Wait = function() // bot wait a bit for slow moving lever
+			{
+				if ( Map.lever_scarlettPos == 0 )
+				{
+					//wait 30 secs while the lever goes back up
+					sleep(30);
+					return true;
+				}
+				//always return false unless the lever is down:
+				return false;
+			},
+		},
+//diningroom
+		diningroom =
+		{
+			Enabled = true,
+			Priority = 0, //always set to 0 when using path through
+			WaypointName = "diningroom",
+			AimPosition = Vec3(1088.125, 1600.001, 70.996),
+			LimitBots = 1,
+			Timeout = 1500,
+			LimitTeam = 0, // disabled initially.
+			Wait = function() // bot wait a bit for slow moving lever
+			{
+				if ( Map.lever_mustardPos == 0 )
+				{
+					//wait 30 secs while the lever goes back up
+					sleep(30);
+					return true;
+				}
+				//always return false unless the lever is down:
+				return false;
+			},
+		},
+//billiardroom
+		billiardroom =
+		{
+			Enabled = true,
+			Priority = 0, //always set to 0 when using path through
+			WaypointName = "billiardroom",
+			AimPosition = Vec3(3071.875, 2431.715, 71.405),
+			LimitBots = 1,
+			Timeout = 1500,
+			LimitTeam = 0, // disabled initially.
+			Wait = function() // bot wait a bit for slow moving lever
+			{
+				if ( Map.lever_peacockPos == 0 )
+				{
+					//wait 30 secs while the lever goes back up
+					sleep(30);
+					return true;
+				}
+				//always return false unless the lever is down:
+				return false;
+			},
+		},
+//library
+		library =
+		{
+			Enabled = true,
+			Priority = 0, //always set to 0 when using path through
+			WaypointName = "library",
+			AimPosition = Vec3(3071.875, 1919.996, 70.967),
+			LimitBots = 1,
+			Timeout = 1500,
+			LimitTeam = 0, // disabled initially.
+			Wait = function() // bot wait a bit for slow moving lever
+			{
+				if ( Map.lever_monkPos == 0 )
+				{
+					//wait 30 secs while the lever goes back up
+					sleep(30);
+					return true;
+				}
+				//always return false unless the lever is down:
+				return false;
+			},
+		},
+	},
+//watch switches
+//conservatory
+	lever_green = function( trigger )
+	{
+		Enabled = true;
+		if ( Map.lever_greenPos == 1 )
+		{
+			Map.lever_greenPos = 0;
+			Map.Switches.conservatory.Enabled = false;
+			Wp.SetWaypointFlag("Con","closed",true);
+			Util.MapDebugPrint( "conservatory_lever_down" );
+		}
+		else
+		{
+			Map.lever_greenPos = 1;
+			Map.Switches.conservatory.Enabled = true;
+			Wp.SetWaypointFlag("Con","closed",false);
+			Util.MapDebugPrint( "conservatory_lever_up");
+		}
+	},
+//kitchen
+	lever_white = function( trigger )
+	{
+		Enabled = true;
+		if ( Map.lever_whitePos == 1 )
+		{
+			Map.lever_whitePos = 0;
+			Map.Switches.kitchen.Enabled = false;
+			Util.DisableGoal ( "ATTACK_kitchen.*" );
+			Util.DisableGoal ( "DEFEND_defkitchen.*" );
+			Util.DisableGoal ( "SNIPE_kitchen.*" );
+			Wp.SetWaypointFlag("kitchen_window","closed",true);
+			Wp.SetWaypointFlag("kitchen_window_1","closed",true);
+			Wp.SetWaypointFlag("kitchen_a","closed",true);
+			Wp.SetWaypointFlag("kitchen_water","closed",false);
+			Wp.SetWaypointFlag("Kit","closed",true);
+			Util.MapDebugPrint("kitchen_lever_down");
+		}
+		else
+		{
+			Map.lever_whitePos = 1;
+			Map.Switches.kitchen.Enabled = true;
+			Wp.SetWaypointFlag("kitchen_window","closed",false);
+			Wp.SetWaypointFlag("kitchen_window_1","closed",false);
+			Wp.SetWaypointFlag("kitchen_a","closed",false);
+			Wp.SetWaypointFlag("kitchen_water","closed",true);
+			Wp.SetWaypointFlag("Kit","closed",false);
+			Util.MapDebugPrint("kitchen_lever_up");
+		}
+	},
+//study
+	lever_plum = function( trigger )
+	{
+		Enabled = true;
+		if  ( Map.lever_plumPos == 1 )
+		{
+			Map.lever_plumPos = 0;
+			Map.Switches.study.Enabled = false;
+			Wp.SetWaypointFlag("Stu","closed",true);
+			Util.MapDebugPrint("study_lever_down");
+		}
+		else
+		{
+			Map.lever_plumPos = 1;
+			Map.Switches.study.Enabled = true;
+			Wp.SetWaypointFlag("Stu","closed",false);
+			Util.MapDebugPrint("study_lever_up");
+		}
+	},
+//lounge
+	lever_scarlett = function( trigger )
+	{
+		Enabled = true;
+		if ( Map.lever_scarlettPos == 1 )
+		{
+			Map.lever_scarlettPos = 0;
+			Map.Switches.lounge.Enabled = false;
+			Wp.SetWaypointFlag("Lou","closed",true);
+			Util.MapDebugPrint("lounge_lever_down");
+		}
+		else
+		{
+			Map.lever_scarlettPos = 1;
+			Map.Switches.lounge.Enabled = true;
+			Wp.SetWaypointFlag("Lou","closed",false);
+			Util.MapDebugPrint("lounge_lever_up");
+		}
+	},
+//diningroom
+	lever_mustard = function( trigger )
+	{
+		Enabled = true;
+		if ( Map.lever_mustardPos == 1 )
+		{
+			Map.lever_mustardPos = 0;
+			Map.Switches.diningroom.Enabled = false;
+			Wp.SetWaypointFlag("Din","closed",true);
+			Util.MapDebugPrint("dinningroom_lever_down");
+		}
+		else
+		{
+			Map.lever_mustardPos = 1;
+			Map.Switches.diningroom.Enabled = true;
+			Wp.SetWaypointFlag("Din","closed",false);
+			Util.MapDebugPrint("dinningroom_lever_up");
+		}
+
+	},
+//billiardroom
+	lever_peacock = function( trigger )
+	{
+		Enabled = true;
+		if ( Map.lever_peacockPos == 1 )
+		{
+			Map.lever_peacockPos = 0;
+			Map.Switches.billiardroom.Enabled = false;
+			Wp.SetWaypointFlag("Bil","closed",true);
+			Util.MapDebugPrint("billiardroom_lever_down");
+		}
+		else
+		{
+			Map.lever_peacockPos = 1;
+			Map.Switches.billiardroom.Enabled = true;
+			Wp.SetWaypointFlag("Bil","closed",false);
+			Util.MapDebugPrint("billiardroom_lever_up");
+		}
+	},
+//library
+	lever_monk = function( trigger )
+	{
+		Enabled = true;
+		if ( Map.lever_monkPos == 1 )
+		{
+			Map.lever_monkPos = 0;
+			Map.Switches.library.Enabled = false;
+			Wp.SetWaypointFlag("Lib","closed",true);
+			Util.MapDebugPrint("library_lever_down");
+		}
+		else
+		{
+			Map.lever_monkPos = 1;
+			Map.Switches.library.Enabled = true;
+			Wp.SetWaypointFlag("Lib","closed",false);
+			Util.MapDebugPrint("library_lever_up");
+		}
+	},
+//Get Flags
+// Lounge
+	flag1_Get = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.EnableGoal( "ATTACK_lounge.*" );
+		Util.EnableGoal( "CHECKPOINT_lounge_flag" );
+		Util.EnableGoal( "ROUTE_lounge" );
+		Util.EnableGoal( "ROUTE_lounge_1" );
+		Util.EnableGoal( "ROUTE_lounge_2" );
+		Util.EnableGoal( "ROUTE_lounge_3" );
+		Util.EnableGoal( "ROUTE_lounge_a" );
+		Wp.SetWaypointFlag("Lou","closed",false);
+		
+		Util.MapDebugPrint( "Get Lounge" );
+	},
+// Dining-Room
+	flag2_Get = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.EnableGoal( "ATTACK_dining.*" );
+		Util.EnableGoal( "CHECKPOINT_diningroom_flag" );
+		Util.EnableGoal( "ROUTE_dinning" );
+		Util.EnableGoal( "ROUTE_dinning_1" );
+		Util.EnableGoal( "ROUTE_dinning_2" );
+		Util.EnableGoal( "ROUTE_dinning_a" );
+		Util.EnableGoal( "ROUTE_dinning_b" );
+		Util.EnableGoal( "ROUTE_dinning_c" );
+		Wp.SetWaypointFlag("Din","closed",false);
+
+		Util.MapDebugPrint( "Get Dining-Room" );
+	},
+// Kitchen
+	flag3_Get = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.EnableGoal( "ATTACK_kitchen.*" );
+		Util.EnableGoal( "CHECKPOINT_kitchen_flag" );
+		Util.EnableGoal( "ROUTE_kitchen_a" );
+		Util.EnableGoal( "ROUTE_kitchen_b" );
+		Util.EnableGoal( "ROUTE_kitchen_c" );
+		Wp.SetWaypointFlag("Kit","closed",false);
+
+		Util.MapDebugPrint( "Get Kitchen" );
+	},
+// Conservatory
+	flag4_Get = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.EnableGoal( "ATTACK_conservatory.*" );
+		Util.EnableGoal( "CHECKPOINT_conservatory_flag" );
+		Util.EnableGoal( "ROUTE_conservatory" );
+		Util.EnableGoal( "ROUTE_conservatory_1" );
+		Util.EnableGoal( "ROUTE_conservatory_2" );
+		Util.EnableGoal( "ROUTE_conservatory_3" );
+		Util.EnableGoal( "ROUTE_conservatory_a" );
+		Wp.SetWaypointFlag("Con","closed",false);
+
+		Util.MapDebugPrint( "Get Conservatory" );
+
+	},
+// Billiard-Room
+	flag5_Get = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.EnableGoal( "ATTACK_billiard.*" );
+		Util.EnableGoal( "CHECKPOINT_billiardroom_flag" );
+		Util.EnableGoal( "ROUTE_billard" );
+		Util.EnableGoal( "ROUTE_billard_1" );
+		Util.EnableGoal( "ROUTE_billard_2" );
+		Util.EnableGoal( "ROUTE_billard_a" );
+		Util.EnableGoal( "ROUTE_billard_b" );
+		Wp.SetWaypointFlag("Bil","closed",false);
+
+		Util.MapDebugPrint( "Get Billiard" );
+	},
+// Library
+	flag6_Get = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.EnableGoal( "ATTACK_library.*" );
+		Util.EnableGoal( "CHECKPOINT_library_flag" );
+		Util.EnableGoal( "ROUTE_library" );
+		Util.EnableGoal( "ROUTE_library_1" );
+		Util.EnableGoal( "ROUTE_library_a" );
+		Util.EnableGoal( "ROUTE_library_b" );
+		Wp.SetWaypointFlag("Lib","closed",false);
+
+		Util.MapDebugPrint( "Get Library" );
+	},
+// Study
+	flag7_Get = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.EnableGoal( "ATTACK_studdy.*" );
+		Util.EnableGoal( "CHECKPOINT_studdy_flag" );
+		Util.EnableGoal( "ROUTE_study" );
+		Util.EnableGoal( "ROUTE_study_1" );
+		Util.EnableGoal( "ROUTE_study_2" );
+		Util.EnableGoal( "ROUTE_study_a" );
+		Wp.SetWaypointFlag("Stu","closed",false);
+
+		Util.MapDebugPrint( "Get Study" );
+	},
+//Command Post
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno += 1;
+		Util.MapDebugPrint( "Command_Post_Planted" );
+	},
+
+	Allied_Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno -= 1;
+		Util.MapDebugPrint( "Command_Post_Defused" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno = 0;
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno += 1;
+		Util.MapDebugPrint( "Command_Post_Planted" );
+	},
+
+	Axis_Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno -= 1;
+		Util.MapDebugPrint( "Command_Post_Defused" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+			Map.Command_Post_Dyno = 0;
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+//Flags Captured
+//billiardroom
+	billiardroom_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_billiard.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_billiard.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_defbilliard.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_defbilliard.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_billard.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_billard.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_billiardroom_flag" );
+		Map.Switches.billiardroom.LimitTeam = (1<<TEAM.ALLIES);
+		Util.MapDebugPrint( "billiardroom_flag_Axis_Captured" );
+	},
+	billiardroom_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_billiard.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_billiard.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_defbilliard.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_defbilliard.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_billard.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_billard.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_billiardroom_flag" );
+		Map.Switches.billiardroom.LimitTeam = (1<<TEAM.AXIS);
+		Util.MapDebugPrint( "billiardroom_flag_Allies_Captured" );
+	},
+//conservatory
+	conservatory_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_conservatory.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_conservatory.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_devconservatory.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_devconservatory.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_conservatory.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_conservatory.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_conservatory_flag" );
+		Map.Switches.conservatory.LimitTeam = (1<<TEAM.ALLIES);
+		Util.MapDebugPrint( "conservatory_flag_Axis_Captured" );
+	},
+	conservatory_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_conservatory.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_conservatory.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_defconservatory.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_defconservatory.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_conservatory.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_conservatory.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_conservatory_flag" );
+		Map.Switches.conservatory.LimitTeam = (1<<TEAM.AXIS);
+		Util.MapDebugPrint( "conservatory_flag_Allies_Captured" );
+	},
+//diningroom
+	diningroom_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_dining.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_dining.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_defdining.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_defdining.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_dining.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_dining.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_diningroom_flag" );
+		Map.Switches.diningroom.LimitTeam = (1<<TEAM.ALLIES);		
+		Util.MapDebugPrint( "diningroom_flag_Axis_Captured" );
+	},
+	diningroom_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_dining.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_dining.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_defdining.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_defdining.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_dining.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_dining.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_diningroom_flag" );
+		Map.Switches.diningroom.LimitTeam = (1<<TEAM.AXIS);
+		Util.MapDebugPrint( "diningroom_flag_Allies_Captured" );
+	},
+//kitchen
+	kitchen_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_kitchen.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_kitchen.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_defkitchen.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_defkitchen.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_kitchen_flag" );
+		Map.Switches.kitchen.LimitTeam = (1<<TEAM.ALLIES);
+		Util.MapDebugPrint( "kitchen_flag_Axis_Captured" );
+	},
+	kitchen_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_kitchen.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_kitchen.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_defkitchen.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_defkitchen.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_kitchen_flag" );
+		Map.Switches.kitchen.LimitTeam = (1<<TEAM.AXIS);
+		Util.MapDebugPrint( "kitchen_flag_Allies_Captured" );
+	},
+//library
+	library_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_library.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_library.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_deflibrary.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_deflibrary.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_library_flag" );
+		Map.Switches.library.LimitTeam = (1<<TEAM.ALLIES);
+		Util.MapDebugPrint( "library_flag_Axis_Captured" );
+	},
+	library_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_library.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_library.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_deflibrary.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_deflibrary.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_library_flag" );
+		Map.Switches.library.LimitTeam = (1<<TEAM.AXIS);
+		Util.MapDebugPrint( "library_flag_Allies_Captured" );
+
+
+	},
+//lounge
+	lounge_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_lounge.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_lounge.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_deflounge.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_deflounge.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_lounge.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_lounge.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_lounge_flag" );
+		Map.Switches.lounge.LimitTeam = (1<<TEAM.ALLIES);
+		Util.MapDebugPrint( "lounge_flag_Axis_Captured" );
+
+
+	},
+	lounge_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_lounge.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_lounge.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_deflounge.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_deflounge.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_lounge.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_lounge.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_lounge_flag" );
+		Map.Switches.lounge.LimitTeam = (1<<TEAM.AXIS);
+		Util.MapDebugPrint( "lounge_flag_Allies_Captured" );
+	},
+//study
+	study_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_studdy.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_studdy.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_defstuddy.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_defstuddy.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_studdy.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_studdy.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_studdy_flag" );
+		Map.Switches.study.LimitTeam = (1<<TEAM.ALLIES);
+		Util.MapDebugPrint( "study_flag_Axis_Captured" );
+	},
+	study_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_studdy.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_studdy.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_defstuddy.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_defstuddy.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_studdy.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_studdy.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_studdy_flag" );
+		Map.Switches.study.LimitTeam = (1<<TEAM.AXIS);
+		Util.MapDebugPrint( "study_flag_Allies_Captured" );
+	},
+//Flags Secured
+//billiardroom
+	billiardroom_flag_Axis_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal( "CHECKPOINT_billiardroom_flag" );
+		Util.DisableGoal( "ATTACK_billiard.*" );
+		Util.DisableGoal( "DEFEND_defbilliard.*" );
+		Util.DisableGoal( "SNIPE_billard.*" );
+		Util.DisableGoal( "ROUTE_billard" );
+		Util.DisableGoal( "ROUTE_billard_1" );
+		Util.DisableGoal( "ROUTE_billard_2" );
+		Util.DisableGoal( "ROUTE_billard_a" );
+		Util.DisableGoal( "ROUTE_billard_b" );
+		Map.Switches_billiardroom_Disable = true;
+		Map.lever_peacock_Disable = true;
+		Map.Switches.billiardroom.LimitTeam = 0;
+		Wp.SetWaypointFlag("Bill","closed",true);
+
+		Util.MapDebugPrint( "billiardroom_flag_Axis_Secured" );
+	},
+	billiardroom_flag_Allies_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal ( "CHECKPOINT_billiardroom_flag" );
+		Util.DisableGoal ( "ATTACK_billiard.*" );
+		Util.DisableGoal ( "DEFEND_defbilliard.*" );
+		Util.DisableGoal ( "SNIPE_billard.*" );
+		Util.DisableGoal ( "ROUTE_billard" );
+		Util.DisableGoal ( "ROUTE_billard_1" );
+		Util.DisableGoal ( "ROUTE_billard_2" );
+		Util.DisableGoal ( "ROUTE_billard_a" );
+		Util.DisableGoal ( "ROUTE_billard_b" );
+		Wp.SetWaypointFlag("Bill","closed",true);
+		Map.Switches_billiardroom_Disabled = true;
+		Map.lever_peacock_Disabled = true;
+		Map.Switches.billiardroom.LimitTeam = 0;
+		
+
+		Util.MapDebugPrint( "billiardroom_flag_Allies_Secured" );
+	},
+//conservatory
+	conservatory_flag_Axis_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal ( "CHECKPOINT_conservatory_flag" );
+		Util.DisableGoal ( "ATTACK_conservatory.*" );
+		Util.DisableGoal ( "DEFEND_devconservatory.*" );
+		Util.DisableGoal ( "SNIPE_conservatory.*" );
+		Util.DisableGoal ( "ROUTE_conservatory" );
+		Util.DisableGoal ( "ROUTE_conservatory_1" );
+		Util.DisableGoal ( "ROUTE_conservatory_2" );
+		Util.DisableGoal ( "ROUTE_conservatory_3" );
+		Util.DisableGoal ( "ROUTE_conservatory_a" );
+		Map.Switches_conservatory_Disabled = true;;
+		Map.lever_green_Disabled = true;;
+		Map.Switches.conservatory.LimitTeam = 0;
+		Wp.SetWaypointFlag("Con","closed",true);
+
+		Util.MapDebugPrint( "conservatory_flag_Axis_Secured" );
+	},
+	conservatory_flag_Allies_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal ( "CHECKPOINT_conservatory_flag" );
+		Util.DisableGoal ( "ATTACK_conservatory.*" );
+		Util.DisableGoal ( "DEFEND_defconservatory.*" );
+		Util.DisableGoal ( "SNIPE_conservatory.*" );
+		Util.DisableGoal ( "ROUTE_conservatory" );
+		Util.DisableGoal ( "ROUTE_conservatory_1" );
+		Util.DisableGoal ( "ROUTE_conservatory_2" );
+		Util.DisableGoal ( "ROUTE_conservatory_3" );
+		Util.DisableGoal ( "ROUTE_conservatory_a" );
+		Map.Switches_conservatory_Disabled = true;;
+		Map.lever_green_Disabled = true;;
+		Map.Switches.conservatory.LimitTeam = 0;
+		Wp.SetWaypointFlag("Con","closed",true);
+
+		Util.MapDebugPrint( "conservatory_flag_Allies_Secured" );
+	},
+//diningroom
+	diningroom_flag_Axis_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal ( "CHECKPOINT_diningroom_flag" );
+		Util.DisableGoal ( "ATTACK_dining.*" );
+		Util.DisableGoal ( "DEFEND_defdining.*" );
+		Util.DisableGoal ( "SNIPE_dinning.*" );
+		Util.DisableGoal ( "ROUTE_dinning" );
+		Util.DisableGoal ( "ROUTE_dinning_1" );
+		Util.DisableGoal ( "ROUTE_dinning_2" );
+		Util.DisableGoal ( "ROUTE_dinning_a" );
+		Util.DisableGoal ( "ROUTE_dinning_b" );
+		Util.DisableGoal ( "ROUTE_dinning_c" );
+		Map.Switches_diningroom_Disabled = true;;
+		Map.lever_mustard_Disabled = true;;
+		Map.Switches.diningroom.LimitTeam = 0;
+		Wp.SetWaypointFlag("Din","closed",true);
+
+		Util.MapDebugPrint( "diningroom_flag_Axis_Secured" );
+	},
+	diningroom_flag_Allies_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal ( "CHECKPOINT_diningroom_flag" );
+		Util.DisableGoal ( "ATTACK_dining.*" );
+		Util.DisableGoal ( "DEFEND_defdining.*" );
+		Util.DisableGoal ( "SNIPE_dinning.*" );
+		Util.DisableGoal ( "ROUTE_dinning" );
+		Util.DisableGoal ( "ROUTE_dinning_1" );
+		Util.DisableGoal ( "ROUTE_dinning_2" );
+		Util.DisableGoal ( "ROUTE_dinning_a" );
+		Util.DisableGoal ( "ROUTE_dinning_b" );
+		Util.DisableGoal ( "ROUTE_dinning_c" );
+		Map.Switches_diningroom_Disabled = true;;
+		Map.lever_mustard_Disabled = true;;
+		Map.Switches.diningroom.LimitTeam = 0;
+		Wp.SetWaypointFlag("Din","closed",true);
+
+		Util.MapDebugPrint( "diningroom_flag_Allies_Secured" );
+	},
+//kitchen
+	kitchen_flag_Axis_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal ( "CHECKPOINT_kitchen_flag" );
+		Util.DisableGoal ( "ATTACK_kitchen.*" );
+		Util.DisableGoal ( "DEFEND_defkitchen.*" );
+		Util.DisableGoal ( "ROUTE_kitchen.*" );
+		Util.DisableGoal ( "ROUTE_kitchen_a" );
+		Util.DisableGoal ( "ROUTE_kitchen_b" );
+		Util.DisableGoal ( "ROUTE_kitchen_c" );
+		Map.Switches_kitchen_Disabled = true;
+		Map.lever_white_Disabled = true;
+		Map.Switches.kitchen.LimitTeam = 0;
+		Wp.SetWaypointFlag("Kit","closed",true);
+
+		Util.MapDebugPrint( "kitchen_flag_Axis_Secured" );
+	},
+	kitchen_flag_Allies_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal ( "CHECKPOINT_kitchen_flag" );
+		Util.DisableGoal ( "ATTACK_kitchen.*" );
+		Util.DisableGoal ( "DEFEND_defkitchen.*" );
+		Util.DisableGoal ( "ROUTE_kitchen.*" );
+		Util.DisableGoal ( "SNIPE_kitchen.*" );
+		Util.DisableGoal ( "ROUTE_kitchen_a" );
+		Util.DisableGoal ( "ROUTE_kitchen_b" );
+		Util.DisableGoal ( "ROUTE_kitchen_c" );
+		Map.Switches_kitchen_Disabled = true;
+		Map.lever_white_Disabled = true;
+		Map.Switches.kitchen.LimitTeam = 0;
+		Wp.SetWaypointFlag("Kit","closed",true);
+
+		Util.MapDebugPrint( "kitchen_flag_Allies_Secured" );
+	},
+//library
+	library_flag_Axis_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal ( "CHECKPOINT_library_flag" );
+		Util.DisableGoal ( "ATTACK_library.*" );
+		Util.DisableGoal ( "DEFEND_deflibrary.*" );
+		Util.DisableGoal ( "SNIPE_library.*" );
+		Util.DisableGoal ( "ROUTE_library" );
+		Util.DisableGoal ( "ROUTE_library_1" );
+		Util.DisableGoal ( "ROUTE_library_a" );
+		Util.DisableGoal ( "ROUTE_library_b" );
+		Map.Switches_library_Disabled = true;
+		Map.lever_monk_Disabled = true;
+		Map.Switches.library.LimitTeam = 0;
+		Wp.SetWaypointFlag("Lib","closed",true);
+
+		Util.MapDebugPrint( "library_flag_Axis_Secured" );
+	},
+	library_flag_Allies_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal ( "CHECKPOINT_library_flag" );
+		Util.DisableGoal ( "ATTACK_library.*" );
+		Util.DisableGoal ( "DEFEND_deflibrary.*" );
+		Util.DisableGoal ( "SNIPE_library.*" );
+		Util.DisableGoal ( "ROUTE_library" );
+		Util.DisableGoal ( "ROUTE_library_1" );
+		Util.DisableGoal ( "ROUTE_library_a" );
+		Util.DisableGoal ( "ROUTE_library_b" );
+		Map.Switches_library_Disabled = true;
+		Map.lever_monk_Disabled = true;
+		Map.Switches.library.LimitTeam = 0;
+		Wp.SetWaypointFlag("Lib","closed",true);
+
+		Util.MapDebugPrint( "library_flag_Allies_Secured" );
+	},
+//lounge
+	lounge_flag_Axis_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal ( "CHECKPOINT_lounge_flag" );
+		Util.DisableGoal ( "ATTACK_lounge.*" );
+		Util.DisableGoal ( "DEFEND_deflounge.*" );
+		Util.DisableGoal ( "SNIPE_lounge.*" );
+		Util.DisableGoal ( "ROUTE_lounge" );
+		Util.DisableGoal ( "ROUTE_lounge_1" );
+		Util.DisableGoal ( "ROUTE_lounge_2" );
+		Util.DisableGoal ( "ROUTE_lounge_3" );
+		Util.DisableGoal ( "ROUTE_lounge_a" );
+		Map.Switches_Disabled = true;
+		Map.lever_scarlett_Disabled = true;
+		Map.Switches.lounge.LimitTeam = 0;
+		Wp.SetWaypointFlag("Lou","closed",true);
+
+		Util.MapDebugPrint( "lounge_flag_Axis_Secured" );
+	},
+	lounge_flag_Allies_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal ( "CHECKPOINT_lounge_flag" );
+		Util.DisableGoal ( "ATTACK_lounge.*" );
+		Util.DisableGoal ( "DEFEND_deflounge.*" );
+		Util.DisableGoal ( "SNIPE_lounge.*" );
+		Util.DisableGoal ( "ROUTE_lounge" );
+		Util.DisableGoal ( "ROUTE_lounge_1" );
+		Util.DisableGoal ( "ROUTE_lounge_2" );
+		Util.DisableGoal ( "ROUTE_lounge_3" );
+		Util.DisableGoal ( "ROUTE_lounge_a" );
+		Map.Switches_lounge_Disabled = true;
+		Map.lever_scarlett_Disabled = true;
+		Map.Switches.lounge.LimitTeam = 0;
+		Wp.SetWaypointFlag("Lou","closed",true);
+
+		Util.MapDebugPrint( "lounge_flag_Allies_Secured" );
+	},
+//study
+	study_flag_Axis_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal ( "CHECKPOINT_studdy_flag" );
+		Util.DisableGoal ( "ATTACK_studdy.*" );
+		Util.DisableGoal ( "DEFEND_defstuddy.*" );
+		Util.DisableGoal ( "SNIPE_study.*" );
+		Util.DisableGoal ( "ROUTE_study" );
+		Util.DisableGoal ( "ROUTE_study_1" );
+		Util.DisableGoal ( "ROUTE_study_2" );
+		Util.DisableGoal ( "ROUTE_study_a" );
+		Map.Switches_study_Disabled = true;
+		Map.lever_plum_Disabled = true;
+		Map.Switches.study.LimitTeam = 0;
+		Wp.SetWaypointFlag("Stu","closed",true);
+
+		Util.MapDebugPrint( "study_flag_Axis_Secured" );
+	},
+	study_flag_Allies_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal ( "CHECKPOINT_studdy_flag" );
+		Util.DisableGoal ( "ATTACK_studdy.*" );
+		Util.DisableGoal ( "DEFEND_defstuddy.*" );
+		Util.DisableGoal ( "SNIPE_study.*" );
+		Util.DisableGoal ( "ROUTE_study" );
+		Util.DisableGoal ( "ROUTE_study_1" );
+		Util.DisableGoal ( "ROUTE_study_2" );
+		Util.DisableGoal ( "ROUTE_study_a" );
+		Map.Switches_study_Disabled = true;
+		Map.lever_plum_Disabled = true;
+		Map.Switches.study.LimitTeam = 0;
+		Wp.SetWaypointFlag("Stu","closed",true);
+
+		Util.MapDebugPrint( "study_flag_Allies_Secured" );
+	},
+//Trigger Regions
+//Magic HealthRoom
+	HealthRoom =
+	{
+		Name="HealthRoom",
+		TriggerOnClass=CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			Util.MapDebugPrint(GetEntName(ent) + "^8Entered The Magic Health Room");
+		},
+		OnExit = function(ent)
+		{
+			Util.MapDebugPrint(GetEntName(ent) + "^3Exited The Magic Health Room");
+		},
+	},
+//bots talk
+	allies_win = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "Allies_Win !" );
+	},
+	axis_win = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		ETUtil.WinningChat( TEAM.AXIS );
+		ETUtil.LosingChat( TEAM.ALLIES );
+		Util.MapDebugPrint( "AXIS_WIN !" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+// trigger start of flag
+	OnTrigger("^3*** ^7Next objective : Capture the ^8Lounge! ^3***", Map.flag1_Get);
+	OnTrigger("^3*** ^7Next objective : Capture the ^8Dining Room! ^3***", Map.flag2_Get);
+	OnTrigger("^3*** ^7Next objective : Capture the ^8Kitchen! ^3***", Map.flag3_Get);
+	OnTrigger("^3*** ^7Next objective : Capture the ^8Conservatory! ^3***", Map.flag4_Get);
+	OnTrigger("^3*** ^7Next objective : Capture the ^8Billiard Room! ^3***", Map.flag5_Get);
+	OnTrigger("^3*** ^7Next objective : Capture the ^8Library! ^3***", Map.flag6_Get);
+	OnTrigger("^3*** ^7Next objective : Capture the ^8Study! ^3***", Map.flag7_Get);
+//levers
+	OnTrigger( "lever_green_stop", Map.lever_green );
+	OnTrigger( "lever_white_stop", Map.lever_white );
+	OnTrigger( "lever_plum_stop", Map.lever_plum );
+	OnTrigger( "lever_scarlett_stop", Map.lever_scarlett );
+	OnTrigger( "lever_mustard_stop", Map.lever_mustard );
+	OnTrigger( "lever_peacock_stop", Map.lever_peacock );
+	OnTrigger( "lever_monk_stop", Map.lever_monk );
+// Register callback functions
+	OnTrigger( "Axis are in control of the ^1Billiard Room^7 - their timer is ticking!", Map.billiardroom_flag_Axis_Captured );
+	OnTrigger( "Allies are in control of the ^dBilliard Room^7 - their timer is ticking!", Map.billiardroom_flag_Allies_Captured );
+	OnTrigger( "Axis are in control of the ^1Conservatory^7 - their timer is ticking!", Map.conservatory_flag_Axis_Captured );
+	OnTrigger( "Allies are in control of the ^dConservatory^7 - their timer is ticking!", Map.conservatory_flag_Allies_Captured );
+	OnTrigger( "Axis are in control of the ^1Dining Room^7 - their timer is ticking!", Map.diningroom_flag_Axis_Captured );
+	OnTrigger( "Allies are in control of the ^dDining Room^7 - their timer is ticking!", Map.diningroom_flag_Allies_Captured );
+	OnTrigger( "Axis are in control of the ^1Kitchen^7 - their timer is ticking!", Map.kitchen_flag_Axis_Captured );
+	OnTrigger( "Allies are in control of the ^dKitchen^7 - their timer is ticking!", Map.kitchen_flag_Allies_Captured );
+	OnTrigger( "Axis are in control of the ^1Library^7 - their timer is ticking!", Map.library_flag_Axis_Captured );
+	OnTrigger( "Allies are in control of the ^dLibrary^7 - their timer is ticking!", Map.library_flag_Allies_Captured );
+	OnTrigger( "Axis are in control of the ^1Lounge^7 - their timer is ticking!", Map.lounge_flag_Axis_Captured );
+	OnTrigger( "Allies are in control of the ^dLounge^7 - their timer is ticking!", Map.lounge_flag_Allies_Captured );
+	OnTrigger( "Axis are in control of the ^1Study^7 - their timer is ticking!", Map.study_flag_Axis_Captured );
+	OnTrigger( "Allies are in control of the ^dStudy^7 - their timer is ticking!", Map.study_flag_Allies_Captured );
+	OnTrigger( "Axis have secured the ^1Billiard Room", Map.billiardroom_flag_Axis_Secured );
+	OnTrigger( "Allies have secured the ^dBilliard Room", Map.billiardroom_flag_Allies_Secured);
+	OnTrigger( "Axis have secured the ^1Conservatory", Map.conservatory_flag_Axis_Secured );
+	OnTrigger( "Allies have secured the ^dConservatory", Map.conservatory_flag_Allies_Secured );
+	OnTrigger( "Axis have secured the ^1Dining Room", Map.diningroom_flag_Axis_Secured );
+	OnTrigger( "Allies have secured the ^dDining Room", Map.diningroom_flag_Allies_Secured );
+	OnTrigger( "Axis have secured the ^1Kitchen", Map.kitchen_flag_Axis_Secured );
+	OnTrigger( "Allies have secured the ^dKitchen", Map.kitchen_flag_Allies_Secured );
+	OnTrigger( "Axis have secured the ^1Library", Map.library_flag_Axis_Secured );
+	OnTrigger( "Allies have secured the ^dLibrary", Map.library_flag_Allies_Secured );
+	OnTrigger( "Axis have secured the ^1Lounge", Map.lounge_flag_Axis_Secured );
+	OnTrigger( "Allies have secured the ^dLounge", Map.lounge_flag_Allies_Secured );
+	OnTrigger( "Axis have secured the ^1Study", Map.study_flag_Axis_Secured );
+	OnTrigger( "Allies have secured the ^dStudy", Map.study_flag_Allies_Secured );
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "Planted at the Allied Command Post", Map.Allied_Command_Post_Planted );
+	OnTrigger( "Planted at the Axis Command Post", Map.Axis_Command_Post_Planted );
+	OnTrigger( "Defused at the Allied Command Post", Map.Allied_Command_Post_Defused );
+	OnTrigger( "Defused at the Axis Command Post", Map.Axis_Command_Post_Defused );
+	OnTrigger( "Allies are victorious!", Map.allies_win );
+	OnTrigger( "Axis are victorious!", Map.axis_win );
+	
+	// disable bot pushing in first allied spawn
+	nopush = OnTriggerRegion(AABB(1871.125,911.125,1.125,2352.875,1456.875,115.023),RegionTrigger.DisableBotPush);
+
+	Util.DisableGoal( ".*", true ); // all but routes
+//Waypoints
+	Wp.SetWaypointFlag("Con","closed",true);
+	Wp.SetWaypointFlag("Kit","closed",true);
+	Wp.SetWaypointFlag("Stu","closed",true);
+	Wp.SetWaypointFlag("Lou","closed",true);
+	Wp.SetWaypointFlag("Din","closed",true);
+	Wp.SetWaypointFlag("Bil","closed",true);
+//Command Post
+	Util.EnableGoal( "BUILD_.*" );
+	Util.EnableGoal( "HEALTHCAB_.*" ); 
+//billiardroom
+	Util.DisableGoal ( "ROUTE_billard" );
+	Util.DisableGoal ( "ROUTE_billard_1" );
+	Util.DisableGoal ( "ROUTE_billard_2" );
+	Util.DisableGoal ( "ROUTE_billard_a" );
+	Util.DisableGoal ( "ROUTE_billard_b" );
+//conservatry
+	Util.DisableGoal ( "ROUTE_conservatory" );
+	Util.DisableGoal ( "ROUTE_conservatory_1" );
+	Util.DisableGoal ( "ROUTE_conservatory_2" );
+	Util.DisableGoal ( "ROUTE_conservatory_3" );
+	Util.DisableGoal ( "ROUTE_conservatory_a" );
+//dinningroom
+	Util.DisableGoal ( "ROUTE_dinning" );
+	Util.DisableGoal ( "ROUTE_dinning_1" );
+	Util.DisableGoal ( "ROUTE_dinning_2" );
+	Util.DisableGoal ( "ROUTE_dinning_a" );
+	Util.DisableGoal ( "ROUTE_dinning_b" );
+	Util.DisableGoal ( "ROUTE_dinning_c" );
+//kitchen
+	Util.DisableGoal ( "ROUTE_kitchen_a" );
+	Util.DisableGoal ( "ROUTE_kitchen_b" );
+	Util.DisableGoal ( "ROUTE_kitchen_c" );
+//library
+	Util.DisableGoal ( "ROUTE_library" );
+	Util.DisableGoal ( "ROUTE_library_1" );
+	Util.DisableGoal ( "ROUTE_library_a" );
+	Util.DisableGoal ( "ROUTE_library_b" );
+//lounge
+	Util.DisableGoal ( "ROUTE_lounge" );
+	Util.DisableGoal ( "ROUTE_lounge_1" );
+	Util.DisableGoal ( "ROUTE_lounge_2" );
+	Util.DisableGoal ( "ROUTE_lounge_3" );
+	Util.DisableGoal ( "ROUTE_lounge_a" );
+//study
+	Util.DisableGoal ( "ROUTE_study" );
+	Util.DisableGoal ( "ROUTE_study_1" );
+	Util.DisableGoal ( "ROUTE_study_2" );
+	Util.DisableGoal ( "ROUTE_study_a" );
+//SwitchData
+	Util.UpdateSwitchData();
+//MaxUsers
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+//TRIGGER BOXES
+	Magic = OnTriggerRegion(AABB(71.125,1903.125,-38.875,488.572,2256.875,37.125),Map.HealthRoom);
+// Camp times
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=60} );
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=10, MaxCampTime=60} );
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=10, MaxCampTime=60} );
+//MapRoutes
+	MapRoutes =
+	{
+		BUILD_Neutral_Command_Post =
+		{
+			ROUTE_ALLIES_SPAWN  =
+			{
+				ROUTE_CP_A  =
+				{
+				},
+				ROUTE_CP_B  =
+				{
+				},
+			},
+			ROUTE_AXIS_SPAWN  =
+			{
+				ROUTE_CP_A  =
+				{
+				},
+				ROUTE_CP_B  =
+				{
+				},
+			},
+		},
+		CHECKPOINT_billiardroom_flag =
+		{
+			ROUTE_ALLIES_SPAWN  =
+			{
+				ROUTE_hall  =
+				{
+					ROUTE_outside_lounge  =
+					{
+						ROUTE_outside_dinning  =
+						{
+							ROUTE_outside_kitchen  =
+							{
+								ROUTE_outside_conservatory  =
+								{
+									ROUTE_outside_billard  =
+									{
+										ROUTE_billard  =
+										{
+										},
+										ROUTE_billard_1  =
+										{
+										},
+										ROUTE_billard_2  =
+										{
+										},
+									},
+								},
+							},
+						},
+					},
+					ROUTE_outside_study  =
+					{
+						ROUTE_outside_library  =
+						{
+							ROUTE_outside_billard  =
+							{
+								ROUTE_billard  =
+								{
+								},
+								ROUTE_billard_1  =
+								{
+								},
+								ROUTE_billard_2  =
+								{
+								},
+							},
+						},
+					},
+				},
+				ROUTE_billard_a  =
+				{
+				},
+				ROUTE_billard_b  =
+				{
+				},
+			},
+			ROUTE_AXIS_SPAWN  =
+			{
+				ROUTE_ballroom_a  =
+				{
+					ROUTE_conservatory  =
+					{
+						ROUTE_outside_billard  =
+						{
+							ROUTE_billard  =
+							{
+							},
+							ROUTE_billard_1  =
+							{
+							},
+							ROUTE_billard_2  =
+							{
+							},
+						},
+					},
+				},
+				ROUTE_ballroom_b  =
+				{
+					ROUTE_outside_kitchen  =
+					{
+						ROUTE_outside_dinning  =
+						{
+							ROUTE_outside_lounge  =
+							{
+								ROUTE_outside_study  =
+								{
+									ROUTE_outside_library  =
+									{
+										ROUTE_outside_billard  =
+										{
+											ROUTE_billard  =
+											{
+											},
+											ROUTE_billard_1  =
+											{
+											},
+											ROUTE_billard_2  =
+											{
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_billard_a  =
+				{
+				},
+				ROUTE_billard_b  =
+				{
+				},
+			},
+		},
+		CHECKPOINT_conservatory_flag =
+		{
+			ROUTE_ALLIES_SPAWN  =
+			{
+				ROUTE_hall  =
+				{
+					ROUTE_outside_lounge  =
+					{
+						ROUTE_outside_dinning  =
+						{
+							ROUTE_outside_kitchen  =
+							{
+								ROUTE_outside_conservatory  =
+								{
+									ROUTE_conservatory  =
+									{
+									},
+									ROUTE_conservatory_1  =
+									{
+									},
+									ROUTE_conservatory_2  =
+									{
+									},
+									ROUTE_conservatory_3  =
+									{
+									},
+								},
+							},
+						},
+					},
+					ROUTE_outside_study  =
+					{
+						ROUTE_outside_library  =
+						{
+							ROUTE_outside_billard  =
+							{
+								ROUTE_outside_conservatory  =
+								{
+									ROUTE_conservatory  =
+									{
+									},
+									ROUTE_conservatory_1  =
+									{
+									},
+									ROUTE_conservatory_2  =
+									{
+									},
+									ROUTE_conservatory_3  =
+									{
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_conservatory_a  =
+				{
+				},
+			},
+			ROUTE_AXIS_SPAWN  =
+			{
+				ROUTE_ballroom_a  =
+				{
+					ROUTE_outside_conservatory  =
+					{
+						ROUTE_conservatory  =
+						{
+						},
+						ROUTE_conservatory_1  =
+						{
+						},
+						ROUTE_conservatory_2  =
+						{
+						},
+						ROUTE_conservatory_3  =
+						{
+						},
+					},
+				},
+				ROUTE_ballroom_b  =
+				{
+					ROUTE_outside_kitchen  =
+					{
+						ROUTE_outside_dinning  =
+						{
+							ROUTE_outside_lounge  =
+							{
+								ROUTE_outside_study  =
+								{
+									ROUTE_outside_library  =
+									{
+										ROUTE_outside_billard  =
+										{
+											ROUTE_outside_conservatory  =
+											{
+												ROUTE_conservatory  =
+												{
+												},
+												ROUTE_conservatory_1  =
+												{
+												},
+												ROUTE_conservatory_2  =
+												{
+												},
+												ROUTE_conservatory_3  =
+												{
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_conservatory_a  =
+				{
+				},
+			},
+		},
+		CHECKPOINT_diningroom_flag =
+		{
+			ROUTE_ALLIES_SPAWN  =
+			{
+				ROUTE_hall  =
+				{
+					ROUTE_outside_lounge  =
+					{
+						ROUTE_outside_dinning  =
+						{
+							ROUTE_dinning  =
+							{
+							},
+							ROUTE_dinning_1  =
+							{
+							},
+							ROUTE_dinning_2  =
+							{
+							},
+						},
+					},
+					ROUTE_outside_study  =
+					{
+						ROUTE_outside_library  =
+						{
+							ROUTE_outside_billard  =
+							{
+								ROUTE_outside_conservatory  =
+								{
+									ROUTE_outside_kitchen  =
+									{
+										ROUTE_outside_dinning  =
+										{
+											ROUTE_dinning  =
+											{
+											},
+											ROUTE_dinning_1  =
+											{
+											},
+											ROUTE_dinning_2  =
+											{
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_dinning_a  =
+				{
+				},
+				ROUTE_dinning_b  =
+				{
+				},
+				ROUTE_dinning_c  =
+				{
+				},
+			},
+			ROUTE_AXIS_SPAWN  =
+			{
+				ROUTE_ballroom_a  =
+				{
+					ROUTE_outside_conservatory  =
+					{
+						ROUTE_outside_billard  =
+						{
+							ROUTE_outside_library  =
+							{
+								ROUTE_outside_study  =
+								{
+									ROUTE_outside_lounge  =
+									{
+										ROUTE_outside_dinning  =
+										{
+											ROUTE_dinning  =
+											{
+											},
+											ROUTE_dinning_1  =
+											{
+											},
+											ROUTE_dinning_2  =
+											{
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_ballroom_b  =
+				{
+					ROUTE_outside_kitchen  =
+					{
+						ROUTE_outside_dinning  =
+						{
+							ROUTE_dinning  =
+							{
+							},
+							ROUTE_dinning_1  =
+							{
+							},
+							ROUTE_dinning_2  =
+							{
+							},
+						},
+					},
+				},
+				ROUTE_dinning_a  =
+				{
+				},
+				ROUTE_dinning_b  =
+				{
+				},
+				ROUTE_dinning_c  =
+				{
+				},
+			},
+		},
+		CHECKPOINT_kitchen_flag =
+		{
+			ROUTE_ALLIES_SPAWN  =
+			{
+				ROUTE_hall  =
+				{
+					ROUTE_outside_lounge  =
+					{
+						ROUTE_outside_dinning  =
+						{
+							ROUTE_outside_kitchen  =
+							{
+								ROUTE_kitchen_b  =
+								{
+								},
+								ROUTE_kitchen_c  =
+								{
+								},
+							},
+						},
+					},
+					ROUTE_outside_study  =
+					{
+						ROUTE_outside_library  =
+						{
+							ROUTE_outside_billard  =
+							{
+								ROUTE_outside_conservatory  =
+								{
+									ROUTE_outside_kitchen  =
+									{
+										ROUTE_kitchen_b  =
+										{
+										},
+										ROUTE_kitchen_c  =
+										{
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_kitchen_a  =
+				{
+				},
+			},
+			ROUTE_AXIS_SPAWN  =
+			{
+				ROUTE_ballroom_a  =
+				{
+					ROUTE_outside_conservatory  =
+					{
+						ROUTE_outside_billard  =
+						{
+							ROUTE_outside_library  =
+							{
+								ROUTE_outside_study  =
+								{
+									ROUTE_outside_lounge  =
+									{
+										ROUTE_outside_dinning  =
+										{
+											ROUTE_outside_kitchen  =
+											{
+												ROUTE_kitchen_b  =
+												{
+												},
+												ROUTE_kitchen_c  =
+												{
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_ballroom_b  =
+				{
+					ROUTE_outside_kitchen  =
+					{
+						ROUTE_kitchen_b  =
+						{
+						},
+						ROUTE_kitchen_c  =
+						{
+						},
+					},
+				},
+				ROUTE_kitchen_a  =
+				{
+				},
+			},
+		},
+		CHECKPOINT_library_flag =
+		{
+			ROUTE_ALLIES_SPAWN  =
+			{
+				ROUTE_hall  =
+				{
+					ROUTE_outside_lounge  =
+					{
+						ROUTE_outside_dinning  =
+						{
+							ROUTE_outside_kitchen  =
+							{
+								ROUTE_outside_conservatory  =
+								{
+									ROUTE_outside_billard  =
+									{
+										ROUTE_outside_library  =
+										{
+											ROUTE_library  =
+											{
+											},
+											ROUTE_library_1  =
+											{
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					ROUTE_outside_study  =
+					{
+						ROUTE_outside_library  =
+						{
+							ROUTE_library  =
+							{
+							},
+							ROUTE_library_1  =
+							{
+							},
+						},
+					},
+				},
+				ROUTE_library_a  =
+				{
+				},
+				ROUTE_library_b  =
+				{
+				},
+			},
+			ROUTE_AXIS_SPAWN  =
+			{
+				ROUTE_ballroom_a  =
+				{
+					ROUTE_outside_conservatory  =
+					{
+						ROUTE_outside_billard  =
+						{
+							ROUTE_outside_library  =
+							{
+								ROUTE_library  =
+								{
+								},
+								ROUTE_library_1  =
+								{
+								},
+							},
+						},
+					},
+				},
+				ROUTE_ballroom_b  =
+				{
+					ROUTE_outside_kitchen  =
+					{
+						ROUTE_outside_dinning  =
+						{
+							ROUTE_outside_lounge  =
+							{
+								ROUTE_outside_study  =
+								{
+									ROUTE_outside_library  =
+									{
+										ROUTE_library  =
+										{
+										},
+										ROUTE_library_1  =
+										{
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_library_a  =
+				{
+				},
+				ROUTE_library_b  =
+				{
+				},
+			},
+		},
+		CHECKPOINT_lounge_flag =
+		{
+			ROUTE_ALLIES_SPAWN  =
+			{
+				ROUTE_hall  =
+				{
+					ROUTE_outside_lounge  =
+					{
+						ROUTE_lounge  =
+						{
+						},
+						ROUTE_lounge_1  =
+						{
+						},
+						ROUTE_lounge_2  =
+						{
+						},
+						ROUTE_lounge_3  =
+						{
+						},
+					},
+					ROUTE_outside_study  =
+					{
+						ROUTE_outside_library  =
+						{
+							ROUTE_outside_billard  =
+							{
+								ROUTE_outside_conservatory  =
+								{
+									ROUTE_outside_kitchen  =
+									{
+										ROUTE_outside_dinning  =
+										{
+											ROUTE_outside_lounge  =
+											{
+												ROUTE_lounge  =
+												{
+												},
+												ROUTE_lounge_1  =
+												{
+												},
+												ROUTE_lounge_2  =
+												{
+												},
+												ROUTE_lounge_3  =
+												{
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_lounge_a  =
+				{
+				},
+			},
+			ROUTE_AXIS_SPAWN  =
+			{
+				ROUTE_ballroom_a  =
+				{
+					ROUTE_outside_conservatory  =
+					{
+						ROUTE_outside_billard  =
+						{
+							ROUTE_outside_library  =
+							{
+								ROUTE_outside_study  =
+								{
+									ROUTE_outside_lounge  =
+									{
+										ROUTE_lounge  =
+										{
+										},
+										ROUTE_lounge_1  =
+										{
+										},
+										ROUTE_lounge_2  =
+										{
+										},
+										ROUTE_lounge_3  =
+										{
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_ballroom_b  =
+				{
+					ROUTE_outside_kitchen  =
+					{
+						ROUTE_outside_dinning  =
+						{
+							ROUTE_outside_lounge  =
+							{
+								ROUTE_lounge  =
+								{
+								},
+								ROUTE_lounge_1  =
+								{
+								},
+								ROUTE_lounge_2  =
+								{
+								},
+								ROUTE_lounge_3  =
+								{
+								},
+							},
+						},
+					},
+				},
+				ROUTE_lounge_a  =
+				{
+				},
+			},
+		},
+		CHECKPOINT_study_flag =
+		{
+			ROUTE_ALLIES_SPAWN  =
+			{
+				ROUTE_hall  =
+				{
+					ROUTE_outside_lounge  =
+					{
+						ROUTE_outside_dinning  =
+						{
+							ROUTE_outside_kitchen  =
+							{
+								ROUTE_outside_conservatory  =
+								{
+									ROUTE_outside_billard  =
+									{
+										ROUTE_outside_library  =
+										{
+											ROUTE_outside_study  =
+											{
+												ROUTE_study  =
+												{
+												},
+												ROUTE_study_1  =
+												{
+												},
+												ROUTE_study_2  =
+												{
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					ROUTE_outside_study  =
+					{
+						ROUTE_study  =
+						{
+						},
+						ROUTE_study_1  =
+						{
+						},
+						ROUTE_study_2  =
+						{
+						},
+					},
+				},
+				ROUTE_study_a  =
+				{
+				},
+			},
+			ROUTE_AXIS_SPAWN  =
+			{
+				ROUTE_ballroom_a  =
+				{
+					ROUTE_outside_conservatory  =
+					{
+						ROUTE_outside_billard  =
+						{
+							ROUTE_outside_library  =
+							{
+								ROUTE_outside_study  =
+								{
+									ROUTE_study  =
+									{
+									},
+									ROUTE_study_1  =
+									{
+									},
+									ROUTE_study_2  =
+									{
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_ballroom_b  =
+				{
+					ROUTE_outside_kitchen  =
+					{
+						ROUTE_outside_dinning  =
+						{
+							ROUTE_outside_lounge  =
+							{
+								ROUTE_outside_study  =
+								{
+									ROUTE_study  =
+									{
+									},
+									ROUTE_study_1  =
+									{
+									},
+									ROUTE_study_2  =
+									{
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_study_a  =
+				{
+				},
+			},
+		},
+	};
+//billiard
+	MapRoutes.DEFEND_defbilliard1 = MapRoutes.CHECKPOINT_billiardroom_flag;
+	MapRoutes.DEFEND_defbilliard2 = MapRoutes.CHECKPOINT_billiardroom_flag;
+	MapRoutes.DEFEND_defbilliard3 = MapRoutes.CHECKPOINT_billiardroom_flag;
+	MapRoutes.DEFEND_defbilliard4 = MapRoutes.CHECKPOINT_billiardroom_flag;
+	MapRoutes.DEFEND_defbilliard5 = MapRoutes.CHECKPOINT_billiardroom_flag;
+	MapRoutes.DEFEND_defbilliard6 = MapRoutes.CHECKPOINT_billiardroom_flag;
+	MapRoutes.DEFEND_defbilliard6_1 = MapRoutes.CHECKPOINT_billiardroom_flag;
+	MapRoutes.DEFEND_defbilliard7 = MapRoutes.CHECKPOINT_billiardroom_flag;
+	MapRoutes.ATTACK_billiard1 = MapRoutes.CHECKPOINT_billiardroom_flag;
+	MapRoutes.ATTACK_billiard2 = MapRoutes.CHECKPOINT_billiardroom_flag;
+//conservatory
+	MapRoutes.DEFEND_defconservatory1 = MapRoutes.CHECKPOINT_conservatory_flag;
+	MapRoutes.DEFEND_defconservatory2 = MapRoutes.CHECKPOINT_conservatory_flag;
+	MapRoutes.DEFEND_defconservatory3 = MapRoutes.CHECKPOINT_conservatory_flag;
+	MapRoutes.DEFEND_defconservatory4 = MapRoutes.CHECKPOINT_conservatory_flag;
+	MapRoutes.DEFEND_defconservatory5 = MapRoutes.CHECKPOINT_conservatory_flag;
+	MapRoutes.DEFEND_defconservatory6 = MapRoutes.CHECKPOINT_conservatory_flag;
+	MapRoutes.DEFEND_defconservatory7 = MapRoutes.CHECKPOINT_conservatory_flag;
+	MapRoutes.DEFEND_defconservatory8 = MapRoutes.CHECKPOINT_conservatory_flag;
+	MapRoutes.ATTACK_conservatory1 = MapRoutes.CHECKPOINT_conservatory_flag;
+	MapRoutes.ATTACK_conservatory2 = MapRoutes.CHECKPOINT_conservatory_flag;
+//dinningroom
+	MapRoutes.DEFEND_defdining1 = MapRoutes.CHECKPOINT_diningroom_flag;
+	MapRoutes.DEFEND_defdining2 = MapRoutes.CHECKPOINT_diningroom_flag;
+	MapRoutes.DEFEND_defdining3 = MapRoutes.CHECKPOINT_diningroom_flag;
+	MapRoutes.DEFEND_defdining4 = MapRoutes.CHECKPOINT_diningroom_flag;
+	MapRoutes.DEFEND_defdining5 = MapRoutes.CHECKPOINT_diningroom_flag;
+	MapRoutes.DEFEND_defdining6 = MapRoutes.CHECKPOINT_diningroom_flag;
+	MapRoutes.DEFEND_defdining7 = MapRoutes.CHECKPOINT_diningroom_flag;
+	MapRoutes.ATTACK_dining1 = MapRoutes.CHECKPOINT_diningroom_flag;
+	MapRoutes.ATTACK_dining2 = MapRoutes.CHECKPOINT_diningroom_flag;
+//kitchen
+	MapRoutes.DEFEND_defkitchen1 = MapRoutes.CHECKPOINT_kitchen_flag;
+	MapRoutes.DEFEND_defkitchen2 = MapRoutes.CHECKPOINT_kitchen_flag;
+	MapRoutes.DEFEND_defkitchen3 = MapRoutes.CHECKPOINT_kitchen_flag;
+	MapRoutes.DEFEND_defkitchen4 = MapRoutes.CHECKPOINT_kitchen_flag;
+	MapRoutes.DEFEND_defkitchen5 = MapRoutes.CHECKPOINT_kitchen_flag;
+	MapRoutes.DEFEND_defkitchen6 = MapRoutes.CHECKPOINT_kitchen_flag;
+	MapRoutes.ATTACK_kitchen1 = MapRoutes.CHECKPOINT_kitchen_flag;
+	MapRoutes.ATTACK_kitchen2 = MapRoutes.CHECKPOINT_kitchen_flag;
+//library
+	MapRoutes.DEFEND_deflibrary1 = MapRoutes.CHECKPOINT_library_flag;
+	MapRoutes.DEFEND_deflibrary10 = MapRoutes.CHECKPOINT_library_flag;
+	MapRoutes.DEFEND_deflibrary11 = MapRoutes.CHECKPOINT_library_flag;
+	MapRoutes.DEFEND_deflibrary12 = MapRoutes.CHECKPOINT_library_flag;
+	MapRoutes.DEFEND_deflibrary13 = MapRoutes.CHECKPOINT_library_flag;
+	MapRoutes.DEFEND_deflibrary14 = MapRoutes.CHECKPOINT_library_flag;
+	MapRoutes.DEFEND_deflibrary2 = MapRoutes.CHECKPOINT_library_flag;
+	MapRoutes.DEFEND_deflibrary4 = MapRoutes.CHECKPOINT_library_flag;
+	MapRoutes.DEFEND_deflibrary5 = MapRoutes.CHECKPOINT_library_flag;
+	MapRoutes.DEFEND_deflibrary6 = MapRoutes.CHECKPOINT_library_flag;
+	MapRoutes.DEFEND_deflibrary7 = MapRoutes.CHECKPOINT_library_flag;
+	MapRoutes.DEFEND_deflibrary8 = MapRoutes.CHECKPOINT_library_flag;
+	MapRoutes.DEFEND_deflibrary9 = MapRoutes.CHECKPOINT_library_flag;
+	MapRoutes.ATTACK_library1 = MapRoutes.CHECKPOINT_library_flag;
+	MapRoutes.ATTACK_library2 = MapRoutes.CHECKPOINT_library_flag;
+//lounge
+	MapRoutes.DEFEND_deflounge2 = MapRoutes.CHECKPOINT_lounge_flag;
+	MapRoutes.DEFEND_deflounge3 = MapRoutes.CHECKPOINT_lounge_flag;
+	MapRoutes.DEFEND_deflounge4 = MapRoutes.CHECKPOINT_lounge_flag;
+	MapRoutes.DEFEND_deflounge5 = MapRoutes.CHECKPOINT_lounge_flag;
+	MapRoutes.DEFEND_deflounge6 = MapRoutes.CHECKPOINT_lounge_flag;
+	MapRoutes.DEFEND_deflounge7 = MapRoutes.CHECKPOINT_lounge_flag;
+	MapRoutes.ATTACK_lounge1 = MapRoutes.CHECKPOINT_lounge_flag;
+	MapRoutes.ATTACK_lounge2 = MapRoutes.CHECKPOINT_lounge_flag;
+//studdy
+	MapRoutes.DEFEND_defstuddy1 = MapRoutes.CHECKPOINT_study_flag;
+	MapRoutes.DEFEND_defstuddy2 = MapRoutes.CHECKPOINT_study_flag;
+	MapRoutes.DEFEND_defstuddy3 = MapRoutes.CHECKPOINT_study_flag;
+	MapRoutes.DEFEND_defstuddy4 = MapRoutes.CHECKPOINT_study_flag;
+	MapRoutes.ATTACK_studdy1 = MapRoutes.CHECKPOINT_study_flag;
+	MapRoutes.ATTACK_studdy2 = MapRoutes.CHECKPOINT_study_flag;
+
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	// Uncomment for shootable breakables
+	bot.TargetBreakableDist = 100.0;
+	// Only set MaxViewDistance on maps with limited sight (e.g. fog)
+	bot.MaxViewDistance = 1000;
+};

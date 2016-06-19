@@ -1,0 +1,2122 @@
+//==========================================================================================
+//
+//	frostbite.gm
+//
+//	Who              	When		What
+//------------------------------------------------------------------------------------------
+//	native12		28. May 2011	Initial Script
+//	native12		08. June 2011	First release
+//	native12		07. July 2011	Released
+//
+//	frostbite.way		25 June 2011	Size: 348 160 b
+//	frostbite_goals.gm	19 June 2011	Size: 65 536 b
+//==========================================================================================
+
+global Map =
+{
+	Debug = 0, // please set to zero before distributing your script
+	ShowMovers = false,
+	Talk = true,
+	talk = 1,
+	DefendingTeam = TEAM.AXIS,
+
+	Axis_Command_Post_Dyno = 0,
+	Command_Post_Dyno = 0,
+	
+	Main_Door_Dyno = 0,
+	Main_Door_Intact = true,
+	
+	Platform_MG_Dyno = 0,
+	Platform_MG = false,
+	
+	Service_Door_Dyno = 0,
+	Service_Door_Intact = true,
+	
+	Storage_Wall_Dyno = 0,
+	Storage_Wall_Intact = true,
+	
+	StorageWallClosed = true,
+	
+	DocsTaken = false,
+	DocsOut = false,
+	DocsInside = false,
+	
+	AlliedCP = false,
+	AxisCP = false,
+	
+	trigger_AllyInside_S_D_I = 0,
+	
+	AlliesInside1 = 0,
+	AlliesInside2 = 0,
+	
+	Navigation =
+	{
+		//  	/bot waypoint_setproperty paththrough Navigation_PT:jumpdown
+		jumpdown =
+		{
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.VeryHigh, "facing", Vector3(-0.1,-1,-0.2));
+				sleep(0.2);
+			},
+		},
+		//  	/bot waypoint_setproperty paththrough Navigation_PT:jumpdown1
+		jumpdown1 =
+		{
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.VeryHigh, "facing", Vector3(-0.4,-0.8,-0.5));
+				_this.Bot.HoldButton(BTN.JUMP, 0.7);
+				_this.Bot.HoldButton(BTN.SPRINT, 1);
+				sleep(0.7);
+				_this.Bot.HoldButton(BTN.STRAFE_R, 0.5);
+				sleep(0.2);
+			},
+		},
+		//  	/bot waypoint_setproperty paththrough Navigation_PT:jumpdown2
+		jumpdown2 =
+		{
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.High, "facing", Vector3(-1,-0.2,-0.1));
+				sleep(0.5);
+			},
+		},
+		//  	/bot waypoint_setproperty paththrough Navigation_PT:transmittladder
+		transmittladder =
+		{
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.High, "facing", Vector3(-0.14,0.16,1));
+				_this.Bot.PressButton(BTN.JUMP);
+				sleep(0.5);
+				_this.AddAimRequest(Priority.High, "facing", Vector3(-0.14,0.16,1));
+				_this.Bot.HoldButton(BTN.FORWARD, 2);
+				sleep(2);
+			},
+		},
+		//  	/bot waypoint_setproperty paththrough Navigation_PT:transmittladder1
+		transmittladder1 =
+		{
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.High, "facing", Vector3(-0.7,0.7,-0.076));
+				_this.Bot.PressButton(BTN.STRAFE_L);
+				sleep(1);
+			},
+		},
+		
+		//  	/bot waypoint_setproperty paththrough Navigation_PT:storage_ladder
+		storage_ladder =
+		{
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.High, "facing", Vector3(-0.012210,0.214167,0.976721));
+				_this.Bot.HoldButton(BTN.FORWARD, 2);
+				sleep(2);
+				_this.Bot.HoldButton(BTN.STRAFE_R, 0.5);
+				sleep(0.5);
+			},
+		},
+		//  	/bot waypoint_setproperty paththrough Navigation_PT:godown1
+		godown1 =
+		{
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.High, "facing", Vector3(0,0,1));
+				_this.Bot.HoldButton(BTN.BACKWARD, 2.5);
+				sleep(2.5);
+			},
+		},
+	},
+	
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.AxisCP = true;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Axis_Command_Post" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Axis_Command_Post" );
+		
+		Util.MapDebugPrint( "^5Axis_Command_Post_Built" );
+	},
+	
+	Axis_Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Command_Post_Dyno += 1;
+		
+		Util.MapDebugPrint( "^5Axis_Command_Post_Planted" );
+	},
+	
+	Axis_Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Command_Post_Dyno -= 1;
+		
+		Util.MapDebugPrint( "^5Axis_Command_Post_Defused" );
+	},
+	
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Command_Post_Dyno = 0;
+		Map.AxisCP = false;
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Axis_Command_Post" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Axis_Command_Post" );
+		
+		Util.MapDebugPrint( "^5Axis_Command_Post_Destroyed" );
+	},
+	
+	Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.AlliedCP = true;
+		
+		if ( Map.DocsOut )	//documents are in area behind storage wall
+		{
+			Util.ChangeSpawn( TEAM.ALLIES, 1 );	//allied barracks
+		}
+		else	//documenst are not taken or are not in area behind storage wall
+		{
+			Util.ChangeSpawn( TEAM.ALLIES, 4 );	//allied CP
+		}
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Command_Post" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allied_Start_.*" );
+		
+		if ( Map.AlliesInside1 > 4 or Map.AlliesInside2 > 4 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_Start_.*" );
+		}
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Command_Post" );
+		
+		if ( !Map.DocsTaken )	//docs are not taken
+		{
+			if ( Map.Main_Door_Intact and Map.Service_Door_Intact and Map.Storage_Wall_Intact )	//all of doors are intact
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_docs" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_AtDocs_.*" );
+				
+				Util.MapDebugPrint( "^5Command_Post_Built, Docs are not taken, Doors intact" );
+			}
+			if ( !Map.Main_Door_Intact or !Map.Service_Door_Intact )	//doors are destroyed
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, false, "FLAG_docs" );
+				yield();
+				SetGoalPriority( "FLAG_docs", 0.8, TEAM.ALLIES, 0 );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_docs" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_AtDocs_.*" );
+				
+				Util.MapDebugPrint( "^5Command_Post_Built, Docs are not taken, Main door or Service door destroyed" );
+			}
+		}
+		if ( !Map.Main_Door_Intact or !Map.Service_Door_Intact )	//doors are destroyed
+		{
+			if ( Map.StorageWallClosed and Map.Storage_Wall_Intact )	//storage wall closed & not destroyed
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_StorageWallSwitch" );
+				yield();
+				SetGoalPriority( "SWITCH_StorageWallSwitch", 0.7, TEAM.ALLIES, 0 );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_StorageWallSwitch" );
+				
+				Util.MapDebugPrint( "^5Command_Post_Built, Main door or Service door destroyed, storage wall closed & not destroyed" );
+			}
+		}
+		if ( Map.Service_Door_Intact )	//service door intact
+		{
+			SetGoalPriority( "DEFEND_Allied_AtCabs_.*", 0.52, TEAM.ALLIES, 0 );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Allied_AtCabs_.*" );
+			
+			if ( Map.Service_Door_Dyno == 0 )
+			{
+				SetGoalPriority( "ATTACK_Axis_AtCabs_.*", 0.52, TEAM.AXIS, 0 );
+				SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_Axis_AtCabs_.*" );
+			}
+		}
+	},
+	
+	Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno += 1;
+		
+		Util.MapDebugPrint( "^5Command_Post_Planted" );
+	},
+	
+	Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno -= 1;
+		
+		Util.MapDebugPrint( "^5Command_Post_Defused" );
+	},
+	
+	Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno = 0;
+		Map.AlliedCP = false;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Command_Post" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFUSE_Command_Post_.*" );
+		
+		Util.ChangeSpawn( TEAM.ALLIES, 1 );	//allied barracks
+		
+		if ( !Map.DocsTaken )	//docs are not taken
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allied_Start_.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Post" );
+		}
+		
+		Util.MapDebugPrint( "^5Command_Post_Destroyed" );
+		
+		if ( Map.AlliesInside1 == 0 and Map.AlliesInside2 == 0 )	//Allies are not inside
+		{
+			if ( !Map.DocsTaken )	//docs are not taken
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_Start_.*" );
+				
+				Util.MapDebugPrint( "^5Command_Post_Destroyed, Allies are not inside, docs are not taken" );
+				
+				if ( !Map.Main_Door_Intact )	//main door destroyed
+				{
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_MainDoor_.*" );
+					
+					Util.MapDebugPrint( "^5Command_Post_Destroyed, Allies are not inside, docs are not taken, main door destroyed" );
+				}
+				if ( !Map.Storage_Wall_Intact )	//storage wall destroyed
+				{
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_StorageEntrance_.*" );
+					
+					if ( Map.Platform_MG )	//platform mg42 built
+					{
+						SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_Platform_MG" );
+					}
+					else	//platform mg42 destroyed
+					{
+						SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Platform_MG" );
+					}
+					
+					Util.MapDebugPrint( "^5Command_Post_Destroyed, Allies are not inside, docs are not taken, storage wall destroyed" );
+				}
+			}
+		}
+	},
+	
+	Platform_MG_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Platform_MG = true;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Platform_MG" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_Platform_MG" );
+		
+		if ( !Map.Storage_Wall_Intact )	//destroyed
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Platform_MG" );
+			
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_Platform_MG" );
+		}
+		
+		Util.MapDebugPrint( "^5Platform_MG_Built" );
+	},
+	
+	Platform_MG_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Platform_MG_Dyno += 1;
+		
+		Util.MapDebugPrint( "^5Platform_MG_Planted" );
+	},
+	
+	Platform_MG_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Platform_MG_Dyno -= 1;
+		
+		Util.MapDebugPrint( "^5Platform_MG_Defused" );
+	},
+	
+	Platform_MG_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Platform_MG_Dyno = 0;
+		Map.Platform_MG = false;
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Platform_MG" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Platform_MG" );
+		
+		Util.MapDebugPrint( "^5Platform_MG_Destroyed" );
+	},
+	
+	Main_Door_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Main_Door_Dyno += 1;
+		
+		Util.MapDebugPrint( "^5Main_Door_Planted" );
+	},
+	
+	Main_Door_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Main_Door_Dyno -= 1;
+		
+		Util.MapDebugPrint( "^5Main_Door_Defused" );
+	},
+	
+	Main_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Main_Door_Dyno = 0;
+		Map.Main_Door_Intact = false;
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Main_Door" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Main_Door_.*" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_MainDoor" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_MainDoor" );
+		
+		Util.MapDebugPrint( "^5Main_Door_Destroyed");
+		
+		if ( Map.AlliesInside1 == 0 and Map.AlliesInside2 == 0 )	//Allies are not inside
+		{
+			if ( !Map.DocsTaken )	//docs are not taken
+			{
+				if ( Map.Storage_Wall_Intact )	//storage wall intact
+				{
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_MainDoor_.*" );
+				}
+				else	//storage wall destroyed
+				{
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_MainDoor_1" );
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_MainDoor_3" );
+				}
+				
+				Util.MapDebugPrint( "^5Main_Door_Destroyed, Allies are not inside, docs are not taken");
+			}
+		}
+		
+		if ( !Map.DocsTaken )	//docs are not taken
+		{
+			if ( !Map.AlliedCP and Map.Service_Door_Intact and Map.Storage_Wall_Intact )	//Allied CP destroyed, Service door & Storage wall intact
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_docs" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_AtDocs_.*" );
+				
+				Util.MapDebugPrint( "^5Main_Door_Destroyed, Docs are not taken, Allied CP destroyed, Service door & Storage wall intact" );
+			}
+			if ( Map.AlliedCP )	//Allied CP built
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, false, "FLAG_docs" );
+				yield();
+				SetGoalPriority( "FLAG_docs", 0.8, TEAM.ALLIES, 0 );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_docs" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_AtDocs_.*" );
+				
+				Util.MapDebugPrint( "^5Main_Door_Destroyed, Docs are not taken, Allied CP built" );
+			}
+			
+		}
+		
+		if ( Map.AlliedCP )	//Allied CP built
+		{
+			if ( Map.StorageWallClosed and Map.Storage_Wall_Intact )	//storage wall closed & not destroyed
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_StorageWallSwitch" );
+				yield();
+				SetGoalPriority( "SWITCH_StorageWallSwitch", 0.7, TEAM.ALLIES, 0 );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_StorageWallSwitch" );
+				
+				Util.MapDebugPrint( "^5Main_Door_Destroyed, Allied CP built, storage wall closed & not destroyed" );
+			}
+		}
+	},
+	
+	Service_Door_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Service_Door_Dyno += 1;
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFUSE_Service_Door_.*" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_Axis_AtCabs_.*" );
+		yield();
+		SetGoalPriority( "ATTACK_Axis_AtCabs_.*", 0.72, TEAM.AXIS, 0 );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_Axis_AtCabs_.*" );
+		
+		if ( Map.AlliedCP )	//allied CP built
+		{
+			SetGoalPriority( "DEFEND_Allied_AtCabs_.*", 0.52, TEAM.ALLIES, 0 );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Allied_AtCabs_.*" );
+		}
+		
+		Util.MapDebugPrint( "^5Service_Door_Planted" );
+	},
+	
+	Service_Door_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Service_Door_Dyno -= 1;
+		
+		if ( Map.Service_Door_Dyno == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Service_Door_.*" );
+			
+			SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_Axis_AtCabs_.*" );
+			yield();
+			SetGoalPriority( "ATTACK_Axis_AtCabs_.*", 0.52, TEAM.AXIS, 0 );
+			SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_Axis_AtCabs_.*" );
+		}
+		
+		Util.MapDebugPrint( "^5Service_Door_Defused" );
+	},
+	
+	Service_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Service_Door_Dyno = 0;
+		Map.Service_Door_Intact = false;
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Service_Door" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Allied_AtCabs_.*" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Service_Door_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_Axis_AtCabs_.*" );
+		
+		DeleteTriggerRegion("trigger_Ally_Inside_SDI");
+		Map.AlliesInside1 = 0;
+		
+		trigger_AllyInside_S_D_D = OnTriggerRegion(AABB(-1248.874,-960.874,1.125,1216.874,1888.875,470.541), Map.Trigger_Ally_Inside_SDD);
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_ServiceDoor" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_ServiceDoor" );
+		
+		if ( !Map.DocsTaken )	//docs are not taken
+		{
+			if ( !Map.AlliedCP and Map.Main_Door_Intact and Map.Storage_Wall_Intact )	//Allied CP destroyed, Main door & Storage wall intact
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_docs" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_AtDocs_.*" );
+				
+				Util.MapDebugPrint( "^5Service_Door_Destroyed, Docs are not taken, Allied CP destroyed, Main door & Storage wall intact" );
+			}
+			if ( Map.AlliedCP )	//Allied CP built
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, false, "FLAG_docs" );
+				yield();
+				SetGoalPriority( "FLAG_docs", 0.8, TEAM.ALLIES, 0 );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_docs" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_AtDocs_.*" );
+				
+				Util.MapDebugPrint( "^5Service_Door_Destroyed, Docs are not taken, Allied CP built" );
+			}
+			
+		}
+		if ( Map.AlliedCP )	//Allied CP built
+		{
+			if ( Map.StorageWallClosed and Map.Storage_Wall_Intact )	//storage wall closed & not destroyed
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_StorageWallSwitch" );
+				yield();
+				SetGoalPriority( "SWITCH_StorageWallSwitch", 0.7, TEAM.ALLIES, 0 );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_StorageWallSwitch" );
+				
+				Util.MapDebugPrint( "^5Service_Door_Destroyed, Allied CP built, storage wall closed & not destroyed" );
+			}
+		}
+		WeaponTable.SetWeaponAvailability(CLASS.SOLDIER, WEAPON.FLAMETHROWER, true);
+		WeaponTable.SetWeaponAvailability(CLASS.ENGINEER, { WEAPON.KAR98, WEAPON.CARBINE }, false);
+	},
+	
+	Storage_Wall_Moved = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		yield();
+		vel = ToVector(trigger.Action);
+		
+		if ( vel[ 0 ] < 0 )
+		{
+			Map.StorageWallClosed = false;
+			
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_StorageWallSwitch" );
+			
+			Util.MapDebugPrint("^5Storage Wall opening");
+			
+			sleep(7);
+			
+			SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_StorageWall" );
+			
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_StorageWall" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_GarageDoor" );
+			
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_StorageWallSwitch" );
+			
+			Util.MapDebugPrint("^5Storage Wall is open");
+		}
+		else if ( vel[ 0 ] > 0 )
+		{ 
+			Map.StorageWallClosed = true;
+			
+			SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_StorageWallSwitch" );
+			
+			Util.MapDebugPrint("^5Storage Wall closing");
+			
+			sleep(7);
+			
+			SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_StorageWall" );
+			
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_StorageWall" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_GarageDoor" );
+			
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_StorageWallSwitch" );
+			
+			Util.MapDebugPrint("^5Storage Wall is closed");
+		}
+	},
+	
+	Storage_Wall_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Storage_Wall_Dyno += 1;
+		
+		if ( Map.DocsTaken )	//documents are taken
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Storage_Wall_.*" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFUSE_Storage_Wall_.*" );
+		}
+		
+		Util.MapDebugPrint( "^5Storage_Wall_Planted" );
+	},
+	
+	Storage_Wall_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Storage_Wall_Dyno -= 1;
+		
+		if ( Map.Storage_Wall_Dyno == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Storage_Wall_.*" );
+		}
+		
+		Util.MapDebugPrint( "^5Storage_Wall_Defused" );
+	},
+	
+	Storage_Wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Storage_Wall_Dyno = 0;
+		Map.Storage_Wall_Intact = false;
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Storage_Wall" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_StorageWallSwitch" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_StorageWallSwitch" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Storage_Wall_.*" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_StorageWall" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_GarageDoor" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_StorageWall" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_GarageDoor" );
+		
+		Util.MapDebugPrint( "^5Storage_Wall_Destroyed");
+		
+		if ( Map.AlliesInside1 == 0 and Map.AlliesInside2 == 0 )	//Allies are not inside
+		{
+			if ( !Map.DocsTaken )	//docs are not taken
+			{
+				if ( Map.Main_Door_Intact )	//main door intact
+				{
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_StorageEntrance_.*" );
+				}
+				else	//main door destroyed
+				{
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_StorageEntrance_1" );
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_StorageEntrance_2" );
+				}
+				
+				if ( Map.Platform_MG )	//platform mg42 built
+				{
+					SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_Platform_MG" );
+				}
+				else	//platform mg42 destroyed
+				{
+					SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Platform_MG" );
+				}
+				
+				Util.MapDebugPrint( "^5Storage_Wall_Destroyed, Allies are not inside, docs are not taken");
+			}
+		}
+		if ( !Map.DocsTaken )	//docs are not taken
+		{
+			if ( !Map.AlliedCP and Map.Main_Door_Intact and Map.Service_Door_Intact )	//Allied CP destroyed, Main door & Service door intact
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_docs" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_AtDocs_.*" );
+				
+				Util.MapDebugPrint( "^5Storage_Wall_Destroyed, Docs are not taken, Allied CP destroyed, Main door & Service door intact" );
+			}
+			if ( Map.AlliedCP )	//Allied CP built
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, false, "FLAG_docs" );
+				yield();
+				SetGoalPriority( "FLAG_docs", 0.8, TEAM.ALLIES, 0 );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_docs" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_AtDocs_.*" );
+				
+				Util.MapDebugPrint( "^5Storage_Wall_Destroyed, Docs are not taken, Allied CP built" );
+			}
+		}
+	},
+	
+	docs_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.DocsTaken = true;
+		
+		Util.ChangeSpawn( TEAM.AXIS, 3 );	//axis garage
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "FLAG_docs" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Allied_AtDocs_.*" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_Transmitter" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_AtTransmitter_.*" );
+		
+		sleep(3);
+		
+		if ( Map.DocsTaken )	//documents are taken
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Axis_AtDocs_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_Start_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_MainDoor_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_StorageEntrance_.*" );
+			
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtTransmitter_.*" );
+			
+			if ( Map.DocsOut )	//documents are in area behind storage wall
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_Axis_AtTransmitter_14" );
+			}
+			else	//documents are not in area behind storage wall
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_Axis_AtTransmitter_12" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_Axis_AtTransmitter_13" );
+			}
+			
+			if ( Map.Storage_Wall_Dyno > 0 )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Storage_Wall_.*" );
+			}
+			
+		}
+		
+		Util.MapDebugPrint( "^5docs_Taken" );
+	},
+	
+	//this following trigger is not supported in NQ 1.2.9.b6 and N!tmod and ?
+	docs_Dropped = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_Transmitter" );
+		
+		Util.MapDebugPrint( "^5docs_Dropped" );
+		
+		if ( Map.DocsInside )	//documents are inside transmitter tower
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "FLAG.*" );
+			Util.SetMaxUsers( 10, "FLAG.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "FLAG.*" );
+			
+			Util.MapDebugPrint( "^5docs_Dropped inside transmitter tower" );
+		}
+	},
+	
+	docs_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.DocsTaken = false;
+		Map.DocsInside = false;
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_Transmitter" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Allied_AtTransmitter_.*" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_AtTransmitter_.*" );
+		
+		Util.ChangeSpawn( TEAM.AXIS, 2 );	//barracks
+		
+		foreach ( id and bot in BotTable )
+		{
+			if ( bot.GetTeam() == TEAM.AXIS )
+			{
+				if ( Map.DocsOut )	//documents are in area behind storage wall
+				{
+					if ( bot.GetReinforceTime() < 10 )
+					{
+						if ( Map.Storage_Wall_Dyno == 0 )
+						{
+							bot.ExecCommand( "kill" );
+						}
+					}
+				}
+			}
+		}
+		
+		if ( Map.Storage_Wall_Dyno > 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFUSE_Storage_Wall_.*" );
+		}
+		
+		if ( Map.AlliedCP )	//allied CP built
+		{
+			Util.ChangeSpawn( TEAM.ALLIES, 4 );	//allied CP
+		}
+		
+		if ( Map.DocsOut )	//documents are in area behind storage wall
+		{
+			Map.DocsOut = false;
+		}
+		
+		if ( !Map.AlliedCP )	//allied CP destroyed
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Post" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allied_Start_.*" );
+		}
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_docs" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_AtDocs_.*" );
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "FLAG.*" );
+		Util.SetMaxUsers( 4, "FLAG.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "FLAG.*" );
+		
+		Util.MapDebugPrint( "^5docs_Returned" );
+		
+		if ( Map.AlliesInside1 == 0 and Map.AlliesInside2 == 0 )	//Allies are not inside
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_Start_.*" );
+			
+			Util.MapDebugPrint( "^5docs_Returned, Allies are not inside" );
+			
+			if ( !Map.Main_Door_Intact )	//main door destroyed
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_MainDoor_.*" );
+				
+				Util.MapDebugPrint( "^5docs_Returned, Allies are not inside, main door destroyed" );
+			}
+			if ( !Map.Storage_Wall_Intact )	//storage wall destroyed
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_StorageEntrance_.*" );
+				
+				if ( Map.Platform_MG )	//platform mg42 built
+				{
+					SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_Platform_MG" );
+				}
+				else	//platform mg42 destroyed
+				{
+					SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Platform_MG" );
+				}
+				
+				Util.MapDebugPrint( "^5docs_Returned, Allies are not inside, storage wall destroyed" );
+			}
+		}
+		else
+		{
+			if ( Map.AlliesInside1 < 5 )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_1" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_2" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_9" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_13" );
+			}
+			else
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_Start_.*" );
+				SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_MainDoor_.*" );
+				SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_StorageEntrance_.*" );
+				SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_Platform_MG" );
+				
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_1" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_2" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_3" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_9" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_10" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_11" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_12" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_13" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_14" );
+			}
+			
+			if ( Map.AlliesInside2 < 5 )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_.*" );
+			}
+			else
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_Start_.*" );
+				SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_MainDoor_.*" );
+				SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_StorageEntrance_.*" );
+				SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_Platform_MG" );
+				
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_.*" );
+			}
+			
+			Util.MapDebugPrint( "^5docs_Returned, Allies are inside" );
+		}
+	},
+	
+	docs_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		
+		Util.MapDebugPrint( "^5docs_Secured" );
+	},
+	
+	Trigger_Ally_Inside_SDI =	//service door intact
+	{
+		Name = "trigger_Ally_Inside_SDI",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				Map.AlliesInside1 += 1;
+				
+				if ( Map.AlliesInside1 == 1 )
+				{
+					Util.BotChat (TEAM.AXIS, "sayteam", "^1Allies entered into complex!", 1);
+				}
+				
+				if ( !Map.DocsTaken )	//documents are not taken
+				{
+					if ( Map.AlliesInside1 < 5 )
+					{
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_1" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_2" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_9" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_13" );
+					}
+					else
+					{
+						SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_Start_.*" );
+						SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_MainDoor_.*" );
+						SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_StorageEntrance_.*" );
+						SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_Platform_MG" );
+						
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_1" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_2" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_3" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_9" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_10" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_11" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_12" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_13" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_14" );
+					}
+				}
+				else
+				{
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_13" );
+				}
+				
+				Util.MapDebugPrint( "^5Allies entered into Trigger_Ally_Inside_SDI" );
+			}
+		},
+		OnExit = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				Map.AlliesInside1 -= 1;
+				
+				Util.MapDebugPrint( "^5Allies exited from Trigger_Ally_Inside_SDI" );
+				
+				if ( Map.AlliesInside1 == 0 )	//Allies are not inside
+				{
+					if ( !Map.DocsTaken )	//docs are not taken
+					{
+						SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_AtDocs_.*" );
+						
+						SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_Start_.*" );
+						
+						Util.MapDebugPrint( "^5All allies exited from Trigger_Ally_Inside_SDI, docs are not taken" );
+						
+						if ( !Map.Main_Door_Intact )	//main door destroyed
+						{
+							SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_MainDoor_.*" );
+							
+							Util.MapDebugPrint( "^5All allies exited from Trigger_Ally_Inside_SDI, docs are not taken, main door destroyed" );
+						}
+						if ( !Map.Storage_Wall_Intact )	//storage wall destroyed
+						{
+							SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_StorageEntrance_.*" );
+							
+							if ( Map.Platform_MG )	//platform mg42 built
+							{
+								SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_Platform_MG" );
+							}
+							else	//platform mg42 destroyed
+							{
+								SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Platform_MG" );
+							}
+							
+							Util.MapDebugPrint( "^5All allies exited from Trigger_Ally_Inside_SDI, docs are not taken, storage wall destroyed" );
+						}
+					}
+					
+					Util.BotChat (TEAM.AXIS, "sayteam", "^1Complex is clear. Allies are not in complex.", 1);
+				}
+			}
+		},
+	},
+	
+	Trigger_Ally_Inside_SDD =	//service door destroyed
+	{
+		Name = "trigger_Ally_Inside_SDD",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				Map.AlliesInside2 += 1;
+				
+				if ( Map.AlliesInside2 == 1 )
+				{
+					Util.BotChat (TEAM.AXIS, "sayteam", "^1Allies entered into complex!", 1);
+				}
+				
+				if ( !Map.DocsTaken )	//documents are not taken
+				{
+					if ( Map.AlliesInside2 < 5 )
+					{
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_.*" );
+					}
+					else
+					{
+						SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_Start_.*" );
+						SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_MainDoor_.*" );
+						SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_StorageEntrance_.*" );
+						SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_Platform_MG" );
+						
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_.*" );
+					}
+				}
+				else
+				{
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocs_13" );
+				}
+				
+				Util.MapDebugPrint( "^5Allies entered into Trigger_Ally_Inside_SDD" );
+			}
+		},
+		OnExit = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				Map.AlliesInside2 -= 1;
+				
+				Util.MapDebugPrint( "^5Allies exited from Trigger_Ally_Inside_SDD" );
+				
+				if ( Map.AlliesInside2 == 0 )	//Allies are not inside
+				{
+					if ( !Map.DocsTaken )	//docs are not taken
+					{
+						SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_AtDocs_.*" );
+						
+						SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_Start_.*" );
+						
+						Util.MapDebugPrint( "^5All allies exited from Trigger_Ally_Inside_SDD, docs are not taken" );
+						
+						if ( !Map.Main_Door_Intact )	//main door destroyed
+						{
+							SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_MainDoor_.*" );
+							
+							Util.MapDebugPrint( "^5All allies exited from Trigger_Ally_Inside_SDD, docs are not taken, main door destroyed" );
+						}
+						if ( !Map.Storage_Wall_Intact )	//storage wall destroyed
+						{
+							SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_StorageEntrance_.*" );
+							
+							if ( Map.Platform_MG )	//platform mg42 built
+							{
+								SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_Platform_MG" );
+							}
+							else	//platform mg42 destroyed
+							{
+								SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Platform_MG" );
+							}
+							
+							Util.MapDebugPrint( "^5All allies exited from Trigger_Ally_Inside_SDD, docs are not taken, storage wall destroyed" );
+						}
+					}
+					
+					Util.BotChat (TEAM.AXIS, "sayteam", "^1Complex is clear. Allies are not in complex.", 1);
+				}
+			}
+		},
+	},
+	
+	Trigger_DocumentsOut =	//area behind storage wall towards transmitter
+	{
+		Name = "Trigger_Docs_Out",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+				{
+					Map.DocsOut = true;
+					
+					if ( Map.AlliedCP )	//allied CP built
+					{
+						Util.ChangeSpawn( TEAM.ALLIES, 1 );	//allied barracks
+					}
+					
+					SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_Axis_AtTransmitter_14" );
+					
+					Util.MapDebugPrint( "^5documents are in area behind storage wall towards transmitter" );
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+				{
+					Map.DocsOut = false;
+				}
+			}
+		},
+	},
+	
+	Trigger_DocumentsNearTransmitter =	//documents are inside transmitter tower
+	{
+		Name = "Trigger_Documents_Near_Transmitter",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+				{
+					Map.DocsInside = true;
+					
+					Util.MapDebugPrint( "^5documents are near transmitter tower" );
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+				{
+					Map.DocsInside = false;
+					
+					Util.MapDebugPrint( "^5documents aren´t near transmitter tower" );
+				}
+			}
+		},
+	},
+	
+	Trigger_DocumentsInside =	//documents are infront of transmitter (room with table)
+	{
+		Name = "Trigger_Documents_Inside",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+				{
+					Util.SetMaxUsers( 10, "FLAG.*" );
+					
+					Util.MapDebugPrint( "^5documents are inside transmitter tower" );
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+				{
+					Util.SetMaxUsers( 4, "FLAG.*" );
+					
+					Util.MapDebugPrint( "^5documents aren´t inside transmitter tower" );
+				}
+			}
+		},
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// Register callback functions
+	OnTrigger( "axis_hq_compost_constructed", Map.Axis_Command_Post_Built );
+	OnTrigger( "Planted at the Axis Command Post.", Map.Axis_Command_Post_Planted );
+	OnTrigger( "Defused at the Axis Command Post.", Map.Axis_Command_Post_Defused );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	
+	OnTrigger( "allies_hq_compost_constructed", Map.Command_Post_Built );
+	OnTrigger( "Planted at the Command Post.", Map.Command_Post_Planted );
+	OnTrigger( "Defused at the Command Post.", Map.Command_Post_Defused );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Command_Post_Destroyed );
+	
+	OnTrigger( "Axis team has constructed the Platform MG Nest!", Map.Platform_MG_Built );
+	OnTrigger( "Planted at the Platform MG.", Map.Platform_MG_Planted );
+	OnTrigger( "Defused at the Platform MG.", Map.Platform_MG_Defused );
+	OnTrigger( "Allied team has destroyed the Platform MG Nest!", Map.Platform_MG_Destroyed );
+	
+	OnTrigger( "Planted at the Main Door.", Map.Main_Door_Planted );
+	OnTrigger( "Defused at the Main Door.", Map.Main_Door_Defused );
+	OnTrigger( "The Main Door has been breached!", Map.Main_Door_Destroyed );
+	
+	OnTrigger( "Planted at the Service Door.", Map.Service_Door_Planted );
+	OnTrigger( "Defused at the Service Door.", Map.Service_Door_Defused );
+	OnTrigger( "The Service Door has been breached!", Map.Service_Door_Destroyed );
+	
+	OnTrigger( "storage_button_goto", Map.Storage_Wall_Moved );
+	OnTrigger( "Planted at the Storage Wall.", Map.Storage_Wall_Planted );
+	OnTrigger( "Defused at the Storage Wall.", Map.Storage_Wall_Defused );
+	OnTrigger( "Storage Wall destroyed!", Map.Storage_Wall_Destroyed );
+	
+	OnTrigger( "Allies have stolen the Supply Documents!", Map.docs_Taken );
+	OnTrigger( "the Supply Documents dropped.", Map.docs_Dropped );
+	OnTrigger( "Flag returned docs!", Map.docs_Returned );
+	OnTrigger( "The Allies have transmitted the Supply Documents!", Map.docs_Secured );
+	
+	WeaponTable.SetWeaponAvailability(CLASS.SOLDIER, { WEAPON.MP40, WEAPON.THOMPSON }, true);
+	WeaponTable.SetWeaponAvailability(CLASS.SOLDIER, WEAPON.FLAMETHROWER, false);
+	
+	Util.DisableGoal( ".*", true ); // all but routes
+	
+	SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_south_ammocabinet" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_south_healthcabinet" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Axis_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Platform_MG" );
+	SetAvailableMapGoals( TEAM.AXIS, true, ".*_Axis_Start_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_Axis_SW.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "SMOKEBOMB_Axis_SW11" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_south_ammocabinet" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "HEALTHCAB_south_healthcabinet" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Post" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Storage_Wall" );	//opposite the tower with transmitter
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Service_Door" );	//next to health & ammo cabs
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Main_Door" );		//below allied CP
+	SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allied_Start_.*" );
+	
+	SetGoalPriority( "FLAG_docs", 0.45, TEAM.ALLIES, 0 );	//at first they should capture & build CP
+	
+	SetGoalPriority( "SWITCH_StorageWallSwitch", 0.47, TEAM.ALLIES, 0 );
+	
+	SetGoalPriority( "ATTACK_Allied_Start_.*", 0.52, TEAM.ALLIES, 0 );
+	SetGoalPriority( "ATTACK_Allied_AtTransmitter_.*", 0.53, TEAM.ALLIES, 0 );
+	
+	// (priority of "BUILD_Command_Post" is 0.9 => at first plant Main Door --> second way for build CP)
+	SetGoalPriority( "PLANT_Main_Door", 0.91, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_Service_Door", 0.82, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_Axis_Command_Post", 0.4, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_Axis_Command_Post", 0.65, TEAM.ALLIES, CLASS.COVERTOPS );
+	SetGoalPriority( "PLANT_Platform_MG", 0.6, TEAM.ALLIES, CLASS.ENGINEER );
+	
+	SetGoalPriority( "BUILD_Axis_Command_Post", 0.6, TEAM.AXIS, CLASS.ENGINEER );
+	
+	SetGoalPriority( "PLANT_Command_Post", 0.6, TEAM.AXIS, CLASS.ENGINEER );
+	
+	SetGoalPriority( "DEFEND_Axis_Start_5", 0.51, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_Start_6", 0.51, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_Start_9", 0.51, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_Start_10", 0.51, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_MainDoor_.*", 0.52, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_StorageEntrance_3", 0.5, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_StorageEntrance_1", 0.52, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_StorageEntrance_2", 0.52, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_AtDocs_.*", 0.71, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_AtDocs_4", 0.75, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_AtDocs_5", 0.75, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_AtDocs_6", 0.75, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_AtDocs_8", 0.75, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_AtDocs_13", 0.82, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_AtTransmitter_.*", 0.77, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_AtTransmitter_2", 0.79, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_AtTransmitter_3", 0.79, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_AtTransmitter_4", 0.79, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_AtTransmitter_5", 0.79, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_AtTransmitter_2", 0.78, TEAM.AXIS, CLASS.MEDIC );
+	SetGoalPriority( "DEFEND_Axis_AtTransmitter_3", 0.78, TEAM.AXIS, CLASS.MEDIC );
+	SetGoalPriority( "DEFEND_Axis_AtTransmitter_4", 0.78, TEAM.AXIS, CLASS.MEDIC );
+	SetGoalPriority( "DEFEND_Axis_AtTransmitter_5", 0.78, TEAM.AXIS, CLASS.MEDIC );
+	
+	SetGoalPriority( "PLANTMINE_Axis_SW.*", 0.78, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "PLANTMINE_Axis_SW6", 0.79, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "PLANTMINE_Axis_SW7", 0.79, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "PLANTMINE_Axis_SW8", 0.79, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "PLANTMINE_Axis_SW9", 0.79, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "PLANTMINE_Axis_SW10", 0.79, TEAM.AXIS, CLASS.ENGINEER );
+
+	// Max users per goal
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 2, "SWITCH_.*" );
+	Util.SetMaxUsers( 2, "BUILD_.*" );
+	Util.SetMaxUsers( 4, "FLAG.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+
+	// Camp times
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=120, MaxCampTime=240} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=60} );
+	
+	NP2 = OnTriggerRegion(AABB(-1182.874,708.050,1.125,-1057.125,800.875,331.125), RegionTrigger.DisableBotPush);
+	NP4 = OnTriggerRegion(AABB(-4988.040,1589.170,-202.725,-4905.035,1716.772,205.125), RegionTrigger.DisableBotPush);
+	NP5 = OnTriggerRegion(AABB(-4823.867,2398.799,-174.875,-4684.974,2525.367,286.875), RegionTrigger.DisableBotPush);
+	NP7 = OnTriggerRegion(AABB(-4733.357,193.206,-190.875,-4557.491,311.164,-116.875), RegionTrigger.DisableBotPush);
+	NP8 = OnTriggerRegion(AABB(-864.875,-759.662,225.125,-780.427,-607.125,363.125), RegionTrigger.DisableBotPush);
+	DCM1 = OnTriggerRegion(AABB(-1587.540,-222.194,304.097,-1436.261,-172.754,386.335), RegionTrigger.DisableCombatMovement);
+	DCM2 = OnTriggerRegion(AABB(-1310.389,-205.206,305.125,-1249.127,-49.167,379.125), RegionTrigger.DisableCombatMovement);
+	DCM3 = OnTriggerRegion(AABB(-864.875,-759.662,225.125,-780.427,-607.125,363.125), RegionTrigger.DisableCombatMovement);
+	DCM4 = OnTriggerRegion(AABB(-577.498,-659.929,257.125,-511.125,-607.126,372.930), RegionTrigger.DisableCombatMovement);
+	DCM5 = OnTriggerRegion(AABB(1092.933,-29.183,401.125,1216.875,128.398,555.125), RegionTrigger.DisableCombatMovement);
+	DCM6 = OnTriggerRegion(AABB(1096.397,-416.875,321.125,1216.874,-176.266,419.169), RegionTrigger.DisableCombatMovement);
+	DCM7 = OnTriggerRegion(AABB(767.125,447.125,289.125,845.542,511.422,363.125), RegionTrigger.DisableCombatMovement);
+	DCM8 = OnTriggerRegion(AABB(-1327.540,191.125,33.125,-1247.126,296.232,139.125), RegionTrigger.DisableCombatMovement);
+	DCM9 = OnTriggerRegion(AABB(1081.918,381.231,321.125,1216.875,572.024,448.686), RegionTrigger.DisableCombatMovement);
+	DCM10 = OnTriggerRegion(AABB(-1715.469,191.125,321.125,-1595.541,305.361,395.125), RegionTrigger.DisableCombatMovement);
+	DCM11 = OnTriggerRegion(AABB(-4599.858,2097.797,-142.875,-4450.634,2290.027,-36.875), RegionTrigger.DisableCombatMovement);
+	DCM12 = OnTriggerRegion(AABB(-5085.220,2145.475,-158.875,-4987.134,2250.920,-84.875), RegionTrigger.DisableCombatMovement);
+	DCM13 = OnTriggerRegion(AABB(-4883.887,1575.623,129.125,-4710.892,1749.097,203.131), RegionTrigger.DisableCombatMovement);
+	DCM14 = OnTriggerRegion(AABB(767.126,185.338,385.125,864.470,276.049,459.125), RegionTrigger.DisableCombatMovement);
+	DCM15 = OnTriggerRegion(AABB(1022.972,-179.335,193.125,1098.795,-94.304,471.920), RegionTrigger.DisableCombatMovement);
+	DCM16 = OnTriggerRegion(AABB(-2016.104,-214.037,-63.299,-1862.319,-88.399,331.125), RegionTrigger.DisableCombatMovement);
+	DCM17 = OnTriggerRegion(AABB(-88.873,-296.770,193.125,-5.522,-211.125,267.125), RegionTrigger.DisableCombatMovement);
+	DCM18 = OnTriggerRegion(AABB(-1600.875,20.719,289.125,-1518.515,128.875,400.942), RegionTrigger.DisableCombatMovement);
+	Map.trigger_AllyInside_S_D_I = OnTriggerRegion(AABB(-1248.871,-203.443,1.125,1216.875,1888.247,467.200), Map.Trigger_Ally_Inside_SDI);
+	Map.trigger_Documents_out = OnTriggerRegion(AABB(-5128.592,-930.482,-218.196,-2871.125,2604.271,573.929), Map.Trigger_DocumentsOut);
+	Map.trigger_Documents_nearTransmitter = OnTriggerRegion(AABB(-5445.370,1790.347,-222.875,-4585.500,2520.875,575.511), Map.Trigger_DocumentsNearTransmitter);
+	Map.trigger_Documents_inside = OnTriggerRegion(AABB(-4941.368,2069.969,-222.875,-4497.734,2525.357,-58.790), Map.Trigger_DocumentsInside);
+	
+	Util.AddUseWp( "PLANT_Storage_Wall", "Storage_Wall_Plant_WP_1" );
+	Util.AddUseWp( "PLANT_Storage_Wall", "Storage_Wall_Plant_WP_2" );
+	Util.AddUseWp( "PLANT_Storage_Wall", "Storage_Wall_Plant_WP_3" );
+	Util.AddUseWp( "PLANT_Storage_Wall", "Storage_Wall_Plant_WP_4" );
+	Util.AddUseWp( "PLANT_Storage_Wall", "Storage_Wall_Plant_WP_5" );
+	Util.AddUseWp( "PLANT_Storage_Wall", "Storage_Wall_Plant_WP_6" );
+	Util.AddUseWp( "PLANT_Main_Door", "Main_Door_Plant_WP_1" );
+	Util.AddUseWp( "PLANT_Main_Door", "Main_Door_Plant_WP_2" );
+	Util.AddUseWp( "PLANT_Service_Door", "Service_Door_Plant_WP_1" );
+	Util.AddUseWp( "PLANT_Service_Door", "Service_Door_Plant_WP_2" );
+	
+	
+	MapRoutes =
+	{
+		ATTACK_Allied_AtTransmitter_1 =
+		{
+			ROUTE_AllyBarracks1 =
+			{
+				ROUTE_Transmitter_1 =
+				{
+					ROUTE_Transmitter_2 =
+					{
+						ROUTE_Transmitter_3 =
+						{
+							ROUTE_Transmitter_4 =
+							{
+								
+							},
+						},
+					},
+				},
+				ROUTE_Transmitter_5 =
+				{
+					ROUTE_Transmitter_6 =
+					{
+						
+					},
+				},
+			},
+			ROUTE_AllyBarracks2 =
+			{
+				ROUTE_Transmitter_1 =
+				{
+					ROUTE_Transmitter_2 =
+					{
+						ROUTE_Transmitter_3 =
+						{
+							ROUTE_Transmitter_4 =
+							{
+								
+							},
+						},
+					},
+				},
+				ROUTE_Transmitter_5 =
+				{
+					ROUTE_Transmitter_6 =
+					{
+						
+					},
+				},
+			},
+			ROUTE_AllyCP =
+			{
+				ROUTE_Transmitter_1 =
+				{
+					ROUTE_Transmitter_2 =
+					{
+						ROUTE_Transmitter_3 =
+						{
+							ROUTE_Transmitter_4 =
+							{
+								
+							},
+						},
+					},
+				},
+				ROUTE_Transmitter_5 =
+				{
+					ROUTE_Transmitter_6 =
+					{
+						
+					},
+				},
+			},
+		},
+		CAPPOINT_Transmitter =
+		{
+			ROUTE_DocsTaken =
+			{
+				ROUTE_DocsTaken_1 =
+				{
+					Weight = 2,
+					ROUTE_ServiceDoor =
+					{
+						ROUTE_Cabinets =
+						{
+							ROUTE_NearAllyCP =
+							{
+								ROUTE_Transmitter_1 =
+								{
+									ROUTE_Transmitter_2 =
+									{
+										ROUTE_Transmitter_3 =
+										{
+											ROUTE_Transmitter_4 =
+											{
+												
+											},
+										},
+									},
+								},
+								ROUTE_Transmitter_5 =
+								{
+									ROUTE_Transmitter_6 =
+									{
+										
+									},
+								},
+							},
+						},
+					},
+					ROUTE_DocsTaken_2 =
+					{
+						ROUTE_DocsTaken_3 =
+						{
+							ROUTE_DocsTaken_4 =
+							{
+								ROUTE_MainDoor =
+								{
+									ROUTE_Transmitter_1 =
+									{
+										ROUTE_Transmitter_2 =
+										{
+											ROUTE_Transmitter_3 =
+											{
+												ROUTE_Transmitter_4 =
+												{
+													
+												},
+											},
+										},
+									},
+									ROUTE_Transmitter_5 =
+									{
+										ROUTE_Transmitter_6 =
+										{
+											
+										},
+									},
+								},
+								ROUTE_CP_Stairs =
+								{
+									ROUTE_AllyCP =
+									{
+										ROUTE_Transmitter_1 =
+										{
+											ROUTE_Transmitter_2 =
+											{
+												ROUTE_Transmitter_3 =
+												{
+													ROUTE_Transmitter_4 =
+													{
+														
+													},
+												},
+											},
+										},
+										ROUTE_Transmitter_5 =
+										{
+											ROUTE_Transmitter_6 =
+											{
+												
+											},
+										},
+									},
+								},
+							},
+						},
+						ROUTE_GarageTunnel_1 =
+						{
+							ROUTE_GarageDoor =
+							{
+								ROUTE_StorageWall =
+								{
+									ROUTE_Transmitter_5 =
+									{
+										ROUTE_Transmitter_6 =
+										{
+											
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_DocsTaken_5 =
+				{
+					ROUTE_DocsTaken_2 =
+					{
+						ROUTE_DocsTaken_3 =
+						{
+							ROUTE_DocsTaken_4 =
+							{
+								ROUTE_MainDoor =
+								{
+									ROUTE_Transmitter_1 =
+									{
+										ROUTE_Transmitter_2 =
+										{
+											ROUTE_Transmitter_3 =
+											{
+												ROUTE_Transmitter_4 =
+												{
+													
+												},
+											},
+										},
+									},
+									ROUTE_Transmitter_5 =
+									{
+										ROUTE_Transmitter_6 =
+										{
+											
+										},
+									},
+								},
+								ROUTE_CP_Stairs =
+								{
+									ROUTE_AllyCP =
+									{
+										ROUTE_Transmitter_1 =
+										{
+											ROUTE_Transmitter_2 =
+											{
+												ROUTE_Transmitter_3 =
+												{
+													ROUTE_Transmitter_4 =
+													{
+														
+													},
+												},
+											},
+										},
+										ROUTE_Transmitter_5 =
+										{
+											ROUTE_Transmitter_6 =
+											{
+												
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					ROUTE_GarageTunnel_1 =
+					{
+						ROUTE_GarageDoor =
+						{
+							ROUTE_StorageWall =
+							{
+								ROUTE_Transmitter_5 =
+								{
+									ROUTE_Transmitter_6 =
+									{
+										
+									},
+								},
+							},
+						},
+					},
+					ROUTE_AxisSpawn1exit =
+					{
+						ROUTE_GarageDoor =
+						{
+							ROUTE_StorageWall =
+							{
+								ROUTE_Transmitter_5 =
+								{
+									ROUTE_Transmitter_6 =
+									{
+										
+									},
+								},
+							},
+						},
+						ROUTE_UpperStorageDoor =
+						{
+							ROUTE_NearAllyCP =
+							{
+								ROUTE_Transmitter_1 =
+								{
+									ROUTE_Transmitter_2 =
+									{
+										ROUTE_Transmitter_3 =
+										{
+											ROUTE_Transmitter_4 =
+											{
+												
+											},
+										},
+									},
+								},
+								ROUTE_Transmitter_5 =
+								{
+									ROUTE_Transmitter_6 =
+									{
+										
+									},
+								},
+							},
+						},
+						ROUTE_DocsTaken_4 =
+						{
+							ROUTE_MainDoor =
+							{
+								ROUTE_Transmitter_1 =
+								{
+									ROUTE_Transmitter_2 =
+									{
+										ROUTE_Transmitter_3 =
+										{
+											ROUTE_Transmitter_4 =
+											{
+												
+											},
+										},
+									},
+								},
+								ROUTE_Transmitter_5 =
+								{
+									ROUTE_Transmitter_6 =
+									{
+										
+									},
+								},
+							},
+							ROUTE_CP_Stairs =
+							{
+								ROUTE_AllyCP =
+								{
+									ROUTE_Transmitter_1 =
+									{
+										ROUTE_Transmitter_2 =
+										{
+											ROUTE_Transmitter_3 =
+											{
+												ROUTE_Transmitter_4 =
+												{
+													
+												},
+											},
+										},
+									},
+									ROUTE_Transmitter_5 =
+									{
+										ROUTE_Transmitter_6 =
+										{
+											
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		BUILD_Command_Post =
+		{
+			ROUTE_AllyBarracks1 =
+			{
+				ROUTE_LadderToCP =
+				{
+					ROUTE_NearAllyCP =
+					{
+						
+					},
+				},
+				ROUTE_MainDoor =
+				{
+					Weight = 2,
+					ROUTE_CP_Stairs =
+					{
+						
+					},
+				},
+			},
+			ROUTE_AllyBarracks2 =
+			{
+				ROUTE_LadderToCP =
+				{
+					ROUTE_NearAllyCP =
+					{
+						
+					},
+				},
+				ROUTE_MainDoor =
+				{
+					Weight = 2,
+					ROUTE_CP_Stairs =
+					{
+						
+					},
+				},
+			},
+		},
+		FLAG_docs =
+		{
+			ROUTE_AllyBarracks1 =
+			{
+				ROUTE_LadderToCP =
+				{
+					ROUTE_NearAllyCP =
+					{
+						ROUTE_Cabinets =
+						{
+							Weight = 3,
+							ROUTE_ServiceDoor =
+							{
+								ROUTE_DocsTaken_1 =
+								{
+									
+								},
+							},
+						},
+						ROUTE_UpperStorageDoor =
+						{
+							ROUTE_AxisSpawn1exit =
+							{
+								ROUTE_DocsTaken_5 =
+								{
+									
+								},
+							},
+						},
+					},
+				},
+				ROUTE_MainDoor =
+				{
+					Weight = 2,
+					ROUTE_DocsTaken_4 =
+					{
+						ROUTE_DocsTaken_3 =
+						{
+							ROUTE_DocsTaken_5 =
+							{
+								
+							},
+						},
+					},
+				},
+				ROUTE_Transmitter_1 =
+				{
+					ROUTE_StorageWall =
+					{
+						ROUTE_GarageDoor =
+						{
+							ROUTE_GarageTunnel_1 =
+							{
+								ROUTE_DocsTaken_5 =
+								{
+									
+								},
+							},
+							ROUTE_AxisSpawn1exit =
+							{
+								ROUTE_DocsTaken_5 =
+								{
+									
+								},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_AllyBarracks2 =
+			{
+				ROUTE_LadderToCP =
+				{
+					ROUTE_NearAllyCP =
+					{
+						ROUTE_Cabinets =
+						{
+							Weight = 3,
+							ROUTE_ServiceDoor =
+							{
+								ROUTE_DocsTaken_1 =
+								{
+									
+								},
+							},
+						},
+						ROUTE_UpperStorageDoor =
+						{
+							ROUTE_AxisSpawn1exit =
+							{
+								ROUTE_DocsTaken_5 =
+								{
+									
+								},
+							},
+						},
+					},
+				},
+				ROUTE_MainDoor =
+				{
+					Weight = 2,
+					ROUTE_DocsTaken_4 =
+					{
+						ROUTE_DocsTaken_3 =
+						{
+							ROUTE_DocsTaken_5 =
+							{
+								
+							},
+						},
+					},
+				},
+				ROUTE_Transmitter_1 =
+				{
+					ROUTE_StorageWall =
+					{
+						ROUTE_GarageDoor =
+						{
+							ROUTE_GarageTunnel_1 =
+							{
+								ROUTE_DocsTaken_5 =
+								{
+									
+								},
+							},
+							ROUTE_AxisSpawn1exit =
+							{
+								ROUTE_DocsTaken_5 =
+								{
+									
+								},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_AllyCP =
+			{
+				ROUTE_NearAllyCP =
+				{
+					ROUTE_Cabinets =
+					{
+						Weight = 3,
+						ROUTE_ServiceDoor =
+						{
+							ROUTE_DocsTaken_1 =
+							{
+								
+							},
+						},
+					},
+					ROUTE_UpperStorageDoor =
+					{
+						ROUTE_AxisSpawn1exit =
+						{
+							ROUTE_DocsTaken_5 =
+							{
+								
+							},
+						},
+					},
+				},
+				ROUTE_CP_Stairs =
+				{
+					Weight = 2,
+					ROUTE_DocsTaken_4 =
+					{
+						ROUTE_DocsTaken_3 =
+						{
+							ROUTE_DocsTaken_5 =
+							{
+								
+							},
+						},
+					},
+				},
+			},
+		},
+		PLANT_Command_Post =
+		{
+			ROUTE_AxisUpperSpawn =
+			{
+				ROUTE_DoorToStoragehall =
+				{
+					ROUTE_DocsTaken_4 =
+					{
+						Weight = 3,
+						ROUTE_CP_Stairs =
+						{
+							
+						},
+					},
+					ROUTE_UpperStorageDoor =
+					{
+						
+					},
+				},
+			},
+			ROUTE_AxisLowerSpawn =
+			{
+				ROUTE_GarageDoor =
+				{
+					Weight = 2,
+					ROUTE_StorageDoor =
+					{
+						ROUTE_Transmitter_1 =
+						{
+							ROUTE_MainDoor =
+							{
+								Weight = 2,
+								ROUTE_CP_Stairs =
+								{
+									
+								},
+							},
+							ROUTE_LadderToCP =
+							{
+								ROUTE_NearAllyCP =
+								{
+									
+								},
+							},
+						},
+					},
+				},
+				ROUTE_DoorToStoragehall =
+				{
+					ROUTE_DocsTaken_4 =
+					{
+						Weight = 3,
+						ROUTE_CP_Stairs =
+						{
+							
+						},
+					},
+					ROUTE_UpperStorageDoor =
+					{
+						
+					},
+				},
+			},
+		},
+		AIRSTRIKE_Axis_AtTransmitter_14 =
+		{
+			ROUTE_AxisUpperSpawn =
+			{
+				ROUTE_GarageDoor =
+				{
+					ROUTE_Transmitter_5 =
+					{
+						ROUTE_Transmitter_6 =
+						{
+							ROUTE_Transmitter_4 =
+							{
+								ROUTE_Transmitter_3 =
+								{
+									
+								},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_AxisLowerSpawn =
+			{
+				ROUTE_GarageDoor =
+				{
+					ROUTE_Transmitter_5 =
+					{
+						ROUTE_Transmitter_6 =
+						{
+							ROUTE_Transmitter_4 =
+							{
+								ROUTE_Transmitter_3 =
+								{
+									
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	};
+	
+	//copy some routes
+	MapRoutes.ATTACK_Allied_AtTransmitter_2 = MapRoutes.ATTACK_Allied_AtTransmitter_1;
+	MapRoutes.ATTACK_Allied_AtTransmitter_3 = MapRoutes.ATTACK_Allied_AtTransmitter_1;
+	MapRoutes.ATTACK_Allied_AtTransmitter_4 = MapRoutes.ATTACK_Allied_AtTransmitter_1;
+	MapRoutes.ATTACK_Allied_AtTransmitter_5 = MapRoutes.ATTACK_Allied_AtTransmitter_1;
+	MapRoutes.ATTACK_Allied_AtTransmitter_6 = MapRoutes.ATTACK_Allied_AtTransmitter_1;
+	MapRoutes.ATTACK_Allied_AtTransmitter_7 = MapRoutes.ATTACK_Allied_AtTransmitter_1;
+	MapRoutes.ATTACK_Allied_AtTransmitter_8 = MapRoutes.ATTACK_Allied_AtTransmitter_1;
+	MapRoutes.ATTACK_Allied_AtTransmitter_9 = MapRoutes.ATTACK_Allied_AtTransmitter_1;
+	MapRoutes.ATTACK_Allied_AtTransmitter_1 = MapRoutes.CAPPOINT_Transmitter;
+	MapRoutes.ATTACK_Allied_AtTransmitter_2 = MapRoutes.CAPPOINT_Transmitter;
+	MapRoutes.ATTACK_Allied_AtTransmitter_3 = MapRoutes.CAPPOINT_Transmitter;
+	MapRoutes.ATTACK_Allied_AtTransmitter_4 = MapRoutes.CAPPOINT_Transmitter;
+	MapRoutes.ATTACK_Allied_AtTransmitter_5 = MapRoutes.CAPPOINT_Transmitter;
+	MapRoutes.ATTACK_Allied_AtTransmitter_6 = MapRoutes.CAPPOINT_Transmitter;
+	MapRoutes.ATTACK_Allied_AtTransmitter_7 = MapRoutes.CAPPOINT_Transmitter;
+	MapRoutes.ATTACK_Allied_AtTransmitter_8 = MapRoutes.CAPPOINT_Transmitter;
+	MapRoutes.ATTACK_Allied_AtTransmitter_9 = MapRoutes.CAPPOINT_Transmitter;
+	MapRoutes.ATTACK_Allied_Start_1 = MapRoutes.BUILD_Command_Post;
+	MapRoutes.ATTACK_Allied_Start_2 = MapRoutes.BUILD_Command_Post;
+	MapRoutes.ATTACK_Allied_Start_3 = MapRoutes.BUILD_Command_Post;
+	MapRoutes.ATTACK_Allied_Start_4 = MapRoutes.BUILD_Command_Post;
+	MapRoutes.ATTACK_Allied_Start_5 = MapRoutes.BUILD_Command_Post;
+	MapRoutes.ATTACK_Allied_AtDocs_1 = MapRoutes.FLAG_docs;
+	MapRoutes.ATTACK_Allied_AtDocs_2 = MapRoutes.FLAG_docs;
+	MapRoutes.ATTACK_Allied_AtDocs_3 = MapRoutes.FLAG_docs;
+	MapRoutes.ATTACK_Allied_AtDocs_4 = MapRoutes.FLAG_docs;
+	MapRoutes.ATTACK_Allied_AtDocs_5 = MapRoutes.FLAG_docs;
+	MapRoutes.ATTACK_Allied_AtDocs_6 = MapRoutes.FLAG_docs;
+	MapRoutes.DEFEND_Axis_Start_2 = MapRoutes.PLANT_Command_Post;
+	MapRoutes.DEFEND_Axis_Start_3 = MapRoutes.PLANT_Command_Post;
+	MapRoutes.DEFEND_Axis_Start_9 = MapRoutes.PLANT_Command_Post;
+	MapRoutes.DEFEND_Axis_Start_10 = MapRoutes.PLANT_Command_Post;
+	MapRoutes.AIRSTRIKE_Axis_Start_1 = MapRoutes.PLANT_Command_Post;
+	MapRoutes.DEFEND_Axis_AtTransmitter_9 = MapRoutes.AIRSTRIKE_Axis_AtTransmitter_14;
+	MapRoutes.CALLARTILLERY_Axis_AtTransmitter_12 = MapRoutes.AIRSTRIKE_Axis_AtTransmitter_14;
+	MapRoutes.ARTILLERY_S_Axis_AtTransmitter_13 = MapRoutes.AIRSTRIKE_Axis_AtTransmitter_14;
+	
+	Util.Routes(MapRoutes);
+	
+	SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_ServiceDoor" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_MainDoor" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_StorageWall" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_ServiceDoor" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_MainDoor" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_StorageWall" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_GarageDoor" );
+	
+	Util.MapDebugPrint( "^5Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	// Uncomment for shootable breakables
+	bot.TargetBreakableDist = 150.0;
+};

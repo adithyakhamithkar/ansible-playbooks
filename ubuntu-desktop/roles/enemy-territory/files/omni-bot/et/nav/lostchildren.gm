@@ -1,0 +1,482 @@
+//==========================================================================================
+//
+//	lostchildren.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	palota	27 November 2010	Initial Script
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	bridgeBuilt = false,
+	barrier1Destroyed = false,
+	barrier2Destroyed = true,
+	sideGateDestroyed = true,
+	wallDestroyed = false,
+	sideGrateDestroyed = false,
+	bookTaken = false,
+	bookAtBoat = false,
+	alliedSpawn = 0,
+	Old_city_wall_Dyno = 0,
+
+	Navigation =
+	{
+		l1 = { navigate = function(_this) { //ladder near street spawn
+			for(j=0; j<5 && _this.Bot.GetPosition().z > 180; j+=1)
+			{
+				_this.AddAimRequest(Priority.High, "facing", Vector3(0.254, -0.012, -0.967));
+				_this.Bot.HoldButton(BTN.CROUCH, 3.5);
+				for(k=0; k<30 && !_this.Bot.MoveTowards(Vector3(875.87, 288.532, 332.125),7); k+=1)
+				{
+					sleep(0.1);
+				}
+				sleep(0.2);
+				_this.AddAimRequest(Priority.High, "facing", Vector3(-0.254, -0.012, -0.967));
+				yield();
+				_this.Bot.HoldButton(BTN.FORWARD, 1);
+				sleep(1);
+			}
+		}},
+		l2 = { navigate = function(_this) { //ladder from boat to room
+			_this.AddAimRequest(Priority.High, "facing", Vector3(0.036, -0.430, 0.902));
+			_this.Bot.HoldButton(BTN.FORWARD, 2.5);
+			sleep(2.5);
+		}},
+		grate = { //second boat access breakable
+			EvalFunc = function(t){ 
+				return !Map.sideGrateDestroyed;
+			},
+			navigate = function(_this) {
+				_this.Bot.HoldButton(BTN.FORWARD, 3);
+				_this.AddWeaponRequest(Priority.High, WEAPON.KNIFE);
+				_this.BlockForWeaponChange(WEAPON.KNIFE);
+				for(j=0; j<20; j+=1){
+					tr = TraceLine(Vector3(-1471.776, 796.875, 170.125), Vector3(-1474.088, 835.312, 170.125), null, TRACE.SOLID, 0, true);
+					if (tr.fraction == 1){
+						Map.sideGrateDestroyed = true;
+						break;
+					}
+					_this.AddAimRequest(Priority.High, "position", Vector3(-1471.4, 825, 128.1));
+					_this.Bot.HoldButton(BTN.ATTACK1, 0.5);
+					sleep(0.5);
+				}
+				_this.ReleaseWeaponRequest();
+				_this.ReleaseAimRequest();
+				sleep(3);
+			}
+		},
+	},
+
+	Second_Access =
+	{
+		Name = "Second_Access",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+			{
+				Map.bookAtBoat = true;
+				Map.SetAvail();
+				Util.MapDebugPrint("Second_Access");
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	SetAvail = function()
+	{
+		b = Map.bridgeBuilt || Map.barrier1Destroyed || Map.wallDestroyed;
+		w = Map.sideGateDestroyed || Map.wallDestroyed;
+		t = Map.bookTaken && (w || Map.bookAtBoat);
+		r = !Map.barrier1Destroyed && !Map.wallDestroyed;
+
+		if (!Map.wallDestroyed){ SetAvailableMapGoals( TEAM.AXIS, b, "PLANT_Old_city_wall" ); }
+		SetAvailableMapGoals( TEAM.AXIS, b, "PLANT_Allied_command_post" );
+		SetAvailableMapGoals( TEAM.AXIS, b, "PLANT_Second_barrier" );
+		SetAvailableMapGoals( TEAM.AXIS, b && (Map.wallDestroyed || Map.barrier2Destroyed), "PLANT_Second_boat_access" );
+		SetAvailableMapGoals( TEAM.AXIS, !r, "BUILD_Axis_command_post" );
+		SetAvailableMapGoals( TEAM.AXIS, b && !Map.wallDestroyed, "ATTACK_wall.*" );
+		SetAvailableMapGoals( TEAM.AXIS, b && !t, "ATTACK_book.*" );
+		SetAvailableMapGoals( TEAM.AXIS, !Map.bridgeBuilt && !Map.wallDestroyed, "ATTACK_bridge.*" );
+		SetAvailableMapGoals( TEAM.AXIS, t && w, "ATTACK_boat.*" );
+		SetAvailableMapGoals( TEAM.AXIS, b && w, "PLANT_Dock_Mg" );
+		SetAvailableMapGoals( TEAM.AXIS, Map.wallDestroyed && (t || Map.barrier2Destroyed), "BUILD_boat_bridge" );
+		SetAvailableMapGoals( TEAM.AXIS, Map.bookTaken || Map.barrier2Destroyed && b, "FLAG_book1" );
+		SetAvailableMapGoals( TEAM.AXIS, w || Map.bookAtBoat, "CAPPOINT_radio" );
+		SetAvailableMapGoals( TEAM.AXIS, r, "AIRSTRIKE_barrier1_axis" );
+		SetAvailableMapGoals( TEAM.AXIS, r, "ATTACK_east.*" );
+		SetAvailableMapGoals( TEAM.AXIS, !t && Map.wallDestroyed, "MOUNTMG42_south" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, !t && !r && (Map.wallDestroyed || Map.barrier2Destroyed), "DEFEND_book.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, t, "DEFEND_boat_radio.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, t, "MOUNTMG42_boat" );
+		SetAvailableMapGoals( TEAM.ALLIES, t, "MOUNTMG42_Dock_Mg" );
+		SetAvailableMapGoals( TEAM.ALLIES, !t && !r, "MOUNTMG42_south" );
+		SetAvailableMapGoals( TEAM.ALLIES, t, "MOBILEMG42_boat.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, t && Map.wallDestroyed, "SNIPE_boat_wall.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, t && Map.sideGateDestroyed, "SNIPE_boat_side.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, t && Map.wallDestroyed, "DEFEND_boat_wall.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, t && Map.sideGateDestroyed, "DEFEND_boat_side.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, !t && Map.barrier1Destroyed && !Map.wallDestroyed, "DEFEND_cp.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, !t && Map.barrier1Destroyed && !Map.wallDestroyed, "DEFEND_wall.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, b, "BUILD_Second_boat_access" );
+		SetAvailableMapGoals( TEAM.ALLIES, r, "AIRSTRIKE_barrier1_allied" );
+		SetAvailableMapGoals( TEAM.ALLIES, !t && !Map.wallDestroyed, "DEFEND_east.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, r, "DEFEND_east5" );
+		SetAvailableMapGoals( TEAM.ALLIES, r, "DEFEND_east6" );
+
+		timeLeft = GetGameTimeLeft();
+		if (timeLeft<300){
+			if(Map.barrier1Destroyed){ SetGoalPriority("PLANT_Second_barrier", 0.85); }
+			SetGoalPriority("BUILD_Old_pool_bridge", 0.8, TEAM.AXIS);
+		}
+		else if (timeLeft<600){
+			SetGoalPriority("BUILD_Old_pool_bridge", 0.81, TEAM.AXIS);
+		}
+
+		if(!Map.wallDestroyed)
+		{
+			if (t && (Map.bookAtBoat || RandInt(0,2)==0)){
+				spawn=2; //dock
+			}else{
+				spawn=3; //street
+			}
+			if (spawn != Map.alliedSpawn)
+			{
+				Map.alliedSpawn = spawn;
+				foreach(bot in BotTable)
+				{
+					if (bot.GetTeam()==TEAM.ALLIES){
+						bot.ChangeSpawnPoint(spawn);
+					}
+				}
+			}
+		}
+	},
+
+	Old_pool_bridge_Built = function( trigger )
+	{
+		Map.bridgeBuilt = true;
+		Util.EnableGoal( "ROUTE_bridge" );
+		sleep(1);
+		Map.SetAvail();
+		Util.MapDebugPrint( "Old_pool_bridge_Built" );
+	},
+
+	Old_pool_bridge_Destroyed = function( trigger )
+	{
+		Map.bridgeBuilt = false;
+		Util.DisableGoal( "ROUTE_bridge" );
+		Map.SetAvail();
+		Util.MapDebugPrint( "Old_pool_bridge_Destroyed" );
+	},
+
+	Barrier1_Planted  = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42_barrier1" );
+		Util.MapDebugPrint( "Barrier1_Planted " );
+	},
+
+	Barrier1_Destroyed  = function( trigger )
+	{
+		Map.barrier1Destroyed = true;
+		Util.EnableGoal( "ROUTE_barrier1" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_axis_stairs" );
+		Map.SetAvail();
+		SetAvailableMapGoals( TEAM.ALLIES, true, "TRIPMINE_book.*" );
+		SetGoalPriority("MOUNTMG42_north", 0.7);
+		SetGoalPriority("MOBILEMG42_east.*", 0.69, TEAM.ALLIES);
+		Util.SetMaxUsers( 5, "FLAG_book1" );
+		Util.SetMaxUsersInProgress( 2, "BUILD_Second_barrier" );
+		Util.SetMaxUsers( 2, "BUILD_Second_boat_access" );
+		Util.MapDebugPrint( "Barrier1_Destroyed " );
+	},
+
+	SetDynBarrier2 = function()
+	{
+		pos = {Vector3(-882.501, -925.875, -103.875), Vector3(-890.581, -738.125, -103.711)};
+		goal = GetGoal("PLANT_Second_barrier");
+		goal.SetPosition(Util.GetRandomTableValue(pos));
+		goal.DynamicPosition = false;
+	},
+
+	Second_barrier_Built = function( trigger )
+	{
+		Map.barrier2Destroyed = false;
+		Map.SetDynBarrier2();
+		Map.SetAvail();
+		SetGoalPriority( "BUILD_Allied_command_post", 0.9, TEAM.ALLIES );
+		Util.MapDebugPrint( "Second_barrier_Built" );
+	},
+
+	Second_barrier_Planted = function( trigger )
+	{
+		Map.SetDynBarrier2();
+		Util.MapDebugPrint( "Second_barrier_Planted" );
+	},
+
+	Second_barrier_Destroyed = function( trigger )
+	{
+		Map.barrier2Destroyed = true;
+		Map.SetAvail();
+		Util.MapDebugPrint( "Second_barrier_Destroyed" );
+	},
+
+	Second_boat_access_Built = function( trigger )
+	{
+		Map.sideGateDestroyed = false;
+		Util.DisableGoal( "ROUTE_side_gate" );
+		Map.SetAvail();
+		Util.MapDebugPrint( "Second_boat_access_Built" );
+	},
+
+	Second_boat_access_Destroyed = function( trigger )
+	{
+		Map.sideGateDestroyed = true;
+		Util.EnableGoal( "ROUTE_side_gate" );
+		Map.SetAvail();
+		Util.MapDebugPrint( "Second_boat_access_Destroyed" );
+	},
+
+	Old_city_wall_Planted = function( trigger )
+	{
+		Map.Old_city_wall_Dyno += 1;
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_cp.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_east.*" );
+		SetGoalPriority( "DEFEND_wall.*", 0.85, TEAM.ALLIES);
+		Util.MapDebugPrint( "Old_city_wall_Planted" );
+	},
+
+	Old_city_wall_Defused = function( trigger )
+	{
+		Map.Old_city_wall_Dyno -= 1;
+		if (Map.Old_city_wall_Dyno < 1)
+		{
+			SetGoalPriority( "DEFEND_wall.*", 0.5, TEAM.ALLIES);
+			Map.SetAvail();
+		}
+		Util.MapDebugPrint( "Old_city_wall_Defused" );
+	},
+
+	Old_city_wall_Destroyed = function( trigger )
+	{
+		Map.wallDestroyed = true;
+		Util.EnableGoal( "ROUTE_wall" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_axis_stairs" );
+		Map.SetAvail();
+		SetAvailableMapGoals( TEAM.ALLIES, true, "TRIPMINE_boat.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_north" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*_east.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Old_pool_bridge" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*MG42_barrier1" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Dock_Mg" );
+		SetGoalPriority( "BUILD_Axis_command_post", 0.9, TEAM.AXIS);
+		SetGoalPriority( "BUILD_Second_boat_access", 0.85, TEAM.ALLIES);
+		SetGoalPriority( "REPAIRMG42_Dock_Mg", 0.9, TEAM.ALLIES);
+		Util.MapDebugPrint( "Old_city_wall_Destroyed" );
+	},
+
+	Axis_command_post_Built = function( trigger )
+	{
+		p=0.9;
+		if (!Map.wallDestroyed)
+		{
+			if (GetGameTimeLeft()<400){ p=0.8; }
+			else if (GetGameTimeLeft()<700){ p=0.81; }
+		}
+		else
+		{
+			if (GetGameTimeLeft()<300){ p=0.8; }
+		}
+		SetGoalPriority("BUILD_Axis_command_post", p, TEAM.AXIS);
+		Util.MapDebugPrint( "Axis_command_post_Built" );
+	},
+
+	book1_Taken = function( trigger )
+	{
+		Map.bookTaken = true;
+		Map.SetAvail();
+		Util.MapDebugPrint( "book1_Taken" );
+	},
+
+	book1_Returned = function( trigger )
+	{
+		Map.bookTaken = false;
+		Map.bookAtBoat = false;
+		Map.SetAvail();
+		Util.MapDebugPrint( "book1_Returned" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	OnTrigger( "A bridge was built.", Map.Old_pool_bridge_Built );
+	OnTrigger( "The bridge laying down.", Map.Old_pool_bridge_Destroyed );
+	OnTrigger( "Planted at Barrier #1.", Map.Barrier1_Planted );
+	OnTrigger( "first barrier disabled !!!", Map.Barrier1_Destroyed );
+	OnTrigger( "second barrier constructed.", Map.Second_barrier_Built );
+	OnTrigger( "Planted at Second barrier.", Map.Second_barrier_Planted );
+	OnTrigger( "second barrier disabled.", Map.Second_barrier_Destroyed );
+	OnTrigger( "Another access to the boat was closed.", Map.Second_boat_access_Built );
+	OnTrigger( "The another access was opened.", Map.Second_boat_access_Destroyed );
+	OnTrigger( "Planted at Old city wall.", Map.Old_city_wall_Planted );
+	OnTrigger( "Defused at Old city wall.", Map.Old_city_wall_Defused );
+	OnTrigger( "The old city wall explosed !!!", Map.Old_city_wall_Destroyed );
+	OnTrigger( "Axis have stolen Warplans!", Map.book1_Taken );
+	OnTrigger( "Flag returned book1!", Map.book1_Returned );
+	OnTrigger( "Axis command post was built!", Map.Axis_command_post_Built );
+
+	OnTriggerRegion(AABB(-189.569,2058.591,33.125,133.172,2304.875,123.125),RegionTrigger.BreakableDistance); //MG42_boat
+	OnTriggerRegion(AABB(-1084.459,2783.428,129.125,-755.022,3088.547,374.828),RegionTrigger.BreakableDistance); //boat windows
+	OnTriggerRegion(AABB(-1084.459,2783.428,129.125,-755.022,3088.547,374.828),RegionTrigger.DisableCombatMovement); //boat
+	OnTriggerRegion(AABB(1789.561,-588.340,321.125,2183.240,-394.550,461.125),RegionTrigger.DisableCombatMovement); //barrier1
+	OnTriggerRegion(AABB(-563.977,-1152.875,-150.875,-68.010,-1038.042,-15.026),RegionTrigger.DisableCombatMovement);//barrier2
+	OnTriggerRegion(AABB(576.594,562.691,274.778,631.592,1002.864,438.998),RegionTrigger.DisableCombatMovement); //MG42_north
+	OnTriggerRegion(AABB(-151.902,88.242,284.077,248.810,164.591,417.687),RegionTrigger.DisableCombatMovement); //cables from street to center
+	OnTriggerRegion(AABB(-1384.883,255.063,129.125,-1134.443,366.436,203.125),Map.Second_Access); //side path
+	OnTriggerRegion(AABB(-760.875,903.125,161.125,-583.125,1010.636,235.125),Map.Second_Access); //room
+	RegionTrigger.BreakableDistance.MinBreakableDist = 0;
+	RegionTrigger.BreakableDistance.MaxBreakableDist = 500;
+
+	Util.DisableGoal( ".*", true );
+	Util.DisableGoal( "ROUTE_wall" );
+	Util.DisableGoal( "ROUTE_bridge" );
+	Util.DisableGoal( "ROUTE_barrier1" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_axis_stairs" );
+	Util.EnableGoal( "AMMOCAB_t168" );
+	Util.EnableGoal( "HEALTHCAB_t169" );
+	Util.EnableGoal( "AMMOCAB_south_ammocabinet0" );
+	Util.EnableGoal( "HEALTHCAB_south_healthcabinet0" );
+
+	foreach(goal in {"PLANT_Barrier_1", "BUILD_Old_pool_bridge",
+		"ATTACK_bridge.*", "ATTACK_east.*", "AIRSTRIKE_barrier1_axis"}) {
+		SetAvailableMapGoals( TEAM.AXIS, true, goal );
+	}
+	foreach(goal in { "MOBILEMG42_east.*", "BUILD_Allied_command_post", "MOUNTMG42_north",
+		"PLANT_Axis_command_post", "PLANT_Old_pool_bridge", "PLANT_boat_bridge",
+		"DEFEND_east.*", "AIRSTRIKE_barrier1_allied", "REPAIRMG42.*", "BUILD_Second_barrier"}) {
+		SetAvailableMapGoals( TEAM.ALLIES, true, goal );
+	}
+
+	SetGoalPriority( "PLANT_Barrier_1", 0.82, TEAM.AXIS );
+	SetGoalPriority( "BUILD_boat_bridge", 0.81, TEAM.AXIS );
+	SetGoalPriority( "PLANT_Dock_Mg", 0.7, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "ATTACK_boat.*", 0.49, TEAM.AXIS );
+	SetGoalPriority( "DEFUSE.*", 0.81, TEAM.AXIS, 0, true);
+
+	SetGoalPriority( "MOUNTMG42_north", 0.5, TEAM.ALLIES );
+	SetGoalPriority( "MOUNTMG42_barrier1", 0.71, TEAM.ALLIES );
+	SetGoalPriority( "MOUNTMG42_Dock_Mg", 0.71, TEAM.ALLIES );
+	SetGoalPriority( "SNIPE_boat.*", 0.9, TEAM.ALLIES );
+	SetGoalPriority( "BUILD_Allied_command_post", 0.84, TEAM.ALLIES );
+	SetGoalPriority( "PLANT_Axis_command_post", 0.75, TEAM.ALLIES, CLASS.ENGINEER );
+
+	foreach(goal in {"BUILD_.*", "DEFEND_.*", "MOUNTMG42_.*", "AIRSTRIKE_.*",
+		"FLAG_book1", "PLANT_Barrier_1", "PLANT_Old_pool_bridge", "PLANT_Axis_command_post" }){
+		Util.SetMaxUsers( 1, goal);
+	}
+	Util.SetMaxUsersInProgress( 2, "DEFEND_wall.*");
+
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=15, MaxCampTime=80} );
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=50, MaxCampTime=100} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=80, MaxCampTime=200} );
+
+	Util.AddUsePoint("PLANT_Barrier_1", Vector3(2244.349, -695.332, 336.203));
+	Util.AddUsePoint("BUILD_Second_barrier", Vector3(-803.588, -662.350, -103.875));
+	Util.AddUsePoint("BUILD_Old_pool_bridge", Vector3(2966.746, 853.875, 352.125));
+
+	MapRoutes =
+	{
+		FLAG_book1 = {
+			ROUTE_street_spawn = {
+				ROUTE_axis_stairs = { ROUTE_axis_cp = {}},
+				ROUTE_center = {},
+				ROUTE_center_west = {},
+				ROUTE_center_south = {},
+				ROUTE_center_east_down = {},
+				ROUTE_center_north_east = {},
+			},
+			ROUTE_axis_spawn = {
+				ROUTE_barrier1 = { ROUTE_street_spawn = {}},
+				ROUTE_bridge = { ROUTE_street_spawn = {}},
+				ROUTE_axis_stairs = { Weight=2 },
+			}
+		},
+		CAPPOINT_radio = {
+			ROUTE_book = {
+				ROUTE_wall = {
+					ROUTE_boat_north_east = {},
+					ROUTE_boat_north_west = {},
+					ROUTE_boat_south_east = {},
+					ROUTE_boat_south_west = {},
+				},
+				ROUTE_side_gate = {
+					ROUTE_boat_north_east = {},
+					ROUTE_boat_north_west = {},
+					ROUTE_boat_south_east = {},
+					ROUTE_boat_south_west = {},
+				},
+			}
+		},
+		PLANT_Old_city_wall = {
+			ROUTE_street_spawn = {
+				ROUTE_center_north_east = {},
+				ROUTE_center_north_down = {},
+				ROUTE_center_west = {},
+				ROUTE_center_east_down = {},
+			},
+			ROUTE_axis_spawn = {
+				ROUTE_barrier1 = { ROUTE_street_spawn = {}},
+				ROUTE_axis_stairs = { ROUTE_axis_cp = {}},
+				ROUTE_bridge = {
+					ROUTE_center_north_east = {},
+					ROUTE_center_north_down = {},
+				},
+			}
+		},
+		ATTACK_boat1 = {
+			ROUTE_street_spawn = {
+				ROUTE_wall = { Weight=2 },
+				ROUTE_side_gate = {},
+			}
+		},
+		MOUNTMG42_north = {
+			ROUTE_dock_spawn = {
+				ROUTE_allied_cp = {},
+			}
+		},
+		DEFEND_book1 = {
+			ROUTE_dock_spawn = {
+				ROUTE_boat_south = {},
+				ROUTE_boat_down = { Weight=2 },
+			}
+		},
+	};
+	MapRoutes.PLANT_Second_barrier = MapRoutes.FLAG_book1;
+	MapRoutes.ATTACK_book1 = MapRoutes.FLAG_book1;
+	MapRoutes.ATTACK_book2 = MapRoutes.ATTACK_book1;
+	MapRoutes.ATTACK_book3 = MapRoutes.ATTACK_book1;
+	MapRoutes.ATTACK_wall1 = MapRoutes.ATTACK_book1;
+	MapRoutes.ATTACK_wall2 = MapRoutes.ATTACK_book1;
+	MapRoutes.ATTACK_boat2 = MapRoutes.ATTACK_boat1;
+	MapRoutes.ATTACK_boat3 = MapRoutes.ATTACK_boat1;
+	MapRoutes.ATTACK_boat4 = MapRoutes.ATTACK_boat1;
+	MapRoutes.ATTACK_boat5 = MapRoutes.ATTACK_boat1;
+	MapRoutes.DEFEND_book2 = MapRoutes.DEFEND_book1;
+	MapRoutes.DEFEND_book3 = MapRoutes.DEFEND_book1;
+	MapRoutes.DEFEND_book4 = MapRoutes.DEFEND_book1;
+	MapRoutes.DEFEND_book5 = MapRoutes.DEFEND_book1;
+	MapRoutes.DEFEND_book6 = MapRoutes.DEFEND_book1;
+	MapRoutes.DEFEND_book7 = MapRoutes.DEFEND_book1;
+	MapRoutes.DEFEND_book8 = MapRoutes.DEFEND_book1;
+	MapRoutes.DEFEND_book9 = MapRoutes.DEFEND_book1;
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};

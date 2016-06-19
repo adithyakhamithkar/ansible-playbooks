@@ -1,0 +1,494 @@
+//==========================================================================================
+//
+//	nod_temple.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	palota	06 December 2010	Initial Script
+//	palota	25 September 2011	routes, cover spots, ladders paththrough, trigger regions, fixed Ladder_Built, more attack/defend goals
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	fenceActive = true,
+	fenceGeneratorDestroyed = false,
+	flagAxis = true,
+	numEngineerAtRocket = 0,
+	doorOpened = false,
+	doorGeneratorBuilt = true,
+	rocket_Fuel_Dyno = 0,
+	ShowMovers = false,
+	Movers = { "MOVER_sturmleiter01", "MOVER_sturmleiter02" },
+
+	NavL = function(_this, x)
+	{
+		_this.AddAimRequest(Priority.High, "facing", Vector3(x*0.7,0,0.5));
+		_this.Bot.HoldButton(BTN.WALK, 1);
+		sleep(0.1);
+		_this.Bot.HoldButton(BTN.BACKWARD, 15);
+		for(i=0; i<15 && _this.Bot.GetPosition().z > 35; i+=1){
+			sleep(1);
+		}
+		_this.Bot.ReleaseButton(BTN.BACKWARD);
+		_this.AddAimRequest(Priority.High, "facing", Vector3(-x,0,0));
+		_this.Bot.HoldButton(BTN.FORWARD, 0.5);
+		sleep(1);
+	},
+
+	Navigation =
+	{
+		l1 = {navigate=function(t){
+			Map.NavL(t,1);
+		}},
+		l2 = {navigate=function(t){
+			Map.NavL(t,-1);
+		}},
+		entrance =
+		{
+			navigate = function(_this)
+			{
+				for(j=0; j<6; j+=1){
+					sleep(1);
+					_this.Bot.ResetStuckTime();
+				}
+				sleep(2);
+			}
+		},
+	},
+
+	Switches =
+	{
+		fence_south =
+		{
+			Enabled = true,
+			Priority = 0,
+			WaypointName = "fence_south",
+			AimPosition = Vec3(-475.692, -1984.114, -217.971)
+		},
+		fence_north =
+		{
+			Enabled = true,
+			Priority = 0,
+			WaypointName = "fence_north",
+			AimPosition = Vec3(-475.929, -1632.451, -217.892),
+		},
+	},
+
+	GetBotByEntity = function(ent)
+	{
+		foreach(bot in BotTable)
+		{
+			if(bot.GetGameEntity() == ent)
+			{
+				return bot;
+			}
+		}
+		return null;
+	},
+
+	Rocket_Room =
+	{
+		Name = "Rocket_Room",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if (GetEntClass(ent)==CLASS.ENGINEER && GetEntTeam(ent)==TEAM.ALLIES)
+			{
+				Map.numEngineerAtRocket += 1;
+				Util.MapDebugPrint("Allied engineers at rocket:" + Map.numEngineerAtRocket, true);
+			}
+			bot = Map.GetBotByEntity(ent);
+			if(bot){
+				bot.SetRoles(ROLE.ATTACKER1);
+			}
+		},
+		OnExit = function(ent)
+		{
+			if (GetEntClass(ent)==CLASS.ENGINEER && GetEntTeam(ent)==TEAM.ALLIES)
+			{
+				Map.numEngineerAtRocket -= 1;
+				Util.MapDebugPrint("Allied engineers at rocket:" + Map.numEngineerAtRocket, true);
+			}
+			bot = Map.GetBotByEntity(ent);
+			if(bot){
+				bot.ClearRoles(ROLE.ATTACKER1);
+			}
+		},
+	},
+
+	SetFlag = function(a)
+	{
+		Map.flagAxis = a;
+		SetAvailableMapGoals( TEAM.AXIS, a, "SNIPE_axis.*" );
+		SetAvailableMapGoals( TEAM.AXIS, a, "PLANT_Ladder.*" );
+		SetAvailableMapGoals( TEAM.AXIS, a && Map.fenceGeneratorDestroyed, "DEFEND_entrance.*" );
+		SetAvailableMapGoals( TEAM.AXIS, !a, "DEFEND_generator.*" );
+		SetAvailableMapGoals( TEAM.AXIS, !a, "DEFEND_rocket.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, a, "SNIPE_allied.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, a, "BUILD_Ladder.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, !a, "ATTACK_generator.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, !a, "ATTACK_rocket.*" );
+	},
+
+	SetSwitch = function()
+	{
+		if (!Map.doorGeneratorBuilt){
+			Util.DisableGoal("SWITCH_door");
+		}
+		else if (Map.doorOpened ==  (Map.rocket_Fuel_Dyno == 0)){
+			Util.LimitToTeam(TEAM.AXIS, "SWITCH_door");
+		}else{
+			Util.LimitToTeam(TEAM.ALLIES, "SWITCH_door");
+		}
+	},
+
+	rocket_Door_Open = function( trigger )
+	{
+		Map.doorOpened = true;
+		Map.SetSwitch();
+		Util.SetMaxUsersInProgress(2, "SWITCH_door");
+		Util.MapDebugPrint( "rocket_Door_Open" );
+		sleep(3); //wait until the door is opened
+		if (Map.doorGeneratorBuilt && Map.doorOpened){
+			Util.ClearRoleForTable({ "PLANT_rocket_Fuel", "ATTACK_rocket.*", "DEFEND_rocket.*" }, ROLE.ATTACKER1);
+		}
+	},
+
+	rocket_Door_Close = function( trigger )
+	{
+		Map.doorOpened = false;
+		Map.SetSwitch();
+		Util.SetMaxUsersInProgress(4, "SWITCH_door");
+		Util.SetRoleForTable({ "PLANT_rocket_Fuel", "ATTACK_rocket.*", "DEFEND_rocket.*" }, ROLE.ATTACKER1);
+		Util.MapDebugPrint( "rocket_Door_Close" );
+	},
+
+	Fence_Generator_Destroyed = function( trigger )
+	{
+		Map.fenceGeneratorDestroyed = true;
+		Map.Switches.fence_south.Enabled = false;
+		Map.Switches.fence_north.Enabled = false;
+
+		Util.SetMaxUsers( 3, "PLANT_Doorgenerator" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_fence.*" );
+		SetAvailableMapGoals( TEAM.AXIS, Map.flagAxis, "DEFEND_entrance.*" );
+		if(!Map.flagAxis){
+			Util.DisableGoal("CHECKPOINT_spawnflageingang");
+			Util.SetMaxUsers( 1, "PLANT_a_Window" );
+		}
+		Util.MapDebugPrint( "Fence_Generator_Destroyed" );
+	},
+
+	Doorgenerator_Built = function( trigger )
+	{
+		Map.doorGeneratorBuilt = true;
+		Map.SetSwitch();
+		Util.MapDebugPrint( "Doorgenerator_Built" );
+	},
+
+	Doorgenerator_Destroyed = function( trigger )
+	{
+		Map.doorGeneratorBuilt = false;
+		Map.SetSwitch();
+		Util.MapDebugPrint( "Doorgenerator_Destroyed" );
+	},
+
+	Ladder_Built = function( trigger )
+	{
+		if (GetEntPosition(trigger.Entity).x < 0)
+		{
+			Wp.SetWaypointFlag("ladder_w", "closed", false);
+			Util.EnableGoal("ROUTE_ladder_w");
+			Util.MapDebugPrint( "West Ladder_Built" );
+		}else{
+			Wp.SetWaypointFlag("ladder_e", "closed", false);
+			Util.EnableGoal("ROUTE_ladder_e");
+			Util.MapDebugPrint( "East Ladder_Built" );
+		}
+	},
+
+	Ladder_Destroyed = function( trigger )
+	{
+		if (GetEntPosition(trigger.Entity).x < 0)
+		{
+			Wp.SetWaypointFlag("ladder_w", "closed", true);
+			Util.DisableGoal("ROUTE_ladder_w");
+			Util.MapDebugPrint( "West Ladder_Destroyed" );
+		}else{
+			Wp.SetWaypointFlag("ladder_e", "closed", true);
+			Util.DisableGoal("ROUTE_ladder_e");
+			Util.MapDebugPrint( "East Ladder_Destroyed" );
+		}
+	},
+
+	a_Window_Destroyed = function( trigger )
+	{
+		Util.EnableGoal("ROUTE_window.*");
+		Util.MapDebugPrint( "a_Window_Destroyed" );
+	},
+
+	spawnflageingang_Axis_Captured = function( trigger )
+	{
+		Map.SetFlag(true);
+		Util.MapDebugPrint( "spawnflageingang_Axis_Captured" );
+	},
+
+	spawnflageingang_Allies_Captured = function( trigger )
+	{
+		Map.SetFlag(false);
+		if(Map.fenceGeneratorDestroyed){
+			Util.DisableGoal("CHECKPOINT_spawnflageingang");
+			Util.SetMaxUsers( 1, "PLANT_a_Window" );
+		}
+		Util.MapDebugPrint( "spawnflageingang_Allies_Captured" );
+	},
+
+	rocket_Fuel_Destroyed = function( trigger )
+	{
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "rocket_Fuel_Destroyed" );
+	},
+
+	rocket_Fuel_Planted = function( trigger )
+	{
+		Map.rocket_Fuel_Dyno += 1;
+		SetGoalPriority("PLANT_Doorgenerator", 0.51);
+		Map.SetSwitch();
+		Util.MapDebugPrint( "rocket_Fuel_Planted" );
+	},
+
+	rocket_Fuel_Defused = function( trigger )
+	{
+		Map.rocket_Fuel_Dyno -= 1;
+		SetGoalPriority("PLANT_Doorgenerator", 0.85);
+		Map.SetSwitch();
+		Util.MapDebugPrint( "rocket_Fuel_Defused" );
+	},
+
+
+	FenceProc = function()
+	{
+		start = Vector3(0, -1916, -40);
+		end = Vector3(0, -1685, -40);
+		while (!Map.fenceGeneratorDestroyed)
+		{
+			tr = TraceLine(start, end, null, TRACE.PLAYER, 0, false);
+			fenceActive = (tr.fraction < 1);
+			Map.Switches.fence_south.Enabled = fenceActive;
+			Map.Switches.fence_north.Enabled = fenceActive;
+			if(fenceActive){ color = COLOR.RED; }else{ color = COLOR.GREEN; }
+			DrawDebugLine(start, end, color, 1);
+			sleep(1);
+		}
+		sleep(4);
+		//center gate fence sometimes remain active after the generator has been destroyed
+		// and cannot be disabled by switches
+		tr = TraceLine(start, end, null, TRACE.PLAYER, 0, false);
+		if(tr.fraction < 1)
+		{
+			Wp.SetWaypointFlag("fence_north1", "closed", true);
+			Wp.SetWaypointFlag("fence_north2", "closed", true);
+		}
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "The Generator Destroyed.", Map.Fence_Generator_Destroyed );
+	OnTrigger( "Allies build a ladder.", Map.Ladder_Built );
+	OnTrigger( "Axis destroy a ladder.", Map.Ladder_Destroyed );
+	OnTrigger( "Allies capture the Forward Flag!", Map.spawnflageingang_Allies_Captured );
+	OnTrigger( "Axis reclaim the Forward Flag!", Map.spawnflageingang_Axis_Captured );
+	OnTrigger( "Allies have constructed the Door Controls Generator!", Map.Doorgenerator_Built );
+	OnTrigger( "Axis team has destroyed the Door Controls Generator!", Map.Doorgenerator_Destroyed );
+	OnTrigger( "Allied have blown a Window!", Map.a_Window_Destroyed );
+	OnTrigger( "The door to the rocket is now open!", Map.rocket_Door_Open );
+	OnTrigger( "The door to the rocket is now close!", Map.rocket_Door_Close );
+	OnTrigger( "The Allied destroy the Rocket!", Map.rocket_Fuel_Destroyed );
+	OnTrigger( "Planted at the rocket Fuel.", Map.rocket_Fuel_Planted );
+	OnTrigger( "Defused at the rocket Fuel.", Map.rocket_Fuel_Defused );
+
+	OnTriggerRegion(AABB(-960.875,6050.000,1.125,960.874,7488.875,496.078),Map.Rocket_Room);
+	OnTriggerRegion(AABB(-464.875,-2223.268,-293.304,227.181,-1703.933,-119.835),RegionTrigger.DisableCombatMovement); //fence
+	Util.UpdateSwitchData();
+
+	Util.DisableGoal( ".*", true ); // all but routes
+	Util.DisableGoal("ROUTE_ladder_.");
+	Util.DisableGoal("ROUTE_window.*");
+	Util.EnableGoal("AMMOCAB.*");
+	Util.EnableGoal("CHECKPOINT_spawnflageingang");
+	Util.EnableGoal(".*_Command_Post");
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Doorgenerator" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Ladder.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_fence.*" );
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Ladder.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Doorgenerator" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_a_Window" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_rocket_Fuel" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Generator" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_door" );
+
+	Map.SetFlag(true);
+
+	Util.SetRoleForTable({ "PLANT_rocket_Fuel", "ATTACK_rocket.*", "DEFEND_rocket.*" }, ROLE.ATTACKER1);
+
+	SetGoalPriority("ATTACK_rocket.*", 0.51);
+	SetGoalPriority("DEFEND_rocket.*", 0.52);
+	SetGoalPriority("PLANT_Doorgenerator", 0.85);
+	SetGoalPriority("PLANT_Generator", 0.95);
+	SetGoalPriority("PLANT_a_Window", 0.9);
+	SetGoalPriority("PLANT_rocket_Fuel", 0.9);
+	SetGoalPriority("BUILD_Doorgenerator", 0.89);
+	SetGoalPriority("BUILD_Command_Post", 0.89, TEAM.ALLIES);
+	SetGoalPriority("PLANT_Command_Post", 0.75, TEAM.ALLIES);
+	SetGoalPriority("CHECKPOINT_spawnflageingang", 0.77);
+	SetGoalPriority("SNIPE.*", 0.8);
+	SetGoalPriority("DEFUSE_Ladder.*", 0.9, TEAM.ALLIES, CLASS.ENGINEER, true);
+	SetGoalPriority("DEFUSE_Command_Post.*", 0.89, TEAM.ALLIES, CLASS.ENGINEER, true);
+
+	// Max users per goal
+	foreach (goal in { "DEFEND_.*", "ATTACK_.*", "CALLARTILLERY_.*",
+		"SNIPE_.*", "PLANT_Doorgenerator", "PLANT_Ladder.*"  }){
+		Util.SetMaxUsers(1, goal);
+	}
+	Util.SetMaxUsersInProgress(4, "SWITCH_door");
+
+	// Camp times
+	SetMapGoalProperties( "SNIPE.*", {MinCampTime=15, MaxCampTime=60} );
+
+	Wp.SetWaypointFlag("ladder_w", "closed", true);
+	Wp.SetWaypointFlag("ladder_e", "closed", true);
+	Wp.SetWaypointFlag("fence_north1", "closed", false);
+	Wp.SetWaypointFlag("fence_north2", "closed", false);
+
+	thread(Map.FenceProc);
+
+	MapRoutes =
+	{
+		CHECKPOINT_spawnflageingang = {
+			ROUTE_allied_spawn = {
+				ROUTE_allied1 = {
+					ROUTE_ladder_e = { Weight=2 },
+					ROUTE_entrance = {},
+					ROUTE_entrance_e = {},
+					ROUTE_window1_e = {
+						ROUTE_window= {
+							ROUTE_a2 = {},
+							ROUTE_a4 = { ROUTE_a7={}},
+							ROUTE_a5 = { ROUTE_a8={}},
+							ROUTE_a6 = {},
+						}
+					},
+					ROUTE_window2_e = { ROUTE_window={}},
+					ROUTE_window3_e = { ROUTE_window={}},
+				},
+				ROUTE_allied3 = {
+					ROUTE_ladder_w = { Weight=2 },
+					ROUTE_entrance = {},
+					ROUTE_entrance_w = {},
+					ROUTE_window1_w = { ROUTE_window={}},
+					ROUTE_window2_w = { ROUTE_window={}},
+					ROUTE_window3_w = { ROUTE_window={}},
+				},
+			},
+			ROUTE_axis_spawn = {
+				ROUTE_x1 = {},
+				ROUTE_x8 = { ROUTE_x2 = {}},
+				ROUTE_x7 = { Weight = 2,
+					ROUTE_x3 = {},
+					ROUTE_x4 = {},
+				},
+				ROUTE_x5 = {},
+			},
+		},
+		DEFEND_fence2 = {
+			ROUTE_flag = {
+				ROUTE_entrance_e = {},
+			}
+		},
+		SWITCH_door = {
+			ROUTE_flag = {
+				ROUTE_a1 = { ROUTE_up_w = {}},
+				ROUTE_a2 = {},
+				ROUTE_a7 = { Weight = 2,
+					ROUTE_a3 = {},
+					ROUTE_a4 = {},
+				},
+				ROUTE_a8 = { ROUTE_a5 = {}},
+				ROUTE_a6 = {},
+			},
+			ROUTE_axis_spawn = {
+				ROUTE_x7 = { ROUTE_x4 = {}},
+				ROUTE_x5 = {},
+				ROUTE_x6 = {},
+			},
+		},
+		PLANT_rocket_Fuel = {
+			ROUTE_flag = {
+				ROUTE_door_e = {
+					ROUTE_rocket_e = {},
+					ROUTE_rocket_w = {},
+				},
+				ROUTE_door_w = {
+					ROUTE_rocket_e = {},
+					ROUTE_rocket_w = {},
+				},
+			},
+		},
+		PLANT_a_Window = {
+			ROUTE_allied_spawn = {
+				ROUTE_ladder_e = {},
+				ROUTE_ladder_w = {},
+			}
+		},
+		PLANT_Command_Post = {
+			ROUTE_axis_spawn = {
+				ROUTE_x7 = {
+					ROUTE_x3 = {},
+					ROUTE_x8 = { ROUTE_x2 = {}},
+				},
+			},
+		},
+		ATTACK_generator4 = {
+			ROUTE_flag = {
+				ROUTE_up_w = {},
+			}
+		},
+	};
+	r = MapRoutes.CHECKPOINT_spawnflageingang.ROUTE_allied_spawn;
+	r.ROUTE_allied2 = r.ROUTE_allied1;
+	r.ROUTE_allied4 = r.ROUTE_allied3;
+	MapRoutes.DEFEND_fence6 =  MapRoutes.DEFEND_fence2;
+	MapRoutes.DEFEND_fence7 =  MapRoutes.DEFEND_fence2;
+	MapRoutes.SWITCH_door.ROUTE_allied_spawn = MapRoutes.CHECKPOINT_spawnflageingang.ROUTE_allied_spawn;
+	MapRoutes.ATTACK_rocket1 = MapRoutes.PLANT_rocket_Fuel;
+	MapRoutes.ATTACK_rocket2 = MapRoutes.ATTACK_rocket1;
+	MapRoutes.ATTACK_rocket3 = MapRoutes.ATTACK_rocket1;
+	MapRoutes.ATTACK_rocket4 = MapRoutes.ATTACK_rocket1;
+	MapRoutes.ATTACK_rocket5 = MapRoutes.ATTACK_rocket1;
+	MapRoutes.BUILD_Doorgenerator = MapRoutes.SWITCH_door;
+	MapRoutes.PLANT_Doorgenerator = MapRoutes.SWITCH_door;
+	MapRoutes.ATTACK_generator1 = MapRoutes.BUILD_Doorgenerator;
+	MapRoutes.ATTACK_generator2 = MapRoutes.BUILD_Doorgenerator;
+	MapRoutes.ATTACK_generator3 = MapRoutes.BUILD_Doorgenerator;
+	MapRoutes.DEFEND_generator1 = MapRoutes.PLANT_Doorgenerator;
+	MapRoutes.DEFEND_generator2 = MapRoutes.PLANT_Doorgenerator;
+	MapRoutes.DEFEND_generator3 = MapRoutes.PLANT_Doorgenerator;
+	MapRoutes.BUILD_Command_Post =   MapRoutes.PLANT_Command_Post;
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	Util.IgnoreTargetGoalTable(bot, Map.Movers);
+};

@@ -1,0 +1,129 @@
+// This script contains functionality to trigger any available switches as set up in the global map table.
+
+// This goal uses the global blackboard, so let's register a key for it.
+if(!BB.PTSWITCHUSER) {
+	BB.PTSWITCHUSER = Blackboard.MakeKey();
+}
+
+// These parameters are required
+this.Name = "UseSwitch_PT";		// The name of the goal.
+this.Parent = "LowLevel";		// PathThrough states must be low level or they will not be used.
+
+this.OnPathThrough = function(data)
+{
+	if (this.IsActive())
+		{ return; }
+
+	currentswitch = Map.Switches[data];
+	if(currentswitch) {
+		this.CurrentSwitch = data;
+		this.counter = 0;
+
+		if(currentswitch.Enabled) {
+			return true; // script will activate
+		}
+	}
+	else {
+		print("OnPathThrough no switch", data);
+	}
+
+	this.CurrentSwitch = null;
+	return false;  // script will not activate
+};
+
+this.Enter = function()
+{
+	currentswitch = Map.Switches[this.CurrentSwitch];
+
+	bbRecord = {
+		Owner = this.Bot.GetGameId(),
+		Target = currentswitch.Serial,
+	};
+	Blackboard.PostRecord(BB.PTSWITCHUSER, bbRecord);
+};
+
+this.Exit = function()
+{
+	// Remove myself from the blackboard for using this switch
+	Blackboard.RemoveByPoster(this.Bot.GetGameId(), BB.PTSWITCHUSER);
+};
+
+this.Update = function()
+{
+	pathSuccess = false;
+	currentswitch = Map.Switches[this.CurrentSwitch];
+
+	if( !currentswitch.Timeout ) {
+			currentswitch.Timeout = 2000;
+	}
+
+	if ( !currentswitch.AsyncTimeout ) {
+		currentswitch.AsyncTimeout = 5000;
+	}
+
+	if ( currentswitch.UseAsync ) {
+		while( currentswitch.Enabled && this.counter <= currentswitch.AsyncTimeout ) {
+			this.GotoAsync(currentswitch.Waypoint.position, currentswitch.Waypoint.radius);
+			// cs: distance calculation is 3d, so dont use waypoint radius
+			if ( DistanceBetween(this.Bot.GetPosition() + Vector3(0,0,-32), currentswitch.Waypoint.position) <= 48.0f ) {
+				pathSuccess = true;
+				break;
+			}
+			else if ( this.Bot.GetVelocity().IsZero() ) { // large waypoint radius
+				this.Bot.MoveTowards(currentswitch.Waypoint.position);
+			}
+			yield();
+			this.counter += 20;
+		}
+	}
+	else if ( this.Goto(currentswitch.Waypoint.position, currentswitch.Waypoint.radius) == EVENT.PATH_SUCCESS ) {
+		pathSuccess = true;
+	}
+
+	this.counter = 0;
+	if( pathSuccess ) {
+		if ( !currentswitch.AimPosition ) {
+				this.AddAimRequest(Priority.High, "facing", currentswitch.Waypoint.facing);
+		}
+		else {
+				this.AddAimRequest(Priority.High, "position", currentswitch.AimPosition);
+		}
+
+		exitCondition = false;
+		while( !exitCondition && currentswitch.Enabled && this.counter < currentswitch.Timeout ) {
+			this.counter += 250;
+			this.Bot.MoveTowards(currentswitch.Waypoint.position);
+			this.Bot.PressButton( BTN.USE);
+
+			if ( currentswitch.ExitConditions ) {
+				foreach ( id and func in currentswitch.ExitConditions ) {
+					if ( func(this.Bot) == true ) {
+						if ( currentswitch.Debug )
+							{ print(this.Bot.Name, "^2exit condition met for", currentswitch.WaypointName); }
+
+						exitCondition = true;
+						break;
+					}
+				}
+			}
+
+			sleep(0.25);
+		}
+
+		this.ReleaseAimRequest();
+		//cs: wait function now overrides exitConditions
+		if ( currentswitch.Wait && this.counter < currentswitch.Timeout) {
+			while ( currentswitch.Wait() != true ) {
+				//this.Goto can't be used inside moving elevators
+				this.Bot.MoveTowards(this.Bot.GetPosition());
+				yield();
+			}
+		}
+	}
+	else {
+		this.BlackboardDelay(30, currentswitch.Serial);
+	}
+
+    // Finish the state.
+	this.Finished();
+};

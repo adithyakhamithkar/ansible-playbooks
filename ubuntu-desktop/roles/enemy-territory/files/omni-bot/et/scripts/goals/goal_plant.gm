@@ -1,0 +1,602 @@
+// This script contains functionality to allow bots to satchel or dynamite goals
+
+// These parameters are required
+this.Name = "PLANT";		// The name of the goal.
+this.Parent = "HighLevel";		// The name of the parent. This setting determines where in the state tree the goal will reside in.
+this.SkipGetPriorityWhenActive = true;
+this.LimitToClass(CLASS.COVERTOPS, CLASS.ENGINEER);
+this.LogExternal = false;
+this.DisableRifleNade = true; // should engineers conserve their charge?
+
+
+// define some goal states
+this.LAY_EXPLOSIVE = 0;
+this.ARM_EXPLOSIVE = 1;
+this.RUNAWAY = 2;
+this.DETONATE_EXPLOSIVE = 3;
+this.COVER_DYNAMITE = 4;
+this.LOOK_FOR_DYNO = 5;
+
+this.Initialize = function()
+{
+	this.Bot.QueryGoalsTable = table();
+	this.WatchForEntityCategory({
+		Radius = 350,
+		Category = CAT.PROJECTILE,
+	});
+
+	// check for entity status so we can finish if another player destroys it
+	this.LimitTo( this.CheckDestroyableState, 1, true );
+};
+
+this.CheckDestroyableState = function()
+{
+	return !this.GoalEntity || this.Bot.GetDestroyableState(this.GoalEntity) > 0;
+};
+
+
+this.SanityCheckWeapon = function(weapon)
+{
+	if ( this.Bot.HasWeapon(weapon) ) {
+		return true;
+	}
+
+	if ( this.LogExternal ) {
+		gmFile = File();
+		fileName = format("%s_Log.gm", Util.WeaponName(weapon));
+
+		if ( !System.FileExists(fileName) ) {
+			assert( gmfile.Open( fileName, "text", false ) );
+		}
+		else {
+			assert( gmfile.Open( fileName, "text", false, true ) );
+		}
+
+		str = System.Time() + ":" + GetMapName() + ": covert ops has no satchel for " + goal.GetName();
+		assert( gmfile.Write( str, System.NewLine ) );
+		gmfile.Close();
+	}
+
+	return false;
+};
+
+this.GetPriority = function()
+{
+	botClass = this.Bot.GetClass();
+	if (botClass == CLASS.ENGINEER)
+	{
+		query = { 0xbbcae592 /* PLANT */, 0xb9e32716 /* DYNAMITE */};
+	} else {
+		query = 0xbbcae592 /* PLANT */;
+	}
+
+	while(1)
+	{
+		if ( (botClass == CLASS.ENGINEER && this.Bot.IsWeaponCharged(WEAPON.DYNAMITE, 0))
+			|| (botClass == CLASS.COVERTOPS && this.Bot.IsWeaponCharged(WEAPON.SATCHEL, 0)) )
+		{
+			count = this.QueryGoals(this.Bot.QueryGoalsTable, query);
+			if ( count > 0 )
+			{
+				foreach ( goal in this.Bot.QueryGoalsTable )
+				{
+					if ( botClass == CLASS.COVERTOPS )
+					{
+						if (goal.ExplosiveType && !(goal.ExplosiveType & goal.ExplosiveTypeSatchel)) {
+							continue;
+						}
+
+						// this was happening in beta, leaving as safeguard
+						if ( !this.SanityCheckWeapon(WEAPON.SATCHEL) ) { continue; }
+					}
+
+					if ( botClass == CLASS.ENGINEER )
+					{
+						if (goal.ExplosiveType && !(goal.ExplosiveType & goal.ExplosiveTypeDynamite)) {
+							continue;
+						}
+
+						// this was happening in beta, leaving as safeguard
+						if ( !this.SanityCheckWeapon(WEAPON.DYNAMITE) ) { continue; }
+					}
+
+					if ( !goal.IgnoreEntity )
+					{
+						if ( goal.TraceInfo && tableCount(goal.TraceInfo) > 0 )
+						{
+							if ( !goal.TraceEntity || this.Bot.GetDestroyableState(goal.TraceEntity) < 1 )
+							{
+								continue;
+							}
+						}
+						else
+						{
+							goalEnt = goal.GetEntity();
+
+							if ( !goalEnt || this.Bot.GetDestroyableState(goalEnt) < 1 )
+							{
+								continue;
+							}
+						}
+					}
+
+					this.MapGoal = goal;
+					this.Priority = goal.GetGoalPriority(this.Bot);
+					break;
+				}
+			}
+
+			tableClear(this.Bot.QueryGoalsTable);
+		}
+
+		sleep(2);
+	}
+};
+
+this.Enter = function()
+{
+	this.ExplosiveEntity = null;
+
+	this.Goal_Name = this.MapGoal.GetName();
+
+	if ( !this.MapGoal.IgnoreEntity )
+	{
+		if ( this.MapGoal.TraceEntity )
+		{
+			this.GoalEntity = this.MapGoal.TraceEntity;
+		}
+		else
+		{
+			this.GoalEntity = this.MapGoal.GetEntity();
+		}
+		if ( !this.GoalEntity )
+		{
+			Util.ScriptDebugPrint(this.Goal_Name, "disabled", "entered with no entity!");
+			this.MapGoal.DisableGoal(true);
+			this.Finished();
+		}
+	}
+
+	if(!this.MarkInProgress(this.MapGoal)) {
+		this.BlackboardDelay(5, this.MapGoal);
+		this.Finished();
+	}
+
+	// disable the rifle nade while the goal is active
+	if ( this.DisableRifleNade ) {
+		ETUtil.DisableRifleNade(this.Bot, true);
+	}
+
+	this.UpdateDebugString();
+};
+
+this.Update = function()
+{
+	// cs: if they fired a rifle nade on the way, they lose charge
+	botClass = this.Bot.GetClass();
+	if ( (botClass == CLASS.ENGINEER && !this.Bot.IsWeaponCharged(WEAPON.DYNAMITE, 0))
+		|| (botClass == CLASS.COVERTOPS && !this.Bot.IsWeaponCharged(WEAPON.SATCHEL, 0)) )
+	{
+		if (this.Debug) { print(this.MapGoal.GetName() + " aborting, no charge"); }
+		this.Finished();
+	}
+
+	if ( this.RouteTo(this.MapGoal, 64.0) == EVENT.PATH_SUCCESS )
+	{
+		if(!this.MarkInUse(this.MapGoal)) {
+			this.BlackboardDelay(5, this.MapGoal);
+			this.Finished();
+		}
+
+		this.Bot.StuckPos = null;
+
+		switch(botClass)
+		{
+			case CLASS.ENGINEER:
+			{
+				this.GoalState = this.LOOK_FOR_DYNO;
+				this.UpdateDynamite();
+			}
+			case CLASS.COVERTOPS:
+			{
+				this.GoalState = this.LAY_EXPLOSIVE;
+				this.UpdateSatchel();
+			}
+			default:
+			{
+				this.Finished();
+			}
+		}
+	}
+	else
+	{
+		this.BlackboardDelay(10, this.MapGoal);
+		Util.ScriptDebugPrint(this.MapGoal.GetName(), "pathfailed");
+	}
+
+	this.Finished();
+};
+
+this.Exit = function()
+{
+	this.Bot.ReleaseButton(BTN.PRONE, BTN.CROUCH);
+	this.ReleaseAimRequest();
+	this.ReleaseWeaponRequest();
+
+	this.GoalState = this.LAY_EXPLOSIVE;
+	this.GoalEntity = null;
+	this.ExplosiveEntity = null;
+
+	// clear the occupied flag
+	if ( this.MapGoal && typeId(this.spotIndex) != 0 ) {
+		this.MapGoal.CoverSpots[ this.spotIndex ].occupied = null;
+		this.spotIndex = null;
+	}
+
+	// re-enable the rifle nade
+	ETUtil.DisableRifleNade(this.Bot, false);
+	this.MapGoal = null;
+};
+
+this.CoverDisabled = function(position)
+{
+	vec = this.MapGoal.CoverSplit;
+	if(!vec){ return false; }
+	return ((this.Bot.GetPosition() - this.MapGoal.GetPosition()).DotProduct(vec) > 0) !=
+	       ((position - this.MapGoal.GetPosition()).DotProduct(vec) > 0);
+};
+
+this.UpdateDynamite = function()
+{
+	hasCoverSpot = false;
+	aimVectors = null;
+	coverTimeout = 25; // note: if it takes >= 5 seconds to get to the cover spot, this will not be reached.
+
+	while(1)
+	{
+		switch(this.GoalState)
+		{
+			case this.LOOK_FOR_DYNO:
+			{
+				this.UpdateDebugString();
+				foundDyno = false;
+				goalPos = this.MapGoal.GetPosition();
+				ent = GetEntityInSphere(this.Bot.GetPosition(), 300, CLASS.DYNAMITE_ENT, this.ExplosiveEntity);
+				dowhile(ent) {
+					if ( ent && DistanceBetween(goalPos, ent) < 200 && this.Bot.IsAllied(ent)
+							&& this.Bot.GetExplosiveState(ent) == 1 ) {
+						foundDyno = true;
+						break;
+					}
+					ent = GetEntityInSphere(this.Bot.GetPosition(), 300, CLASS.DYNAMITE_ENT, ent);
+				}
+
+				if ( foundDyno ) {
+					this.ExplosiveEntity = ent;
+					this.GoalState = this.ARM_EXPLOSIVE;
+				}
+				else if ( this.Bot.IsWeaponCharged(WEAPON.DYNAMITE, 0) ) {
+					this.GoalState = this.LAY_EXPLOSIVE;
+				}
+				else if ( this.MapGoal.CoverSpots && tableCount(this.MapGoal.CoverSpots) > 0 ) {
+					this.GoalState = this.COVER_DYNAMITE;
+				}
+				else {
+					if (this.ExplosiveEntity) {
+						this.BlackboardDelay(35, this.MapGoal);
+					}
+					this.Finished();
+				}
+			}
+			case this.LAY_EXPLOSIVE:
+			{
+				if ( !this.Bot.IsWeaponCharged(WEAPON.DYNAMITE, 0) )
+				{
+					this.Finished();
+				}
+
+				this.Bot.HoldButton(BTN.CROUCH, 99);
+				this.Priority = 2.0;
+
+				// for voice chat 'cover me'
+				signal(this.Bot.Name + "_plant");
+
+				goalPos = this.MapGoal.GetPosition();
+				this.AddAimRequest(Priority.High, "position", Vector3(goalPos.x, goalPos.y, this.Bot.GetPosition().z - 30));
+				this.AddWeaponRequest(Priority.High, WEAPON.DYNAMITE );
+				this.BlockForWeaponChange( WEAPON.DYNAMITE );
+				this.Bot.PressButton(BTN.ATTACK1);
+			}
+			case this.ARM_EXPLOSIVE:
+			{
+				this.UpdateDebugString();
+
+				if ( !EntityIsValid(this.ExplosiveEntity) )
+				{
+					this.Finished();
+				}
+
+				// crouch to arm others dyno too.
+				if ( !this.Bot.HasEntityFlag(ENTFLAG.CROUCHED) ) {
+					this.Bot.HoldButton(BTN.CROUCH, 99);
+				}
+
+				this.AddWeaponRequest(Priority.High, WEAPON.PLIERS );
+				this.BlockForWeaponChange( WEAPON.PLIERS );
+
+				while ( EntityIsValid(this.ExplosiveEntity) && this.Bot.GetExplosiveState(this.ExplosiveEntity) == 1 )
+				{
+					dynoPosition = GetEntPosition(this.ExplosiveEntity);
+					this.AddAimRequest(Priority.High, "position", dynoPosition);
+					this.Bot.MoveTowards(dynoPosition);
+					this.Bot.PressButton(BTN.ATTACK1);
+					yield();
+				}
+
+				this.ReleaseWeaponRequest();
+				this.ReleaseAimRequest();
+				this.Bot.ReleaseButton(BTN.CROUCH);
+
+				// look for other close by dynos to arm
+				this.GoalState = this.LOOK_FOR_DYNO;
+			}
+			case this.COVER_DYNAMITE:
+			{
+				this.UpdateDebugString();
+
+				if ( !this.ExplosiveEntity || !EntityIsValid(this.ExplosiveEntity) || this.Bot.GetExplosiveState(this.ExplosiveEntity) != 0 )
+				{
+					this.Finished();
+				}
+
+				//don't plant another dynamite after coverTimeout or if all coverspots are occupied
+				this.BlackboardDelay(35, this.MapGoal);
+
+				// pick a cover spot
+				if (!hasCoverSpot) {
+
+					// choose spot which is not occupied
+					maxval = -1;
+					foreach ( id and spot in this.MapGoal.CoverSpots ) {
+						if (spot.occupied || this.CoverDisabled(spot.position) ) {
+							continue;
+						}
+						val = UnitRandom();
+						if (val > maxval) {
+							maxval = val;
+							this.spotIndex = id;
+						}
+					}
+
+					// no more cover spots available
+					if (typeId(this.spotIndex) == 0) { this.Finished(); }
+
+					spot = this.MapGoal.CoverSpots[ this.spotIndex ];
+					spot.occupied = true;
+
+					if ( spot.AimVectors && tableCount(spot.AimVectors) > 0 ) {
+						aimVectors = spot.AimVectors;
+						if ( spot.Timeout ) { coverTimeout = spot.Timeout; }
+						hasCoverSpot = true;
+					}
+					else {
+						if (this.Debug) { print(this.Goal_Name + ": Cover Spot has no AimVectors!"); }
+						this.Finished();
+					}
+
+					this.Goto(spot.position, 32.0);
+
+					switch (spot.stance)
+					{
+						case "crouch":
+						{
+							this.Bot.HoldButton(BTN.CROUCH, 99);
+						}
+						case "prone":
+						{
+							this.Bot.HoldButton(BTN.PRONE, 99);
+						}
+					}
+				}
+
+				this.AddAimRequest(Priority.Low, "facing", Util.GetRandomTableValue(aimVectors));
+
+				sleep(0.75);
+
+				coverTimeout -= 1;
+				if ( coverTimeout <= 0 ) {
+					this.Finished();
+				}
+			}
+			default:
+			{
+				this.Finished();
+			}
+		}
+
+		sleep(0.25);
+	}
+};
+
+this.UpdateSatchel = function()
+{
+	while(1)
+	{
+		switch(this.GoalState)
+		{
+			case this.LAY_EXPLOSIVE:
+			{
+				if ( !this.Bot.IsWeaponCharged(WEAPON.SATCHEL, 0) )
+				{
+					this.Finished();
+				}
+
+				this.Priority = 2.0;
+
+				this.AddAimRequest(Priority.High, "position", this.MapGoal.GetPosition());
+				this.AddWeaponRequest(Priority.High, WEAPON.SATCHEL);
+				this.BlockForWeaponChange(WEAPON.SATCHEL);
+				this.Bot.PressButton(BTN.ATTACK1);
+			}
+			case this.RUNAWAY:
+			{
+				this.UpdateDebugString();
+				this.ReleaseWeaponRequest();
+				this.ReleaseAimRequest();
+
+				detSpot = null;
+				if (this.MapGoal.DetonateSpots) {
+					// choose detonate spot which is not disabled
+					maxval = -1;
+					foreach ( spot in this.MapGoal.DetonateSpots ) {
+						if (this.CoverDisabled(spot) ) {
+							continue;
+						}
+						val = UnitRandom();
+						if (val > maxval) {
+							maxval = val;
+							detSpot = spot;
+						}
+					}
+				}
+				if (detSpot)
+				{
+					if (this.Goto(detSpot) == EVENT.PATH_SUCCESS)
+					{
+						this.GoalState = this.DETONATE_EXPLOSIVE;
+					}
+					else
+					{
+						detSpot = null;
+					}
+				}
+				if (!detSpot)
+				{
+					if (!this.GotoRandomAsync(32.0)) {
+						this.Finished();
+					}
+
+					sleep(0.5); // give them a chance to start moving before checking velocity ...
+					// todo: need a func that will return random dest vec to evaluate instead
+					while( !this.Bot.GetVelocity().IsZero() )
+					{
+						if ( !this.ExplosiveEntity || !EntityIsValid(this.ExplosiveEntity) )
+						{
+							break;
+						}
+
+						if (this.Bot.DistanceTo(this.ExplosiveEntity) > 300)
+						{
+							this.GoalState = this.DETONATE_EXPLOSIVE;
+							break;
+						}
+
+						sleep(1);
+					}
+				}
+			}
+			case this.DETONATE_EXPLOSIVE:
+			{
+				this.UpdateDebugString();
+
+				if ( !EntityIsValid(this.ExplosiveEntity) )
+				{
+					this.Finished();
+				}
+
+				this.AddWeaponRequest(Priority.High, WEAPON.SATCHEL_DET);
+				this.BlockForWeaponChange(WEAPON.SATCHEL_DET);
+				this.Bot.HoldButton(BTN.ATTACK1, 1.5);
+
+				timeout = 20;
+				while( timeout > 0 && EntityIsValid(this.ExplosiveEntity) )
+				{
+					yield();
+					timeout -= 1;
+				}
+				this.Finished();
+			}
+			default:
+			{
+				this.Finished();
+			}
+		}
+
+		sleep(0.25);
+	}
+};
+
+this.UpdateDebugString = function()
+{
+	stateString = "";
+
+	switch(this.GoalState)
+	{
+		case this.LOOK_FOR_DYNO:
+		{
+			stateString = "LOOK_FOR_DYNO";
+		}
+		case this.LAY_EXPLOSIVE:
+		{
+			stateString = "LAY_EXPLOSIVE";
+		}
+		case this.ARM_EXPLOSIVE:
+		{
+			stateString = "ARM_EXPLOSIVE";
+		}
+		case this.RUNAWAY:
+		{
+			stateString = "RUNAWAY";
+		}
+		case this.DETONATE_EXPLOSIVE:
+		{
+			stateString = "DETONATE_EXPLOSIVE";
+		}
+		case this.COVER_DYNAMITE:
+		{
+			stateString = "COVER_DYNAMITE";
+		}
+		default:
+		{
+			stateString = "";
+		}
+	}
+
+	// for /bot debugbot <bot or all> fpinfo prints
+	this.DebugString = this.Goal_Name + " : " + stateString;
+};
+
+this.Events[EVENT.WEAPON_FIRE] = function(weaponId, projectileEntity)
+{
+	switch(weaponId)
+	{
+		case WEAPON.SATCHEL:
+		{
+			this.ExplosiveEntity = projectileEntity;
+			this.GoalState = this.RUNAWAY;
+		}
+		case WEAPON.DYNAMITE:
+		{
+			this.ExplosiveEntity = projectileEntity;
+			this.GoalState = this.ARM_EXPLOSIVE;
+		}
+		default:
+		{
+		}
+	}
+};
+
+this.Events[EVENT.ENT_ENTER_RADIUS] = function(ent)
+{
+	if ( ent && GetEntClass(ent) == CLASS.SATCHEL_ENT && this.Bot.GetClass() == CLASS.ENGINEER
+		&& this.Bot.IsAllied(ent) && this.GoalState != this.COVER_DYNAMITE)
+	{
+		// abort this goal only if engineer has same goal as covertops
+		pos = GetEntPosition(ent);
+		if (pos && DistanceBetween(pos, this.MapGoal.GetPosition()) < 250)
+		{
+			this.BlackboardDelay(10, this.MapGoal);
+			this.Finished();
+		}
+	}
+};

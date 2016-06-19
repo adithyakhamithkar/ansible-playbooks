@@ -1,0 +1,7 @@
+this.GoalType = "FlagReturn";
+this.DynamicPosition = true;
+this.DefaultPriority = 0.8;
+this.RemoveWithEntity = true;
+this.GoalStateFunction = InternalGoalState.FlagState;
+this.DontSave = true;
+this.RolePriorityBonus = 0.1;

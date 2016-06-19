@@ -1,0 +1,492 @@
+//==========================================================================================
+//
+//	remagen.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	palota	04 December 2011	Initial Script
+//	palota	08 April 2012	roles, more routes and defend goals, MOBILEMG42, WeaponAvailability
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+	doorDestroyed = 0,
+	doorWestDestroyed = false,
+	doorEastDestroyed = false,
+	ropeBuilt = 0,
+	phase = 0,
+	alliedSpawns = {2,6,6,7,7,5,5},
+	axisSpawns =   {6,7,7,5,5,1,1},
+	Movers = { "MOVER_hakensouth", "MOVER_hakennorth" }, //rope construction materials
+
+	Roles =
+	{
+		AXIS =
+		{
+			DEFENDER1 =
+			{
+				numbots = 3,
+			},
+			DEFENDER2 =
+			{
+				numbots = 3,
+			},
+			DEFENDER3 =
+			{
+				numbots = 2,
+			},
+			SNIPER =
+			{
+				numbots = 1,
+				crucialClass = CLASS.COVERTOPS,
+			},
+		},
+	},
+
+	NavL = function(_this, x,y,z, x2,y2)
+	{
+		_this.AddAimRequest(Priority.High, "facing", Vec3(x,y,z));
+		prev=null;
+		for(i=0; i<30; i+=1)
+		{
+			pos = _this.Bot.GetPosition();
+			if(Abs(pos.x - x2) > 60 || Abs(pos.y - y2) > 60){ break; }
+			//bots always stuck when climbing down
+			if(i>2 && Abs(prev.z - pos.z) < 20) {
+				_this.Bot.HoldButton(BTN.STRAFE_R, 0.5);
+			}
+			prev = pos;
+			sleep(0.5);
+		}
+	},
+
+	Navigation =
+	{
+		l1 = {navigate=function(_this){ //north west tower
+			Map.NavL(_this, 0,0.2,0.8, -227.53, 2661.87);
+		}},
+		l2 = {navigate=function(_this){ //north east tower
+			Map.NavL(_this, 0,0.2,0.8, 605.38, 2661.84);
+		}},
+		l3 = {navigate=function(_this){ //south west tower
+			Map.NavL(_this, 0,-0.2,0.8, -226.07, -9829.87);
+		}},
+		l4 = {navigate=function(_this){ //south east tower
+			Map.NavL(_this, 0,-0.2,0.8, 609.32, -9829.87);
+		}},
+	},
+
+	SetSpawn1 = function(bot)
+	{
+		if (bot.GetTeam()==TEAM.ALLIES) {
+			tbl = Map.alliedSpawns;
+		} else {
+			tbl = Map.axisSpawns;
+		}
+		s=tbl[Map.phase];
+		if(s==2 && RandInt(0,1)==0){ s=3; } //Allies west,east
+		if(s==1 && (bot.HasRole(ROLE.SNIPER) || bot.HasRole(ROLE.DEFENDER3))){ s=4; } //Axis tunnel
+		if(s==6 && (bot.HasRole(ROLE.SNIPER) || bot.HasRole(ROLE.DEFENDER1) || bot.HasRole(ROLE.DEFENDER2))){ s=7; } //north spawn allows only 4 bots
+		bot.ChangeSpawnPoint(s);
+	},
+
+	SetSpawn = function()
+	{
+		yield();
+		foreach(bot in BotTable)
+		{
+			Map.SetSpawn1(bot);
+		}
+	},
+
+	SetNorth = function()
+	{
+		b= Map.phase==0;
+		SetAvailableMapGoals( TEAM.AXIS, b && Map.doorDestroyed==0, ".*MG42_town" );
+		SetAvailableMapGoals( TEAM.AXIS, b, "PLANT_.*_Enterhaken" );
+		SetAvailableMapGoals( TEAM.AXIS, b && Map.ropeBuilt>0, "DEFEND_north.*" );
+		SetAvailableMapGoals( TEAM.AXIS, b, "MOBILEMG42_north.*" );
+		SetAvailableMapGoals( TEAM.AXIS, b, "DEFEND_door.*" );
+		SetAvailableMapGoals( TEAM.AXIS, b && Map.doorWestDestroyed, "DEFEND_tower_nw.*" );
+		SetAvailableMapGoals( TEAM.AXIS, b && Map.doorEastDestroyed, "DEFEND_tower_ne.*" );
+		SetAvailableMapGoals( TEAM.AXIS, b, "DEFEND_town.*" );
+		SetAvailableMapGoals( TEAM.AXIS, b, "SNIPE_north.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, b && Map.ropeBuilt==0, "ATTACK_rope.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, b && Map.doorDestroyed==0, "ATTACK_door.*" );
+		if(Map.phase<2){
+			SetAvailableMapGoals( TEAM.ALLIES, Map.ropeBuilt+Map.doorDestroyed>0, "CHECKPOINT_north_span" );
+			SetAvailableMapGoals( TEAM.AXIS, Map.phase==1, "CHECKPOINT_north_span" );
+			p=100;
+			n=Map.ropeBuilt+Map.doorDestroyed;
+			if(b && n<4){ p= 20*n; }
+			Util.SetPercentInProgress(p, "CHECKPOINT_north_span");
+		}
+		if(Map.ropeBuilt==0){ p=0.9; } else { p=0.81; }
+		SetGoalPriority("BUILD_.*_Enterhaken", p);
+	},
+
+	South_Door_Destroyed = function( trigger )
+	{
+		Map.doorEastDestroyed = true;
+		Map.doorDestroyed += 1;
+		Map.SetNorth();
+		Util.MapDebugPrint( "South_Door_Destroyed" );
+	},
+
+	North_Door_Destroyed = function( trigger )
+	{
+		Map.doorWestDestroyed = true;
+		Map.doorDestroyed += 1;
+		Map.SetNorth();
+		Util.MapDebugPrint( "North_Door_Destroyed" );
+	},
+
+	South_Enterhaken_Built = function( trigger )
+	{
+		Map.ropeBuilt += 1;
+		Wp.SetWaypointFlag("rope_east", "closed", false);
+		Map.SetNorth();
+		Util.MapDebugPrint( "South_Enterhaken_Built" );
+	},
+
+	South_Enterhaken_Destroyed = function( trigger )
+	{
+		Map.ropeBuilt -= 1;
+		Wp.SetWaypointFlag("rope_east", "closed", true);
+		Map.SetNorth();
+		Util.MapDebugPrint( "South_Enterhaken_Destroyed" );
+	},
+
+	North_Enterhaken_Built = function( trigger )
+	{
+		Map.ropeBuilt += 1;
+		Wp.SetWaypointFlag("rope_west", "closed", false);
+		Map.SetNorth();
+		Util.MapDebugPrint( "North_Enterhaken_Built" );
+	},
+
+	North_Enterhaken_Destroyed = function( trigger )
+	{
+		Map.ropeBuilt -= 1;
+		Wp.SetWaypointFlag("rope_west", "closed", true);
+		Map.SetNorth();
+		Util.MapDebugPrint( "North_Enterhaken_Destroyed" );
+	},
+
+
+	SetNorthFlag = function()
+	{
+		b= Map.phase==1;
+		SetAvailableMapGoals( TEAM.ALLIES, b, "BUILD_North_Span_TNT" );
+		SetAvailableMapGoals( TEAM.ALLIES, b, "ATTACK_north.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, b, "SMOKEBOMB_north" );
+		Map.SetNorth();
+		Map.SetSpawn();
+	},
+
+	SetCenterFlag = function()
+	{
+		b= Map.phase==2;
+		SetAvailableMapGoals( TEAM.AXIS, b, "DEFEND_center.*" );
+		b= Map.phase==3;
+		SetAvailableMapGoals( TEAM.ALLIES, b, "BUILD_Center_Span_TNT" );
+		SetAvailableMapGoals( TEAM.ALLIES, b, "ATTACK_center.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, b, "SMOKEBOMB_center" );
+	},
+
+	SetSouthFlag = function()
+	{
+		b= Map.phase==4;
+		SetAvailableMapGoals( TEAM.AXIS, b, "DEFEND_south.*" );
+		SetAvailableMapGoals( TEAM.AXIS, b, "SNIPE_south.*" );
+		b= Map.phase==5;
+		SetAvailableMapGoals( TEAM.AXIS, b, "MOBILEMG42_south.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, b, "BUILD_South_Span_TNT" );
+		SetAvailableMapGoals( TEAM.ALLIES, b, "ATTACK_south.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, b, "SMOKEBOMB_south" );
+		Map.SetSpawn();
+	},
+
+	North_Span_TNT_Built = function( trigger )
+	{
+		Map.phase = 2;
+		Util.EnableGoal( "CHECKPOINT_center_span" );
+		Map.SetCenterFlag();
+		Map.SetNorthFlag();
+		WeaponTable.SetWeaponAvailability( CLASS.SOLDIER, WEAPON.FLAMETHROWER, false );
+		WeaponTable.SetWeaponAvailability( null, WeaponTable.Shotgun, false );
+		Util.MapDebugPrint( "North_Span_TNT_Built" );
+	},
+
+	Center_Span_TNT_Built = function( trigger )
+	{
+		Map.phase = 4;
+		Util.EnableGoal( "CHECKPOINT_south_span" );
+		Map.SetCenterFlag();
+		Map.SetSouthFlag();
+		if(Map.doorDestroyed<2){
+			SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_.*_Door" );
+		}
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_.*_Enterhaken" );
+		Util.DisableGoal( "HEALTHCAB_healthcabinet_[23]" );
+		Util.EnableGoal( "HEALTHCAB_healthcabinet" );
+		Util.EnableGoal( "HEALTHCAB_healthcabinet_1" );
+		Util.MapDebugPrint( "Center_Span_TNT_Built" );
+	},
+
+	South_Span_TNT_Built = function( trigger )
+	{
+		Map.phase = 6;
+		Map.SetSouthFlag();
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_hq.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_tower_s[ew].*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_above.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_hq.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "TRIPMINE_south.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_hq.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DYNAMITE_radio" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, ".*MG42_construction_track" );
+		WeaponTable.SetWeaponAvailability( CLASS.SOLDIER, WEAPON.FLAMETHROWER, true );
+		WeaponTable.SetWeaponAvailability( null, WeaponTable.Shotgun, true );
+		Util.MapDebugPrint( "South_Span_TNT_Built" );
+	},
+
+
+	north_span_Axis_Captured = function( trigger )
+	{
+		Map.phase = 0;
+		Map.SetNorthFlag();
+		Util.MapDebugPrint( "north_span_Axis_Captured" );
+	},
+
+	north_span_Allies_Captured = function( trigger )
+	{
+		Map.phase = 1;
+		Map.SetNorthFlag();
+		Util.MapDebugPrint( "north_span_Allies_Captured" );
+	},
+
+	center_span_Axis_Captured = function( trigger )
+	{
+		Map.phase = 2;
+		Map.SetCenterFlag();
+		Map.SetSpawn();
+		Util.MapDebugPrint( "center_span_Axis_Captured" );
+	},
+
+	center_span_Allies_Captured = function( trigger )
+	{
+		Map.phase = 3;
+		Map.SetCenterFlag();
+		Map.SetSpawn();
+		Util.MapDebugPrint( "center_span_Allies_Captured" );
+	},
+
+	south_span_Axis_Captured = function( trigger )
+	{
+		Map.phase = 4;
+		Map.SetSouthFlag();
+		Util.MapDebugPrint( "south_span_Axis_Captured" );
+	},
+
+	south_span_Allies_Captured = function( trigger )
+	{
+		Map.phase = 5;
+		Map.SetSouthFlag();
+		Util.MapDebugPrint( "south_span_Allies_Captured" );
+	},
+
+	HQ_Destroyed = function( trigger )
+	{
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "HQ_Destroyed" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	OnTrigger( "The South Door has been dynamited!", Map.South_Door_Destroyed );
+	OnTrigger( "The North Door has been dynamited!", Map.North_Door_Destroyed );
+	OnTrigger( "The South Enterhaken has been built!", Map.South_Enterhaken_Built );
+	OnTrigger( "Axis have destroyed the South Enterhaken!", Map.South_Enterhaken_Destroyed );
+	OnTrigger( "The North Enterhaken has been built!", Map.North_Enterhaken_Built );
+	OnTrigger( "Axis have destroyed the North Enterhaken!", Map.North_Enterhaken_Destroyed );
+	OnTrigger( "Axis capture the North Span!", Map.north_span_Axis_Captured );
+	OnTrigger( "Allies capture the North Span!", Map.north_span_Allies_Captured );
+	OnTrigger( "Axis capture the Center Span!", Map.center_span_Axis_Captured );
+	OnTrigger( "Allies capture the Center Span!", Map.center_span_Allies_Captured );
+	OnTrigger( "Axis capture the South Span!", Map.south_span_Axis_Captured );
+	OnTrigger( "Allies capture the South Span!", Map.south_span_Allies_Captured );
+	OnTrigger( "The Allies have defused the North Span TNT", Map.North_Span_TNT_Built );
+	OnTrigger( "The Allies have defused the Center Span TNT", Map.Center_Span_TNT_Built );
+	OnTrigger( "The Allies have defused the South Span TNT", Map.South_Span_TNT_Built );
+	OnTrigger( "The Allies have destroyed the Axis Field HQ", Map.HQ_Destroyed );
+
+	OnTriggerRegion(AABB(122.594,-174.135,-30.819,339.305,522.511,136.884),RegionTrigger.DisableBotPush); //under center checkpoint
+	OnTriggerRegion(AABB(79.760,-9231.069,-55.827,244.651,-7089.168,113.512),RegionTrigger.DisableCombatMovement); //south MG42
+	OnTriggerRegion(AABB(-56.668,-9686.622,805.125,447.454,-6550.206,1109.714),RegionTrigger.DisableCombatMovement); //south snipe
+
+	Wp.SetWaypointFlag("rope_east", "closed", true);
+	Wp.SetWaypointFlag("rope_west", "closed", true);
+
+	Util.DisableGoal( ".*", true );
+	Util.EnableGoal( "HEALTHCAB_healthcabinet_[23]" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_.*_Door" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_.*_Enterhaken" );
+
+	Util.SetRoleForTable({ "DEFEND_tower_sw.*", "DEFEND_tower_nw.*", "DEFEND_door_w.*"}, ROLE.DEFENDER1);
+	Util.SetRoleForTable({ "DEFEND_tower_se.*", "DEFEND_tower_ne.*", "DEFEND_door_e.*"}, ROLE.DEFENDER2);
+	Util.SetRoleForTable({ "DEFEND_north.*", "DEFEND_above.*" }, ROLE.DEFENDER3);
+
+	SetGoalPriority("MOUNTMG42.*", 0.6);
+	SetGoalPriority("REPAIRMG42_construction_track", 0.85);
+	SetGoalPriority("DEFEND_tower.*", 0.52);
+
+	Util.SetMaxUsers( 1, "BUILD_.*_Enterhaken" );
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, ".*MG42_.*" );
+
+	SetMapGoalProperties( "DEFEND_.*", {mincamptime=10, maxcamptime=40} );
+	SetMapGoalProperties( "SNIPE_.*", {mincamptime=15, maxcamptime=70} );
+	SetMapGoalProperties( "MOUNTMG42_construction_track", {MinCampTime=20, MaxCampTime=60} );
+	SetMapGoalProperties( "MOUNTMG42_town", {MinCampTime=500, MaxCampTime=500} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=30, MaxCampTime=60} );
+
+	Util.AddUsePoint("PLANT_North_Enterhaken", Vec3(-309.058, 4612.319, 32.125));
+	Util.AddUsePoint("PLANT_South_Enterhaken", Vec3(714.118, 4614.569, 40.125));
+
+
+	MapRoutes =
+	{
+		BUILD_South_Enterhaken = {
+			ROUTE_east_spawn = {
+				ROUTE_east2 = {},
+				ROUTE_east3 = {},
+			},
+			ROUTE_west_spawn = {
+				ROUTE_west3 = {},
+				ROUTE_west4 = {},
+				ROUTE_west5 = {},
+				ROUTE_west6 = { ROUTE_west_mg = {}},
+			},
+		},
+		PLANT_South_Door = {
+			ROUTE_east_spawn = {
+				ROUTE_east1 = {},
+				ROUTE_east2 = {},
+			},
+			ROUTE_west_spawn = {
+				ROUTE_west1 = {},
+				ROUTE_west2 = {},
+			},
+		},
+		CHECKPOINT_north_span = {
+			ROUTE_east_spawn = {
+				ROUTE_east1 = {
+					ROUTE_east_door = {},
+				},
+				ROUTE_east2 = {
+					ROUTE_east_door = {},
+					ROUTE_east_rope = {},
+				},
+				ROUTE_east3 = {
+					ROUTE_east_rope = {},
+				},
+			},
+			ROUTE_west_spawn = {
+				ROUTE_west1 = { Weight=2,
+					ROUTE_west_door = {},
+				},
+				ROUTE_west2 = { Weight=2,
+					ROUTE_west_door = {},
+				},
+				ROUTE_west3 = {
+					ROUTE_west_rope = {},
+				},
+				ROUTE_west4 = {
+					ROUTE_west_rope = {},
+				},
+				ROUTE_west5 = {
+					ROUTE_west_rope = {},
+				},
+				ROUTE_west6 = { ROUTE_west_mg = {}},
+			},
+			ROUTE_center_spawn = {
+				ROUTE_north1 = {},
+				ROUTE_north2 = {},
+				ROUTE_north3 = {},
+				ROUTE_north4 = {},
+			},
+		},
+		CHECKPOINT_center_span = {
+			ROUTE_north_spawn = {
+				ROUTE_north1 = {},
+				ROUTE_north2 = {},
+				ROUTE_north3 = {},
+				ROUTE_north4 = {},
+			},
+			ROUTE_south_spawn = {
+				ROUTE_center1 = {},
+				ROUTE_center2 = {},
+				ROUTE_center3 = {},
+				ROUTE_center4 = {},
+			},
+		},
+		CHECKPOINT_south_span = {
+			ROUTE_center_spawn = {
+				ROUTE_center1 = {},
+				ROUTE_center2 = {},
+				ROUTE_center3 = {},
+				ROUTE_center4 = {},
+			},
+			ROUTE_axis_spawn = {
+				ROUTE_south1 = {},
+				ROUTE_south2 = {},
+				ROUTE_south3 = {},
+				ROUTE_south4 = {},
+			},
+		},
+		DYNAMITE_radio = {
+			ROUTE_south_spawn = {
+				ROUTE_south_tower_east = { Weight=2,
+					ROUTE_hq_north = {},
+					ROUTE_hq_south = {},
+				},
+				ROUTE_south_tower_west = {
+					ROUTE_hq_north = {},
+					ROUTE_hq_south = {},
+				},
+				ROUTE_south_mg = {
+					ROUTE_hq_north = {},
+					ROUTE_hq_south = {},
+				},
+			}
+		},
+	};
+	MapRoutes.BUILD_North_Enterhaken = MapRoutes.BUILD_South_Enterhaken;
+	MapRoutes["ATTACK_rope.*"] = MapRoutes.BUILD_South_Enterhaken;
+	MapRoutes.PLANT_North_Door = MapRoutes.PLANT_South_Door;
+	MapRoutes["ATTACK_door.*"] = MapRoutes.PLANT_South_Door;
+	MapRoutes.BUILD_Center_Span_TNT = MapRoutes.CHECKPOINT_center_span;
+	MapRoutes.BUILD_South_Span_TNT = MapRoutes.CHECKPOINT_south_span;
+	MapRoutes["ATTACK_hq.*"] = MapRoutes.DYNAMITE_radio;
+	Util.Routes(MapRoutes);
+
+	Map.SetNorthFlag();
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.MaxViewDistance = 3000;
+	bot.TargetBreakableDist = 90.0; //south towers doors
+	Util.IgnoreTargetGoalTable(bot, Map.Movers);
+	Map.SetSpawn1(bot);
+};

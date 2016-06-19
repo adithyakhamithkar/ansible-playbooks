@@ -1,0 +1,23 @@
+if (GetModName()!="noquarter") { return; }
+
+//////////////////////////////////////////////////////////////////////////
+// Overall weapon properties.
+
+WEAPON.MOBILE_BROWNING = WEAPON.MOBILE_MG42; // don't change! this is intended
+
+this.Name = "Mobile Browning";
+this.WeaponId = WEAPON.MOBILE_BROWNING;
+
+//////////////////////////////////////////////////////////////////////////
+// Set some weapon properties that affect some internal logic.
+this.PrimaryFire.WeaponType = "instant";
+this.PrimaryFire.ProjectileSpeed = 1000;
+this.PrimaryFire.RequiresAmmo = true;
+this.PrimaryFire.WaterProof = false;
+this.PrimaryFire.InheritsVelocity = false;
+this.PrimaryFire.ProjectileGravity = 0.0;
+
+this.PrimaryFire.DefaultDesirability = 0.2;
+
+this.PrimaryFire.LowAmmoThreshold = 10;
+this.PrimaryFire.LowAmmoPriority = 0.8;

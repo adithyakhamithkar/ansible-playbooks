@@ -1,0 +1,1534 @@
+global _MG = 
+{
+	ARTILLERY_S_aquarium = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ARTILLERY_S",
+		GroupName = "",
+		MinRadius = 0,
+		Name = "ARTILLERY_S_aquarium",
+		Orientation = Vec3(-1.544, -0.223, -0.000),
+		Position = Vec3(5024.000, 583.200, 60.125),
+		Radius = 15,
+		TagName = "aquarium",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ATTACK_52 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.162, 0.412, -0.897),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Attack",
+		GroupName = "",
+		MaxCampTime = 6,
+		MinCampTime = 2,
+		MinRadius = 30,
+		Name = "ATTACK_52",
+		Orientation = Vec3(-0.374, -1.112, -0.000),
+		Position = Vec3(5124.569, 2630.022, -348.875),
+		Radius = 35,
+		Stance = "stand",
+		TagName = "52",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	ATTACK_cp1 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.449, -0.654, 0.609),
+			[1] = Vec3(0.870, -0.493, 0.024),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Attack",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "ATTACK_cp1",
+		Orientation = Vec3(-2.540, 0.655, -0.000),
+		Position = Vec3(676.542, 1985.041, -350.875),
+		Radius = 32,
+		Stance = "stand",
+		TagName = "cp1",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	ATTACK_cp2 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.917, 0.177, 0.357),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Attack",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "ATTACK_cp2",
+		Orientation = Vec3(1.381, 0.365, -0.000),
+		Position = Vec3(1473.117, 1159.166, -350.662),
+		Radius = 32,
+		Stance = "stand",
+		TagName = "cp2",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	ATTACK_cp3 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.916, -0.176, 0.362),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Attack",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "ATTACK_cp3",
+		Orientation = Vec3(1.761, 0.370, -0.000),
+		Position = Vec3(1437.564, 1465.646, -350.662),
+		Radius = 32,
+		Stance = "stand",
+		TagName = "cp3",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	ATTACK_cp4 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.199, -0.980, 0.016),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Attack",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "ATTACK_cp4",
+		Orientation = Vec3(-2.941, 0.016, -0.000),
+		Position = Vec3(683.280, 1654.102, -94.875),
+		Radius = 32,
+		Stance = "stand",
+		TagName = "cp4",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	ATTACK_cp5 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.988, 0.151, 0.040),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Attack",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "ATTACK_cp5",
+		Orientation = Vec3(1.419, 0.040, -0.000),
+		Position = Vec3(1559.543, 1178.731, -102.693),
+		Radius = 32,
+		Stance = "stand",
+		TagName = "cp5",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	ATTACK_cp6 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.356, 0.906, 0.230),
+			[1] = Vec3(0.870, 0.474, 0.135),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Attack",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "ATTACK_cp6",
+		Orientation = Vec3(-0.374, 0.232, -0.000),
+		Position = Vec3(668.140, 655.931, -350.875),
+		Radius = 32,
+		Stance = "stand",
+		TagName = "cp6",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	ATTACK_cp7 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.717, -0.463, 0.521),
+			[1] = Vec3(0.662, -0.730, 0.167),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Attack",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "ATTACK_cp7",
+		Orientation = Vec3(-2.144, 0.548, -0.000),
+		Position = Vec3(623.271, 1624.165, -350.875),
+		Radius = 32,
+		Stance = "stand",
+		TagName = "cp7",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	ATTACK_radiocontrol = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.050, 0.382, -0.923),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Attack",
+		GroupName = "",
+		MaxCampTime = 6,
+		MinCampTime = 2,
+		MinRadius = 30,
+		Name = "ATTACK_radiocontrol",
+		Orientation = Vec3(0.130, -1.176, -0.000),
+		Position = Vec3(2300.960, 3735.840, -331.875),
+		Radius = 25,
+		Stance = "stand",
+		TagName = "radiocontrol",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	ATTACK_sponge = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.975, 0.180, -0.130),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Attack",
+		GroupName = "",
+		MaxCampTime = 6,
+		MinCampTime = 2,
+		MinRadius = 30,
+		Name = "ATTACK_sponge",
+		Orientation = Vec3(1.389, -0.130, -0.000),
+		Position = Vec3(3462.635, 361.199, -349.067),
+		Radius = 30,
+		Stance = "stand",
+		TagName = "sponge",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	ATTACK_wheel = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.647, -0.279, -0.710),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Attack",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "ATTACK_wheel",
+		Orientation = Vec3(-1.979, -0.789, -0.000),
+		Position = Vec3(4494.071, 747.558, 216.639),
+		Radius = 32,
+		Stance = "stand",
+		TagName = "wheel",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	CALLARTILLERY_67 = 
+	{
+		CreateOnLoad = 1,
+		Facing = Vec3(-0.136, -0.938, 0.318),
+		GoalType = "CALLARTILLERY",
+		GroupName = "",
+		MinRadius = 0,
+		Name = "CALLARTILLERY_67",
+		Orientation = Vec3(2.998, 0.323, -0.000),
+		Position = Vec3(5086.201, 2071.992, 258.275),
+		Radius = 70,
+		TagName = "67",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	CALLARTILLERY_69 = 
+	{
+		CreateOnLoad = 1,
+		Facing = Vec3(0.381, -0.816, 0.436),
+		GoalType = "CALLARTILLERY",
+		GroupName = "",
+		MinRadius = 0,
+		Name = "CALLARTILLERY_69",
+		Orientation = Vec3(-2.705, 0.451, -0.000),
+		Position = Vec3(4310.209, 2430.257, -351.875),
+		Radius = 150,
+		TagName = "69",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	CAPPOINT_key = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "CapPoint",
+		GroupName = "",
+		MinRadius = 0,
+		Name = "CAPPOINT_key",
+		Orientation = Vec3(-1.263, -1.369, -0.000),
+		Position = Vec3(691.915, 1375.669, -83.536),
+		Radius = 50,
+		TagName = "key",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	CHECKPOINT_forwardflag = 
+	{
+		CreateOnLoad = 0,
+		GoalType = "CHECKPOINT",
+		GroupName = "",
+		MinRadius = 0,
+		Name = "CHECKPOINT_forwardflag",
+		Orientation = Vec3(-1.571, 0.000, -0.000),
+		Position = Vec3(5027.000, 2710.000, -282.000),
+		Radius = 0,
+		TagName = "forwardflag",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	DEFEND_cp1 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.738, -0.649, -0.187),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 20,
+		MinRadius = 30,
+		Name = "DEFEND_cp1",
+		Orientation = Vec3(-2.292, -0.188, -0.000),
+		Position = Vec3(712.575, 1570.126, -95.850),
+		Radius = 50,
+		Stance = "stand",
+		TagName = "cp1",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_cp2 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.157, -0.887, -0.434),
+			[1] = Vec3(0.647, -0.727, -0.230),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 20,
+		MinRadius = 32,
+		Name = "DEFEND_cp2",
+		Orientation = Vec3(-2.967, -0.449, -0.000),
+		Position = Vec3(508.753, 945.254, -350.875),
+		Radius = 32,
+		Stance = "stand",
+		TagName = "cp2",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_cp3 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.993, 0.081, 0.080),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 20,
+		MinRadius = 32,
+		Name = "DEFEND_cp3",
+		Orientation = Vec3(-1.490, 0.080, -0.000),
+		Position = Vec3(1437.050, 1730.212, -350.662),
+		Radius = 32,
+		Stance = "stand",
+		TagName = "cp3",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_cp4 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.575, 0.818, -0.021),
+			[1] = Vec3(0.324, 0.946, -0.030),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 20,
+		MinRadius = 30,
+		Name = "DEFEND_cp4",
+		Orientation = Vec3(0.187, -0.044, -0.000),
+		Position = Vec3(2774.861, 627.765, -351.875),
+		Radius = 70,
+		Stance = "stand",
+		TagName = "cp4",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_cp5 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.615, -0.788, 0.018),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 20,
+		MinRadius = 32,
+		Name = "DEFEND_cp5",
+		Orientation = Vec3(2.479, 0.018, -0.000),
+		Position = Vec3(2336.015, 813.396, -350.875),
+		Radius = 32,
+		Stance = "stand",
+		TagName = "cp5",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_cp6 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.990, -0.139, -0.006),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 20,
+		MinRadius = 32,
+		Name = "DEFEND_cp6",
+		Orientation = Vec3(1.710, -0.006, -0.000),
+		Position = Vec3(3200.129, 880.329, -350.875),
+		Radius = 32,
+		Stance = "stand",
+		TagName = "cp6",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_cp7 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.950, -0.313, 0.006),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 20,
+		MinRadius = 32,
+		Name = "DEFEND_cp7",
+		Orientation = Vec3(1.889, 0.006, -0.000),
+		Position = Vec3(2246.299, 1416.316, -350.875),
+		Radius = 32,
+		Stance = "stand",
+		TagName = "cp7",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_cp8 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.992, -0.123, 0.015),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 20,
+		MinRadius = 32,
+		Name = "DEFEND_cp8",
+		Orientation = Vec3(-1.695, 0.015, -0.000),
+		Position = Vec3(666.664, 1896.666, -350.662),
+		Radius = 32,
+		Stance = "prone",
+		TagName = "cp8",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_cp9 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.855, 0.518, -0.006),
+			[1] = Vec3(0.461, -0.887, 0.024),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 20,
+		MinRadius = 32,
+		Name = "DEFEND_cp9",
+		Orientation = Vec3(-1.026, -0.006, -0.000),
+		Position = Vec3(919.949, 1513.760, -349.875),
+		Radius = 32,
+		Stance = "crouch",
+		TagName = "cp9",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_flag1 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.772, 0.634, 0.046),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "DEFEND_flag1",
+		Orientation = Vec3(-0.883, 0.046, -0.000),
+		Position = Vec3(3172.929, 2115.281, -350.875),
+		Radius = 32,
+		Stance = "stand",
+		TagName = "flag1",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_flag2 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.197, 0.980, -0.030),
+			[1] = Vec3(-0.878, -0.478, 0.007),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "DEFEND_flag2",
+		Orientation = Vec3(0.261, 0.046, -0.000),
+		Position = Vec3(3951.588, 1968.910, -351.875),
+		Radius = 32,
+		Stance = "crouch",
+		TagName = "flag2",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_flag3 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.938, -0.345, 0.021),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "DEFEND_flag3",
+		Orientation = Vec3(1.923, 0.021, -0.000),
+		Position = Vec3(4923.301, 2737.491, -350.875),
+		Radius = 32,
+		Stance = "stand",
+		TagName = "flag3",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_flag4 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.114, 0.993, 0.016),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "DEFEND_flag4",
+		Orientation = Vec3(-0.114, 0.016, -0.000),
+		Position = Vec3(4925.891, 2166.564, -350.875),
+		Radius = 32,
+		Stance = "stand",
+		TagName = "flag4",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_flag5 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.987, -0.111, 0.120),
+			[1] = Vec3(0.803, -0.590, 0.089),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "DEFEND_flag5",
+		Orientation = Vec3(-1.683, 0.120, -0.000),
+		Position = Vec3(4531.152, 2729.232, -350.875),
+		Radius = 32,
+		Stance = "prone",
+		TagName = "flag5",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_flag6 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.225, 0.974, 0.024),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "DEFEND_flag6",
+		Orientation = Vec3(-0.227, 0.024, -0.000),
+		Position = Vec3(4227.017, 1642.900, -342.875),
+		Radius = 32,
+		Stance = "crouch",
+		TagName = "flag6",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_flag7 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.227, 0.971, 0.073),
+			[1] = Vec3(-0.889, 0.454, 0.051),
+			[2] = Vec3(0.551, 0.834, 0.024),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "DEFEND_flag7",
+		Orientation = Vec3(0.230, 0.073, -0.000),
+		Position = Vec3(4202.965, 2069.870, -350.875),
+		Radius = 32,
+		Stance = "crouch",
+		TagName = "flag7",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_flag8 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.572, 0.820, -0.013),
+			[1] = Vec3(-0.871, -0.489, 0.043),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "DEFEND_flag8",
+		Orientation = Vec3(0.608, -0.013, -0.000),
+		Position = Vec3(5186.278, 1927.636, -350.875),
+		Radius = 32,
+		Stance = "crouch",
+		TagName = "flag8",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_flag9 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.441, 0.771, 0.459),
+			[1] = Vec3(0.186, 0.978, 0.090),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "DEFEND_flag9",
+		Orientation = Vec3(-0.519, 0.477, -0.000),
+		Position = Vec3(4451.916, 1589.068, -350.875),
+		Radius = 32,
+		Stance = "stand",
+		TagName = "flag9",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_hall1 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.724, 0.690, -0.010),
+			[1] = Vec3(0.083, 0.997, 0.003),
+			[2] = Vec3(-0.361, 0.932, -0.006),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "DEFEND_hall1",
+		Orientation = Vec3(0.810, -0.010, -0.000),
+		Position = Vec3(2822.168, 2924.787, -350.875),
+		Radius = 32,
+		Roles = 
+		{
+			[0] = "DEFENDER1",
+		},
+		Stance = "stand",
+		TagName = "hall1",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_hall2 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.992, -0.124, 0.006),
+			[1] = Vec3(-0.975, -0.211, 0.067),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "DEFEND_hall2",
+		Orientation = Vec3(-1.695, 0.006, -0.000),
+		Position = Vec3(2735.941, 2400.408, -350.875),
+		Radius = 32,
+		Roles = 
+		{
+			[0] = "DEFENDER1",
+		},
+		Stance = "stand",
+		TagName = "hall2",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_hall3 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.718, 0.691, 0.085),
+			[1] = Vec3(-0.147, 0.987, 0.071),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "DEFEND_hall3",
+		Orientation = Vec3(-0.804, 0.085, -0.000),
+		Position = Vec3(2706.893, 2129.828, -350.875),
+		Radius = 32,
+		Roles = 
+		{
+			[0] = "DEFENDER1",
+		},
+		Stance = "crouch",
+		TagName = "hall3",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	DEFEND_hall4 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.573, 0.819, 0.021),
+			[1] = Vec3(0.253, 0.967, 0.021),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Defend",
+		GroupName = "",
+		MaxCampTime = 20,
+		MinCampTime = 10,
+		MinRadius = 32,
+		Name = "DEFEND_hall4",
+		Orientation = Vec3(-0.611, 0.021, -0.000),
+		Position = Vec3(2745.276, 1846.090, -350.875),
+		Radius = 32,
+		Roles = 
+		{
+			[0] = "DEFENDER1",
+		},
+		Stance = "stand",
+		TagName = "hall4",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+		},
+	},
+	FLAG_axis_obj01 = 
+	{
+		CreateOnLoad = 0,
+		GoalType = "Flag",
+		GroupName = "",
+		MinRadius = 0,
+		Name = "FLAG_axis_obj01",
+		Orientation = Vec3(-1.571, 0.000, -0.000),
+		Position = Vec3(5103.000, 391.000, -64.875),
+		Radius = 0,
+		TagName = "axis_obj01",
+		TeamAvailability = 2,
+		Version = 1,
+	},
+	MOVER_FishMover = 
+	{
+		CreateOnLoad = 0,
+		GoalType = "MOVER",
+		GroupName = "",
+		MinRadius = 0,
+		Name = "MOVER_FishMover",
+		Orientation = Vec3(-1.571, 0.000, -0.000),
+		Position = Vec3(4952.800, 414.240, -22.280),
+		Radius = 0,
+		TagName = "FishMover",
+		TeamAvailability = 6,
+		Version = 1,
+	},
+	PLANT_East_Vent = 
+	{
+		CoverSpots = 
+		{
+			[0] = 
+			{
+				AimVectors = 
+				{
+					[0] = Vec3(-1.000, 0.005, 0.024),
+				},
+				Timeout = 30,
+				position = Vec3(4544.723, 2496.564, -471.875),
+				stance = "stand",
+			},
+		},
+		CreateOnLoad = 0,
+		ExplosiveType = 1,
+		GoalType = "PLANT",
+		GroupName = "",
+		MinRadius = 0,
+		Name = "PLANT_East_Vent",
+		Orientation = Vec3(-1.571, 0.000, -0.000),
+		Position = Vec3(4744.000, 2720.000, -356.000),
+		Radius = 0,
+		TagName = "East Vent",
+		TeamAvailability = 2,
+		Version = 1,
+	},
+	PLANT_North_Vent = 
+	{
+		CoverSpots = 
+		{
+			[0] = 
+			{
+				AimVectors = 
+				{
+					[0] = Vec3(0.937, 0.321, 0.138),
+				},
+				Timeout = 30,
+				position = Vec3(1878.853, 3398.448, -323.875),
+				stance = "stand",
+			},
+			[1] = 
+			{
+				AimVectors = 
+				{
+					[0] = Vec3(0.152, 0.988, 0.009),
+				},
+				Timeout = 30,
+				position = Vec3(2285.318, 3255.055, -327.732),
+				stance = "stand",
+			},
+		},
+		CreateOnLoad = 0,
+		ExplosiveType = 1,
+		GoalType = "PLANT",
+		GroupName = "",
+		MinRadius = 0,
+		Name = "PLANT_North_Vent",
+		Orientation = Vec3(-1.571, 0.000, -0.000),
+		Position = Vec3(2044.000, 3856.000, -360.000),
+		Radius = 0,
+		TagName = "North Vent",
+		TeamAvailability = 2,
+		Version = 1,
+	},
+	PLANT_South_Vent = 
+	{
+		CreateOnLoad = 0,
+		ExplosiveType = 1,
+		GoalType = "PLANT",
+		GroupName = "",
+		MinRadius = 0,
+		Name = "PLANT_South_Vent",
+		Orientation = Vec3(-1.571, 0.000, -0.000),
+		Position = Vec3(528.000, 820.000, -360.000),
+		Radius = 0,
+		TagName = "South Vent",
+		TeamAvailability = 2,
+		Version = 1,
+	},
+	ROUTE_allied_spawn = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_allied_spawn",
+		Orientation = Vec3(1.760, -0.577, -0.000),
+		Position = Vec3(666.125, 1142.159, -86.875),
+		Radius = 300,
+		TagName = "allied_spawn",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_armchair1 = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_armchair1",
+		Orientation = Vec3(-1.589, -0.437, -0.000),
+		Position = Vec3(3556.614, 2499.600, -350.875),
+		Radius = 125,
+		TagName = "armchair1",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_armchair2 = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_armchair2",
+		Orientation = Vec3(-1.688, -0.327, -0.000),
+		Position = Vec3(3639.654, 1862.953, -350.875),
+		Radius = 125,
+		TagName = "armchair2",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_axis_spawn = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_axis_spawn",
+		Orientation = Vec3(-1.526, -0.627, -0.000),
+		Position = Vec3(1068.977, 3420.758, -102.875),
+		Radius = 600,
+		TagName = "axis_spawn",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_dart = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_dart",
+		Orientation = Vec3(2.744, -0.486, -0.000),
+		Position = Vec3(5153.047, 2185.840, 264.128),
+		Radius = 125,
+		TagName = "dart",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_flag1 = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_flag1",
+		Orientation = Vec3(-1.614, -0.318, -0.000),
+		Position = Vec3(4541.833, 2476.102, -350.875),
+		Radius = 125,
+		TagName = "flag1",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_flag2 = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_flag2",
+		Orientation = Vec3(-3.071, -0.282, -0.000),
+		Position = Vec3(4658.858, 1303.815, -350.875),
+		Radius = 125,
+		TagName = "flag2",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_flag3 = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_flag3",
+		Orientation = Vec3(0.238, -0.367, -0.000),
+		Position = Vec3(5073.205, 1293.145, -350.875),
+		Radius = 125,
+		TagName = "flag3",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_forward_spawn = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_forward_spawn",
+		Orientation = Vec3(2.565, -0.316, -0.000),
+		Position = Vec3(5233.875, 2572.479, -350.875),
+		Radius = 300,
+		TagName = "forward_spawn",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_hall_1e = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_hall_1e",
+		Orientation = Vec3(-3.126, -0.678, -0.000),
+		Position = Vec3(2868.448, 3444.340, -350.768),
+		Radius = 125,
+		TagName = "hall_1e",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_hall_2e = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_hall_2e",
+		Orientation = Vec3(-3.137, -0.481, -0.000),
+		Position = Vec3(2899.361, 2777.336, -350.768),
+		Radius = 125,
+		TagName = "hall_2e",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_hall_2w = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_hall_2w",
+		Orientation = Vec3(-3.123, -0.260, -0.000),
+		Position = Vec3(2557.893, 2904.530, -350.768),
+		Radius = 125,
+		TagName = "hall_2w",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_hall_3e = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_hall_3e",
+		Orientation = Vec3(-0.032, -0.276, -0.000),
+		Position = Vec3(3052.511, 2292.608, -351.875),
+		Radius = 150,
+		TagName = "hall_3e",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_hall_3w = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_hall_3w",
+		Orientation = Vec3(-1.440, -0.201, -0.000),
+		Position = Vec3(2578.539, 2166.127, -350.768),
+		Radius = 125,
+		TagName = "hall_3w",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_hall_4e = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_hall_4e",
+		Orientation = Vec3(1.620, -0.317, -0.000),
+		Position = Vec3(2921.399, 1186.526, -350.875),
+		Radius = 125,
+		TagName = "hall_4e",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_hall_4w = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_hall_4w",
+		Orientation = Vec3(-1.688, -0.972, -0.000),
+		Position = Vec3(2582.676, 1148.902, -350.875),
+		Radius = 125,
+		TagName = "hall_4w",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_hall_5e = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_hall_5e",
+		Orientation = Vec3(-0.079, -0.330, -0.000),
+		Position = Vec3(2911.718, 754.437, -350.875),
+		Radius = 125,
+		TagName = "hall_5e",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_obj = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_obj",
+		Orientation = Vec3(0.141, -0.872, -0.000),
+		Position = Vec3(5095.087, 349.125, -68.620),
+		Radius = 150,
+		TagName = "obj",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_obj2 = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_obj2",
+		Orientation = Vec3(0.064, -0.373, -0.000),
+		Position = Vec3(4929.749, 746.952, -350.657),
+		Radius = 300,
+		TagName = "obj2",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_shaft_N1 = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_shaft_N1",
+		Orientation = Vec3(-2.969, -0.195, -0.000),
+		Position = Vec3(2259.407, 3395.873, -495.875),
+		Radius = 70,
+		TagName = "shaft_N1",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_shaft_N2 = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_shaft_N2",
+		Orientation = Vec3(1.488, -0.831, -0.000),
+		Position = Vec3(4011.148, 2496.123, -494.875),
+		Radius = 70,
+		TagName = "shaft_N2",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_shaft_S1 = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_shaft_S1",
+		Orientation = Vec3(1.548, -0.836, -0.000),
+		Position = Vec3(4529.679, 2494.143, -495.875),
+		Radius = 70,
+		TagName = "shaft_S1",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_shaft_S2 = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_shaft_S2",
+		Orientation = Vec3(3.120, -1.149, -0.000),
+		Position = Vec3(2781.111, 2188.210, -494.875),
+		Radius = 70,
+		TagName = "shaft_S2",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	ROUTE_shaft_S3 = 
+	{
+		CreateOnLoad = 1,
+		GoalType = "ROUTE",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "ROUTE_shaft_S3",
+		Orientation = Vec3(1.566, -0.828, -0.000),
+		Position = Vec3(1206.303, 811.774, -494.875),
+		Radius = 70,
+		TagName = "shaft_S3",
+		TeamAvailability = 30,
+		Version = 1,
+	},
+	SNIPE_123 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.382, 0.908, -0.172),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 70,
+		MinCampTime = 20,
+		MinRadius = 30,
+		Name = "SNIPE_123",
+		Orientation = Vec3(-0.398, -0.173, -0.000),
+		Position = Vec3(4523.344, 634.904, -87.875),
+		Radius = 25,
+		Stance = "stand",
+		TagName = "123",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[111] = 1,
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_159 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.985, -0.072, -0.156),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 70,
+		MinCampTime = 20,
+		MinRadius = 30,
+		Name = "SNIPE_159",
+		Orientation = Vec3(1.643, -0.157, -0.000),
+		Position = Vec3(4893.240, 2537.444, -112.848),
+		Radius = 35,
+		Stance = "crouch",
+		TagName = "159",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[111] = 1,
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_160 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-1.000, 0.004, -0.008),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 70,
+		MinCampTime = 20,
+		MinRadius = 30,
+		Name = "SNIPE_160",
+		Orientation = Vec3(1.567, -0.008, -0.000),
+		Position = Vec3(5154.326, 1691.678, -143.875),
+		Radius = 20,
+		Stance = "stand",
+		TagName = "160",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[111] = 1,
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_70 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.119, 0.987, -0.106),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 70,
+		MinCampTime = 20,
+		MinRadius = 30,
+		Name = "SNIPE_70",
+		Orientation = Vec3(0.120, -0.106, -0.000),
+		Position = Vec3(4845.008, 578.128, -103.875),
+		Radius = 15,
+		Stance = "stand",
+		TagName = "70",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[111] = 1,
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_cp5 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.735, -0.617, -0.281),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 70,
+		MinCampTime = 20,
+		MinRadius = 30,
+		Name = "SNIPE_cp5",
+		Orientation = Vec3(-2.270, -0.285, -0.000),
+		Position = Vec3(1630.920, 910.916, -111.875),
+		Radius = 15,
+		Stance = "stand",
+		TagName = "cp5",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[111] = 1,
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_dart = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.217, -0.913, -0.345),
+			[1] = Vec3(-0.551, -0.769, -0.324),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 70,
+		MinCampTime = 20,
+		MinRadius = 30,
+		Name = "SNIPE_dart",
+		Orientation = Vec3(2.936, -0.170, -0.000),
+		Position = Vec3(5143.391, 2065.965, 257.719),
+		Radius = 35,
+		Stance = "crouch",
+		TagName = "dart",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[111] = 1,
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SWITCH_dart = 
+	{
+		AimPosition = Vec3(5038.250, 2085.595, 294.697),
+		CreateOnLoad = 1,
+		Facing = Vec3(0.000, 0.000, 0.000),
+		GoalType = "SWITCH",
+		GroupName = "",
+		MinRadius = 32,
+		Name = "SWITCH_dart",
+		Orientation = Vec3(2.608, -0.590, -0.000),
+		Position = Vec3(5058.538, 2120.971, 264.910),
+		Radius = 32,
+		Stance = "stand",
+		TagName = "dart",
+		TeamAvailability = 30,
+		Timeout = 1500,
+		Use = 1,
+		Version = 1,
+	},
+	Version = 1,
+};

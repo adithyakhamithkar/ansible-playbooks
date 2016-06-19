@@ -1,0 +1,525 @@
+global Map =
+{
+	Debug = false,
+	Quiet = true,
+	//set Talk to false if you don't want the bots talking ingame:
+	Talk = true,
+	Church = true,
+
+	Ammo_Cabinet_t24 = "AMMOCAB_t24",
+	Health_Cabinet_t22 = "HEALTHCAB_t22",
+	Flag_access_codes = "FLAG_access_codes",
+	Flag_gold = "FLAG_gold",
+	Cappoint_Dropoff = "CAPPOINT_Dropoff",
+	Cappoint_Dropoff_1 = "CAPPOINT_Dropoff_1",
+	Build_Church_Doors = "BUILD_Church_Doors",
+	Build_Dock_Staircase = "BUILD_Dock_Staircase",
+	Plant_Church_Doors = "PLANT_Church_Doors",
+	Plant_Dock_Staircase = "PLANT_Dock_Staircase",
+	Mobile_MG42_mg_ax_start = "MOBILEMG42_mg_ax_start",
+
+	//Door and stairs
+	Church_Doors_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Church = true;
+
+		Util.MapDebugPrint( "Church_Doors_Built" );
+	},
+
+	Dock_Staircase_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Dock_Staircase_Built" );
+	},
+
+	Church_Doors_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.PATH_CLEARED);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTAttack");
+					}
+				}
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.REINFORCE_DEF);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTFallBack");
+					}
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "Church_Doors_Destroyed" );
+	},
+
+	Dock_Staircase_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Dock_Staircase_Destroyed" );
+	},
+
+	//Obj stuff
+	access_codes_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group1);
+//		Groups.DisableAxis(Groups.group2);
+		Groups.EnableAllies(Groups.group3);
+		Groups.EnableAxis(Groups.group4);
+
+
+		Util.MapDebugPrint( "access_codes_Taken" );
+	},
+
+	access_codes_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group3);
+		Groups.DisableAxis(Groups.group4);
+		Groups.EnableAllies(Groups.group1);
+		Groups.EnableAxis(Groups.group2);
+
+
+		Util.MapDebugPrint( "access_codes_Returned" );
+	},
+
+	gold_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group5);
+		Groups.DisableAxis(Groups.group6);
+		Groups.EnableAllies(Groups.group7);
+		Groups.EnableAxis(Groups.group8);
+
+		Util.MapDebugPrint( "gold_Taken" );
+	},
+
+	gold_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group7);
+		Groups.DisableAxis(Groups.group8);
+		Groups.EnableAllies(Groups.group5);
+		Groups.EnableAxis(Groups.group6);
+
+		Util.MapDebugPrint( "gold_Returned" );
+	},
+
+	Dropoff_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group3);
+		Groups.DisableAxis(Groups.group4);
+		Groups.EnableAllies(Groups.group5);
+		Groups.EnableAxis(Groups.group6);
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_al100" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_d_card_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_a_card_.*" );
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.DESTROY_PRIMARY);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTAttack");
+					}
+				}
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.REINFORCE_DEF);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTFallBack");
+					}
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "Dropoff_Captured" );
+	},
+
+	Dropoff_1_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "Dropoff_1_Captured" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	Util.SetGoalOffset( 0, -30, 0, "PLANT_Church_Doors" );
+
+	OnTrigger( "The Church Doors has been repaired", Map.Church_Doors_Built );
+	OnTrigger( "The Dock Staircase has been constructed", Map.Dock_Staircase_Built );
+	OnTrigger( "The Church doors has been destroyed", Map.Church_Doors_Destroyed );
+	OnTrigger( "The Dock Staircase has been destroyed", Map.Dock_Staircase_Destroyed );
+	OnTrigger( "The Allies have stolen the Key Card", Map.access_codes_Taken );
+	OnTrigger( "The Axis have retrieved the Key Card", Map.access_codes_Returned );
+	OnTrigger( "The Allies have stolen the gold", Map.gold_Taken );
+	OnTrigger( "The Axis have returned the gold", Map.gold_Returned );
+	OnTrigger( "The Allies have disabled power to the security doors", Map.Dropoff_Captured );
+	OnTrigger( "The Allies have secured the gold", Map.Dropoff_1_Captured );
+
+	//set max users for goals
+	Util.SetMaxUsers( 2, "BUILD.*" );
+	Util.SetMaxUsers( 2, "PLANT.*" );
+	Util.SetMaxUsers( 1, "SNIPE.*" );
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 3, "FLAG_access_codes" );
+
+	Util.SetGroup( Map.Flag_access_codes, "group1");
+	Util.SetGroup( Map.Cappoint_Dropoff, "group1");
+
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=120, MaxCampTime=120});
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=60, MaxCampTime=120});
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=30, MaxCampTime=60});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=60, MaxCampTime=120});
+	SetGoalPriority( "GRENADE_box", 1.6 );
+
+        Util.DisableGoal(".*", true); // all but routes
+	Util.EnableGoal("HEALTHCAB_.*", true);
+	Util.EnableGoal("AMMOCAB_.*", true);
+
+	//enable part 1 goals
+	Groups.EnableAllies(Groups.group1);
+	Groups.EnableAxis(Groups.group2);
+//~	SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMG42_al100" );
+
+	MapRoutes =
+	{
+		CAPPOINT_Dropoff_1 =
+		{
+			ROUTE_goldgrab  =
+			{
+				ROUTE_walley  =
+				{
+					ROUTE_tank  =
+					{
+					},
+					ROUTE_midalley  =
+					{
+						ROUTE_spawnalley  =
+						{
+							ROUTE_swestdocs  =
+							{
+							},
+						},
+					},
+				},
+				ROUTE_nwalley2  =
+				{
+                                        ROUTE_nwalley  =
+                                        {
+                                        },
+				},
+			},
+		},
+		CAPPOINT_Dropoff =
+		{
+                        ROUTE_keygrab =
+                        {
+				ROUTE_nwalley  =
+				{
+                                        ROUTE_nwalley2  =
+                                        {
+                                        },
+				},
+                                ROUTE_tank  =
+                                {
+                                        ROUTE_walley  =
+                                        {
+                                        },
+                                },
+                                ROUTE_swestdocs  =
+                                {
+                                        ROUTE_spawnalley  =
+                                        {
+                                                ROUTE_midalley  =
+                                                {
+                                                        ROUTE_walley  =
+                                                        {
+                                                        },
+                                                },
+                                                ROUTE_bridge  =
+                                                {
+                                                        ROUTE_walley  =
+                                                        {
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
+		},
+		FLAG_gold =
+		{
+			ROUTE_bSpawn  =
+			{
+				ROUTE_swestdocs  =
+				{
+					ROUTE_tank  =
+					{
+					},
+					ROUTE_nwalley  =
+					{
+						ROUTE_nwalley2  =
+						{
+                                                        ROUTE_walley  =
+                                                        {
+                                                        },
+						},
+					},
+				},
+				ROUTE_midalley  =
+				{
+				},
+				ROUTE_bridge  =
+				{
+					ROUTE_sealley  =
+					{
+					},
+				},
+			},
+		},
+		ATTACK_a_card_1 =
+		{
+			ROUTE_bSpawn  =
+			{
+				ROUTE_swestdocs  =
+				{
+					ROUTE_nwalley  =
+					{
+						ROUTE_nwalley2  =
+						{
+                                                        ROUTE_walley  =
+                                                        {
+                                                        },
+						},
+					},
+				},
+				ROUTE_midalley  =
+				{
+					ROUTE_nwalley  =
+					{
+					},
+					ROUTE_tank  =
+					{
+					},
+				},
+				ROUTE_bridge  =
+				{
+					ROUTE_walley  =
+					{
+					},
+				},
+			},
+		},
+	};
+
+        MapRoutes.ATTACK_a_card_2 = MapRoutes.ATTACK_a_card_1;
+        MapRoutes.ATTACK_a_card_3 = MapRoutes.ATTACK_a_card_1;
+        MapRoutes.ATTACK_a_card_4 = MapRoutes.ATTACK_a_card_1;
+        MapRoutes.ATTACK_a_card_5 = MapRoutes.ATTACK_a_card_1;
+        MapRoutes.ATTACK_a_card_6 = MapRoutes.ATTACK_a_card_1;
+        MapRoutes.ATTACK_a_church_1 = MapRoutes.FLAG_Gold;
+        MapRoutes.ATTACK_a_church_2 = MapRoutes.FLAG_Gold;
+        MapRoutes.ATTACK_a_church_3 = MapRoutes.FLAG_Gold;
+        MapRoutes.ATTACK_a_church_4 = MapRoutes.FLAG_Gold;
+        MapRoutes.ATTACK_a_church_5 = MapRoutes.FLAG_Gold;
+        MapRoutes.ATTACK_a_church_6 = MapRoutes.FLAG_Gold;
+        MapRoutes.PLANT_Church_Doors = MapRoutes.FLAG_Gold;
+
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.MaxViewDistance = 2500;
+	bot.TargetBreakableDist = 100.0;
+
+	w = bot.GetWeapon(WEAPON.ALLY_GRENADE);
+        w.PrimaryFire.SetTargetBias(CLASS.BREAKABLE, 1.2);
+
+	w = bot.GetWeapon(WEAPON.AXIS_GRENADE);
+        w.PrimaryFire.SetTargetBias(CLASS.BREAKABLE, 1.2);
+//~	bot.ProfileSkill = 5;
+};
+
+global Groups =
+{
+	//Allies part 1
+	group1 =
+	{
+		Map.Flag_access_codes,
+		Map.Cappoint_Dropoff,
+		//Map.Build_Dock_Staircase,
+		"GRENADE_box",
+		"ATTACK_a_card_.*",
+		"MOBILEMG42_al100" ,
+
+
+	},
+
+	//Axis part 1
+	group2 =
+	{
+		Map.Build_Church_Doors,
+		Map.Mobile_MG42_mg_ax_start,
+		//Map.Plant_Dock_Staircase,
+		"DEFEND_d_card_.*",
+                "CALLARTILLERY_d_start_.*",
+                "ARTILLERY_d_start_.*",
+		"MOBILEMG42_ax99",
+	},
+
+	//Allies part 2
+	group3 =
+	{
+		Map.Flag_access_codes,
+		Map.Cappoint_Dropoff,
+		Map.Build_Dock_Staircase,
+		Map.Plant_Church_Doors,
+
+	},
+
+	//Axis part 2
+	group4 =
+	{
+		Map.Build_Church_Doors,
+		Map.Mobile_MG42_mg_ax_start,
+		Map.Plant_Dock_Staircase,
+
+	},
+
+	//Allies part 3
+	group5 =
+	{
+		Map.Flag_gold,
+		Map.Plant_Church_Doors,
+		"ATTACK_a_church_.*",
+	},
+
+	//Axis part3
+	group6 =
+	{
+		Map.Build_Church_Doors,
+		Map.Plant_Dock_Staircase,
+		"DEFEND_d_church_.*",
+		"DEFEND_d_church10",
+                "CALLARTILLERY_d_church_.*",
+                "ARTILLERY_d_church_.*",
+	},
+
+	//Allies part 4
+	group7 =
+	{
+		Map.Cappoint_Dropoff_1,
+		Map.Flag_gold,
+		Map.Plant_Church_Doors,
+		"ATTACK_a_start_.*",
+	},
+
+	//Axis part 4
+	group8 =
+	{
+		Map.Build_Church_Doors,
+		"DEFEND_d_start_.*",
+                "CALLARTILLERY_d_start_.*",
+                "ARTILLERY_d_start_.*",
+	},
+
+	EnableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, goal );
+			Util.MapDebugPrint("EnableAllies: enabling " + goal, true);
+		}
+	},
+
+	EnableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, goal );
+			Util.MapDebugPrint("EnableAxis: enabling " + goal, true);
+		}
+	},
+
+	DisableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, goal );
+			Util.MapDebugPrint("DisableAllies: disabling " + goal, true);
+		}
+	},
+
+	DisableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, goal );
+			Util.MapDebugPrint("DisableAxis: disabling " + goal, true);
+		}
+	},
+};

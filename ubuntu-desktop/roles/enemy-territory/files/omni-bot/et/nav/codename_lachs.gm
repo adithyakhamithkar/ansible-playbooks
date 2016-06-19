@@ -1,0 +1,422 @@
+// TODO: route me
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+
+	Ammo_Cabinet_first_ammocabinet = "AMMOCAB_first_ammocabinet",
+	Health_Cabinet_first_healthcabinet = "HEALTHCAB_first_healthcabinet",
+	Checkpoint_forward_flag = "CHECKPOINT_forward_flag",
+	Flag_Design_Plans = "FLAG_Design_Plans",
+	Cappoint_truck = "CAPPOINT_truck",
+	Build_Defence_Door = "BUILD_Defence_Door",
+	Build_Neutral_Command_Post = "BUILD_Neutral_Command_Post",
+	Build_Road_Barrier = "BUILD_Road_Barrier",
+	Build_Tank = "BUILD_Tank",
+	Build_Truck = "BUILD_Truck",
+	Plant_Defence_Door = "PLANT_Defence_Door",
+	Plant_Neutral_Command_Post = "PLANT_Neutral_Command_Post",
+	Plant_Road_Barrier = "PLANT_Road_Barrier",
+	Mount_314 = "MOUNTMG42_314",
+	Mount_39 = "MOUNTMG42_39",
+	Mount_78 = "MOUNTMG42_78",
+	Repair_314 = "REPAIRMG42_314",
+	Repair_39 = "REPAIRMG42_39",
+	Repair_78 = "REPAIRMG42_78",
+	Mover_tank = "MOVER_tank",
+	Mover_truck = "MOVER_truck",
+	DontDispenseHealth = true,
+
+	axismove =
+	{
+		Name = "axismove",
+		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+		OnEnter = function(ent)
+		{
+			Util.DisableGroup("3a", TEAM.AXIS);
+			Util.EnableGroup("4a", TEAM.AXIS);
+			Util.MapDebugPrint( "" );
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	axismove2 =
+	{
+		Name = "axismove2",
+		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+		OnEnter = function(ent)
+		{
+			Util.DisableGroup("4a", TEAM.AXIS);
+			Util.EnableGroup("5a", TEAM.AXIS);
+			Util.MapDebugPrint( "bridge camp" );
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	axismove3 =
+	{
+		Name = "axismove3",
+		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+		OnEnter = function(ent)
+		{
+			Util.DisableGroup("5a", TEAM.AXIS);
+			Util.EnableGroup("6a", TEAM.AXIS);
+			Util.MapDebugPrint( "end game" );
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	tankatgate =
+	{
+		Name = "tankatgate",
+		TriggerOnEntity = GetGoal("MOVER_tank").GetEntity(),
+		OnEnter = function(ent)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Defence_Door" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_Design_Plans" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_forward_flag" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_door" );
+			Util.EnableGroup("2", TEAM.ALLIES);
+			Util.EnableGroup("3", TEAM.ALLIES);
+			Util.DisableGroup("7", TEAM.ALLIES);
+			Util.MapDebugPrint( "tank at gate" );
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	axisstart =
+	{
+		Name = "axisstart",
+		TriggerOnEntity = GetGoal("MOVER_tank").GetEntity(),
+		OnEnter = function(ent)
+		{
+			Util.EnableGroup("7a", TEAM.AXIS);
+			Util.DisableGroup("5a", TEAM.AXIS);
+			Util.DisableGroup("8", TEAM.ALLIES);
+			Util.EnableGroup("7", TEAM.ALLIES);
+
+			Util.MapDebugPrint( "axs" );
+		},
+		OnExit = function(ent)
+		{
+
+		},
+	},
+
+	mid =
+	{
+		Name = "mid",
+		TriggerOnEntity = GetGoal("MOVER_tank").GetEntity(),
+		OnEnter = function(ent)
+		{
+			Util.EnableGroup("2a", TEAM.AXIS);
+			Util.DisableGroup("7a", TEAM.AXIS);
+			Util.MapDebugPrint( "axs" );
+		},
+		OnExit = function(ent)
+		{
+
+		},
+	},
+
+	alspawn =
+	{
+		Name = "alspawn",
+		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+		OnEnter = function(ent)
+		{
+			Util.ChangeSpawn(TEAM.ALLIES, 2, 9);
+			Util.MapDebugPrint( "allies spawn back" );
+		},
+		OnExit = function(ent)
+		{
+
+		},
+	},
+
+	Defence_Door_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+
+		Util.MapDebugPrint( "Defence_Door_Built" );
+	},
+
+	Neutral_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Neutral_Command_Post_Built" );
+	},
+
+	Road_Barrier_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Road_Barrier_Built" );
+	},
+
+	Tank_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		DontDispenseHealth = false;
+
+		Util.MapDebugPrint( "Tank_Built" );
+	},
+
+	Tank_Blown = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		//wondering if this is necessary?
+		Util.SetPositionGoal( Map.Build_Tank, Map.Mover_tank );
+
+		Util.MapDebugPrint( "Tank_Blown" );
+	},
+
+	Truck_Blown = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			Util.SetPositionGoal( Map.Build_Truck, Map.Mover_truck );
+
+		Util.MapDebugPrint( "Truck_Blown" );
+	},
+
+	Truck_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Truck_Built" );
+	},
+
+	Defence_Door_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Defence_Door_Planted" );
+	},
+
+	Neutral_Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Neutral_Command_Post_Planted" );
+	},
+
+	Road_Barrier_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Road_Barrier_Planted" );
+	},
+
+	Defence_Door_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Defence_Door_Defused" );
+	},
+
+	Neutral_Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Neutral_Command_Post_Defused" );
+	},
+
+	Road_Barrier_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Road_Barrier_Defused" );
+	},
+
+	Defence_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+
+		Util.MapDebugPrint( "Defence_Door_Destroyed" );
+	},
+
+	Neutral_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Neutral_Command_Post_Destroyed" );
+	},
+
+	Road_Barrier_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Road_Barrier_Destroyed" );
+	},
+
+	Design_Plans_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGroup("2a", TEAM.AXIS);
+		Util.EnableGroup("3a", TEAM.AXIS);
+		Util.DisableGroup("3", TEAM.ALLIES);
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_truck" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Defence_Door" );
+
+		Util.MapDebugPrint( "Design_Plans_Taken" );
+	},
+
+	Design_Plans_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.EnableGroup("2a", TEAM.AXIS);
+		Util.DisableGroup("3a", TEAM.AXIS);
+		Util.EnableGroup("3", TEAM.ALLIES);
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Defence_Door" );
+
+		Util.MapDebugPrint( "Design_Plans_Returned" );
+	},
+
+	Design_Plans_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGroup("2a", TEAM.AXIS);
+		Util.DisableGroup("3", TEAM.ALLIES);
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Defence_Door" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Defence_Door" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "FLAG_Design_Plans" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_forward_flag" );
+
+		Util.MapDebugPrint( "Design_Plans_Secured" );
+	},
+
+	forward_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "forward_flag_Axis_Captured" );
+	},
+
+	forward_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "forward_flag_Allies_Captured" );
+	},
+
+	gate_blown = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNT_tank" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_tank" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_tank" );
+		Util.ClearRoleForGoals(Map.Flag_Design_Plans, ROLE.INFILTRATOR);
+
+		Util.MapDebugPrint( "gate gone" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "Axis Team have built the Defence Door!", Map.Defence_Door_Built );
+	OnTrigger( "MISSING_STRING", Map.Neutral_Command_Post_Built );
+	OnTrigger( "The Road Barrier has been constructed.", Map.Road_Barrier_Built );
+	OnTrigger( "The tank has been repaired!", Map.Tank_Built );
+	OnTrigger( "The tank has been damaged!", Map.Tank_Blown );
+	OnTrigger( "The truck has been repaired!", Map.Truck_Built );
+	OnTrigger( "^5The truck has been damaged", Map.Truck_Blown );
+	OnTrigger( "Planted at the Defence Door.", Map.Defence_Door_Planted );
+	OnTrigger( "Planted at the MISSING_STRING.", Map.Neutral_Command_Post_Planted );
+	OnTrigger( "Planted at the Road Barrier.", Map.Road_Barrier_Planted );
+	OnTrigger( "Defused at the MISSING_STRING.", Map.Defence_Door_Defused );
+	OnTrigger( "Defused at the MISSING_STRING.", Map.Neutral_Command_Post_Defused );
+	OnTrigger( "Defused at the MISSING_STRING.", Map.Road_Barrier_Defused );
+	OnTrigger( "Allies have destroyed the Defence Door!", Map.Defence_Door_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Neutral_Command_Post_Destroyed );
+	OnTrigger( "The Road Barrier has been destroyed.", Map.Road_Barrier_Destroyed );
+	OnTrigger( "Allies have stolen The Design Plans!", Map.Design_Plans_Taken );
+	OnTrigger( "Flag returned Design Plans!", Map.Design_Plans_Returned );
+	OnTrigger( "The Allies have captured the design plans!", Map.Design_Plans_Secured );
+	OnTrigger( "main_gate_debris_Moving", Map.gate_blown );
+	OnTrigger( "Axis have captured the Forward Flag!", Map.forward_flag_Axis_Captured );
+	OnTrigger( "Allies have captured the Forward Flag!", Map.forward_flag_Allies_Captured );
+
+	Util.DisableGoal(".*", true); // all but routes
+	ax1 = OnTriggerRegion(AABB(3246.214,-999.083,-0.875,3290.600,-643.128,78.169), Map.axismove);
+	ax2 = OnTriggerRegion(AABB(4811.126,-4524.535,-0.875,5183.698,-4480.095,79.709), Map.axismove2);
+	tank1 = OnTriggerRegion(AABB(3324.262,-1022.744,-0.875,3406.495,-594.659,81.190),Map.tankatgate);
+	ax3 = OnTriggerRegion(AABB(9820.930,-5729.719,-256.875,9899.950,-5390.941,-179.875),Map.axismove3);
+	axs = OnTriggerRegion(AABB(7475.192,-5727.833,-256.875,7529.048,-5365.951,-179.875),Map.axisstart);
+	ax4 = OnTriggerRegion(AABB(4283.083,-2519.155,-0.875,4882.948,-2450.586,77.330),Map.mid);
+	alspawn = OnTriggerRegion(AABB(7146.3,-5718-9,-254.875,7193.74,-5357.127,-177.67),Map.alspawn);
+	Util.SetGoalPosition( 936.025,-5423.23,192.125, "PLANT_Defence_Door" ) ;
+	Util.SetGoalPosition( 4952.605,-4241.878,28.125, "PLANT_Road_Barrier" ) ;
+	Util.SetRoleForGoals(Map.Flag_Design_Plans, ROLE.INFILTRATOR);
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Flag_Design_Plans );
+
+	Util.EnableGoal("AMMOCAB_first_ammocabinet", true); // all but routes
+	Util.EnableGoal("HEALTHCAB_first_healthcabinet", true); // all but routes
+
+	Util.EnableGroup("1", TEAM.ALLIES);
+	Util.EnableGroup("8", TEAM.ALLIES);
+	Util.EnableGroup("1a", TEAM.AXIS);
+	Util.EnableGroup("5a", TEAM.AXIS);
+
+	// Max users per goal
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 2, "ESCORT_tank" );
+	Util.SetMaxUsers( 4, "ESCORT_truck" );
+	Util.SetMaxUsers( 2, "CHECKPOINT_.*" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_forward_flag" );
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	// Uncomment for shootable breakables
+	bot.TargetBreakableDist = 100.0;
+	// Only set MaxViewDistance on maps with limited sight (e.g. fog)
+	bot.MaxViewDistance = 3800;
+	bot.ChangeSpawnPoint( 0 );
+};

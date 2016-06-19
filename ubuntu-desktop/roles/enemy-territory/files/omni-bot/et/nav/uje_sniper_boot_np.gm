@@ -1,0 +1,22 @@
+// Map script by [UJE]Niek
+global Map =
+{
+	SnipeMap = true,
+	Movers = { "MOVER_flying1", "MOVER_flying2", "MOVER_flying3", "MOVER_flying4", "MOVER_flying5", "MOVER_flying6",
+		"MOVER_flying_goose1", "MOVER_flying_goose2", "MOVER_flying_goose3", "MOVER_flying_goose4", "MOVER_flying_goose5", "MOVER_flying_goose6", },
+};
+
+global OnMapLoad = function()
+{
+	SetMapGoalProperties("SNIPE.*", { MinCampTime=30, MaxCamptime=50,});
+	Util.LimitToTeam( TEAM.ALLIES, "SNIPE_axis.*" );
+	Util.LimitToTeam( TEAM.AXIS, "SNIPE_allied.*" );
+	Util.MapDebugPrint( "OnMapLoad", true );
+};
+
+global OnBotJoin = function( bot )
+{
+	Util.IgnoreTargetGoalTable(bot, Map.Movers);
+	Util.ChangeToSniperWeapons(bot);
+	bot.TargetBreakableDist = 200.0;
+};

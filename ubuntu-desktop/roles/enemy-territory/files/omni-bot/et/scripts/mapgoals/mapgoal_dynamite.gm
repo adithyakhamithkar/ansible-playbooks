@@ -1,0 +1,277 @@
+this.GoalType = "DYNAMITE";
+this.Version = 1;
+this.DefaultPriority = 0.81;
+this.CreateOnLoad = true;
+this.Region = null;
+this.MinRadius = 30;
+this.RolePriorityBonus = 0.1;
+this.IgnoreEntity = true;
+
+//////////////////////////////////////////////////////////////////////////
+
+this.InitNewGoal = function()
+{
+	this.Radius = this.MinRadius;
+	this.CoverSpots = {};
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.UpgradeVersion = function(Props)
+{
+	// version 0 is string,string key/values from the old waypoint format
+	if(Props.Version==0)
+	{
+		// Version 1 Schema, upgrade from waypoint format
+		Props.Version = 1;
+		Props.IgnoreTargets = ToBool(Props.IgnoreTargets,false);
+	}
+	else if(Props.Version == this.Version)
+	{
+		this.IgnoreTargets = Props.IgnoreTargets;
+
+		if ( Props.CoverSpots )
+		{
+			this.CoverSpots = Props.CoverSpots;
+
+			// clear any occupied slots
+			foreach ( id and spot in this.CoverSpots ) {
+				spot.occupied = null;
+			}
+		}
+		else
+		{
+			this.CoverSpots = table();
+		}
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.Render = function(editMode)
+{
+	if (this.CoverSpots)
+	{
+		topOffset = Vector3(0,0,64);
+		stanceOffset = Vector3(0,0,0);
+	}
+
+	topOffset = Vector3(0,0,64);
+
+	while(this.RenderGoal == true)
+	{
+		goalBasePos = this.GetPosition();
+		goalPos = goalBasePos + topOffset;
+
+		this.RenderDefault();
+
+		if(this.IsDisabled())
+		{
+			DrawLine(goalPos,goalBasePos,COLOR.RED,2);
+		}
+		else
+		{
+			DrawLine(goalPos,goalBasePos,COLOR.GREEN,2);
+		}
+
+		if ( this.CoverSpots )
+		{
+			foreach ( id and spot in this.CoverSpots )
+			{
+				base = GroundPoint(spot.position);
+
+				if ( spot.stance == "crouch" )
+				{
+					stanceOffset = Vector3(0,0,-24);
+				}
+				else if ( spot.stance == "prone" )
+				{
+					stanceOffset = Vector3(0,0,-50);
+				}
+
+				DrawLine(base,base+topOffset,COLOR.BLUE,2);
+				DrawText3d(base+topOffset, this.GetName() + " Cover Spot " + ToString(id) + "\nStance: " + spot.stance,COLOR.WHITE,2,textDrawRadius);
+
+				foreach ( id and face in spot.AimVectors )
+				{
+					DrawArrow(base+topOffset+stanceOffset,base+topOffset+stanceOffset+face*32,COLOR.BLUE,2);
+					DrawText3d(base+topOffset+stanceOffset+face*32,ToString(id),COLOR.WHITE,2,512);
+				}
+			}
+		}
+
+		sleep(2);
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.SaveToTable = function(SaveTable)
+{
+	// save the goal specific properties
+	SaveTable.IgnoreTargets = this.IgnoreTargets;
+	SaveTable.CoverSpots	= this.CoverSpots;
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.Help = function()
+{
+	print(this.GoalType,"goal, version",this.Version);
+	print("Optional:");
+	print("		coverspot - location to go to after planting dynamite, supports multiple");
+	print("		coverfacing - Direction the bot should face at cover spot");
+	print("		coverstance - stand, crouch, prone");
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.SetProperty = function(property, value)
+{
+	switch(property)
+	{
+		case "coverspot":
+		{
+			if ( value == "clearall" || value == "clear" )
+			{
+				tableClear(this.CoverSpots);
+			}
+			else
+			{
+				i = ToInt(value);
+				if ( typeId(i) == 1)
+				{
+					spotCount = tableCount(this.CoverSpots);
+					if ( i < 0 || i > spotCount )
+					{
+						i = spotCount;
+					}
+
+					playerFace = GetLocalFacing();
+
+					this.CoverSpots[ i ] = table();
+					this.CoverSpots[ i ].position = GetLocalPosition();
+
+					if ( !this.CoverSpots[ i ].AimVectors )
+					{
+						this.CoverSpots[ i ].AimVectors = table();
+					}
+
+					facingCount = tableCount(this.CoverSpots[ i ].AimVectors);
+					this.CoverSpots[ i ].AimVectors[ facingCount ] = playerFace;
+					this.CoverSpots[ i ].stance = "stand";
+
+					print("Cover Spot",i," added");
+				}
+				else
+				{
+					print(this.GoalType, ": Invalid Cover Spot index, expecting int");
+				}
+			}
+		}
+		case "coverfacing":
+		{
+			if ( this.CoverSpots )
+			{
+				clear = false;
+				if ( value != "clearall" && value != "clear" ) {
+					ind = ToInt(value, 0);
+					if (typeId(ind) != 1) {
+						print(this.GoalType, ": Invalid facing index, expecting int");
+						return;
+					}
+				}
+				else {
+					clear = true;
+				}
+
+				spot = null;
+				dist = null;
+				spotCount = tableCount(this.CoverSpots);
+
+				// get the closest one
+				for( i = 0; i < spotCount; i += 1)
+				{
+					if ( !this.CoverSpots[ i ] ) { continue; }
+					testDist = DistanceBetween(GetLocalPosition(), this.CoverSpots[ i ].position);
+					if (!dist || testDist < dist) {
+						dist = testDist;
+						spot = i;
+					}
+				}
+
+				if (typeId(spot) == 1)
+				{
+					if ( clear ) {
+						tableClear(this.CoverSpots[ spot ].AimVectors);
+						print("all facings cleared");
+						return;
+					}
+
+					facingCount = tableCount(this.CoverSpots[ spot ].AimVectors);
+					if ( ind < 0 || ind > facingCount ) {
+						ind = facingCount;
+					}
+
+					playerFace = GetLocalFacing();
+					this.CoverSpots[ spot ].AimVectors[ ind ] = playerFace;
+					print("Facing",ind,"set to",playerFace);
+				}
+				else
+				{
+					print(this.GoalType, ": No cover spots found!");
+				}
+			}
+		}
+		case "coverstance":
+		{
+			if ( this.CoverSpots )
+			{
+				spot = null;
+				dist = null;
+				spotCount = tableCount(this.CoverSpots);
+
+				// get the closest one
+				for( i = 0; i < spotCount; i += 1)
+				{
+					if ( !this.CoverSpots[ i ] ) { continue; }
+					testDist = DistanceBetween(GetLocalPosition(), this.CoverSpots[ i ].position);
+					if (!dist || testDist < dist)
+					{
+						dist = testDist;
+						spot = i;
+					}
+				}
+
+				if (typeId(spot) == 1)
+				{
+					spotStance = "stand";
+
+					if ( value == "crouch" )
+					{
+						spotStance = value;
+					}
+					else if ( value == "prone" )
+					{
+						spotStance = value;
+					}
+
+					this.CoverSpots[ spot ].stance = spotStance;
+					print("Stance set to",spotStance);
+				}
+				else
+				{
+					print(this.GoalType, ": No cover spots found!");
+				}
+			}
+		}
+		default:
+		{
+			print(this.GoalType, ": Invalid property:", property);
+		}
+	}
+
+	this.ExtraDebugText = null;
+};
+
+//////////////////////////////////////////////////////////////////////////

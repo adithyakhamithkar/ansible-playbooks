@@ -1,0 +1,607 @@
+//==========================================================================================
+//
+//	rockeyes_b2.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	MickyP	10 August 2010	Initial Script
+// palota	19 October 2010	routes availability, emergency control availability, PLANT_Side_Wall priority, ATTACK_side_wall, ATTACK_ramp
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+
+	Command_Post_Dyno = 0,
+	Forward_Bunker_Gate_Dyno = 0,
+	North_Radar_Dyno = 0,
+	Ramp_Dyno = 0,
+	Side_Wall_Dyno = 0,
+	South_Radar_Dyno = 0,
+	Depot_Gate = 0,
+	Garage_Door_Open = 0,
+	Depot_Door_Blown = 0,
+	North_Radar_Blown = 0,
+	South_Radar_Blown = 0,
+	Emergency_Control_Built = 0,
+
+	Movers =
+	{
+		"MOVER_s_mover_truck",
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.RandomSpawn(AXIS, 3);
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Command_Post" );
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno += 1;
+		Util.MapDebugPrint( "Command_Post_Planted" );
+	},
+
+	Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno -= 1;
+		Util.MapDebugPrint( "Command_Post_Defused" );
+	},
+
+	Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno = 0;
+
+		Util.MapDebugPrint( "Command_Post_Destroyed" );
+	},
+
+	twc_forward_bunker_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "twc_forward_bunker_Axis_Captured" );
+	},
+
+	twc_forward_bunker_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "twc_forward_bunker_Allies_Captured" );
+	},
+
+	garage_Changed = function()
+	{
+		Util.DisableGoal( "SWITCH_Garage_Door" );
+		if ( Map.Depot_Door_Blown == 1 )
+			{return;}
+
+		if ( Map.Garage_Door_Open == 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_Garage_Door" );
+			Map.Garage_Door_Open = 1;
+			Util.MapDebugPrint( "garage_open", true );
+		}
+		else if ( Map.Garage_Door_Open == 1 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_Garage_Door" );
+			Map.Garage_Door_Open = 0;
+			Util.MapDebugPrint( "garage_closed", true );
+		}
+
+		Util.MapDebugPrint( "garage_Changed" );
+	},
+
+	Forward_Bunker_Gate_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Forward_Bunker_Gate_Dyno += 1;
+		Util.MapDebugPrint( "Forward_Bunker_Gate_Planted" );
+	},
+
+	Forward_Bunker_Gate_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Forward_Bunker_Gate_Dyno -= 1;
+		Util.MapDebugPrint( "Forward_Bunker_Gate_Defused" );
+	},
+
+	Forward_Bunker_Gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		Util.DisableGoal( "SWITCH_Garage_Door" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_d_gate.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_twc_forward_bunker" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_supply_mountain_cave" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "HEALTHCAB_health_mountain_cave" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Outer_Side_Wall.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Main.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Emergency_Close_Control" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_a_gate.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ESCORT_Truck" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Side_Wall" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_side_wall.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_ramp.*" );
+
+		Map.Depot_Door_Blown = 1;
+		Map.Forward_Bunker_Gate_Dyno = 0;
+
+		Util.MapDebugPrint( "Forward_Bunker_Gate_Destroyed" );
+	},
+
+	Axis_Materials_Delivered = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ESCORT_Truck" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Ramp" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Ramp.*" );
+		Util.MapDebugPrint( "Axis_Materials_Delivered" );
+	},
+
+	Ramp_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_ramp.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Ramp" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_supply_mountain_cave" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_health_mountain_cave" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Ramp" );
+
+		Util.EnableGoal( "Route_Ramp" );
+
+		if (Map.North_Radar_Blown == 0)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_North_Radar" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_North_Radar.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_North_Radar.*" );
+		}
+
+		if ( Map.South_Radar_Blown == 0)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_South_Radar" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_South_Radar.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_South_Radar.*" );
+		}
+
+		if ( Map.Emergency_Control_Built == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Emergency_Open_Control" );
+		}
+		Util.MapDebugPrint( "Ramp_Built" );
+	},
+
+	Harder_Ramp_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Ramp" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Ramp" );
+		ETUtil.LimitToClass("PLANT_Ramp", TEAM.ALLIES, CLASS.ENGINEER);
+
+		Util.MapDebugPrint( "Harder_Ramp_Built" );
+	},
+
+	Ramp_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Ramp_Dyno += 1;
+		Util.MapDebugPrint( "Ramp_Planted" );
+	},
+
+	Ramp_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Ramp_Dyno -= 1;
+		Util.MapDebugPrint( "Ramp_Defused" );
+	},
+
+	Ramp_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal( "Route_Ramp" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_ramp.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Ramp" );
+		Map.Ramp_Dyno = 0;
+
+		Util.MapDebugPrint( "Ramp_Destroyed" );
+	},
+
+	Side_Wall_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Side_Wall_Dyno += 1;
+		Util.MapDebugPrint( "Side_Wall_Planted" );
+	},
+
+	Side_Wall_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Side_Wall_Dyno -= 1;
+		Util.MapDebugPrint( "Side_Wall_Defused" );
+	},
+
+	Side_Wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Outer_Side_Wall.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Side_Wall.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_side_wall.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Side_Wall" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_supply_mountain_cave" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_health_mountain_cave" );
+		Util.EnableGoal( "Route_Side_Wall" );
+
+		if (Map.North_Radar_Blown == 0)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_North_Radar" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_North_Radar.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_North_Radar.*" );
+		}
+
+		if ( Map.South_Radar_Blown == 0)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_South_Radar" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_South_Radar.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_South_Radar.*" );
+		}
+
+		if ( Map.Emergency_Control_Built == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Emergency_Open_Control" );
+		}
+		Map.Side_Wall_Dyno = 0;
+
+		Util.MapDebugPrint( "Side_Wall_Destroyed" );
+	},
+
+	Emergency_Close_Control_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Emergency_Control_Built = 0;
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Emergency_Open_Control" );
+		// not sure if needed
+		Util.MapDebugPrint( "Emergency_Close_Control_Built" );
+	},
+
+	Emergency_Open_Control_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Emergency_Control_Built = 1;
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Emergency_Open_Control" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Emergency_Close_Control" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Gate_Control.*" );
+		Util.EnableGoal( "Route_Gate_Control" );
+		Util.MapDebugPrint( "Emergency_Open_Control_Built" );
+	},
+
+	North_Radar_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.North_Radar_Dyno += 1;
+		Util.MapDebugPrint( "North_Radar_Planted" );
+	},
+
+	North_Radar_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.North_Radar_Dyno -= 1;
+		Util.MapDebugPrint( "North_Radar_Defused" );
+	},
+
+	North_Radar_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_North_Radar.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_North_Radar.*" );
+		Map.North_Radar_Dyno = 0;
+		Map.North_Radar_Blown = 1;
+
+		Util.MapDebugPrint( "North_Radar_Destroyed" );
+	},
+
+
+	South_Radar_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.South_Radar_Dyno += 1;
+		Util.MapDebugPrint( "South_Radar_Planted" );
+	},
+
+	South_Radar_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.South_Radar_Dyno -= 1;
+		Util.MapDebugPrint( "South_Radar_Defused" );
+	},
+
+	South_Radar_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_South_Radar.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_South_Radar.*" );
+		Map.South_Radar_Dyno = 0;
+		Map.South_Radar_Blown = 1;
+
+		Util.MapDebugPrint( "South_Radar_Destroyed" );
+	},
+
+	Depot_Gate =
+	{
+		TriggerOnEntity = GetGoal("MOVER_s_mover_truck").GetEntity(),
+		OnEnter = function(ent)
+		{
+			if ( Map.Depot_Door_Blown == 0 )
+			{
+			SetAvailableMapGoals( TEAM.AXIS, false, "ESCORT_Truck" );
+			}
+			Util.MapDebugPrint( "Truck_at_Gate" );
+		},
+		OnExit = function(ent) {},
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// Register callback functions
+	OnTrigger( "Axis Command Post constructed. New Axis Spawn enabled!", Map.Axis_Command_Post_Built );
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Planted at the Command Post.", Map.Command_Post_Planted );
+	OnTrigger( "Defused at the Command Post.", Map.Command_Post_Defused );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Command_Post_Destroyed );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Command_Post_Destroyed );
+
+	OnTrigger( "Axis have captured the Forward Bunker!", Map.twc_forward_bunker_Axis_Captured );
+	OnTrigger( "Allies have reclaimed the Forward Bunker!", Map.twc_forward_bunker_Allies_Captured );
+
+	OnTrigger( "script_mover_garage_button_goto", Map.garage_Changed );
+
+	OnTrigger( "Planted at the Forward Bunker Gate.", Map.Forward_Bunker_Gate_Planted );
+	OnTrigger( "Defused at the Forward Bunker Gate.", Map.Forward_Bunker_Gate_Defused );
+	OnTrigger( "The Axis have destroyed the Forward Bunker Gate and secured the Forward", Map.Forward_Bunker_Gate_Destroyed );
+
+	OnTrigger( "Axis Team has delivered the Contruction Materials with the Truck!", Map.Axis_Materials_Delivered );
+	OnTrigger( "Axis Team has contructed a Ramp!", Map.Ramp_Built );
+	OnTrigger( "Axis has contructed a stronger Ramp this time. Now Allies needs dynamit", Map.Harder_Ramp_Built );
+	OnTrigger( "Planted at the Ramp.", Map.Ramp_Planted );
+	OnTrigger( "Defused at the Ramp.", Map.Ramp_Defused );
+	OnTrigger( "Allies Team has destroyed the Ramp!", Map.Ramp_Destroyed );
+
+	OnTrigger( "Planted at the Side Wall.", Map.Side_Wall_Planted );
+	OnTrigger( "Defused at the Side Wall.", Map.Side_Wall_Defused );
+	OnTrigger( "The Axis have destroyed the Side Wall!", Map.Side_Wall_Destroyed );
+
+	OnTrigger( "Axis Team has opened the Main Base Gate!", Map.Emergency_Open_Control_Built );
+	OnTrigger( "Allies Team has closed the Main Base Gate!", Map.Emergency_Close_Control_Built );
+
+	OnTrigger( "Planted at the North Radar.", Map.North_Radar_Planted );
+	OnTrigger( "Defused at the North Radar.", Map.North_Radar_Defused );
+	OnTrigger( "The Axis have destroyed the North Radar!", Map.North_Radar_Destroyed );
+
+	OnTrigger( "Planted at the South Radar.", Map.South_Radar_Planted );
+	OnTrigger( "Defused at the South Radar.", Map.South_Radar_Defused );
+	OnTrigger( "The Axis have destroyed the South Radar!", Map.South_Radar_Destroyed );
+
+	Depot_Gate = OnTriggerRegion(AABB(1331.595,-240.200,17.125,1494.358,-171.535,91.125), Map.Depot_Gate);
+	Wood_Door = OnTriggerRegion(AABB(-376.875,-1733.125,1.125,-287.125,-1533.088,75.125), RegionTrigger.BreakableDistance);
+
+	Util.DisableGoal( ".*", true ); // all but routes
+	Util.DisableGoal( "Route_Side_Wall" );
+	Util.DisableGoal( "Route_Ramp" );
+	Util.DisableGoal( "Route_Gate_Control" );
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_gate.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_twc_forward_bunker" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Post" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Forward_Bunker_Gate" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_twc_forward_bunker" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ESCORT_Truck" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_Garage_Door" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_gate.*" );
+
+	SetGoalPriority("PLANT_Side_Wall", 0.9);
+	SetGoalPriority( "DEFUSE_Forward_Bunker_Gate_.*", 1.10, TEAM.AXIS, CLASS.ENGINEER, true );
+	SetGoalPriority( "DEFUSE_North_Radar_.*", 1.15, TEAM.AXIS, CLASS.ENGINEER, true );
+	SetGoalPriority( "DEFUSE_South_Radar_.*", 1.15, TEAM.AXIS, CLASS.ENGINEER, true );
+
+	// Max users per goal
+	Util.SetMaxUsers( 1, "BUILD_.*" );
+	Util.SetMaxUsers( 1, "PLANT_Side_Wall" );
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "SWITCH.*" );
+	Util.SetMaxUsers( 2, "CHECKPOINT_twc_forward_bunker" );
+
+	Util.AddInvVehicle("MOVER_s_mover_truck");
+	Util.SetGoalOffset( 0, -60, 0, "PLANT_Side_Wall" );
+
+	// Camp times
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=60} );
+
+	MapRoutes =
+	{
+		CHECKPOINT_twc_forward_bunker =
+		{
+			ROUTE_axis_beg_spawn  =
+			{
+				ROUTE_axis_beg_middle  =
+				{
+				},
+				ROUTE_axis_beg_left  =
+				{
+				},
+				ROUTE_axis_beg_right  =
+				{
+				},
+				ROUTE_axis_beg_tunnel  =
+				{
+				},
+			},
+		},
+		PLANT_North_Radar =
+		{
+			ROUTE_Flag_Spawn  =
+			{
+				ROUTE_Stair_Exit  =
+				{
+					ROUTE_Inner_Tunnel  =
+					{
+						ROUTE_Ramp  =
+						{
+						},
+						ROUTE_Gate_Control  =
+						{
+						},
+					},
+					ROUTE_Depot_Gate  =
+					{
+						ROUTE_Side_Wall  =
+						{
+						},
+						ROUTE_Ramp  =
+						{
+						},
+						ROUTE_Gate_Control  =
+						{
+						},
+					},
+					ROUTE_Middle_Door  =
+					{
+						ROUTE_Side_Wall  =
+						{
+						},
+						ROUTE_Ramp  =
+						{
+						},
+						ROUTE_Gate_Control  =
+						{
+						},
+					},
+				},
+				ROUTE_Drop_Exit  =
+				{
+					ROUTE_Depot_Gate  =
+					{
+						ROUTE_Side_Wall  =
+						{
+						},
+						ROUTE_Ramp  =
+						{
+						},
+						ROUTE_Gate_Control  =
+						{
+						},
+					},
+				},
+			},
+			ROUTE_CP_Spawn  =
+			{
+				ROUTE_CP_Path  =
+				{
+					ROUTE_Ramp  =
+					{
+					},
+				},
+				ROUTE_Gate_Control  =
+				{
+				},
+				ROUTE_Side_Wall  =
+				{
+				},
+			},
+		},
+	};
+
+	MapRoutes.PLANT_South_Radar = MapRoutes.PLANT_North_Radar;
+	MapRoutes.ATTACK_South_Radar_1 = MapRoutes.PLANT_North_Radar;
+	MapRoutes.ATTACK_South_Radar_2 = MapRoutes.PLANT_North_Radar;
+	MapRoutes.ATTACK_North_Radar_1 = MapRoutes.PLANT_North_Radar;
+	MapRoutes.ATTACK_North_Radar_2 = MapRoutes.PLANT_North_Radar;
+	MapRoutes.BUILD_Emergency_Open_Control = MapRoutes.PLANT_North_Radar;
+
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	// Uncomment for shootable breakables
+	//~bot.TargetBreakableDist = 90.0;
+	// Only set MaxViewDistance on maps with limited sight (e.g. fog)
+	//~bot.MaxViewDistance = 2400;
+};

@@ -1,0 +1,21 @@
+if (GetModName()!="bastardmod"){ return; }
+
+//////////////////////////////////////////////////////////////////////////
+// Overall weapon properties.
+WEAPON.TOKAREV = 50;
+
+this.Name = "Mountain Falcon";
+this.WeaponId = WEAPON.TOKAREV;
+
+//////////////////////////////////////////////////////////////////////////
+// Set some weapon properties that affect some internal logic.
+this.PrimaryFire.WeaponType = "instant";
+this.PrimaryFire.ProjectileSpeed = 1000;
+this.PrimaryFire.RequiresAmmo = true;
+this.PrimaryFire.WaterProof = false;
+this.PrimaryFire.SetTargetBias(CLASS.BREAKABLE, 1.0);
+
+this.PrimaryFire.DefaultDesirability = 0.4;
+
+this.PrimaryFire.LowAmmoThreshold = 1;
+this.PrimaryFire.LowAmmoPriority = 0.8;

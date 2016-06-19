@@ -1,0 +1,226 @@
+// These parameters are required
+this.Name = "SelectWeapons";	// The name of the goal.
+this.Parent = "Limbo";			// The name of the parent. This setting determines where in the state tree the goal will reside in.
+this.Debug = false;
+this.AlwaysRecieveEvents = true;
+
+//this.LimitToClass(CLASS.SOLDIER, CLASS.COVERTOPS);
+
+// shared weapon counters
+this.UsingWeapons = {};
+this.UsingWeapons[ TEAM.ALLIES ] = {};
+this.UsingWeapons[ TEAM.AXIS ] = {};
+
+this.Initialize = function()
+{
+	if ( Map && (Map.DontSelectWeapons || Map.PanzerMap) ) {
+		this.Disable = true;
+		return;
+	}
+
+	if (!MinPlayersForMortar) {
+		global MinPlayersForMortar = ConfigGet("HeavyWeapons","MinPlayersForMortar", -1);
+		global MinPlayersForMobileMG = ConfigGet("HeavyWeapons","MinPlayersForMobileMG", -1);
+	}
+
+	this.EXCLUDE_MORTAR_AND_MG42 = {};
+	this.EXCLUDE_MORTAR_AND_MG42 [WEAPON.MOBILE_MG42] = true;
+	this.EXCLUDE_MORTAR_AND_MG42 [WEAPON.MORTAR] = true;
+
+	this.EXCLUDE_SNIPE = {};
+	this.EXCLUDE_SNIPE [WEAPON.GARAND] = true;
+	this.EXCLUDE_SNIPE [WEAPON.K43] = true;
+	this.EXCLUDE_SNIPE [WEAPON.PROTO] = true;
+};
+
+// Count the number of users for a particular weapon id
+this.NumWeaponUsers = function(weaponId)
+{
+	num = 0;
+	deleted = null;
+	teamWeapons = this.UsingWeapons[ this.Bot.GetTeam() ];
+	foreach ( bot and weapon in teamWeapons)
+	{
+		if (weapon == weaponId){
+			if (!bot.Name) {
+				// bot disconnected
+				if (!deleted){ deleted = table(); }
+				deleted[tableCount(deleted)] = bot;
+			}else{
+				num += 1;
+			}
+		}
+	}
+	if (deleted) {
+		foreach ( bot in deleted) {
+			teamWeapons[bot] = null;
+		}
+	}
+	return num;
+};
+
+this.GetPriority = function()
+{
+	this.Priority = 1;
+	block(0);
+};
+
+this.Update = function()
+{
+	if ( this.Debug ) {
+		foreach ( id and weap in WEAPON ) {
+			if ( this.Bot.HasWeapon(weap) ) {
+				this.Bot.Say("have weapon " + id);
+			}
+		}
+	}
+
+	// This is needed in order to finish the goal. Without it, the goal will continue to have Update called on it.
+	while(1)
+	{
+		myTeam = this.Bot.GetTeam();
+
+		// this.Bot.HasWeapon cannot be used, because it always returns false !!!
+		// cs: this.Bot.HasWeapon should be fixed now ...
+		lastWeapon = this.UsingWeapons[myTeam][this.Bot];
+
+		switch (this.Bot.GetClass())
+		{
+			case CLASS.SOLDIER:
+			{
+				// count how many other bots have these weapons
+				numMg42Users = this.NumWeaponUsers(WEAPON.MOBILE_MG42);
+				numMortarUsers = this.NumWeaponUsers(WEAPON.MORTAR);
+
+				// count how many goals are available for each weapon type
+				goals_mg42 = {};
+				GetGoals(goals_mg42,myTeam,"MOBILEMG42.*");
+				goals_mortar = {};
+				GetGoals(goals_mortar,myTeam,"MOBILEMORTAR.*");
+				numMg42Goals = tableCount(goals_mg42);
+				numMortarGoals = tableCount(goals_mortar);
+
+				if(this.Debug)
+				{
+					print(this.Bot.Name, ":" ,Util.TeamName(myTeam), ": # Mg42 Users:",numMg42Users,"/",numMg42Goals);
+					print(this.Bot.Name, ":" ,Util.TeamName(myTeam), ": # Mortar Users:",numMortarUsers,"/",numMortarGoals);
+				}
+
+				if(Server.NumPlayers >= MinPlayersForMortar && numMortarUsers <= numMortarGoals && (numMortarUsers < numMortarGoals || lastWeapon == WEAPON.MORTAR))
+				{
+					newWeapon = WEAPON.MORTAR;
+				}
+				else if(Server.NumPlayers >= MinPlayersForMobileMG && numMg42Users <= numMg42Goals && (numMg42Users < numMg42Goals || lastWeapon == WEAPON.MOBILE_MG42))
+				{
+					newWeapon = WEAPON.MOBILE_MG42;
+
+					//enable mid-clip reload for skilled soldier
+					modName = GetModName();
+					if (modName == "noquarter" || modName == "nitmod")
+					{
+						skills = {};
+						this.Bot.GetSkills(skills);
+						if (skills[SKILL.HEAVY_WEAPONS] > 4) {
+							wpn = this.Bot.GetWeapon(WEAPON.MOBILE_MG42);
+							if (wpn) {
+								wpn.PrimaryFire.IgnoreReload = false;
+							}
+						}
+					}
+				}
+				else
+				{
+					// pick a new weapon other than mg42 and mortar
+					newWeapon = this.Bot.ClassPrimaryWeaponChoice(this.EXCLUDE_MORTAR_AND_MG42);
+				}
+			}
+			case CLASS.COVERTOPS:
+			{
+				// count how many goals are available
+				if (Util.IsSnipeMap) {
+					numSnipeGoals = 99;
+				}
+				else
+				{
+					goals_snipe = {};
+					GetGoals(goals_snipe,myTeam,"SNIPE_.*");
+					numSnipeGoals = tableCount(goals_snipe);
+				}
+
+				if (numSnipeGoals > 0)
+				{
+					tbl = Util.TeamSniperWeapons[ Util.TeamName(myTeam) ];
+					newWeapon = Util.GetRandomTableValue(tbl);
+				}
+				else
+				{
+					// pick a new weapon other than GARAND and K43
+					newWeapon = this.Bot.ClassPrimaryWeaponChoice(this.EXCLUDE_SNIPE);
+				}
+			}
+			default:
+			{
+				//random available weapon
+				newWeapon = this.Bot.ClassPrimaryWeaponChoice(null);
+			}
+		}
+
+		if (newWeapon)
+		{
+			//WeaponTable.SetWeaponAvailability can be called anytime from triggers,
+			//ChangePrimaryWeapon will switch to another weapon if current weapon availability is false
+			this.Bot.ChangePrimaryWeapon(newWeapon);
+			this.UsingWeapons[myTeam][this.Bot] = newWeapon;
+
+			if(this.Debug && newWeapon!=lastWeapon)
+			{
+				this.Bot.SayTeam("Changing to ", Util.WeaponName(newWeapon));
+				print(this.Bot.Name, ":" ,"Chose New Weapon:",Util.WeaponName(newWeapon));
+			}
+		}
+
+		sleep(this.Bot.GetReinforceTime() + 1);
+	}
+};
+
+this.Events[EVENT.CHANGETEAM] = function(newTeam)
+{
+	if (newTeam==TEAM.AXIS){ oldTeam=TEAM.ALLIES; } else { oldTeam=TEAM.AXIS; }
+	weapon = this.UsingWeapons[oldTeam][this.Bot];
+	if (weapon) {
+		this.UsingWeapons[oldTeam][this.Bot] = null;
+		this.UsingWeapons[newTeam][this.Bot] = weapon;
+	}
+};
+
+Commands["minformortar"] =
+{
+	Func = function( _params )
+	{
+		minformortar = ToInt(_params[0], -1);
+		ConfigSet("HeavyWeapons","MinPlayersForMortar", minformortar);
+		global MinPlayersForMortar = minformortar;
+		print("MinPlayersForMortar set to", minformortar);
+	},
+
+	Help =
+	{
+		"set the minimum number of players playing in order for bots to choose the mobile mortar",
+	},
+};
+
+Commands["minformobilemg"] =
+{
+	Func = function( _params )
+	{
+		minformobilemg = ToInt(_params[0], -1);
+		ConfigSet("HeavyWeapons","MinPlayersForMobileMG", minformobilemg);
+		global MinPlayersForMobileMG = minformobilemg;
+		print("MinPlayersForMobileMG set to", minformobilemg);
+	},
+
+	Help =
+	{
+		"set the minimum number of players playing in order for bots to choose the mobile mortar",
+	},
+};

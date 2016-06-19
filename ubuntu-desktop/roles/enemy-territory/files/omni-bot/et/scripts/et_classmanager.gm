@@ -1,0 +1,103 @@
+// class management functions. used by goal_classmanager.gm but moved
+// here for flexibility
+
+// server_manager expects Util
+Util.ManageClasses = true;
+
+member UpdateClasses = function(team)
+{
+	// reset counters
+	foreach (class in Util.PlayerClassTable)
+	{
+		Server.ClassCount[team][class] = 0;
+	}
+
+	// random delay (many bots can die at the same time)
+	// cs: this should not matter since everything is run sequentially
+	// plus it breaks execution in death event.
+	//sleep(RandFloat(0, 0.5));
+
+	// count humans too
+	for ( i = 0; i <= Server.NumPlayers; i += 1 )
+	{
+		if (EntityIsValid(i) && GetEntTeam(i) == team)
+		{
+			class = GetEntClass(i);
+			if (class)
+			{
+				if (Server.ClassCount[team][class] < 1)
+				{
+					Server.ClassCount[team][class] = 1;
+				}
+				else
+				{
+					Server.ClassCount[team][class] += 1;
+				}
+			}
+		}
+	}
+};
+
+member EvaluateClass = function(team, class, num)
+{
+	min = Server.MinClassCount[team][class];
+	if (!min)
+	{
+		min = -99; // get rid of 0 min count classes first
+	}
+	if (!num)
+	{
+		num = -20; // prioritize classes that have no players
+		if (class==CLASS.ENGINEER){ num -= 1; }
+	}
+	return min-num;
+};
+
+member EvalClassChange = function(bot)
+{
+	// update class counts
+	team = bot.GetTeam();
+	ClassManager.UpdateClasses(team);
+
+	//evaluate this bot
+	botClass = bot.GetClass();
+	botEval = ClassManager.EvaluateClass(team, botClass, Server.ClassCount[team][botClass] - 1);
+	isDead = GetEntFlags(bot.GetGameEntity(), ENTFLAG.DEAD, ENTFLAG.LIMBO);
+
+	//evaluate all classes
+	newClass = null;
+	foreach ( class and num in Server.ClassCount[team] )
+	{
+		if (class!=botClass) // don't change to same class
+		{
+			eval = ClassManager.EvaluateClass(team, class, num);
+			if (eval >= botEval && (eval > botEval || isDead && RandInt(0,3)==0) )
+			{
+				botEval = eval;
+				newClass = class;
+			}
+		}
+	}
+
+	return newClass;
+};
+
+// used for adding new bots
+member EvalClassByTeam = function(team)
+{
+	ClassManager.UpdateClasses(team);
+
+	newClass = RandInt(CLASS.SOLDIER, CLASS.COVERTOPS); // random
+	botEval = 0;
+	foreach ( class and num in Server.ClassCount[team] )
+	{
+		eval = ClassManager.EvaluateClass(team, class, num);
+		if (eval > botEval)
+		{
+			botEval = eval;
+			newClass = class;
+		}
+	}
+
+	return newClass;
+};

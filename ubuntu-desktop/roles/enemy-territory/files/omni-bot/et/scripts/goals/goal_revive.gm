@@ -1,0 +1,190 @@
+this.Name = "REVIVE";
+this.Parent = "HighLevel";
+this.SkipGetPriorityWhenActive = true;
+this.Debug = false;
+
+this.LimitToClass(CLASS.MEDIC); // weapon.syringe instead?
+
+// states
+this.REVIVE_TARGET = 1;
+
+this.RangeForRevive = 2000;
+this.RangeForNearby = 750;
+
+this.Initialize = function()
+{
+	this.Bot.QueryGoalsTable = table();
+	this.CheckReviveTimer = 2; // look for closer goals every x seconds
+	this.BBDelayTime = 1.25; // path failed will increase this
+};
+
+this.QueryReviveGoals = function(range, skipGoal)
+{
+	bestGoal = null;
+	count = this.QueryGoals(this.Bot.QueryGoalsTable,0x2086cdf0 /* REVIVE */);
+	if ( count > 0 )
+	{
+		closest = range + 1;
+		foreach ( id and goal in this.Bot.QueryGoalsTable )
+		{
+			if ( skipGoal && goal == skipGoal ) {
+				continue;
+			}
+
+			dist = this.Bot.DistanceTo(goal.GetPosition());
+			if ( dist < closest ) {
+				bestGoal = goal;
+				closest = dist;
+			}
+		}
+	}
+	tableClear(this.Bot.QueryGoalsTable);
+	return bestGoal;
+};
+
+this.GetPriority = function()
+{
+	while(1)
+	{
+		if ( this.Bot.HasAmmo(WEAPON.SYRINGE) ) {
+			this.MapGoal = this.QueryReviveGoals(this.RangeForRevive);
+			if ( this.MapGoal ) {
+				this.Priority = this.MapGoal.GetGoalPriority(this.Bot);
+			} else {
+				this.Priority = 0;
+			}
+		}
+
+		sleep(2);
+	}
+};
+
+this.Enter = function()
+{
+	this.State = this.REVIVE_TARGET;
+	this.TargetEntity = this.MapGoal.GetEntity();
+	this.AddFinishCriteria(this.TargetEntity,"hasentflag",ENTFLAG.LIMBO);
+
+	// cs: note: mapgoal_revive can take up to a second to remove the goal. so delay this a bit longer
+	this.BBDelayTime = 1.25; // default. if interrupted for a closer revive, dont delay long.
+};
+
+this.LookForCloserReviveGoals = function()
+{
+	while(1) {
+		sleep(this.CheckReviveTimer);
+		goal = this.QueryReviveGoals(this.RangeForRevive);
+		if ( !goal || goal != this.MapGoal ) {
+			this.Finished();
+		}
+	}
+};
+
+this.EvalDeliverSupplies = function()
+{
+	if ( this.Bot.GetTarget() != null ) {
+		if ( this.Debug ) {
+			this.Bot.Say("skipping deliver supplies, have target");
+		}
+		return false;
+	}
+	
+	goal = this.QueryReviveGoals(this.RangeForNearby, this.MapGoal);
+	if ( this.Debug && goal ) {
+		this.Bot.Say("skipping deliver supplies, nearby revive");
+	}
+	
+	return !goal;
+};
+
+this.Update = function()
+{
+	if ( !this.LookForCloserReviveGoalsThread ) {
+		this.LookForCloserReviveGoalsThread = this.ForkThread(this.LookForCloserReviveGoals);
+	}
+
+	switch( this.State )
+	{
+		case this.REVIVE_TARGET:
+		{
+			this.UpdateRevive();
+		}
+		default:
+		{
+			this.Finished();
+		}
+	};
+
+	yield();
+};
+
+this.Exit = function()
+{
+	if ( this.LookForCloserReviveGoalsThread ) {
+		this.KillThread(this.LookForCloserReviveGoalsThread);
+		this.LookForCloserReviveGoalsThread = null;
+	}
+
+	this.BlackboardDelay(this.BBDelayTime, this.MapGoal);
+
+	// for sanity
+	this.MapGoal = null;
+	this.Priority = null;
+};
+
+this.UpdateRevive = function()
+{
+	if ( this.RouteTo(this.MapGoal, 32.f) != EVENT.PATH_FAILED ) {
+		this.AddAimRequest(Priority.High, "position",GetEntPosition(this.TargetEntity));
+		this.AddWeaponRequest(Priority.High, WEAPON.SYRINGE);
+		this.BlockForWeaponChange(WEAPON.SYRINGE);
+
+		health = 0;
+		for (timeout = 12; timeout > 0; timeout -= 1) { // 3 seconds
+			health = Util.GetEntHealth(this.TargetEntity);
+			if (health > 0) { break; }
+
+			// position check here because some mods allow bodies to be dragged
+			pos = GetEntPosition(this.TargetEntity);
+			if (pos) {
+				this.AddAimRequest(Priority.High, "position",pos);
+
+				eyePos = GetEntEyePosition(this.Bot.GetGameEntity());
+				heightDiff = pos.z - eyePos.z;
+				if ( heightDiff > 20.f ) {
+					this.Bot.PressButton(BTN.JUMP);
+				}
+				else {
+					this.Bot.HoldButton(BTN.CROUCH, 1.3);
+				}
+
+				this.Bot.MoveTowards(pos);
+				this.Bot.HoldButton(BTN.ATTACK1, 0.25);
+			}
+			else {
+				this.Finished();
+			}
+			sleep(0.25);
+		}
+
+		this.ReleaseAimRequest();
+		this.ReleaseWeaponRequest();
+
+		if (timeout > 0 && health > 0) { // cs: added paranoid check for health
+			if (health < 100 && this.EvalDeliverSupplies()) { //skilled medic can revive to full health
+				// activate deliver supplies goal.
+				this.Bot.RevivedTargetEnt = this.TargetEntity;
+				signal( this.Bot.Name + "_deliversupplies" );
+				sleep(1);
+			}
+		}
+		else {
+			this.BBDelayTime = 10;
+		}
+	}
+	else {
+		Util.ScriptDebugPrint(this.MapGoal.GetName(), "pathfailed", "position " + GetEntPosition(this.TargetEntity));
+		this.BBDelayTime = 10;
+	}
+	this.Finished();
+};

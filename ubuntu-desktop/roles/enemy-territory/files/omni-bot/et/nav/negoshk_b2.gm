@@ -1,0 +1,434 @@
+//==========================================================================================
+//
+//	negoshk_b2.gm
+//
+//	Who                      	When		What
+//------------------------------------------------------------------------------------------
+//	Scabs	03 February 2013	Initial Script
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	ShowMovers = false,
+	
+	Roles =
+	{
+		AXIS = // Team
+		{
+			DEFENDER =
+			{
+				numbots = 4,
+			},
+			DEFENDER1 =
+			{
+				numbots = 4,
+			},
+			DEFENDER2 =
+			{
+				numbots = 4,
+			},
+			DEFENDER3 =
+			{
+				numbots = 4,
+			},
+		},
+ 
+		ALLIES =
+		{
+			ATTACKER1 =
+			{
+				numbots = 4,
+			},
+			ATTACKER2 =
+			{
+				numbots = 4,
+			},
+			ATTACKER3 =
+			{
+				numbots = 4,
+			},
+		},
+	},
+
+	Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Built" );
+	},
+
+	Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Destroyed" );
+	},
+
+	Tank_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Tank_Built" );
+	},
+	Tank_Damaged = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Tank_Damaged" );
+	},
+
+	Tank_Stolen = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "CAMP_Tank_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Gate_.*" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAMP_Tank_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Gate.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Post" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Command_Post" );
+		Util.MapDebugPrint( "Tank_Stolen" );
+	},
+
+	East_Gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		Util.EnableGoal( "AMMOCAB.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Gate.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_West.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_North.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_East.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Roam.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_East" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_East" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Gate.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_West.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_North.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_East.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_East_Ammo_Depot" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_North_Ammo_Depot" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_West_Ammo_Depot" );
+		
+		
+		
+		Util.MapDebugPrint( "East_Gate_Destroyed" );
+	},
+
+	South_Gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Tank" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNT_Tank" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_South_Gate" );
+		Util.MapDebugPrint( "South_Gate_Destroyed" );
+	},
+
+	East_Ammo_Depot_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal( "AMMOCAB_ammo_depot1_2" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_East.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_East.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_East_Ammo_Depot" );
+
+		Util.MapDebugPrint( "East_Ammo_Depot_Destroyed" );
+	},
+
+	North_Ammo_Depot_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal( "AMMOCAB_ammo_depot1_1" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_North.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_North.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_North_Ammo_Depot" );
+		Util.MapDebugPrint( "North_Ammo_Depot_Destroyed" );
+	},
+
+	West_Ammo_Depot_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal( "AMMOCAB_ammo_depot1"	);
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_West.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_West.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_West_Ammo_Depot" );
+		Util.MapDebugPrint( "West_Ammo_Depot_Destroyed" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// Register callback functions
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Command_Post_Built );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Command_Post_Destroyed );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Command_Post_Built );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Command_Post_Destroyed );
+	OnTrigger( "The Tank has been damaged!", Map.Tank_Built );
+	OnTrigger( "The Tank has been repaired!", Map.Tank_Damaged );
+	OnTrigger( "Allies have stolen the Tank and secured the Castle Outpost!", Map.Tank_Stolen );
+	OnTrigger( "Allied team has destroyed the East Gate!", Map.East_Gate_Destroyed );
+	OnTrigger( "Allied team has destroyed the South Gate!", Map.South_Gate_Destroyed );
+	OnTrigger( "he Allies have destroyed the East Ammo Depot!", Map.East_Ammo_Depot_Destroyed );
+	OnTrigger( "The Allies have destroyed the North Ammo Depot!", Map.North_Ammo_Depot_Destroyed );
+	OnTrigger( "The Allies have destroyed the West Ammo Depot!", Map.West_Ammo_Depot_Destroyed );
+
+	Util.DisableGoal( ".*", true ); // all but routes
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "CAMP_Tank_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Command_Post" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CAMP_Tank_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Tank" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNT_Tank" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_South_Gate" );
+
+	// Max users per goal
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "BUILD_Command_Post" );
+	Util.SetMaxUsers( 1, "PLANT_Command_Post" );
+
+	// Camp times
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=60} );
+
+	MapRoutes =
+	{
+		CAMP_Tank_1 = 
+		{
+			ROUTE_Allied_S1  = 
+			{
+				ROUTE_F6  = 
+				{
+				},
+				ROUTE_E5  = 
+				{
+				},
+				ROUTE_Depot_East_1  = 
+				{
+				},
+				ROUTE_Depot_East_2  = 
+				{
+				},
+				ROUTE_E2  = 
+				{
+					ROUTE_Depot_South  = 
+					{
+					},
+				},
+			},
+			ROUTE_Axis_Spawn_1  = 
+			{
+				ROUTE_Depot_West  = 
+				{
+				},
+				ROUTE_G2  = 
+				{
+					ROUTE_Depot_SouthWest  = 
+					{
+					},
+				},
+			},
+		},
+		ATTACK_Gate_1 = 
+		{
+			ROUTE_Allies_S2  = 
+			{
+				ROUTE_F2  = 
+				{
+				},
+				ROUTE_Depot_SouthWest  = 
+				{
+					ROUTE_Depot_South  = 
+					{
+						ROUTE_E2  = 
+						{
+						},
+					},
+				},
+			},
+		},
+		PLANT_East_Ammo_Depot = 
+		{
+			ROUTE_Allies_S2  = 
+			{
+				ROUTE_East_Gate  = 
+				{
+					ROUTE_East_Ammo  = 
+					{
+					},
+					ROUTE_East_Ammo  = 
+					{
+						ROUTE_South_Entry  = 
+						{
+							ROUTE_South_Gate  = 
+							{
+							},
+						},
+					},
+				},
+				ROUTE_South_Gate  = 
+				{
+					ROUTE_South_Entry  = 
+					{
+						ROUTE_East_Ammo  = 
+						{
+						},
+					},
+				},
+				ROUTE_South_Gate  = 
+				{
+				},
+			},
+		},
+		PLANT_North_Ammo_Depot = 
+		{
+			ROUTE_Allies_S2  = 
+			{
+				ROUTE_East_Gate  = 
+				{
+				},
+				ROUTE_South_Gate  = 
+				{
+				},
+			},
+		},
+		PLANT_West_Ammo_Depot = 
+		{
+			ROUTE_Allies_S2  = 
+			{
+				ROUTE_East_Gate  = 
+				{
+					ROUTE_A2  = 
+					{
+					},
+				},
+				ROUTE_South_Gate  = 
+				{
+				},
+			},
+		},
+		DEFEND_East_1 = 
+		{
+			ROUTE_Axis_S2  = 
+			{
+				ROUTE_South_Entry  = 
+				{
+					ROUTE_South_Gate  = 
+					{
+					},
+				},
+				ROUTE_South_Entry  = 
+				{
+					ROUTE_East_Ammo  = 
+					{
+					},
+				},
+			},
+			ROUTE_Axis_S3  = 
+			{
+				ROUTE_South_Entry  = 
+				{
+					ROUTE_South_Gate  = 
+					{
+					},
+				},
+				ROUTE_South_Entry  = 
+				{
+					ROUTE_East_Ammo  = 
+					{
+					},
+				},
+			},
+		},
+		DEFEND_West_1 = 
+		{
+			ROUTE_Axis_S2  = 
+			{
+				ROUTE_A2  = 
+				{
+				},
+				ROUTE_South_Entry  = 
+				{
+					ROUTE_South_Gate  = 
+					{
+					},
+				},
+			},
+			ROUTE_Axis_S3  = 
+			{
+				ROUTE_A2  = 
+				{
+				},
+				ROUTE_South_Entry  = 
+				{
+					ROUTE_South_Gate  = 
+					{
+					},
+				},
+			},
+		},
+	};
+
+	MapRoutes.BUILD_Tank = MapRoutes.CAMP_Tank_1;
+	MapRoutes.CAMP_Tank_2 = MapRoutes.CAMP_Tank_1;
+	MapRoutes.CAMP_Tank_3 = MapRoutes.CAMP_Tank_1;
+	MapRoutes.CAMP_Tank_4 = MapRoutes.CAMP_Tank_1;
+	MapRoutes.CAMP_Tank_5 = MapRoutes.CAMP_Tank_1;
+	MapRoutes.CAMP_Tank_6 = MapRoutes.CAMP_Tank_1;
+	MapRoutes.CAMP_Tank_7 = MapRoutes.CAMP_Tank_1;
+	MapRoutes.CAMP_Tank_8 = MapRoutes.CAMP_Tank_1;
+	MapRoutes.ATTACK_Gate_2 = MapRoutes.ATTACK_Gate_1;
+	MapRoutes.ATTACK_Gate_3 = MapRoutes.ATTACK_Gate_1;
+	MapRoutes.ATTACK_Gate_4 = MapRoutes.ATTACK_Gate_1;
+	MapRoutes.ATTACK_Gate_5 = MapRoutes.ATTACK_Gate_1;
+	MapRoutes.ATTACK_East_1 = MapRoutes.PLANT_East_Ammo_Depot;
+	MapRoutes.ATTACK_East_2 = MapRoutes.PLANT_East_Ammo_Depot;
+	MapRoutes.ATTACK_West_1 = MapRoutes.PLANT_West_Ammo_Depot;
+	MapRoutes.ATTACK_West_2 = MapRoutes.PLANT_West_Ammo_Depot;
+	MapRoutes.ATTACK_North_1 = MapRoutes.PLANT_North_Ammo_Depot;
+	MapRoutes.ATTACK_North_2 = MapRoutes.PLANT_North_Ammo_Depot;
+	MapRoutes.DEFEND_East_2 = MapRoutes.DEFEND_East_1;
+	MapRoutes.MOUNTMG42_East = MapRoutes.DEFEND_East_1;
+	MapRoutes.DEFEND_West_2 = MapRoutes.DEFEND_West_1;
+
+	
+	Util.Routes(MapRoutes);
+
+
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	// Uncomment for shootable breakables
+	//~bot.TargetBreakableDist = 90.0;
+	// Only set MaxViewDistance on maps with limited sight (e.g. fog)
+	//~bot.MaxViewDistance = 2400;
+};

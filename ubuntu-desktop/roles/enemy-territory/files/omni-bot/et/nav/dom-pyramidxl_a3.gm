@@ -1,0 +1,268 @@
+//==========================================================================================
+//
+//	dom-pyramidxl_a3.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	palota	17 May 2011	Initial Script
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+
+	Roles =
+	{
+		AXIS =
+		{
+			DEFENDER =
+			{
+				numbots = 3,
+			},
+		},
+		ALLIES =
+		{
+			DEFENDER =
+			{
+				numbots = 3,
+			},
+		},
+	},
+
+	Axis_Pyramid_CE = function( trigger )
+	{
+		Util.LimitToTeam( TEAM.AXIS, "DEFEND_CE.*");
+		Util.LimitToTeam( TEAM.ALLIES, "ATTACK_CE.*");
+		Util.MapDebugPrint( "Axis_Pyramid_CE" );
+	},
+
+	Axis_Pyramid_NW = function( trigger )
+	{
+		Util.LimitToTeam( TEAM.AXIS, "DEFEND_NW.*");
+		Util.LimitToTeam( TEAM.ALLIES, "ATTACK_NW.*");
+		Util.MapDebugPrint( "Axis_Pyramid_NW" );
+	},
+
+	Axis_Pyramid_NE = function( trigger )
+	{
+		Util.LimitToTeam( TEAM.AXIS, "DEFEND_NE.*");
+		Util.LimitToTeam( TEAM.ALLIES, "ATTACK_NE.*");
+		Util.MapDebugPrint( "Axis_Pyramid_NE" );
+	},
+
+	Axis_Pyramid_SW = function( trigger )
+	{
+		Util.LimitToTeam( TEAM.AXIS, "DEFEND_SW.*");
+		Util.LimitToTeam( TEAM.ALLIES, "ATTACK_SW.*");
+		Util.MapDebugPrint( "Axis_Pyramid_SW" );
+	},
+
+	Axis_Pyramid_SE = function( trigger )
+	{
+		Util.LimitToTeam( TEAM.AXIS, "DEFEND_SE.*");
+		Util.LimitToTeam( TEAM.ALLIES, "ATTACK_SE.*");
+		Util.MapDebugPrint( "Axis_Pyramid_SE" );
+	},
+
+	Allies_Pyramid_CE = function( trigger )
+	{
+		Util.LimitToTeam( TEAM.ALLIES, "DEFEND_CE.*");
+		Util.LimitToTeam( TEAM.AXIS, "ATTACK_CE.*");
+		Util.MapDebugPrint( "Allies_Pyramid_CE" );
+	},
+
+	Allies_Pyramid_NW = function( trigger )
+	{
+		Util.LimitToTeam( TEAM.ALLIES, "DEFEND_NW.*");
+		Util.LimitToTeam( TEAM.AXIS, "ATTACK_NW.*");
+		Util.MapDebugPrint( "Allies_Pyramid_NW" );
+	},
+
+	Allies_Pyramid_NE = function( trigger )
+	{
+		Util.LimitToTeam( TEAM.ALLIES, "DEFEND_NE.*");
+		Util.LimitToTeam( TEAM.AXIS, "ATTACK_NE.*");
+		Util.MapDebugPrint( "Allies_Pyramid_NE" );
+	},
+
+	Allies_Pyramid_SW = function( trigger )
+	{
+		Util.LimitToTeam( TEAM.ALLIES, "DEFEND_SW.*");
+		Util.LimitToTeam( TEAM.AXIS, "ATTACK_SW.*");
+		Util.MapDebugPrint( "Allies_Pyramid_SW" );
+	},
+
+	Allies_Pyramid_SE = function( trigger )
+	{
+		Util.LimitToTeam( TEAM.ALLIES, "DEFEND_SE.*");
+		Util.LimitToTeam( TEAM.AXIS, "ATTACK_SE.*");
+		Util.MapDebugPrint( "Allies_Pyramid_SE" );
+	},
+
+	Axis_Win = function( trigger )
+	{
+		ETUtil.WinningChat( TEAM.AXIS );
+		ETUtil.LosingChat( TEAM.ALLIES );
+		Util.MapDebugPrint( "Axis_Win" );
+	},
+
+	Allies_Win = function( trigger )
+	{
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "Allies_Win" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	OnTrigger( "^1Axis capture the center Pyramid", Map.Axis_Pyramid_CE );
+	OnTrigger( "^1Axis capture the Northwest Pyramid", Map.Axis_Pyramid_NW );
+	OnTrigger( "^1Axis capture the Northeast Pyramid", Map.Axis_Pyramid_NE );
+	OnTrigger( "^1Axis capture the Southwest Pyramid", Map.Axis_Pyramid_SW );
+	OnTrigger( "^1Axis capture the Southeast Pyramid", Map.Axis_Pyramid_SE );
+	OnTrigger( "^4Allies capture the center Pyramid", Map.Allies_Pyramid_CE );
+	OnTrigger( "^4Allies capture the Northwest Pyramid", Map.Allies_Pyramid_NW );
+	OnTrigger( "^4Allies capture the Northeast Pyramid", Map.Allies_Pyramid_NE );
+	OnTrigger( "^4Allies capture the Southwest Pyramid", Map.Allies_Pyramid_SW );
+	OnTrigger( "^4Allies capture the Southeast Pyramid", Map.Allies_Pyramid_SE );
+	OnTrigger( "^1Axis have time Captured the Pyramids most and is the winner of this r"/*ound. Gratz to them!!!!"*/, Map.Axis_Win );
+	OnTrigger( "^4Allies have time Captured the Pyramids most and is the winner of this"/* round. Gratz to them!!!!"*/, Map.Allies_Win );
+
+	OnTriggerRegion(AABB(526.971,-499.361,298.655,1318.101,-352.624,415.217), RegionTrigger.DisableCombatMovement); //sniper
+	OnTriggerRegion(AABB(-1331.576,351.655,299.882,-491.275,499.811,410.817), RegionTrigger.DisableCombatMovement);
+
+	Util.DisableGoal("DEFEND.*");
+	Util.LimitToTeam( TEAM.AXIS, ".*CAB_axis.*");
+	Util.LimitToTeam( TEAM.ALLIES, ".*CAB_allie.*");
+	Util.LimitToTeam( TEAM.AXIS, "SNIPE_x.*");
+	Util.LimitToTeam( TEAM.ALLIES, "SNIPE_l.*");
+
+	SetGoalPriority( "DEFEND.*", 0.4, 0, CLASS.SOLDIER);
+	SetGoalPriority( "DEFEND.*_o.*", 0.5, 0, CLASS.SOLDIER);
+
+	Util.SetRoleForGoals("DEFEND.*", ROLE.DEFENDER);
+
+	SetMapGoalProperties( "DEFEND.*", {MinCampTime=10, MaxCampTime=30} );
+	SetMapGoalProperties( "SNIPE.*", {MinCampTime=10, MaxCampTime=40} );
+
+	MapRoutes =
+	{
+		ATTACK_CE_N = {
+			ROUTE_allied_spawn = {
+				ROUTE_L2 = {},
+			},
+		},
+		ATTACK_CE_E = {
+			ROUTE_allied_spawn = {
+				ROUTE_L2 = {},
+			},
+		},
+		ATTACK_CE_S = {
+			ROUTE_axis_spawn = {
+				ROUTE_X2 = {},
+			},
+		},
+		ATTACK_CE_W = {
+			ROUTE_axis_spawn = {
+				ROUTE_X2 = {},
+			},
+		},
+		ATTACK_NW1 = {
+			ROUTE_axis_spawn = {
+				ROUTE_W2 = {},
+			},
+			ROUTE_allied_spawn = {
+				ROUTE_W1 = {},
+			},
+		},
+		ATTACK_NW2 = {
+			ROUTE_axis_spawn = {
+				ROUTE_X1 = {},
+			},
+		},
+		ATTACK_NW3 = {
+			ROUTE_axis_spawn = {
+				ROUTE_NW3 = {},
+			},
+			ROUTE_allied_spawn = {
+				ROUTE_L2 = { ROUTE_NW3 = {}},
+			},
+		},
+		ATTACK_NW4 = {
+			ROUTE_axis_spawn = {
+				ROUTE_NW4 = {},
+			},
+			ROUTE_allied_spawn = {
+				ROUTE_W1 = { ROUTE_NW4 = {}},
+			},
+		},
+		ATTACK_NE3 = {
+			ROUTE_axis_spawn = {
+				ROUTE_X1 = { ROUTE_NE3 = {}},
+			},
+			ROUTE_allied_spawn = {
+				ROUTE_NE3 = {},
+			},
+		},
+		ATTACK_NE4 = {
+			ROUTE_axis_spawn = {
+				ROUTE_NE4 = {},
+			},
+			ROUTE_allied_spawn = {
+				ROUTE_E2 = { ROUTE_NE4 = {}},
+			},
+		},
+		ATTACK_SW3 = {
+			ROUTE_axis_spawn = {
+				ROUTE_SW3 = {},
+			},
+			ROUTE_allied_spawn = {
+				ROUTE_L1 = { ROUTE_SW3 = {}},
+			},
+		},
+		ATTACK_SW4 = {
+			ROUTE_axis_spawn = {
+				ROUTE_W2 = { ROUTE_SW4 = {}},
+			},
+			ROUTE_allied_spawn = {
+				ROUTE_SW4 = {},
+			},
+		},
+		ATTACK_SE1 = {
+			ROUTE_axis_spawn = {
+				ROUTE_E1 = {},
+			},
+			ROUTE_allied_spawn = {
+				ROUTE_E2 = {},
+			},
+		},
+		ATTACK_SE2 = {
+			ROUTE_allied_spawn = {
+				ROUTE_L1 = {},
+			},
+		},
+		ATTACK_SE3 = {
+			ROUTE_axis_spawn = {
+				ROUTE_X2 = { ROUTE_SE3 = {}},
+			},
+			ROUTE_allied_spawn = {
+				ROUTE_SE3 = {},
+			},
+		},
+		ATTACK_SE4 = {
+			ROUTE_axis_spawn = {
+				ROUTE_E1 = { ROUTE_SE4 = {}},
+			},
+			ROUTE_allied_spawn = {
+				ROUTE_SE4 = {},
+			},
+		},
+	};
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};

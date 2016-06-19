@@ -1,0 +1,33 @@
+if (GetModName()!="etpub" || GetCvar("g_etnamFlags")==0){ return; }
+
+//////////////////////////////////////////////////////////////////////////
+
+WEAPON.M79 = 103; 					// Defined into g_etbot_interface.cpp
+
+//////////////////////////////////////////////////////////////////////////
+// Overall weapon properties.
+this.Name = "M79";
+this.WeaponId = WEAPON.M79;
+this.PrimaryFire.AmmoType = WEAPON.M79;
+//~ this.MinUseTime = 10.0;
+
+//////////////////////////////////////////////////////////////////////////
+// Set some weapon properties that affect some internal logic.
+this.PrimaryFire.WeaponType = "projectile";
+this.PrimaryFire.ProjectileSpeed = 2000;
+this.PrimaryFire.RequiresAmmo = true;
+this.PrimaryFire.WaterProof = false;
+this.PrimaryFire.InheritsVelocity = false;
+this.PrimaryFire.ProjectileGravity = 1.0;
+this.PrimaryFire.DelayAfterFiring = 5.0;
+this.PrimaryFire.IgnoreReload = true;
+
+this.PrimaryFire.SetTargetBias(CLASS.VEHICLE_HVY, 1);
+this.PrimaryFire.DefaultDesirability = 0.8;
+//~ this.PrimaryFire.SetDesirabilityRange(256, 500, 0.4);
+//~ this.PrimaryFire.SetDesirabilityRange(500, 1500, 0.7);
+//~ this.PrimaryFire.SetDesirabilityRange(1500, 2500, 0.9);
+this.PrimaryFire.SetDesirabilityRange(500, 2600, 0.8);
+
+this.PrimaryFire.LowAmmoThreshold = 1;
+this.PrimaryFire.LowAmmoPriority = 0.8;

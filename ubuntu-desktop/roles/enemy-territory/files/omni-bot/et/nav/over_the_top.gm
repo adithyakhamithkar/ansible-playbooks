@@ -1,0 +1,986 @@
+/*******************************************************************************
+  Filename: over_the_top.gm
+
+  Created by: >WES< P!NNAN
+  Assistance: >WES< GRANNY
+
+  Last Updated: Sat, 8 November 2009
+  Updated by: >WES< P!NNAN
+  Assistance:
+
+  Change log: Tweaking and stuckage fixing.
+
+--------------------------------------------------------------------------------
+  Map description :
+
+The Allies have to take 2 Goldcrates , save it to the truck and escape with truck !
+To do that they must either:
+
+-Get access to the Castlebasement
+
+1.Built the Ramp
+2.Destroy the Securitydoor
+3.Destroy the Castlebasement
+
+
+-Escape with the Goldcrates
+1.Steal the Goldcrates 1 + 2
+2.Save the Gold to the waiting Truck
+3.Escort the Truck to Gate
+4.Get the Switch to open escaping Gate
+5.Escape with the Truck
+--------------------------------------------------------------------------------
+*** MAP GOALS ***
+
+	//MG-Objects
+	MOUNTMG42_mg42_90			//TowerMG
+
+	/// ALLIES GOALS  ///
+
+	BUILD_Ramp				//Ramp
+	PLANT_Security_Door			//Securitydoor
+	BUILD_Truck		//Truckrepair
+	MOVER_truck					//Truckmoving
+	BUILD_Command_Post		//Allied CP
+	PLANT_Castle_Basement			//Castlebasement
+	FLAG_goldbars				//Goldcrates
+	SNIPE_s_hill_2
+	SNIPE_s_castle_1
+	SNIPE_s_spawn
+	SNIPE_s_cabinet_1
+	SNIPE_s_cabinet_2
+
+	///  AXIS GOALS   ///
+	MOUNTMG42_mgpos				//MG42mounting
+	REPAIRMG42_mgpos				//MG42repair
+	PLANT_Command_Post	//Allied CP destroying
+	BUILD_Command_Post		//Axis CP
+	SNIPE_s_castle_1
+	SNIPE_s_cabinet_1
+	SNIPE_s_cabinet_2
+
+***************************************************************************************/
+
+global Map =
+{
+	Quiet = true,
+	Talk = true,
+	TruckPos = "Start",
+	Truck_Damaged = false,
+	Escorting = false,
+	ShouldEscort = false,
+	Liftdown = true,
+	Buttonout = true,
+	Buttonin = false,
+	Gateclosed = true,
+	LiftMoving = "",
+	GateDoor = "closed",
+	TruckForGate = false,
+	GoldReady = false,
+
+	Ammo_Cabinet_south_ammocabinet = "AMMOCAB_south_ammocabinet",
+	Health_Cabinet_south_healthcabinet = "HEALTHCAB_south_healthcabinet",
+	Call_Artillery_ar_call_al_1 = "CALLARTILLERY_ar_call_al_1",
+	Call_Artillery_ar_call_al_2 = "CALLARTILLERY_ar_call_al_2",
+	Call_Artillery_ar_call_axis_1 = "CALLARTILLERY_ar_call_axis_1",
+	Call_Artillery_ar_castle_top_1 = "CALLARTILLERY_ar_castle_top_1",
+	Call_Artillery_ar_castle_top_2 = "CALLARTILLERY_ar_castle_top_2",
+	Call_Artillery_ar_hill_east = "CALLARTILLERY_ar_hill_east",
+	Call_Artillery_ar_hill_east_1 = "CALLARTILLERY_ar_hill_east_1",
+	Call_Artillery_ar_hill_west = "CALLARTILLERY_ar_hill_west",
+	Call_Artillery_ar_tower = "CALLARTILLERY_ar_tower",
+	Artillery_S_13 = "ARTILLERY_S_13",
+	Artillery_S_20 = "ARTILLERY_S_20",
+	Artillery_S_374 = "ARTILLERY_S_374",
+	Artillery_S_458 = "ARTILLERY_S_458",
+	Artillery_S_ar_axis_1 = "ARTILLERY_S_ar_axis_1",
+	Artillery_S_ar_place_ax_1 = "ARTILLERY_S_ar_place_ax_1",
+	Artillery_S_ar_place_al_1 = "ARTILLERY_S_ar_place_al_1",
+	Artillery_S_ar_place_al_2 = "ARTILLERY_S_ar_place_al_2",
+	Flag_goldbars = "FLAG_goldbars",
+	Cappoint_Dropoff = "CAPPOINT_Dropoff",
+	Build_Command_Post = "BUILD_Command_Post",
+	Build_Ramp = "BUILD_Ramp",
+	Build_Truck = "BUILD_Truck",
+	Plant_Castle_Basement = "PLANT_Castle_Basement",
+	Plant_Command_Post = "PLANT_Command_Post",
+	Plant_Ramp = "PLANT_Ramp",
+	Plant_Security_Door = "PLANT_Security_Door",
+	Mount_mgpos = "MOUNTMG42_mgpos",
+	Repair_mgpos = "REPAIRMG42_mgpos",
+	Mobile_MG42_s_pilar = "MOBILEMG42_s_pilar",
+	Mobile_MG42_mg_al_1 = "MOBILEMG42_mg_al_1",
+	Snipe_s_alspawn = "SNIPE_s_alspawn",
+	Snipe_s_cabinet_left = "SNIPE_s_cabinet_left",
+	Snipe_s_cabinet_right = "SNIPE_s_cabinet_right",
+	Snipe_s_castle_top_1 = "SNIPE_s_castle_top_1",
+	Snipe_s_castle_top_2 = "SNIPE_s_castle_top_2",
+	Snipe_s_church = "SNIPE_s_church",
+	Snipe_s_hill_east = "SNIPE_s_hill_east",
+	Snipe_s_hill_east2 = "SNIPE_s_hill_east2",
+	Snipe_s_leftcastle = "SNIPE_s_leftcastle",
+	Snipe_s_leftroom = "SNIPE_s_leftroom",
+	Snipe_s_pilar = "SNIPE_s_pilar",
+	Snipe_s_westhill_1 = "SNIPE_s_westhill_1",
+	Mover_truck = "MOVER_truck",
+	Plant_Mine_184 = "PLANTMINE_184",
+	Plant_Mine_185 = "PLANTMINE_185",
+
+	Navigation =
+	{
+		// cs: TODO: remove these hacks and make it part of useswitch paththrough
+		lift_pt =
+		{
+			navigate = function (_this)
+			{
+				if ( !Map.RLiftUpInfo ) {
+					Map.RLiftUpInfo= Util.WpNameInfo("r_lift_up");
+				}
+
+				if ( _this.Goto(Map.RLiftUpInfo.position) == EVENT.PATH_SUCCESS )
+				{
+					_this.AddAimRequest(Priority.High, "facing", Map.RLiftUpInfo.facing);
+					sleep (2);
+					_this.Bot.HoldButton(BTN.USE, 1);
+					sleep(16);
+				}
+			},
+		},
+		liftswitch_2_pt =
+		{
+			navigate = function (_this)
+			{
+				if ( !Map.LiftSwitch2Info ) {
+					Map.LiftSwitch2Info = Util.WpNameInfo("Liftswitch_2");
+				}
+
+				if ( _this.Goto(Map.LiftSwitch2Info.position) == EVENT.PATH_SUCCESS )
+				{
+					_this.AddAimRequest(Priority.High, "facing", Map.LiftSwitch2Info.facing);
+					sleep(2);
+					_this.Bot.HoldButton(BTN.USE, 0.3);
+					sleep (1);
+				}
+
+			},
+		},
+	},
+
+	Switches =
+	{
+		LiftSwitch1 =
+		{
+			WaypointName = "Liftswitch_1",
+			Enabled = true,
+			LimitTeam = (1<<TEAM.AXIS),
+			LimitClass = Util.AllClasses,
+			LimitDistance = 2000,
+			LimitBots = 1,
+			AimPosition = Vector3(-285.583,-404.125,320.078),
+			ExitConditions =
+			{
+				immediate = function()
+				{
+					//immediately disable it
+					Map.Switches.LiftSwitch1.LimitTeam = 0;
+					return true;
+				},
+			},
+		},
+
+		LiftSwitch2 =
+		{
+			WaypointName = "Liftswitch_2",
+			Enabled = true,
+			LimitTeam = (1<<TEAM.ALLIES),
+			LimitClass = Util.AllClasses,
+			LimitDistance = 2000,
+			LimitBots = 1,
+			AimPosition = Vector3(-287.335,-404.125,1051.442),
+			ExitConditions =
+			{
+				immediate = function()
+				{
+					//immediately disable it
+					Map.Switches.LiftSwitch2.LimitTeam = 0;
+					return true;
+				},
+			},
+		},
+
+		GateSwitch =
+		{
+			WaypointName = "Gateswitch",
+			Enabled = true,
+			LimitTeam = (1<<TEAM.ALLIES),
+			LimitClass = Util.AllClasses ,
+			LimitDistance = 2000,
+			LimitBots = 1,
+			AimPosition = Vector3(0.707,-438.125,607.786),
+		},
+	},
+
+	Truck_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			rand = ETUtil.CountTeam(TEAM.ALLIES) * 2;
+			foreach ( gameId and bot in BotTable )
+			{
+				if (bot.GetTeam() == TEAM.ALLIES && bot.GetClass() == CLASS.ENGINEER && RandInt(1,10) < 2)
+				{
+					sleep(1.0);
+					bot.SayVoice(VOICE.ESCORT_VEHICLE);
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "Truck_Built" );
+	},
+
+	Truck_Destroyed = function( trigger )
+	{
+		if ( TestMap )	{ return; }
+
+		Map.Truck_Damaged = true;
+
+		Util.SetPositionGoal( "BUILD_Truck", "MOVER_truck" );
+
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			rand = ETUtil.CountTeam(TEAM.ALLIES) * 2;
+			foreach ( gameId and bot in BotTable )
+			{
+				if (bot.GetTeam() == TEAM.ALLIES && bot.GetClass() == CLASS.ENGINEER && RandInt(1,rand) < 2)
+				{
+					sleep(1.0);
+					bot.SayVoice(VOICE.REPAIR_VEHICLE);
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "Truck_Destroyed"  );
+	},
+
+	get_gold = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		if ( Map.Truck_Damaged )
+		{
+			Util.SetGoalOffset( 70, 160, 0, "BUILD_Truck" );
+		}
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_truck" );
+
+		Groups.DisableAllies(Groups.group3);
+		Groups.DisableAxis(Groups.group4);
+		Groups.EnableAllies(Groups.group5);
+		Groups.EnableAxis(Groups.group6);
+
+		Util.MapDebugPrint( "get_gold" );
+	},
+
+	get_handle = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_truck" );
+
+		if ( Map.Gateopen )
+		{
+			Map.Switches.GateSwitch.LimitTeam = (1<<TEAM.AXIS);   		//Gate handle now only for Axis
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_truck" );
+		}
+
+		Util.MapDebugPrint( "get_handle" );
+	},
+
+	stop_handle = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Switches.GateSwitch.LimitTeam = 0;
+
+		Util.MapDebugPrint( "stop_handle" );
+	},
+
+	//Ramp
+	Ramp_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Switches.LiftSwitch2.LimitTeam = (1<<TEAM.ALLIES);
+		Map.Switches.GateSwitch.LimitTeam = (1<<TEAM.ALLIES);
+
+		Util.MapDebugPrint( "Ramp_Built" );
+	},
+
+	Ramp_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Ramp_Destroyed" );
+	},
+
+	//Command Post
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//Allies Goals
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Command_Post" );
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//Axis Goals
+		SetAvailableMapGoals(TEAM.AXIS, true, "PLANT_Command_Post" );
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	// Security Door
+	Security_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group1);
+		Groups.DisableAxis(Groups.group2);
+		Groups.EnableAllies(Groups.group3);
+		Groups.EnableAxis(Groups.group4);
+
+		Util.MapDebugPrint( "Security_Door_Destroyed" );
+	},
+	//Castle Wall
+	Castle_Basement_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		Groups.DisableAllies(Groups.group5);
+		Groups.DisableAxis(Groups.group6);
+		Groups.EnableAllies(Groups.group7);
+		Groups.EnableAxis(Groups.group8);
+
+		Util.MapDebugPrint( "Castle_Basement_Destroyed" );
+	},
+
+	//Gold Stuff
+	goldbars_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group7);
+		Groups.EnableAllies(Groups.group9);
+
+		Util.MapDebugPrint( "goldbars_Taken" );
+	},
+
+	goldbars_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		Groups.DisableAllies(Groups.group9);
+		Groups.EnableAllies(Groups.group7);
+
+		Util.MapDebugPrint( "goldbars_returned" );
+	},
+
+	Dropoff_Captured = function( trigger )
+	{
+		if ( TestMap )  { return; }
+
+		Map.GoldReady = true;
+
+		Groups.DisableAllies(Groups.group9);
+		Groups.EnableAllies(Groups.group11);
+
+		Util.MapDebugPrint( "Both gold delivered on truck" );
+	},
+
+	allies_win = function( trigger )
+	{
+		if ( TestMap )  { return; }
+
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "allies_win" );
+	},
+
+    //Truck Gate
+	gate_goto = function( trigger )
+	{
+		Map.Switches.GateSwitch.LimitTeam = 0;
+
+		vec = ToVector( trigger.Action );
+
+		//Door open
+		if ( vec.z > 80 )
+		{
+			//Enable escort truck
+			Map.GateDoor = "open";
+			Map.Gateopen = true;
+			SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMG42_mg_al_1" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_truck" );
+		}
+
+		//Door close
+		if ( vec.z < -80 )
+		{
+			//Disable escort truck
+			Map.Gateclosed = true;
+			Map.GateDoor = "closed";
+			SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_mg_al_1" );
+
+			if ( Map.TruckAtGate )
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_truck" );
+			}
+			if ( Map.Handleleft )
+			{
+				Map.Switches.GateSwitch.LimitTeam = (1<<TEAM.ALLIES);   		//Gate handle now only for Allies
+			}
+		}
+
+		Util.MapDebugPrint( "Gate is now: " + Map.GateDoor, true);
+	},
+
+	gate_handle_start = function( trigger )
+	{
+		Map.Switches.GateSwitch.LimitTeam = 0;
+
+		vec = ToVector( trigger.Action );
+
+		//handle pulled right , gate will go open
+		if ( vec.x > 160 )
+		{
+			Map.Switches.GateSwitch.LimitTeam = (1<<TEAM.AXIS);   		//Gate handle now only for Axis
+			Map.Handle = "right";
+		}
+
+		//handle pulled left , gate will go closed
+		if ( vec.x < -160 )
+		{
+			Map.Handle = "left";
+			Map.Handleleft = true;
+		}
+		Util.MapDebugPrint( "Handle is now: " + Map.Handle, true);
+	},
+
+
+    //---- Lift stuff
+
+	//button
+	upper_button_goto = function( trigger )
+	{
+		vec = ToVector(trigger.Action);
+		if ( vec.y > 10 )
+		{
+			Map.Buttonin = true;
+			Map.Button = "in" ;
+
+			Map.Switches.LiftSwitch1.LimitTeam = 0;
+			Map.Switches.LiftSwitch2.LimitTeam = 0;
+			Map.Switches.LiftSwitch3.LimitTeam = 0;
+			Map.Switches.LiftSwitch4.LimitTeam = 0;
+			Util.MapDebugPrint( "Button not ready", true);
+		}
+		if ( vec.y < 10 )
+		{
+			Map.Buttonout = true;
+			Map.Button = "out";
+
+		}
+		Util.MapDebugPrint( "Button is: " + Map.Button, true );
+	},
+
+
+	//Lift moving
+	lift_goto = function( trigger )
+	{
+		vec = ToVector(trigger.Action);  //value z lift is 100 or -100
+
+		if ( vec.z > 50 )
+		{
+
+			Map.LiftMoving = "up";
+
+		}
+		if ( vec.z < 50 )   { Map.LiftMoving = "down"; }
+
+		Util.MapDebugPrint( "lift is moving: " + Map.LiftMoving, true );
+	},
+
+
+	//Lift doors
+	lift_door1_goto = function( trigger )
+	{
+		vec = ToVector(trigger.Action);
+		//Lift door moving: //value x door is 70.04 or -70.04
+		if ( vec.x < 50 ) { Map.Button = "out";  }   //Prevent bots jumping in
+
+		if ( vec.x > 50 ) 	//value x door is 70.04 or -70.04
+		{
+			if (Map.LiftMoving == "up")
+			{
+				Map.Liftup = true;
+				Map.LiftPos = "elevator_up";
+
+				if ( Map.Buttonout && Map.Liftup )
+				{
+					Map.Switches.LiftSwitch2.LimitTeam = 0;		//Button disabled for Allies
+					Util.MapDebugPrint( "Switch2 disabled" );
+					Map.Switches.LiftSwitch4.LimitTeam = (1<<TEAM.ALLIES);		//Lift available for Allies
+					Util.MapDebugPrint( "lift ready", true);
+				}
+			}
+			if (Map.LiftMoving == "down")
+			{
+				Map.Liftdown = true;
+				Map.LiftPos = "elevator_down";
+
+				if ( Map.Buttonout && Map.Liftdown )
+				{
+					Map.Switches.LiftSwitch2.LimitTeam = (1<<TEAM.ALLIES);		//Button enabled for Allies
+					Util.MapDebugPrint( "Switch2 enabled", true );
+					Map.Switches.LiftSwitch4.LimitTeam = 0;		//Lift disabled for Allies
+					Util.MapDebugPrint( "lift not ready", true );
+				}
+
+			}
+
+			Util.MapDebugPrint( "Doors opened. Position lift: " + Map.LiftPos, true );
+		}
+	},
+
+	truck_at_location = function( trigger )
+	{
+		switch(Map.VehicleLocation)
+		{
+			case 1:
+			{
+				Map.get_gold();
+			}
+			case 2:
+			{
+				Map.TruckAtGate = true;
+				Map.get_handle();
+			}
+			case 3:
+			{
+				Map.TruckAtGate = false;
+				Map.stop_handle();
+			}
+		}
+
+		Util.MapDebugPrint("truck at location " + Map.VehicleLocation, true);
+	},
+};
+
+//================================================================
+//========= ON MAP LOAD  =========================================
+//================================================================
+
+global OnMapLoad = function()
+{
+
+	if ( TestMapOn )	{ ETUtil.AutoTestMap(); }
+	Util.SetGoalOffset( -25, 0, -40, "PLANT_Security_Door" );
+	Util.SetGoalOffset( 40, 20, 0, "PLANT_Castle_Basement" );
+	Util.SetGoalOffset( 140, -40, 160, "PLANT_Ramp" );
+	Util.SetGoalOffset( 0, 40, 0, "PLANT_Command_Post" );
+
+  	Util.DisableGoal(".*");   	//disable all
+	Wp.SetWaypointFlag("c_mgpath","closed",false);  //Open path in front of MG
+
+	//Goal duration setting
+	SetMapGoalProperties( "SNIPE_.*", {mincamptime=99, maxcamptime=999});
+	SetMapGoalProperties( "ATTACK_.*", {mincamptime=4, maxcamptime=15});
+	SetMapGoalProperties( "DEFEND_.*", {mincamptime=99, maxcamptime=999});
+
+	//Maxbots per Goal
+	Util.SetMaxUsersInProgress( 2, "ATTACK_a_building" );
+	Util.SetMaxUsersInProgress( 3, "ATTACK_a_ramp.*" );
+	Util.SetMaxUsersInProgress( 3, "DEFEND_d_ramp.*" );
+  	Util.SetMaxUsersInProgress( 1, "DEFEND_d_mg42" );
+  	Util.SetMaxUsersInProgress( 1, "DEFEND_d_gold_.*" );
+  	Util.SetMaxUsersInProgress( 1, "DEFEND_d_lift_1" );
+  	Util.SetMaxUsersInProgress( 1, "DEFEND_d_switch" );
+  	Util.SetMaxUsersInProgress( 1, "DEFEND_d_gate_.*" );
+
+	//Using and Progressing
+	Util.SetMaxUsersInProgress( 1, "MOUNTMG42.*" );
+	Util.SetMaxUsersInProgress( 1, "PLANT_MINE.*" );
+	Util.SetMaxUsersInProgress( 1, "SNIPE.*" );
+	Util.SetMaxUsersInProgress( 6, "MOVER.*" );
+
+	l1 = OnTriggerRegion(AABB(2409.507,-2768.421,215.321,2763.446,-2615.981,330.560), RegionTrigger.VehicleTrigger);
+	l2 = OnTriggerRegion(AABB(-112.875,-721.443,271.125,112.875,-568.536,345.125), RegionTrigger.VehicleTrigger);
+	l3 = OnTriggerRegion(AABB(-112.875,-255.500,271.125,112.875,-153.209,345.125), RegionTrigger.VehicleTrigger);
+
+	OnTrigger( "The Truck has been repaired!", Map.Truck_Built );
+	OnTrigger( "Ramp has been constructed.", Map.Ramp_Built );
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "The Truck has been damaged!", Map.Truck_Destroyed );
+	OnTrigger( "The security door has been destroyed!", Map.Security_Door_Destroyed );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "the ramp has been destroyed.", Map.Ramp_Destroyed );
+	OnTrigger( "The castle basement has been destroyed!", Map.Castle_Basement_Destroyed );
+	OnTrigger( "Allies have stolen The Gold Bars!", Map.goldbars_Taken );
+	OnTrigger( "Axis have returned The Gold Bars!", Map.goldbars_Returned );
+	OnTrigger( "Allied team is escaping with the Gold Crates!", Map.Dropoff_Captured );
+	OnTrigger( "Allied team escaped with the Gold Crates!", Map.allies_win );
+	OnTrigger( "truck at location", Map.truck_at_location );
+
+	//Movement triggers
+	//lift
+	OnTrigger( "gate_goto", Map.gate_goto );
+	OnTrigger( "lift_goto", Map.lift_goto );
+	OnTrigger( "upper_button_goto", Map.upper_button_goto );
+	OnTrigger( "lift_door1_goto", Map.lift_door1_goto );
+	OnTrigger( "gate_handle_start", Map.gate_handle_start );
+
+	//Priority Main goals
+	SetGoalPriority( "PLANT_Security_Door", 0.9 );
+	SetGoalPriority( "PLANT_Castle_Basement", 0.9 );
+	SetGoalPriority( "MOVER_truck", 0.9 );
+	SetGoalPriority( "BUILD_Truck", 0.9 );
+
+	//clear all goals
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+
+	//enable groups part 1
+	Groups.EnableAllies(Groups.group1);
+	Groups.EnableAxis(Groups.group2);
+
+	Util.EnableGoal("ROUTE.*"); //enables for both teams
+
+	// ********************************************************
+	// *****  ROUTES   ****************************************
+	// ********************************************************
+
+	MapRoutes =
+	{
+		//Goal Command Post AXIS
+		BUILD_Command_Post =
+		{
+			ROUTE_r_axisspawn =
+			{
+				ROUTE_r_door_exit = { ROUTE_r_bridge = {}, },
+				ROUTE_r_axisspawn_cellar =
+				{
+					ROUTE_r_building_exit = { ROUTE_r_bridge = {}, },
+				},
+			},
+		},
+
+		DEFEND_d_gate_1 =
+		{
+			ROUTE_r_axisspawn =
+			{
+				ROUTE_r_axisspawn_cellar =
+				{
+					ROUTE_r_building_exit = {},
+				},
+				ROUTE_r_door_exit =
+				{
+					ROUTE_r_alley = {},
+					ROUTE_r_truckramp = {},
+				},
+			},
+		},
+
+		//Castle Wall
+		PLANT_Castle_Basement =
+		{
+			ROUTE_r_alliesspawn =
+			{
+				ROUTE_r_ramp =
+				{
+					ROUTE_r_hill_3 =
+					{
+						ROUTE_r_castle_front = {},
+						ROUTE_r_hill_1 =
+						{
+							Weight = 3,
+							ROUTE_r_hill_down =  {}
+						},
+						ROUTE_r_hill_2 =  {},
+
+					},
+
+				},
+				ROUTE_r_castle_front = {},
+				ROUTE_r_security_door =
+				{
+					Weight = 3,
+					ROUTE_r_hill_1 =
+					{
+						Weight = 3,
+						ROUTE_r_hill_down =  {}
+					},
+					ROUTE_r_hill_2 =  {},
+				},
+			},
+		},
+
+		BUILD_Truck =
+		{
+			ROUTE_r_alliesspawn =
+			{
+				ROUTE_r_security_door =
+				{
+					ROUTE_r_hill_1 =
+					{
+						ROUTE_r_hill_down =
+						{
+							ROUTE_d_castle_back_1 =	{ Weight = 2, },
+						},
+					},
+				},
+			},
+		},
+		ATTACK_Gate =
+		{
+			ROUTE_r_alliesspawn =
+			{
+				ROUTE_r_front_exit =
+				{
+					ROUTE_r_ramp =
+					{
+						ROUTE_r_ramp_1 =
+						{
+							ROUTE_r_lift_1 =
+							{
+								ROUTE_r_lift_up =
+								{
+									ROUTE_r_lift_down =
+									{
+										ROUTE_r_lift_2 = { ROUTE_r_gate = {}, },
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	};
+
+	//Copy Routes
+	MapRoutes.FLAG_goldbars = BUILD_Truck;
+	MapRoutes.ATTACK_a_pilar = BUILD_Truck;
+	MapRoutes.ATTACK_a_truck = BUILD_Truck;
+	MapRoutes.ATTACK_a_castle_front = MapRoutes.PLANT_Castle_Basement;
+	MapRoutes.ATTACK_a_castle_back = MapRoutes.PLANT_Castle_Basement;
+	MapRoutes.ATTACK_a_building = MapRoutes.PLANT_Castle_Basement;
+
+	MapRoutes.DEFEND_d_gate_2 = MapRoutes.DEFEND_d_gate_1;
+	MapRoutes.DEFEND_d_ramp1 = MapRoutes.BUILD_Command_Post;
+	MapRoutes.DEFEND_d_ramp2 = MapRoutes.BUILD_Command_Post;
+
+
+	Util.UpdateSwitchData();
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "Script for Over the Top loaded" );
+};
+
+// Uncomment for shootable breakables
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 100.0;
+	bot.MaxViewDistance = 4500.0;
+
+};
+
+global Groups =
+{
+	//allies part 1
+	group1 =
+	{
+		Map.Plant_Security_Door,
+		"ATTACK_a_ramp.*",
+		"SNIPE_s_alspawn",
+		"SNIPE_s_church",
+	},
+
+	//axis part 1
+	group2 =
+	{
+		Map.Build_Command_Post,
+		Map.PLANT_Ramp,
+		Map.Call_Artillery_ar_castle_top_1,
+		Map.Call_Artillery_ar_call_axis_1,
+		Map.Artillery_S_ar_place_ax_1,
+		Map.Mobile_MG42_s_pilar,
+		"DEFEND_d_ramp.*",
+		// "MOBILEMORTAR_m_garage.*", // cs: no properties
+		// "MOBILEMORTAR_m_axspawn.*", // cs: no properties
+		"SNIPE_s_cabinet.*",
+		"DEFEND_d_security_door",
+	},
+
+	//Allies part 2
+	group3 =
+	{
+		Map.Build_Command_Post,
+		Map.Plant_Command_Post,
+		Map.Build_Ramp,
+		"ESCORT_truck",
+		Map.Build_Truck,
+		Map.Call_Artillery_ar_hill_east,
+		Map.Call_Artillery_ar_hill_west,
+		Map.Call_Artillery_ar_call_al_1,
+		Map.Call_Artillery_ar_call_al_2,
+		Map.Artillery_S_ar_place_al_1,
+		"SNIPE_s_hill_east.*",
+		"ATTACK_Gate",
+		"ATTACK_a_truck",
+		"ATTACK_a_pilar",
+		"ATTACK_a_building",
+	},
+
+	//Axis part 2
+	group4 =
+	{
+		Map.Build_Command_Post,
+		Map.Plant_Command_Post,
+		Map.PLANT_Ramp,
+		Map.Call_Artillery_ar_tower,
+		Map.Call_Artillery_ar_call_ax_2,
+		Map.Artillery_S_ar_axis_1,
+		"DEFEND_d_gate.*",
+		"DEFEND_d_castle_front.*",
+		"DEFEND_d_castle_back.*",
+		"DEFEND_d_garage.*",
+		"DEFEND_d_switch",
+		"SNIPE_s_cabinet.*",
+	},
+
+	//Allies part 3
+	group5 =
+	{
+		Map.Plant_Castle_Basement,
+		Map.Call_Artillery_ar_hill_east,
+		Map.Call_Artillery_ar_hill_west,
+		Map.Call_Artillery_ar_call_al_1,
+		Map.Call_Artillery_ar_call_al_2,
+		Map.Artillery_S_ar_place_al_1,
+		Map.Artillery_S_ar_place_al_2,
+		"ESCORT_truck",
+		Map.Build_Truck,
+		"ATTACK_Gateswitch",
+	},
+
+	//Axis part 3
+	group6 =
+	{
+		"DEFEND_d_gold.*",
+		"DEFEND_d_castle_back.*",
+		"DEFEND_d_gate.*",
+	},
+
+	//Allies part 4
+	group7 =
+	{
+		Map.Flag_goldbars,
+		"ATTACK_a_gold",
+		"ATTACK_Gateswitch",
+	},
+
+	//Axis part 4
+	group8 =
+	{
+		"DEFEND_d_gate.*",
+		"DEFEND_d_lift.*",
+	},
+
+	//Allies part 5
+	group9 =
+	{
+		Map.Cappoint_Dropoff,
+		"ATTACK_a_gold",
+		"ATTACK_Gateswitch",
+	},
+
+	//Allies part 6
+	group11 =
+	{
+		"ESCORT_truck",
+		Map.Build_Truck,
+		"ATTACK_Gateswitch",
+	},
+
+	EnableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, goal );
+			Util.MapDebugPrint("EnableAllies: enabling " + goal, true);
+		}
+	},
+
+	EnableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, goal );
+			Util.MapDebugPrint("EnableAxis: enabling " + goal, true);
+		}
+	},
+
+	DisableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, goal );
+			Util.MapDebugPrint("DisableAllies: disabling " + goal, true);
+		}
+	},
+
+	DisableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, goal );
+			Util.MapDebugPrint("DisableAxis: disabling " + goal, true);
+		}
+	},
+};

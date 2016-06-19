@@ -1,0 +1,1092 @@
+//==========================================================================================
+//
+//	aa-guns.gm
+//
+//	Who			When		What
+//------------------------------------------------------------------------------------------
+//	IRATA[*]		unknown	Original
+//	Advieszeur		unknown	Finished for Omnibot 0.66
+//	crapshoot		05/03/08	Updated for compatability with 0.7 - note: I saw no
+//						tower5 in the map. mg42 goals also were different, note2:
+//						there are invalid route goals, see console on map load
+//	jaskot		02/03/09	Converted old script to new format, fixed wrong goal
+//						names and routes
+//	d00d			02/21/10	Tested with 0.8; cleaned up messy whitespace in the
+//						script; ignore movers; added AimPosition; added
+//						plant goal coverspots
+//
+//==========================================================================================
+
+// resetAT just sets ATTACK/DEFENCE/SNIPE/ARTY to false
+// Set minePriority to 0 if you dont want mines
+
+// TODO (d00d: By whom? Advieszeur? Is this up to date?)
+// - axis tower is not built, some stuckage there
+// - check all ladders for stuckage
+
+// TODO for 0.81 (d00d):
+// - add secondary facings for attack/defend spots
+// - maybe add mortar goals
+
+global Map =
+{
+	Debug = false,
+	ShowMovers = false,
+
+	// keep these movers so we can ignore them
+	Movers =
+	{
+		"MOVER_tower_light",
+		"MOVER_the_bridge",
+		"MOVER_tankbarrier",
+		"MOVER_outside_aa_gun_defence",
+		"MOVER_building_aa_gun_defence",
+		"MOVER_crane_hook",
+		"MOVER_bombcrate1",
+		"MOVER_bombcrate2"
+	},
+
+	Switches =
+	{
+		MySwitch =
+		{
+			WaypointName = "crane_switch",
+			Enabled = true,
+			LimitTeam = 0, // disabled at start
+			LimitClass = (1<<CLASS.ENGINEER), //only engineers can use it
+			LimitBots = 2, //only two bots at a time
+			Debug = false,
+			LimitDistance = 1000,
+			AimPosition = Vec3(4563, -2720, 250)
+		},
+	},
+
+	Navigation =
+	{
+		bunker1ladder =
+		{
+			navigate = function( _this )
+			{
+				_this.Bot.HoldButton( BTN.FORWARD, 4 );
+				sleep( 4 );
+			},
+		},
+	},
+
+	Ammo_Cabinet_south_ammocabinet = "AMMOCAB_south_ammocabinet",
+	Ammo_Cabinet_south_ammocabinet_1 = "AMMOCAB_south_ammocabinet_1",
+	Health_Cabinet_south_healthcabinet = "HEALTHCAB_south_healthcabinet",
+	Health_Cabinet_south_healthcabinet_1 = "HEALTHCAB_south_healthcabinet_1",
+	Call_Artillery_1150 = "CALLARTILLERY_1150",
+	Call_Artillery_1174 = "CALLARTILLERY_1174",
+	Call_Artillery_1215 = "CALLARTILLERY_1215",
+	Call_Artillery_1216 = "CALLARTILLERY_1216",
+	Call_Artillery_138 = "CALLARTILLERY_138",
+	Call_Artillery_271 = "CALLARTILLERY_271",
+	Call_Artillery_284 = "CALLARTILLERY_284",
+	Call_Artillery_399 = "CALLARTILLERY_399",
+	Call_Artillery_631 = "CALLARTILLERY_631",
+	Call_Artillery_874 = "CALLARTILLERY_874",
+	Call_Artillery_art_b4 = "CALLARTILLERY_art_b4",
+	Call_Artillery_d_switch5 = "CALLARTILLERY_d_switch5",
+	Call_Artillery_d_wall1 = "CALLARTILLERY_d_wall1",
+	Call_Artillery_d_wall2 = "CALLARTILLERY_d_wall2",
+	Call_Artillery_d_wall3 = "CALLARTILLERY_d_wall3",
+	Artillery_D_art_a1 = "ARTILLERY_D_art_a1",
+	Artillery_D_art_a1_1 = "ARTILLERY_D_art_a1_1",
+	Artillery_D_art_a2 = "ARTILLERY_D_art_a2",
+	Artillery_D_art_b1 = "ARTILLERY_D_art_b1",
+	Artillery_D_art_b2 = "ARTILLERY_D_art_b2",
+	Artillery_D_art_b3 = "ARTILLERY_D_art_b3",
+	Artillery_D_art_b4 = "ARTILLERY_D_art_b4",
+	Artillery_D_art_bunker1 = "ARTILLERY_D_art_bunker1",
+	Artillery_D_art_bunker2 = "ARTILLERY_D_art_bunker2",
+	Artillery_D_art_c1 = "ARTILLERY_D_art_c1",
+	Artillery_D_art_c2 = "ARTILLERY_D_art_c2",
+	Artillery_D_art_gate = "ARTILLERY_D_art_gate",
+	Artillery_D_art_gun1 = "ARTILLERY_D_art_gun1",
+	Artillery_D_art_gun2 = "ARTILLERY_D_art_gun2",
+	Artillery_D_art_gun3 = "ARTILLERY_D_art_gun3",
+	Artillery_D_art_gun4 = "ARTILLERY_D_art_gun4",
+	Artillery_D_art_gun6 = "ARTILLERY_D_art_gun6",
+	Artillery_D_art_wall1 = "ARTILLERY_D_art_wall1",
+	Artillery_D_art_wall2 = "ARTILLERY_D_art_wall2",
+	Artillery_D_art_wall3 = "ARTILLERY_D_art_wall3",
+	Artillery_D_at_tanksupport4 = "ARTILLERY_D_at_tanksupport4",
+	Build_Bridge = "BUILD_Bridge",
+	Build_South_Tower = "BUILD_South_Tower",
+	Build_Tank = "BUILD_Tank",
+	Build_building_aa_gun_defence = "BUILD_building_aa_gun_defence",
+	Build_outside_aa_gun_defence = "BUILD_outside_aa_gun_defence",
+	Build_tankbarrier = "BUILD_tankbarrier",
+	Plant_Bridge = "PLANT_Bridge",
+	Plant_South_Tower = "PLANT_South_Tower",
+	Plant_building_aa_gun = "PLANT_building_aa_gun",
+	Plant_building_aa_gun_defence = "PLANT_building_aa_gun_defence",
+	Plant_outside_aa_gun = "PLANT_outside_aa_gun",
+	Plant_outside_aa_gun_defence = "PLANT_outside_aa_gun_defence",
+	Plant_side_wall = "PLANT_side_wall",
+	Plant_tankbarrier = "PLANT_tankbarrier",
+	Mount_Bunker_MG_Nest = "MOUNTMG42_Bunker_MG_Nest",
+	Mount_Gate_MG_Nest = "MOUNTMG42_Gate_MG_Nest",
+	Mount_mg_tower5 = "MOUNTMG42_mg_tower5",
+	Repair_Bunker_MG_Nest = "REPAIRMG42_Bunker_MG_Nest",
+	Repair_Gate_MG_Nest = "REPAIRMG42_Gate_MG_Nest",
+	Repair_mg_tower5 = "REPAIRMG42_mg_tower5",
+	Snipe_s_bridgeview1 = "SNIPE_s_bridgeview1",
+	Snipe_s_bridgeview2 = "SNIPE_s_bridgeview2",
+	Snipe_s_crane1 = "SNIPE_s_crane1",
+	Snipe_s_crane2 = "SNIPE_s_crane2",
+	Snipe_s_gun2 = "SNIPE_s_gun2",
+	Snipe_s_gun3 = "SNIPE_s_gun3",
+	Snipe_s_roof = "SNIPE_s_roof",
+	Snipe_s_roof2 = "SNIPE_s_roof2",
+	Snipe_s_wall1 = "SNIPE_s_wall1",
+	Snipe_s_wall2 = "SNIPE_s_wall2",
+	Mover_tank = "MOVER_tank",
+	Plant_Mine_1219 = "PLANTMINE_1219",
+	Plant_Mine_1220 = "PLANTMINE_1220",
+	Plant_Mine_m_bridge1 = "PLANTMINE_m_bridge1",
+	Plant_Mine_m_bridge2 = "PLANTMINE_m_bridge2",
+	Plant_Mine_m_gun1 = "PLANTMINE_m_gun1",
+	Plant_Mine_m_gun2 = "PLANTMINE_m_gun2",
+	Plant_Mine_m_gun3 = "PLANTMINE_m_gun3",
+	Plant_Mine_m_gun4 = "PLANTMINE_m_gun4",
+
+	currentGoal = "",
+	minDefFlagCampTime = 10,
+	maxDefFlagCampTime = 100,
+	maxViewDistance = 1500,
+	targetBreakableDist = 100,
+	switchLimit = 2,
+	craneActivate = 0,
+
+	minePriority = 0.7,
+	attackPriority = 0.5,
+	defendPriority = 0.5,
+	mountPriority  = 0.55,
+	buildPriority = 0.9,
+	plantPriority = 0.8,
+	snipePriority  = 0.7,
+
+	// Conditionals for Tank position
+	BunkerGateOpen = false,
+	TankPos = "start",
+
+	resetAT = function()
+	{
+		//DEFEND
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_.*" );
+		//ATTACK
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_.*" );
+		//SNIPE
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_.*" );
+		//ARTY
+		SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CALLARTILLERY_.*" );
+	},
+
+	// TANK STUFF
+	Tank_Damaged = function()
+	{
+		if ( TestMap || Map.BunkerGateOpen )
+			{ return; }
+
+		//center it every time it is damaged
+		Util.SetPositionGoal( Map.Build_Tank, Map.Mover_tank );
+
+		if ( MAP_TALK )
+		{
+			rand = ETUtil.CountTeam( TEAM.ALLIES ) * 2;
+			foreach ( gameId and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.ALLIES &&
+					bot.GetClass() != CLASS.ENGINEER &&
+					RandInt( 1, rand ) < 2 )
+				{
+					sleep( 1.0 );
+					bot.SayVoice( VOICE.REPAIR_VEHICLE );
+				}
+			}
+		}
+
+		Util.MapDebugPrint("Tank damaged");
+	},
+
+	Tank_Repaired = function()
+	{
+		if ( TestMap || Map.BunkerGateOpen )
+			{ return; }
+
+		if ( MAP_TALK )
+		{
+			rand = ETUtil.CountTeam( TEAM.ALLIES ) * 2;
+			foreach ( gameId and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.ALLIES &&
+					bot.GetClass() == CLASS.ENGINEER &&
+					RandInt( 1, 10 ) < 2 )
+				{
+					sleep( 1.0 );
+					bot.SayVoice( VOICE.ESCORT_VEHICLE );
+				}
+			}
+		}
+
+		Util.MapDebugPrint("Tank repaired");
+	},
+
+	Tankpos_barrier = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//Replace an Attack spot with a route with no tank escort
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_d_tankbarrier2" );	//Defend is now behind tank
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_tankbarrier5" );		//Defend is now behind tank
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_at_a1" );			//Attack outside
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_at_barrier_extra.*" );		//Attack with other route
+
+		// start the next trigger thread
+		Util.OnTriggerPosition( "MOVER_tank", "tanktrigger_cabinets", 200.0, Map.Tankpos_cabinets );
+	},
+
+	Tankpos_cabinets = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_at_tanksupport2" );
+
+		// start the next trigger thread
+		Util.OnTriggerPosition( "MOVER_tank", "tanktrigger_bridge", 200.0, Map.Tankpos_bridge );
+	},
+
+	Tankpos_bridge = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_at_tanksupport2" );  	//Disable extra support
+
+		// start the next trigger thread
+		Util.OnTriggerPosition( "MOVER_tank", "tanktrigger_plaza",  200.0, Map.Tankpos_plaza );
+	},
+
+	Tankpos_plaza = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_at_tanksupport2" );
+
+		// start the next trigger thread
+		Util.OnTriggerPosition( "MOVER_tank", "tanktrigger_plaza1", 200.0, Map.Tankpos_plaza1 );
+	},
+
+	Tankpos_plaza1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_at_tanksupport2" );		//Disable Extra Support
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_at_tanksupport3" );		//Support tank extra
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_at_tanksupport4" );		//Support tank extra
+
+		// start the next trigger thread
+		Util.OnTriggerPosition( "MOVER_tank", "tanktrigger_plaza2", 200.0, Map.Tankpos_plaza2 );
+	},
+
+	Tankpos_plaza2 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//Map.Tankpos_reset ( "at_plaza2" ) ;
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Repair_Gate_MG_Nest );		//MG outside Bunker
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Mount_Gate_MG_Nest );		//MG outside Bunker
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_at_tanksupport1" );		//Support tank extra
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_at_tanksupport2" );		//Support tank extra
+	},
+
+	//TANK ROUTE EVENTS
+	//Part 1
+	tankbarrier_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "tankbarrier_Built" );
+	},
+
+	tankbarrier_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Snipe_s_roof2 ); 		//Sniperspot for Axis on roof
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SMOKEBOMB_tankbarrier.*" );
+
+		Util.MapDebugPrint( "tankbarrier_Destroyed" );
+	},
+
+	//Part 2
+	Tank_Passes_Barrier = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//first house with Health and ammo available
+		Wp.SetWaypointFlag( "door_cabinets1", "closed", false );
+
+		//ALLIES
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_at_a.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SMOKEBOMB_bridge.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_at_b.*" );			//Attack 2nd part of the map
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Snipe_s_roof ); 		//Arty targets tank
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Bridge );	//Make the bridge
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_South_Tower );	//Make the bridge
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Repair_Gate_MG_Nest );		//MG outside Bunker
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mount_Gate_MG_Nest );		//MG outside Bunker
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_bbSpawn" );			//Route from broken building
+
+		//AXIS
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_D_art_a.*" ); 		//Arty targets tank
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_tankbarrier.*" ); 		//Defend the Tankbarrier
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_tankbarrier ); 	//Construct the Tankbarrier
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_s_bridgeview.*" ); 	//Sniperspots to bridge
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_D_art_b.*" ); 		//Arty targets tank
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_cave" ); 			//Cave exit defend
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_bridge.*" ); 			//Bridge
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Repair_mg_tower5 );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Mount_mg_tower5 );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_South_Tower );
+
+		Util.RemoveGoal( Map.Build_tankbarrier );	//Disabling this goal does not always work
+
+		Util.MapDebugPrint( "Tank passes barrier." );
+	},
+
+	Allies_Building_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allies Building Captured." );
+	},
+
+	thebridge_Built = function( trigger )
+	{
+		if ( TestMap )
+		{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SMOKEBOMB_bridge.*" );
+		Util.MapDebugPrint( "thebridge_Built" );
+	},
+
+	thebridge_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+		{ return; }
+
+		Util.MapDebugPrint( "thebridge_Built" );
+	},
+
+	tower5_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "tower5_Built" );
+	},
+
+	tower5_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "tower5_Destroyed" );
+	},
+
+	//Part 3
+	Tank_Passes_bridge = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		// reset goals  (Attack, Defend, Snipe, Arty)
+		Map.resetAT();
+
+		//ALLIES
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_Bridge );	//Make the bridge
+		//SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_South_Tower );	//Make the bridge
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_at_hill");  			//Attack at hill  (mg)
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_at_b3");  			//Attack at Bunkerdoor
+
+		//AXIS
+		//SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_mg_tower5" );
+		//SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_mg_tower5" );
+		//SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_South_Tower );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Plant_Bridge );
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANTMINE_m_bridge.*" ); 		//Mines at bridge
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Snipe_s_roof2 ); 		//Sniperspot for Axis on roof
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_D_art_c.*" ); 		//Arty targets tank
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_wall.*" ); 			//Defend on Bunker Wall
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_s_wall.*" ); 		//Snipe on Bunker Wall
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_cave" ); 			//Cave exit defend
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_hill" ); 			//Cave exit defend
+
+		Util.MapDebugPrint( "Tank over bridge" );
+	},
+
+	//BUNKER
+	Bunker_Gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		// reset goals  (Attack, Defend, Snipe, Arty)
+		Map.resetAT();
+
+		Util.RemoveGoal( Map.Build_Tank );  		//Tank repair is not needed anymore
+
+		//ALLIES
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Repair_Gate_MG_Nest );		//MG outside Bunker
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Mount_Gate_MG_Nest );		//MG outside Bunker
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_at_switch.*");  		//Attack at Bunker
+		//SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_bbSpawn");
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNT_Tank" );
+
+		//AXIS
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_D_art_gate" ); 		//Arty Bunker Entrance
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_D_art_bunker.*" ); 	//Arty in Bunker
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_wall.*" ); 			//Defend on Bunker Wall
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_gate.*" ); 			//Defend on Bunker gate
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_switch.*" ); 			//Defend on Bunker Wall
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_s_wall.*" ); 		//Snipe on Bunker Wall
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_s_crane.*" ); 		//Sniperspots in bunker
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_m_gun.*" ); 			//Mines at guns
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_m_cave.*" ); 		//Mines at spawn exit
+
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Mover_tank );  			//Tank is not a target anymore
+
+		// MAX bots per defendtype
+		Util.SetMaxUsers( 2, "DEFEND_d_wall.*" );
+		Util.SetMaxUsers( 2, "DEFEND_d_gate.*" );
+		Util.SetMaxUsers( 4, "DEFEND_d_switch.*" );
+
+		// Make defend off switch more important than other defend goals
+		df_SwitchPriority = Map.defendPriority + 0.02;
+		SetGoalPriority( "DEFEND_d_switch.*", df_SwitchPriority  );	//Switch defend
+
+		// Activate switch  - no switch purpose, only used as magnet for Engi's
+		Map.Switches.MySwitch.LimitTeam = ( 1 << TEAM.ALLIES );
+
+		Util.MapDebugPrint( "The bunkergate has been destroyed." );
+	},
+
+	//CRANE EVENTS
+	Crane_Activated = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.craneActivate += 1;
+
+		if ( Map.craneActivate == 1 )
+		{
+			//First time, Allies Engi must not stay in room for 2e activation
+			Map.Switches.MySwitch.LimitTeam = ( 1 << TEAM.AXIS );
+
+			Util.MapDebugPrint( "Crane is activated (1e).", true );
+		}
+
+		if ( Map.craneActivate == 2 )
+		{
+			//2e activation, no stopping possible
+			Map.Switches.MySwitch.LimitTeam = 0; 		//Disable switch
+
+			Util.MapDebugPrint( "Crane is activated (2e).", true );
+		}
+
+		Util.MapDebugPrint( "Bomb loading" );
+	},
+
+	First_Bomb_Loaded = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Switches.MySwitch.LimitTeam = ( 1 << TEAM.ALLIES );		//Enable switch only for Allies for 2e bomb
+
+		Util.MapDebugPrint( "First bomb loaded." );
+	},
+
+	All_Bombs_Loaded = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		// Last part of the map - the AA-guns;  change goals
+		// reset goals  (Attack, Defend, Snipe, Arty)
+		Map.resetAT();
+
+		Map.Switches.MySwitch.LimitTeam = 0;		//Disable switch
+
+		//Second house with Health and ammo available
+		Wp.SetWaypointFlag( "door_cabinets1", "closed", false );
+
+		//ALLIES
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_at_gun.*" );  			//Attack at guns
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_D_art_gun5" ); 		//Arty's
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_D_art_gun6" ); 		//Arty's
+		//SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_bbSpawn");  			//Routes for Engi's
+
+		//GUNS
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_outside_aa_gun_defence );  	//outside defence
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_building_aa_gun_defence );  	//building defence
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_side_wall );  			//building side
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map. Plant_building_aa_gun );  		//building gun
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_outside_aa_gun );  		//outside gun
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_axispath" );  				//Cut off Axis
+
+		//AXIS
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_D_art_gun.*" ); 		//Arty's
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_gun.*" ); 			//Defend on Bunker Wall
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_s_gun.*" ); 		//Snipe on Bunker Wall
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_m_gun.*" ); 			//Mines at guns
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_m_cave.*" ); 		//Mines at spawn exit
+
+		//GUNS
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_outside_aa_gun_defence );  	//outside defence
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_building_aa_gun_defence );  	//building defence
+
+		Util.MapDebugPrint( "All bombs loaded, guns available" );
+	},
+
+	//GUN  EVENTS
+	building_aa_gun_defence_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "building-aa-gun-defence_Built" );
+	},
+
+	outside_aa_gun_defence_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_outside_aa_gun_defence );  	//outside defence
+		SetGoalPriority( "ATTACK_at_gun3", Map.attackPriority );	//Attack normal priority
+		SetGoalPriority( "ATTACK_at_gun4", Map.attackPriority );	//Attack normal priority
+
+		Util.MapDebugPrint( "outside-aa-gun-defence_Built" );
+	},
+
+	building_aa_gun_defence_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "building-aa-gun-defence_Destroyed" );
+	},
+
+	outside_aa_gun_defence_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_outside_aa_gun_defence );  	//outside defence
+
+		SetGoalPriority( "ATTACK_at_gun3", Map.attackPriority + 0.02 );	//Attack more important when defence is destroyed
+		SetGoalPriority( "ATTACK_at_gun4", Map.attackPriority + 0.02 );	//Attack more important when defence is destroyed
+
+		Util.MapDebugPrint( "outside-aa-gun-defence_Destroyed" );
+	},
+
+	outside_aa_gun_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//Outside gun no goal
+		SetAvailableMapGoals( TEAM.ALLIES,false, Map.Plant_outside_aa_gun_defence );  //outside defence
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_outside_aa_gun );  		//outside gun
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_at_gun4" );
+		SetGoalPriority( "ATTACK_at_gun3", Map.attackPriority );				//Attack normal priority
+
+		//Less Attack and defend at gun
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_outside_aa_gun_defence );  	//outside defence
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANTMINE_m_gun.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_d_gunlow.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_d_gunpath1" );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Snipe_s_gun3 );
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANTMINE_m_gun.*" ); 			//Mines at guns
+
+		Util.MapDebugPrint( "outside_aa_gun_Destroyed" );
+	},
+
+	building_aa_gun_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//Building gun no goal
+		SetAvailableMapGoals( TEAM.ALLIES,false, Map.Plant_building_aa_gun_defence );  	//outside defence
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_building_aa_gun );  		//outside gun
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_side_wall );  			//side wall
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_at_gun1");
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_at_gun2");
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_at_balcon");
+
+		//Less Attack and defend at gun
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_building_aa_gun_defence );  	//outside defence
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_d_guntop2");
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_d_guntop3");
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_d_guntop4");
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANTMINE_m_cave.*" ); 		//Mines at spawn exit
+
+		Util.MapDebugPrint( "building_aa_gun_Destroyed" );
+	},
+
+	// Side wall
+	side_wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "The side wall has been destroyed." );
+	},
+
+	unsupported = function()
+	{
+		while(1)
+		{
+			// make it annoying so they know
+			EchoToScreen(3, "^1unsupported version of aa-guns: use aa-guns_better_fps.pk3");
+			sleep(2.9);
+		}
+	}
+};
+
+//######  GLOBAL  MAP LOAD  #################
+
+global OnMapLoad = function()
+{
+	// an old version of the map uses the same name
+	versionCheck = GetGoal("BUILD_South_Tower");
+	if ( !versionCheck ) { thread(Map.unsupported); }
+
+	//MOVE GOALS FOR BETTER REACHABLE
+	Util.SetGoalOffset( -40, 0, -60, Map.Plant_outside_aa_gun );
+	Util.SetGoalOffset( -40, 0, 0, Map.Plant_outside_aa_gun_defence );
+	Util.SetGoalOffset( -30, -50, 0, Map.Build_tankbarrier );
+	Util.SetGoalOffset( 50, 0, -40, Map.Build_South_Tower );
+	Util.SetGoalOffset( 40, 0, -40, Map.Build_building_aa_gun_defence );
+	Util.SetGoalOffset( 120, 0, 80, Map.Plant_Bridge );
+	Util.SetGoalOffset( -40, 0,  0, Map.Build_outside_aa_gun_defence );
+	Util.SetGoalOffset( 20, 80,  -100, Map.Plant_South_Tower );
+	Util.SetGoalOffset( 0, 40, -40, Map.Plant_side_wall );
+	Util.AddUsePoint("PLANT_building_aa_gun", { Vector3(2916,1020,240), Vector3(2860,960,240) });
+
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// disable combat movement in the following regions
+	OnTriggerRegion( AABB(3268,-4534,256, 4464,-3836,638), RegionTrigger.DisableCombatMovement );
+
+	//TANK STUFF
+	//Status
+	OnTrigger( "The tank has been damaged!", Map.Tank_Damaged );
+	OnTrigger( "The tank has been repaired!", Map.Tank_Repaired );
+
+	//Position - note the other triggers are started inline to avoid unnecessary distance calculations
+	Util.OnTriggerPosition( "MOVER_tank", "tanktrigger_barrier", 200.0, Map.Tankpos_barrier );			//At doorway out
+
+	//On Tank route
+	//Part 1
+	OnTrigger( "The tankbarrier has been constructed!", Map.tankbarrier_Built );
+	OnTrigger( "The tankbarrier has been destroyed!", Map.tankbarrier_Destroyed );
+
+	//Part 2
+	OnTrigger( "The tank passed the barrier!", Map.Tank_Passes_Barrier );
+	OnTrigger( "^3The South Tower has been constructed!", Map.tower5_Built );
+	OnTrigger( "^3The South Tower has been destroyed!", Map.tower5_Destroyed );
+	OnTrigger( "The allies captured the broken building!", Map.Allies_Building_Captured);
+
+	OnTrigger( "Allied team has reinforced the Bridge!", Map.thebridge_Built );
+	OnTrigger( "Axis team has destroyed the Bridge!", Map.thebridge_Destroyed );
+	OnTrigger( "^1Axis: Don't let them destroy the bunkergate!", Map.Tank_Passes_bridge);
+
+	//BUNKER
+	OnTrigger( "The bunkergate has been destroyed!", Map.Bunker_Gate_Destroyed );
+
+	//CRANE
+	OnTrigger( "The crane is activated", Map.Crane_Activated );
+	OnTrigger( "The allies loaded the 1e bomb!", Map.First_Bomb_Loaded );
+	OnTrigger( "The alies loaded the 2e bomb!", Map.All_Bombs_Loaded );
+
+	//AA-GUNS
+	OnTrigger( "The building aa-gun defence has been constructed!", Map.building_aa_gun_defence_Built );
+	OnTrigger( "The outside aa-gun defence has been constructed!", Map.outside_aa_gun_defence_Built );
+	OnTrigger( "The building aa-gun has been destroyed!", Map.building_aa_gun_Destroyed );
+	OnTrigger( "The outside aa-gun has been destroyed!", Map.outside_aa_gun_Destroyed );
+
+	OnTrigger( "The allies blown the side wall!", Map.side_wall_Destroyed );
+	OnTrigger( "The building aa-gun defence has been destroyed!", Map.building_aa_gun_defence_Destroyed );
+	OnTrigger( "The outside aa-gun defence has been destroyed!", Map.outside_aa_gun_defence_Destroyed );
+
+	// Max users per goal
+	Util.SetMaxUsersInProgress( 1, "MOUNTMG42.*" );
+
+	// Map Goal Properties
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=1, MaxCampTime=5} );
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=Map.minDefFlagCampTime, MaxCampTime=Map.maxDefFlagCampTime} );
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=30, MaxCampTime=70} );
+
+	//Priority Goals
+	SetGoalPriority( "MOUNTMG42_.*", Map.mountPriority ); 		//MG's
+	SetGoalPriority( "MAP_CONSTRUCTION_.*", Map.buildPriority );		//Constucting goals
+	SetGoalPriority( "PLANT_.*", Map.plantPriority  );			//Destroy object
+	SetGoalPriority( "DEFEND_.*", Map.defendPriority );				//Default defend
+	SetGoalPriority( "DEFEND_d_axispath", Map.defendPriority + 0.02 );		//Cut off Axis
+	SetGoalPriority( "ATTACK_.*", Map.attackPriority );				//Default defend
+	SetGoalPriority( "PLANTMINE_.*", Map.minePriority ); 			//Plant Mines
+	SetGoalPriority( "SNIPE_.*", Map.snipePriority ); 			//Sniper spots
+	SetGoalPriority( "BUILD_Tank", 1.0 ); 		//Construct Tank
+
+	SetGoalPriority( "ATTACK.*", 0.25, 0, CLASS.ENGINEER );
+	SetGoalPriority( "DEFEND.*", 0.5, 0, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT.*", Map.plantPriority + 0.02, TEAM.ALLIES, CLASS.COVERTOPS );
+
+	SetGoalPriority( Map.Plant_outside_aa_gun_defence, Map.plantPriority + 0.04  ); 		//OutsideGun more important
+	SetGoalPriority( Map.Plant_outside_aa_gun, Map.plantPriority + 0.02 ); 	//OutsideGun more important
+
+	//Defence spots priority change
+	SetGoalPriority( "DEFEND_d_switch4", Map.defendPriority + 0.02 );			//More important
+	SetGoalPriority( "DEFEND_d_switch6", Map.defendPriority + 0.02 );			//More important
+	SetGoalPriority( "DEFEND_d_gate3", Map.defendPriority + 0.02 );				//More important
+	SetGoalPriority( "DEFEND_d_switch1", Map.defendPriority - 0.02 );				//Less important
+	SetGoalPriority( "DEFEND_d_switch3", Map.defendPriority - 0.02 );				//Less important
+
+	//SET GOALS AT START
+	Util.DisableGoal( ".*", true );	//disable all goals except routes
+
+	// Set Health and Ammo closed from start
+	Wp.SetWaypointFlag( "door_cabinets1", "closed", true );
+	Wp.SetWaypointFlag( "door_cabinets1", "closed", true );
+
+	//ARTY SPOTS
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_.*" );    //Arty Spots
+	SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_.*" );    //Arty Spots
+
+	//ALLIES
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Tank );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNT_Tank" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_tankbarrier );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_at_a.*" );			//Attack 1e part
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SMOKEBOMB_tankbarrier.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_StartSpawn" );  			//ROUTES to Broken Building
+	SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42.*" );  		//MG repair
+	SetAvailableMapGoals( TEAM.ALLIES, false, "HEALTHCAB_.*" ); 			//Disable health
+	SetAvailableMapGoals( TEAM.ALLIES, false, "AMMOCAB_.*" ); 				//Disable ammo
+
+	//AXIS
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_tankbarrier ); 	//Construct TankBarrier
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_tankbarrier.*" ); 		//Defend the Tankbarrier
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_d_tankbarrier5" );		//Extra defend when tank is at barrier
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_m_bridge.*" ); 		//Mines at bridge
+	SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_D_art_a.*" ); 		//Arty targets tank
+	SetAvailableMapGoals( TEAM.AXIS, false, "HEALTHCAB_.*" ); 				//Disable health
+	SetAvailableMapGoals( TEAM.AXIS, false, "AMMOCAB_.*" ); 				//Disable ammo
+
+	// ROUTES
+	MapRoutes =
+	{
+		//Part 1 of map
+		PLANT_tankbarrier =
+		{
+			ROUTE_StartSpawn =
+			{
+				ROUTE_tank1_1 =
+				{
+					Weight = 4,
+					ROUTE_tank1_2 =
+					{
+						ROUTE_tank1_3 =
+						{
+							ROUTE_tank1_4 =
+							{
+								ROUTE_tank1_5  = {},
+							},
+						},
+					},
+				},
+				ROUTE_alt_tank1_1 =
+				{
+					Weight = 2,
+					ROUTE_alt_tank1_2 =
+					{
+						ROUTE_alt_tank1_3 =
+						{
+							ROUTE_alt_tank1_4 =
+							{
+								ROUTE_tank1_5  = {},
+							},
+						},
+					},
+				},
+				ROUTE_hide1 =
+				{
+					ROUTE_hide2 =
+					{
+						ROUTE_hide3  = {},
+					},
+				},
+				ROUTE_wall_hole = {},
+				ROUTE_wall_right = {},
+			},
+		},
+		//Allies attack route without tank escort  (hiding)
+		ATTACK_at_barrier_extra1 =
+		{
+			ROUTE_StartSpawn =
+			{
+				ROUTE_hide1 =
+				{
+					ROUTE_hide2 =
+					{
+						ROUTE_hide3  = {},
+					},
+				},
+			},
+		},
+		//Axis defending
+		DEFEND_d_tankbarrier =
+		{
+			ROUTE_bbSpawn =
+			{
+				ROUTE_bbSpawn2 =  { Weight = 4, },
+				ROUTE_r_outside = { Weight = 3, },
+				ROUTE_r_ladder =  { },
+			},
+		},
+		//Part 2 of map
+		BUILD_Bridge =
+		{
+			ROUTE_bbSpawn =
+			{
+				ROUTE_bbSpawn2 =
+				{
+					ROUTE_tank2_1 =
+					{
+						ROUTE_tank2_2 =
+						{
+							ROUTE_tank2_3  = {},
+						},
+						ROUTE_alt_tank2_2 =
+						{
+							ROUTE_alt_tank2_3  = {},
+						},
+					},
+				},
+			},
+		},
+		//Route through the cave
+		PLANT_South_Tower =
+		{
+			ROUTE_bbSpawn =
+			{
+				ROUTE_cave1 =
+				{
+					ROUTE_cave2  = {},
+				},
+			},
+		},
+		//Part 3 of map  Last Tank route
+		MOUNTMG42_Gate_MG_Nest =
+		{
+			ROUTE_bbSpawn =
+			{
+				ROUTE_tank2_1 =
+				{
+					ROUTE_tank2_2 =
+					{
+						ROUTE_tank2_3 =
+						{
+							ROUTE_tank3_2  =
+							{
+								ROUTE_tank3_3  =
+								{
+									ROUTE_tank3_4  = {},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		ATTACK_at_tanksupport1 =
+		{
+			ROUTE_bbSpawn =
+			{
+				ROUTE_tank2_1 =
+				{
+					ROUTE_tank2_2 =
+					{
+						ROUTE_tank2_3 =
+						{
+							ROUTE_tank3_2  =
+							{
+								ROUTE_tank3_3  =
+								{
+									ROUTE_tank3_4  = {},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		//Crane Part
+		//Route through the cave to switch (Engi Only)
+		ATTACK_at_switch_engi =
+		{
+			ROUTE_bbSpawn =
+			{
+				ROUTE_cave1 =
+				{
+					ROUTE_cave2  =
+					{
+						ROUTE_r_bunker3  =
+						{
+							ROUTE_r_switch1  = {Weight = 4,},
+							ROUTE_r_switch2  = {},
+						},
+					},
+				},
+			},
+		},
+		//TO GUNS
+		//Route to Building Gun
+		PLANT_side_wall =
+		{
+			ROUTE_r_BunkerSpawn =
+			{
+				ROUTE_r_Gun1 =
+				{
+					ROUTE_r_Gun2  =
+					{
+						ROUTE_r_Gun3  = {},
+					},
+					ROUTE_r_Gun4  =
+					{
+						ROUTE_r_Gun7  = {},
+						ROUTE_r_Gun5  = {},
+					},
+				},
+				ROUTE_r_Gun6 =
+				{
+					ROUTE_r_Gun7  = {},
+					ROUTE_r_Gun5  = {},
+				},
+				ROUTE_r_BunkerCave1 =
+				{
+					ROUTE_r_BunkerCave2  =
+					{
+						ROUTE_r_GunBuilding_back  = {},
+						ROUTE_r_GunBuilding_front  = {},
+					},
+				},
+			},
+		},
+		//Route to Outside Gun
+		PLANT_outside_aa_gun =
+		{
+			ROUTE_r_BunkerSpawn =
+			{
+				ROUTE_r_Gun1 =
+				{
+					ROUTE_r_Gun6  = {Weight = 3,},
+					ROUTE_r_Gun4  = {},
+				},
+				ROUTE_r_Gun6 =
+				{
+					ROUTE_r_Gun7  = {},
+					ROUTE_r_Gun5  = {},
+				},
+				ROUTE_r_BunkerCave1 =
+				{
+					ROUTE_r_BunkerCave2  =
+					{
+						ROUTE_r_Gun3  = { ROUTE_r_Gun7  = {}, },
+						ROUTE_r_Gun2  =
+						{
+							ROUTE_r_Gun4  = {},
+							ROUTE_r_Gun6  = {Weight = 3,},
+						},
+					},
+				},
+			},
+		},
+	};
+
+	// Copy routes
+	MapRoutes.ATTACK_at_a2 = MapRoutes.PLANT_tankbarrier;					//Route part 1
+	MapRoutes.SMOKEBOMB_tankbarrier_2 = MapRoutes.PLANT_tankbarrier;					//Route part 1
+	MapRoutes.SMOKEBOMB_tankbarrier_1 = MapRoutes.PLANT_tankbarrier;					//Route part 1
+	MapRoutes.ATTACK_at_a1 = MapRoutes.ATTACK_at_barrier_extra1;						//Route part 1
+	MapRoutes.ATTACK_at_barrier_extra2 = MapRoutes.ATTACK_at_barrier_extra1;					//Route without tank escort
+
+	MapRoutes.DEFEND_d_tankbarrier2 = MapRoutes.DEFEND_d_tankbarrier;						//Defend barrier
+	MapRoutes.DEFEND_d_tankbarrier4 = MapRoutes.DEFEND_d_tankbarrier;						//Defend barrier
+	MapRoutes.DEFEND_d_tankbarrier5 = MapRoutes.DEFEND_d_tankbarrier;						//Defend barrier
+
+	MapRoutes.ATTACK_at_tanksupport1 = MapRoutes.ATTACK_at_tanksupport2;					//Tanksupport (escort)
+
+	MapRoutes.ATTACK_at_b1 = MapRoutes.Build_Bridge;						//Route part 2
+	//MapRoutes.ATTACK_at_b3 = MapRoutes.MAP_DYNAMITE_TARGET_tower5;						//Route part 2-3
+
+	//MapRoutes.ATTACK_at_gun2 = MapRoutes.PLANT_side_wall;					//Route to Building gun
+	MapRoutes.PLANT_building_aa_gun = MapRoutes.PLANT_side_wall;			//Route to Building gun
+
+	//MapRoutes.PLANT_outside_aa_gun = MapRoutes.PLANT_outside_aa_gun;	//Route to Outside gun
+	MapRoutes.ATTACK_at_gun3 = MapRoutes.PLANT_outside_aa_gun;					//Route to Outside gun
+	//MapRoutes.ATTACK_at_gunfence = MapRoutes.PLANT_outside_aa_gun;				//Route to Outside gun
+
+	Util.UpdateSwitchData();
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "Omni-bot aa-guns map script executed" );
+};
+
+// BOT STUFF
+global OnBotJoin = function( bot )
+{
+	team = bot.GetTeam();
+	class = bot.GetClass();
+
+	// destroy breakables (player size is about 70)
+	bot.TargetBreakableDist = Map.targetBreakableDist;
+	bot.MaxViewDistance = Map.maxViewDistance;
+
+	if( bot.CanSnipe() )
+	{
+		Util.MapDebugPrint("Sniper joined");
+		bot.MaxViewDistance = Map.maxViewDistance + 1000;
+	}
+
+	foreach ( mover in Map.Movers )
+		{ Util.IgnoreTargetGoal( bot, mover ); }
+};

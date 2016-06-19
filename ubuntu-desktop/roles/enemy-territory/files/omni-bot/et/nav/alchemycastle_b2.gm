@@ -1,0 +1,373 @@
+//script created by palota
+global Map =
+{
+	Ammo_Cabinet = "AMMOCAB_south_ammocabinet",
+	Health_Cabinet = "HEALTHCAB_south_healthcabinet",
+	Checkpoint_forward_bunker = "CHECKPOINT_forward_bunker",
+	Flag_Documents = "FLAG_allied_obj",
+	Cappoint = "CAPPOINT_268",
+	Build_Allied_Command_Post = "BUILD_Allied_Command_Post",
+	Build_Axis_Command_Post = "BUILD_Axis_Command_Post",
+	Build_Bridge = "BUILD_Bridge",
+	Build_East_Barrier = "BUILD_East_Barrier",
+	Build_South_Barrier = "BUILD_South_Barrier",
+	Build_West_Barrier = "BUILD_West_Barrier",
+	Build_Tank = "BUILD_Tank",
+	Build_Tank_Barrier_1 = "BUILD_Tank_Barrier",
+	Build_Tank_Barrier_2 = "BUILD_Tank_Barrier_1",
+	Plant_Tank_Barrier_1 = "PLANT_Tank_Barrier",
+	Plant_Tank_Barrier_2 = "PLANT_Tank_Barrier_1",
+	Plant_Allied_Command_Post = "PLANT_Allied_Command_Post",
+	Plant_Axis_Command_Post = "PLANT_Axis_Command_Post",
+	Plant_Bridge = "PLANT_Bridge",
+	Plant_Side_Wall = "PLANT_Side_Wall",
+	Plant_East_Barrier = "PLANT_East_Barrier",
+	Plant_South_Barrier = "PLANT_South_Barrier",
+	Plant_West_Barrier = "PLANT_West_Barrier",
+	Mount_13 = "MOUNTMG42_13",
+	Mount_31 = "MOUNTMG42_31",
+	Repair_13 = "REPAIRMG42_13",
+	Repair_31 = "REPAIRMG42_31",
+	Mover_tank = "MOVER_tank",
+
+	Movers = { "MOVER_boat1_move", },
+
+	BoatPos = -1,
+	numGates = 3,
+
+	//TODO
+	NavDoor = function(_this)
+	{
+		wpinfo = _this.navigation.wpinfo;
+		if(wpinfo==null)
+		{
+			wpinfo = Util.WpNameInfo(_this.CurrentNavigation);
+			_this.navigation.wpinfo = wpinfo;
+		}
+		pos = wpinfo.position;
+		vec = wpinfo.facing.Normalize();
+		pos1 = pos - vec * 50;
+		pos1 = Vector3(pos1.x, pos1.y, pos.z);
+		pos2 = pos + vec * 140;
+		pos2 = Vector3(pos2.x, pos2.y, pos.z);
+
+		for(i=0; i<4; i+=1)
+		{
+			if(_this.Goto(pos) == EVENT.PATH_FAILED )
+			{
+				return;
+			}
+			_this.AddAimRequest(Priority.High, "facing", wpinfo.facing);
+			tr = TraceLine(pos, pos2, null, TRACE.SOLID, 0, true);
+			if(tr.fraction == 1)
+			{
+				_this.Bot.MoveTowards(pos2);
+				sleep(0.8);
+				break;
+			}
+			sleep(0.1);
+
+			_this.Bot.PressButton(BTN.USE);
+			_this.Bot.MoveTowards(pos1);
+			//wait while door opens
+			sleep(1);
+		}
+	},
+
+	Navigation =
+	{
+		axis_door1 =
+		{
+			navigate = function(_this) { Map.NavDoor(_this); },
+		},
+		axis_door2 =
+		{
+			navigate = function(_this) { Map.NavDoor(_this); },
+		},
+		/*door =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.PressButton(BTN.USE);
+				_this.Bot.HoldButton(BTN.BACKWARD, 0.7);
+				sleep(4.5);
+			}
+		},*/
+
+		documents =
+		{
+			gotowp = "doc",
+			navigate = function(_this)
+			{
+				for(i=0; i<40 && !_this.Bot.HasEntityFlag(ENTFLAG.CARRYINGGOAL); i+=1){
+					_this.Bot.MoveTowards(_this.wpinfo.position);
+					_this.AddAimRequest(Priority.High, "facing", _this.wpinfo.facing);
+					_this.Bot.PressButton(BTN.USE);
+					sleep(0.3);
+				}
+			}
+		},
+
+		water_trap =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.JUMP, 4);
+				_this.Bot.HoldButton(BTN.STRAFE_R, 4);
+				_this.Bot.HoldButton(BTN.FORWARD, 4);
+				sleep(4);
+			}
+		},
+	},
+
+	RideMovers =
+	{
+		boat =
+		{
+			movergoal = "MOVER_boat1_move",
+			rideposition = Vector3(0,0,39),
+			startwp = "boat_start",
+			exitwp = "boat_end",
+			stance = BTN.CROUCH,
+			board = function(_this)
+			{
+				return Map.BoatPos == 1;
+			},
+
+			leave = function(_this)
+			{
+				if(_this.Bot.GetPosition().z < 630){
+					_this.Finished();
+					return true;
+				}
+				_this.Bot.ResetStuckTime();//
+				return Map.BoatPos == 2;
+			},
+		},
+	},
+
+ 	Boat_Start =
+	{
+		Name = "Boat_Start",
+		TriggerOnEntity = GetGoal("MOVER_boat1_move").GetEntity(),
+		OnEnter = function(ent)
+		{
+			Map.BoatPos = 1;
+		},
+		OnExit = function(ent) { Map.BoatPos = -1; },
+	},
+
+ 	Boat_End =
+	{
+		Name = "Boat_End",
+		TriggerOnEntity = GetGoal("MOVER_boat1_move").GetEntity(),
+		OnEnter = function(ent)
+		{
+			Map.BoatPos = 2;
+		},
+		OnExit = function(ent) { Map.BoatPos = -1; },
+	},
+
+	Axis_Build_Barriers = function()
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_West_Barrier );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_South_Barrier );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_East_Barrier );
+		SetGoalPriority( Map.Build_West_Barrier, 2.0, TEAM.AXIS, 0 );
+		SetGoalPriority( Map.Build_South_Barrier, 2.0, TEAM.AXIS, 0 );
+		SetGoalPriority( Map.Build_East_Barrier, 2.0, TEAM.AXIS, 0 );
+	},
+
+	SetGates = function()
+	{
+		b=(Map.numGates>0);
+		SetAvailableMapGoals( TEAM.AXIS, b, "DEFEND_doc.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, b, "FLAG_allied_obj" );
+	},
+
+	Entrance_To_Castle = function()
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_allied_obj" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_radio" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_West_Barrier );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_South_Barrier );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_East_Barrier );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Axis_Command_Post );
+		Map.Axis_Build_Barriers();
+		Map.SetGates();
+	},
+
+	Main_Entrance_Blown = function( trigger )
+	{
+		Map.Entrance_To_Castle();
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNT_Tank" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_Tank" );
+		Util.MapDebugPrint( "Main_Entrance_Blown" );
+	},
+
+	Side_Wall_Destroyed = function( trigger )
+	{
+		Map.Entrance_To_Castle();
+		Util.MapDebugPrint( "Side_Wall_Destroyed" );
+	},
+
+	forward_bunker_Allies_Captured = function( trigger )
+	{
+		Map.Axis_Build_Barriers();
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42.*" );
+		Util.MapDebugPrint( "forward_bunker_Allies_Captured" );
+	},
+
+	Barrier_Built = function(which)
+	{
+		Map.numGates -= 1;
+		Map.SetGates();
+		Util.DisableGoal("ROUTE_gate_" + which);
+		Util.EnableGoal("ROUTE_ladder_" + which);
+		Util.MapDebugPrint( which + " Barrier_Built" );
+	},
+
+	Barrier_Destroyed = function(which)
+	{
+		Map.numGates += 1;
+		Map.SetGates();
+		Util.EnableGoal("ROUTE_gate_" + which);
+		Util.DisableGoal("ROUTE_ladder_" + which);
+		Util.MapDebugPrint( which + " Barrier_Destroyed" );
+	},
+
+	South_Barrier_Built = function( trigger )
+	{
+		Map.Barrier_Built("south");
+	},
+
+	West_Barrier_Built = function( trigger )
+	{
+		Map.Barrier_Built("west");
+	},
+
+	East_Barrier_Built = function( trigger )
+	{
+		Map.Barrier_Built("east");
+	},
+
+	South_Barrier_Destroyed = function( trigger )
+	{
+		Map.Barrier_Destroyed("south");
+	},
+
+	West_Barrier_Destroyed = function( trigger )
+	{
+		Map.Barrier_Destroyed("west");
+	},
+
+	East_Barrier_Destroyed = function( trigger )
+	{
+		Map.Barrier_Destroyed("east");
+	},
+
+	Documents_Taken = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_radio.*");
+		Util.MapDebugPrint( "Documents_Taken" );
+	},
+
+	Documents_Returned = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_radio.*");
+		Util.MapDebugPrint( "Documents_Returned" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	OnTriggerRegion(AABB(-4870,-2700,600, -4820,-2600,650), Map.Boat_Start);
+	OnTriggerRegion(AABB(-2450,-2700,600, -2400,-2600,650), Map.Boat_End);
+
+	//OnTrigger( "Axis reclaim the Forward Bunker!", Map.forward_bunker_Axis_Captured );
+	OnTrigger( "Allies capture the Forward Bunker!", Map.forward_bunker_Allies_Captured );
+	OnTrigger( "^1The Allied have blown the Side Wall!", Map.Side_Wall_Destroyed );
+	OnTrigger("^1The Allied have blown the Main Entrance!", Map.Main_Entrance_Blown);
+	OnTrigger( "The West Barrier has been constructed.", Map.West_Barrier_Built );
+	OnTrigger( "The South Barrier has been constructed.", Map.South_Barrier_Built );
+	OnTrigger( "The East Barrier has been constructed.", Map.East_Barrier_Built );
+	OnTrigger( "The West Barrier has been destroyed.", Map.West_Barrier_Destroyed );
+	OnTrigger( "The South Barrier has been destroyed.", Map.South_Barrier_Destroyed );
+	OnTrigger( "The East Barrier has been destroyed.", Map.East_Barrier_Destroyed );
+	OnTrigger( "Allies have stolen Secret War Dokuments!", Map.Documents_Taken );
+	OnTrigger( "Flag returned allied_obj!", Map.Documents_Returned );
+
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Axis_Command_Post );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Bridge );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Allied_Command_Post );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Tank_Barrier_1 );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Tank_Barrier_2 );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Checkpoint_forward_bunker );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Ammo_Cabinet );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Health_Cabinet );
+
+	SetGoalPriority( Map.Build_Axis_Command_Post, 0.6, TEAM.AXIS);
+	Util.SetMaxUsersInProgress(1, Map.Build_Axis_Command_Post);
+	SetGoalPriority( Map.Plant_Bridge, 0.7, TEAM.AXIS);
+	SetGoalPriority( Map.Plant_Allied_Command_Post, 0.55, TEAM.AXIS);
+	SetGoalPriority( Map.Build_Tank_Barrier_1, 2.0, TEAM.AXIS);
+	SetGoalPriority( Map.Build_Tank_Barrier_2, 1.5, TEAM.AXIS);
+
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNT_tank" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_tank" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "REPAIRMG42.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Checkpoint_forward_bunker );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Side_Wall );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Tank );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Bridge );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Allied_Command_Post );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Checkpoint_forward_bunker );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Tank_Barrier_1 );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Tank_Barrier_2 );
+
+ 	//SetGoalPriority( Map.Build_Bridge, 0.91, TEAM.ALLIES);
+ 	//SetGoalPriority( Map.Plant_Side_Wall, 0.81, TEAM.ALLIES);
+
+	SetGoalPriority( Map.Build_Tank, 0.95, TEAM.ALLIES);
+	SetGoalPriority( Map.Plant_Tank_Barrier_1, 1.0, TEAM.ALLIES);
+	SetGoalPriority( Map.Plant_Tank_Barrier_2, 0.85, TEAM.ALLIES);
+	SetGoalPriority( Map.Build_Allied_Command_Post, 0.75, TEAM.ALLIES);
+	SetGoalPriority( "ESCORT_Tank", 0.6, TEAM.ALLIES );
+	Util.SetMaxUsers( 4, "ESCORT_Tank" );
+
+	ETUtil.SetCabinets();
+
+	MapRoutes =
+	{
+		FLAG_allied_obj = {
+			ROUTE_flag = {
+				ROUTE_gate_south = {},
+				ROUTE_gate_west = {
+					ROUTE_attic = {},
+					ROUTE_entrance = {},
+				},
+				ROUTE_gate_east = {
+					ROUTE_attic = {},
+					ROUTE_entrance = {},
+				},
+			},
+		},
+		CAPPOINT_radio = {
+			ROUTE_doc = {
+				ROUTE_gate_south = {},
+				ROUTE_gate_west = {},
+				ROUTE_gate_east = {},
+				ROUTE_ladder_south = {},
+				ROUTE_ladder_west = {},
+				ROUTE_ladder_east = {},
+			},
+		},
+	};
+
+	Util.Routes(MapRoutes);
+};
+

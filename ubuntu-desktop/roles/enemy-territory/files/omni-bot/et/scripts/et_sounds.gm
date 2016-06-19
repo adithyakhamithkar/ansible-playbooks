@@ -1,0 +1,31 @@
+// Sound script mockup, brainstorming.
+
+// Sound Properties.
+// Duration - Rough length of this sound.
+// Intensity - How loud/intense/distracting the sound is. Maybe to drown out other sounds?
+// Radius - Max distance the sound can be heard
+// Directional - How accurate the bot can determine the source of the sound?
+Sounds =
+{
+	DEFAULT = // If a sound isn't defined, use these values.
+	{
+		Duration = 0.5,
+		Intensity = 0.1,
+		Radius = 10,
+		Directional = 0,
+	},
+	PAIN = 
+	{
+		Duration = 0.5,
+		Intensity = 0.1,
+		Radius = 10,
+		Directional = 0.5,
+	},
+	GRENADE_BOUNCE =
+	{
+		Duration = 0.2,
+		Intensity = 0.1,
+		Radius = 10,
+		Directional = 0.5,
+	},
+};

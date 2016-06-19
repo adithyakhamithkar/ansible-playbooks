@@ -1,0 +1,484 @@
+//==================================================================================================
+//
+//	Den Of Lions Final - denoflions_etdual.gm
+//
+//	Who  		When			What
+//--------------------------------------------------------------------------------------------------
+//	Mateos		20/09/2009		Initial Script & waypoints for OB 0.71
+//	Mateos		21/02/2012		Upgrade to 0.8x
+//
+//==================================================================================================
+
+/****************************************************
+Pathing and script by Mateos
+Correspondant WAY file size : 118 Ko
+Last Update : 21th February 2012
+****************************************************/
+
+global Map =
+{
+	Debug = 0,			// Please set to zero before distributing your script
+	ShowMovers = false,
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Axis_sewer_barrier_Built = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_cell_door" );
+
+		Util.MapDebugPrint( "Axis_sewer_barrier_Built" );
+	},
+
+	Farmhouse_Barrier_Built = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_AxisEscape1" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Axis_safe_door" );
+
+		Util.MapDebugPrint( "Farmhouse_Barrier_Built" );
+	},
+
+	Allied_Command_Post_Planted = function( trigger )
+	{
+		Util.MapDebugPrint( "Allied_Command_Post_Planted" );
+	},
+
+	Axis_Command_Post_Planted = function( trigger )
+	{
+		Util.MapDebugPrint( "Axis_Command_Post_Planted" );
+	},
+
+	Axis_safe_door_Planted = function( trigger )
+	{
+		Util.MapDebugPrint( "Axis_safe_door_Planted" );
+	},
+
+	Axis_sewer_barrier_Planted = function( trigger )
+	{
+		Util.MapDebugPrint( "Axis_sewer_barrier_Planted" );
+	},
+
+	Farmhouse_Barrier_Planted = function( trigger )
+	{
+		Util.MapDebugPrint( "Farmhouse_Barrier_Planted" );
+	},
+
+	cell_door_Planted = function( trigger )
+	{
+		Util.MapDebugPrint( "cell_door_Planted" );
+	},
+
+	Allied_Command_Post_Defused = function( trigger )
+	{
+		Util.MapDebugPrint( "Allied_Command_Post_Defused" );
+	},
+
+	Axis_Command_Post_Defused = function( trigger )
+	{
+		Util.MapDebugPrint( "Axis_Command_Post_Defused" );
+	},
+
+	Axis_safe_door_Defused = function( trigger )
+	{
+		Util.MapDebugPrint( "Axis_safe_door_Defused" );
+	},
+
+	Axis_sewer_barrier_Defused = function( trigger )
+	{
+		Util.MapDebugPrint( "Axis_sewer_barrier_Defused" );
+	},
+
+	Farmhouse_Barrier_Defused = function( trigger )
+	{
+		Util.MapDebugPrint( "Farmhouse_Barrier_Defused" );
+	},
+
+	cell_door_Defused = function( trigger )
+	{
+		Util.MapDebugPrint( "cell_door_Defused" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	Axis_safe_door_Destroyed = function( trigger )
+	{
+		Util.MapDebugPrint( "Axis_safe_door_Destroyed" );
+	},
+
+	Axis_sewer_barrier_Destroyed = function( trigger )
+	{
+		Util.MapDebugPrint( "Axis_sewer_barrier_Destroyed" );
+	},
+
+	Farmhouse_Barrier_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_AxisEscape1" );
+
+		Util.MapDebugPrint( "Farmhouse_Barrier_Destroyed" );
+	},
+
+	cell_door_Destroyed = function( trigger )
+	{
+		Util.MapDebugPrint( "cell_door_Destroyed" );
+	},
+
+	goldbars1_Taken = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_Allies.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allies.*" );
+
+		Util.MapDebugPrint( "goldbars1_Taken" );
+	},
+
+	prisoner1_Taken = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_Axis.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Axis.*" );
+
+		Util.MapDebugPrint( "prisoner1_Taken" );
+	},
+
+	goldbars1_Returned = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_Allies.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Allies.*" );
+
+		Util.MapDebugPrint( "goldbars1_Returned" );
+	},
+
+	prisoner1_Returned = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_Axis.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Axis.*" );
+
+		Util.MapDebugPrint( "prisoner1_Returned" );
+	},
+
+	goldbars1_Secured = function( trigger )
+	{
+		Util.MapDebugPrint( "goldbars1_Secured" );
+	},
+
+	prisoner1_Secured = function( trigger )
+	{
+		Util.MapDebugPrint( "prisoner1_Secured" );
+	},
+
+	building_flag_Axis_Captured = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_cell_door" );
+
+		Util.MapDebugPrint( "building_flag_Axis_Captured" );
+	},
+
+	building_flag_Allies_Captured = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Axis_safe_door" );
+
+		Util.MapDebugPrint( "building_flag_Allies_Captured" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	// *** 	TRIGGERS ***
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "Sewer grate has been constructed.", Map.Axis_sewer_barrier_Built );
+	OnTrigger( "Farmhouse tunnel barrier has been constructed.", Map.Farmhouse_Barrier_Built );
+	OnTrigger( "Planted at the Allied Command Post.", Map.Allied_Command_Post_Planted );
+	OnTrigger( "Planted at the Axis Command Post.", Map.Axis_Command_Post_Planted );
+	OnTrigger( "Planted at the Axis safe door.", Map.Axis_safe_door_Planted );
+	OnTrigger( "Planted at the Axis sewer barrier.", Map.Axis_sewer_barrier_Planted );
+	OnTrigger( "Planted at the Farmhouse barrier.", Map.Farmhouse_Barrier_Planted );
+	OnTrigger( "Planted at the cell door.", Map.cell_door_Planted );
+	OnTrigger( "Defused at the Allied Command Post.", Map.Allied_Command_Post_Defused );
+	OnTrigger( "Defused at the Axis Command Post.", Map.Axis_Command_Post_Defused );
+	OnTrigger( "Defused at the Axis safe door.", Map.Axis_safe_door_Defused );
+	OnTrigger( "Defused at the Axis sewer barrier.", Map.Axis_sewer_barrier_Defused );
+	OnTrigger( "Defused at the Farmhouse barrier.", Map.Farmhouse_Barrier_Defused );
+	OnTrigger( "Defused at the cell door.", Map.cell_door_Defused );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "Allies destroyed the Axis safe", Map.Axis_safe_door_Destroyed );
+	OnTrigger( "Sewer grate has been destroyed.", Map.Axis_sewer_barrier_Destroyed );
+	OnTrigger( "Farmhouse tunnel barrier has been destroyed.", Map.Farmhouse_Barrier_Destroyed );
+	OnTrigger( "Axis destroyed the cell door", Map.cell_door_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.goldbars1_Taken );
+	OnTrigger( "MISSING_STRING", Map.prisoner1_Taken );
+	OnTrigger( "MISSING_STRING", Map.goldbars1_Returned );
+	OnTrigger( "MISSING_STRING", Map.prisoner1_Returned );
+	OnTrigger( "The Allies have secured the good crate... AXIS are losers!", Map.goldbars1_Secured );
+	OnTrigger( "The Axis have rescued the prisoner... Allies are losers!", Map.prisoner1_Secured );
+	OnTrigger( "Axis capture the Forward Flag!", Map.building_flag_Axis_Captured );
+	OnTrigger( "Allies capture the Forward Flag!", Map.building_flag_Allies_Captured );
+
+	// *** INITIAL AVAILABILITY OF GOALS ***
+	Util.DisableGoal( "ATTACK_.*", true );	// All but Routes
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Axis_sewer_barrier" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Axis_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_building_flag" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_cell_door" );
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Farmhouse_Barrier" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Allied_Command_Post" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_building_flag" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Axis_safe_door" );
+
+	// *** PRIORITY ***
+	SetGoalPriority( "BUILD_Axis_Command_Post", 0.7);
+	SetGoalPriority( "PLANT_Allied_Command_Post", 0.7);
+	SetGoalPriority( "PLANT_Farmhouse_Barrier", 0.8);
+	SetGoalPriority( "PLANT_cell_door", 0.9);
+	SetGoalPriority( "BUILD_Axis_sewer_barrier", 1.0);
+
+	SetGoalPriority( "CHECKPOINT_building_flag", 0.85);
+	SetGoalPriority( "CHECKPOINT_building_flag", 0.0, 0, CLASS.ENGINEER );
+
+	SetGoalPriority( "BUILD_Allied_Command_Post", 0.7);
+	SetGoalPriority( "PLANT_Axis_Command_Post", 0.7);
+	SetGoalPriority( "PLANT_Axis_sewer_barrier", 0.8);
+	SetGoalPriority( "PLANT_Axis_safe_door", 0.9);
+	SetGoalPriority( "BUILD_Farmhouse_Barrier", 1.0);
+
+	Util.SetMaxUsers( 2, "BUILD.*" );
+	Util.SetMaxUsers( 2, "CHECKPOINT.*" );
+	Util.SetMaxUsers( 1, "PLANT.*" );
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "ATTACK_.*" );
+
+	// *** ROUTES ***
+	MapRoutes =
+	{
+		CHECKPOINT_building_flag =
+		{
+			ROUTE_AlliedSpawn1 =
+			{
+				ROUTE_AlliedPrincipal =
+				{
+					ROUTE_AlliedMiddle1 =
+					{
+						ROUTE_AlliedMiddle2 =
+						{
+							ROUTE_AlliedFlag ={},
+						},
+						ROUTE_AlliedMiddle3 =
+						{
+							ROUTE_AlliedFlag ={},
+						},
+					},
+
+					ROUTE_AlliedRight1 =
+					{
+						ROUTE_AlliedRight2 =
+						{
+							ROUTE_AlliedFlag ={},
+						},
+					},
+
+					ROUTE_AlliedLeft1 =
+					{
+						ROUTE_AlliedLeft2 =
+						{
+							ROUTE_AlliedFlag ={},
+						},
+					},
+				},
+
+				ROUTE_AlliedCPWay1 =
+				{
+					ROUTE_AlliedCPWay2 =
+					{
+						ROUTE_AlliedLeft1 =
+						{
+							ROUTE_AlliedLeft2 =
+							{
+								ROUTE_AlliedFlag ={}
+							},
+						},
+					},
+				},
+			},
+		},
+
+		PLANT_Farmhouse_Barrier =
+		{
+			ROUTE_AxisSpawn1 =
+			{
+				ROUTE_Sewer1 =
+				{
+					ROUTE_Sewer2 =
+					{
+						ROUTE_Sewer3 =
+						{
+							ROUTE_Sewer4 =
+							{
+								ROUTE_Sewer5 =
+								{
+									ROUTE_Sewer6 =
+									{
+										ROUTE_AlliedCPWay2 =
+										{
+											ROUTE_FarmhouseBarrier = {},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		PLANT_Axis_safe_door =
+		{
+			ROUTE_AlliedSpawn1 =
+			{
+				ROUTE_AlliedPrincipal =
+				{
+					ROUTE_Under1 =
+					{
+						ROUTE_Under2 =
+						{
+							ROUTE_Under3 =
+							{
+								ROUTE_Under4 =
+								{
+									ROUTE_AxisSafeDoor = {},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		PLANT_Axis_sewer_barrier =
+		{
+			ROUTE_AlliedSpawn1 =
+			{
+				ROUTE_AlliedPrincipal =
+				{
+					ROUTE_Under1 =
+					{
+						ROUTE_Under2 =
+						{
+							ROUTE_Under3 =
+							{
+								ROUTE_SewerBarrier = {},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		CAPPOINT_Truck =
+		{
+			ROUTE_GoldCrate =
+			{
+				ROUTE_Under4 =
+				{
+					ROUTE_Under3 =
+					{
+						ROUTE_Under2 =
+						{
+							ROUTE_Under1 =
+							{
+								ROUTE_AlliedPrincipal = {},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		CAPPOINT_MedicalBeds =
+		{
+			ROUTE_Prisoner =
+			{
+				Weight = 5,
+				ROUTE_AxisEscape1 =
+				{
+					ROUTE_AxisEscape2 =
+					{
+						ROUTE_AlliedCPWay2 =
+						{
+							ROUTE_Sewer6 =
+							{
+								ROUTE_Sewer5 =
+								{
+									ROUTE_Sewer4 =
+									{
+										ROUTE_Sewer3 =
+										{
+											ROUTE_Sewer2 =
+											{
+												ROUTE_Sewer1 = {},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				Weight = 1,
+				ROUTE_AlliedPrincipal =
+				{
+					ROUTE_Under1 =
+					{
+						ROUTE_Under2 =
+						{
+							ROUTE_Under3 = {},
+						},
+					},
+				},
+			},
+		},
+	};
+
+	MapRoutes.PLANT_cell_door = MapRoutes.PLANT_Farmhouse_Barrier;
+
+	Util.Routes(MapRoutes);
+
+	print( "Omni-bot 0.8x map script for Den Of Lions by Mateos" );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 180.0;
+
+	weaps = { WEAPON.THOMPSON, WEAPON.MP40, WEAPON.SHOTGUN, WEAPON.M97, WEAPON.M7, WEAPON.GARAND, WEAPON.K43, WEAPON.BAR, WEAPON.STEN, WEAPON.MP34, WEAPON.BAR, WEAPON.STG44, WEAPON.FG42};
+
+	foreach( id and weap in weaps )
+	{
+		w = bot.GetWeapon(weap);
+		w.PrimaryFire.SetTargetBias(CLASS.BREAKABLE, 1.2);
+	}
+
+	// crapshoot: lower priority of knife at close range so they keep shooting breakables with primary
+	w = bot.GetWeapon(WEAPON.KNIFE);
+	w.PrimaryFire.SetDesirabilityRange(0, 48, 0.6);
+};

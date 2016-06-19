@@ -1,0 +1,538 @@
+global Map =
+{
+	ShowMovers = false,
+	TramPos = "start",
+	ObjectiveSecured = false,
+
+	AMMOCAB_depot_ammocabinet = "AMMOCAB_depot_ammocabinet",
+	AMMOCAB_depot_ammocabinet_1 = "AMMOCAB_depot_ammocabinet_1",
+	Checkpoint_depotflag = "CHECKPOINT_depotflag",
+	HEALTHCAB_depot_healthcabinet = "HEALTHCAB_depot_healthcabinet",
+	HEALTHCAB_depot_healthcabinet_1 = "HEALTHCAB_depot_healthcabinet_1",
+	Build_generator = "BUILD_Tram_Generator",
+	Build_axisconstruct1 = "BUILD_Axis_MG42_Construction",
+	Build_allied_compost_built = "BUILD_Command_Post",
+	Build_axis_compost_built = "BUILD_Command_Post",
+	Build_alliedconstruction1 = "BUILD_Axis_MG42_Construction_1",
+	Destroy_allied_compost_built = "PLANT_Command_Post",
+	Destroy_axisconstruct1 = "PLANT_Axis_MG42_Construction",
+	Destroy_generator = "PLANT_Tram_Generator",
+	Destroy_alliedconstruction1 = "PLANT_Axis_MG42_Construction_1",
+	Mount_Axis_MG42_Construction_1 = "MOUNTMG42_Axis_MG42_Construction_1",
+	Mount_Axis_MG42_Construction = "MOUNTMG42_Axis_MG42_Construction",
+	Repair_Axis_MG42_Construction_1 = "REPAIRMG42_Axis_MG42_Construction_1",
+	Repair_Axis_MG42_Construction = "REPAIRMG42_Axis_MG42_Construction",
+	Mover_train1 = "MOVER_train1",
+	Flag_venomdocs = "FLAG_venomdocs",
+	Cappoint_1276 = "CAPPOINT_1276",
+
+	/*** REGION TRIGGERS ***/
+
+	// tram position triggers
+	tram_start =
+	{
+		TriggerOnEntity = GetGoal("MOVER_train1").GetEntity(),
+		OnEnter = function(ent)
+		{
+			if ( Map.TramPos == "bridge" )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_tram_area2.*" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_tram_area1.*" );
+			}
+			Map.TramPos = "start";
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_bridge.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "RIDE_Tram" );
+			Util.MapDebugPrint( GetEntName(ent) + " at tram_start" );
+		},
+		OnExit = function(ent)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "RIDE_Tram" );
+			Util.MapDebugPrint( GetEntName(ent) + " exits tram_start" );
+		},
+	},
+
+	tram_bridge =
+	{
+		TriggerOnEntity = GetGoal("MOVER_train1").GetEntity(),
+		OnEnter = function(ent)
+		{
+			if ( Map.TramPos == "start" )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_tram_area1.*" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_tram_area2.*" );
+			}
+			else if ( Map.TramPos == "bridge" )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_tram_area2.*" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_tram_area1.*" );
+			}
+			Map.TramPos = "bridge";
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Axis_MG42_Construction_1" );
+			Util.MapDebugPrint( GetEntName(ent) + " at tram_bridge" );
+		},
+		OnExit = function(ent)
+		{
+			Util.MapDebugPrint( GetEntName(ent) + " exits tram_bridge" );
+		},
+	},
+
+	near_church =
+	{
+		TriggerOnEntity = GetGoal("MOVER_train1").GetEntity(),
+		OnEnter = function(ent)
+		{
+			if ( Map.TramPos == "bridge" )
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_bridge.*" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_cappoint.*" );
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_tram_area2.*" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_objective.*" );
+			}
+			else if ( Map.TramPos == "near_church" )
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_cappoint.*" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_bridge.*" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_tram_area2.*" );
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_objective.*" );
+			}
+			Map.TramPos = "near_church";
+			SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42_Axis_MG42_Construction_1" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "REPAIRMG42_Axis_MG42_Construction_1" );
+			Util.MapDebugPrint( GetEntName(ent) + " at near_church" );
+		},
+		OnExit = function(ent)
+		{
+			Util.MapDebugPrint( GetEntName(ent) + " exits near_church" );
+		},
+	},
+
+	at_church =
+	{
+		TriggerOnEntity = GetGoal("MOVER_train1").GetEntity(),
+		OnEnter = function(ent)
+		{
+			if ( Map.ObjectiveSecured )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_cappoint.*" );
+			}
+			SetAvailableMapGoals( TEAM.AXIS, false, "RIDE_Tram" );
+			Map.TramPos = "at_church";
+			Util.MapDebugPrint( GetEntName(ent) + " at at_church" );
+		},
+		OnExit = function(ent)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_cappoint.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "RIDE_Tram" );
+			Util.MapDebugPrint( GetEntName(ent) + " exits at_church" );
+		},
+	},
+
+	tram_corner1 =
+	{
+		TriggerOnEntity = GetGoal("MOVER_train1").GetEntity(),
+		OnEnter = function(ent)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_cappoint.*" );
+			if ( Map.TramPos == "at_church" )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_station.*" );
+			}
+			else if ( Map.TramPos == "corner1" || Map.TramPos == "corner2" )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_corner1.*" );
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_station.*" );
+			}
+			Map.TramPos = "corner1";
+			Util.MapDebugPrint( GetEntName(ent) + " at tram_corner1" );
+		},
+		OnExit = function(ent)
+		{
+			Util.MapDebugPrint( GetEntName(ent) + " exits tram_corner1" );
+		},
+	},
+
+	tram_corner2 =
+	{
+		TriggerOnEntity = GetGoal("MOVER_train1").GetEntity(),
+		OnEnter = function(ent)
+		{
+			if ( Map.TramPos == "corner1" )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_station.*" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_station.*" );
+			}
+			else if ( Map.TramPos == "corner2" )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_corner1.*" );
+			}
+			Map.TramPos = "corner2";
+			Util.MapDebugPrint( GetEntName(ent) + " at tram_corner2" );
+		},
+		OnExit = function(ent)
+		{
+			Util.MapDebugPrint( GetEntName(ent) + " exits tram_corner2" );
+		},
+	},
+
+	/*** SIX CALLBACK FUNCTIONS ***/
+	tramstop1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "RIDE_Tram" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_cappoint.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_venomdocs" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_1276" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_objective.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "RIDE_Tram" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_church.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_church.*" );
+
+		Util.MapDebugPrint( "tramstop" );
+	},
+
+	obj_Stolen = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal( "AMMOCAB_.*" );
+		Util.DisableGoal( "HEALTHCAB_.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_cappoint.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_church.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_church_7" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_church_8" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_church.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_objective.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_cappoint.*" );
+
+		Util.MapDebugPrint( "obj stolen" );
+
+		// some bot talk:
+		if ( !MAP_TALK )
+			{ return; }
+			
+		sleep(0.5);
+		foreach ( id and bot in BotTable )
+		{
+			if ( bot.HasAnyEntityFlag( ENTFLAG.CARRYINGGOAL ) )
+			{
+				if ( bot.GetNearestAlly( CAT.PLAYER ) )
+				{
+					bot.SayVoice( VOICE.FOLLOW_ME );
+				}
+				else
+				{
+					bot.SayVoice( VOICE.NEED_BACKUP );
+				}
+				break;
+			}
+		}
+	},
+
+	obj_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_cappoint.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_church_7" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_church_8" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_cappoint.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_objective.*" );
+
+		Util.MapDebugPrint( "obj ret" );
+	},
+
+	obj_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ObjectiveSecured = true;
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_depot_ammocabinet" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "HEALTHCAB_depot_healthcabinet" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "RIDE_Tram" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_church.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_depotflag" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_objective.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Axis_MG42_Construction_1" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_Axis_MG42_Construction_1" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_Axis_MG42_Construction_1" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_depotflag" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_objective.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_church.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_church.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "RIDE_Tram" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_corner1.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_depot_ammocabinet" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_depot_healthcabinet" );
+
+		Util.MapDebugPrint( "obj sec" );
+	},
+
+	Allies_Capture_Flag = function( trigger )
+	{
+	},
+
+	Axis_Capture_Flag = function( trigger )
+	{
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ ETUtil.AutoTestMap(); }
+
+	// tram positions
+	OnTriggerRegion( Vec3(-7176, 2748, 540), 50, Map.tram_start );
+	OnTriggerRegion( Vec3(-5500, 784, 540), 50, Map.tram_bridge );
+	OnTriggerRegion( Vec3(-5500, -2200, 540), 50, Map.near_church );
+	OnTriggerRegion( Vec3(-3776, -3584, 540), 50, Map.at_church );
+	OnTriggerRegion( Vec3(-2300, -2790, 540), 50, Map.tram_corner1 );
+	OnTriggerRegion( Vec3(-2300, -1025, 540), 50, Map.tram_corner2 );
+
+	// disable combat movement
+	OnTriggerRegion( AABB(-5237,1794,666, -5119,2059,842), RegionTrigger.DisableCombatMovement );
+	OnTriggerRegion( AABB(-5918,651,720, -5184,881,873), RegionTrigger.DisableCombatMovement );
+	OnTriggerRegion( AABB(-5828,-4329,681, -4638,-3857,853), RegionTrigger.DisableCombatMovement );
+	OnTriggerRegion( AABB(-4844,-2432,666, -4578,-2271,762), RegionTrigger.DisableCombatMovement );
+	OnTriggerRegion( AABB(-2895,10,746, -2655,714,910), RegionTrigger.DisableCombatMovement );
+	OnTriggerRegion( AABB(-1101,-201,821, -912,15,957), RegionTrigger.DisableCombatMovement );
+
+	// register callbacks
+	OnTrigger( "Axis captured the Court Yard!", Map.Axis_Capture_Flag );
+	OnTrigger( "Allies captured the Court Yard!", Map.Allies_Capture_Flag );
+	OnTrigger( "Tram has arrived at the Old Castle! Church gates are now open!!!", Map.tramstop1 );
+	OnTrigger( "Allies have stolen the Venom Cannon!", Map.obj_Stolen );
+	OnTrigger( "axis have returned the Venom Cannon!", Map.obj_Returned );
+	OnTrigger( "allies have secured the Venom Cannon at the tram!", Map.obj_Secured );
+
+	Util.DisableGoal( ".*", true);
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, "RIDE_Tram" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_depotflag" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_depot_ammocabinet_1" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "HEALTHCAB_depot_healthcabinet_1" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Tram_Generator" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Command_Post" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Post" );
+
+	SetAvailableMapGoals( TEAM.AXIS, false, "RIDE_Tram" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Tram_Generator" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_depot_ammocabinet_1" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_depot_healthcabinet_1" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_depotflag" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_tram_area1.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Axis_MG42_Construction" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_Axis_MG42_Construction" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_Axis_MG42_Construction" );
+
+	SetGoalPriority( "CHECKPOINT_depotflag", 0.7 );
+	SetGoalPriority( "DEFEND_church_8", 0.7 );
+	SetGoalPriority( "DEFEND_church_7", 0.7 );
+	SetGoalPriority( "DEFEND_cappoint.*", 0.7 );
+	SetGoalPriority( "DEFEND_cappoint_2", 0.71 );
+	SetGoalPriority( "DEFEND_cappoint_4", 0.71 );
+	SetGoalPriority( "BUILD_Command_Post", 0.7 );
+	SetGoalPriority( "PLANT_Command_Post", 0.65, 0, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_Tram_Generator", 0.65, TEAM.AXIS, CLASS.ENGINEER );
+
+	// Max users per goal
+	Util.SetMaxUsersInProgress( 4, "RIDE_Tram" );
+	Util.SetMaxUsersInUse( 1, "RIDE_Tram" );
+	Util.SetMaxUsersInProgress( 2, "DEFEND_.*" );
+	Util.SetMaxUsersInProgress( 2, "ATTACK_.*" );
+	Util.SetMaxUsersInProgress( 3, "FLAG_.*" );
+	Util.SetMaxUsers( 1, "CHECKPOINT_.*" );
+	Util.SetMaxUsers( 1, "REPAIRMG42_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "PLANT_.*" );
+	Util.SetMaxUsers( 1, "BUILD_.*" );
+	Util.SetMaxUsers( 1, "SMOKEBOMB_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+
+	MapRoutes =
+	{
+		BUILD_Tram_Generator =
+		{
+			ROUTE_allied_spawn  =
+			{
+				ROUTE_checkpoint  =
+				{
+					ROUTE_ammocab =
+					{
+						ROUTE_build_generator = {}
+					}
+				},
+			},
+			ROUTE_forward_spawn  =
+			{
+				ROUTE_checkpoint  =
+				{
+					ROUTE_ammocab =
+					{
+						ROUTE_build_generator = {}
+					}
+				}
+			}
+		},
+		FLAG_venomdocs =
+		{
+			ROUTE_allied_spawn  =
+			{
+				ROUTE_generator  =
+				{
+					ROUTE_exit1 = {},
+					ROUTE_exit2 = {}
+				},
+				ROUTE_tunnel1  =
+				{
+					ROUTE_exit1 = {},
+					ROUTE_exit2 = {}
+				}
+			},
+			ROUTE_forward_spawn  =
+			{
+				ROUTE_forward_spawn2  =
+				{
+					ROUTE_generator  =
+					{
+						ROUTE_exit1 = {},
+						ROUTE_exit2 = {}
+					},
+					ROUTE_tunnel1  =
+					{
+						ROUTE_exit1 = {},
+						ROUTE_exit2 = {}
+					}
+				},
+				ROUTE_generator  =
+				{
+					ROUTE_exit1 = {},
+					ROUTE_exit2 = {}
+				},
+				ROUTE_tunnel1  =
+				{
+					ROUTE_exit1 = {},
+					ROUTE_exit2 = {}
+				}
+			}
+		},
+		CAPPOINT_1276 =
+		{
+			ROUTE_obj  =
+			{
+				ROUTE_exit1  =
+				{
+					ROUTE_tunnel1 = {},
+					ROUTE_generator = {}
+				},
+				ROUTE_exit2  =
+				{
+					ROUTE_tunnel1 = {},
+					ROUTE_generator = {}
+				}
+			}
+		},
+		DEFEND_corner1_1 =
+		{
+			ROUTE_station_spawn =
+			{
+				ROUTE_station1 = {},
+				ROUTE_station2 = {},
+				ROUTE_station3 = {}
+			}
+		},
+		DEFEND_tram_area1_1 =
+		{
+			ROUTE_axis_spawn =
+			{
+				ROUTE_left1 =
+				{
+					ROUTE_left = {},
+					ROUTE_right = {}
+				},
+				ROUTE_right1 =
+				{
+					ROUTE_left = {},
+					ROUTE_right = {}
+				}
+			}
+		}
+	};
+	MapRoutes.DEFEND_tram_area1_2 = MapRoutes.DEFEND_tram_area1_1;
+	MapRoutes.DEFEND_tram_area1_3 = MapRoutes.DEFEND_tram_area1_1;
+	MapRoutes.DEFEND_tram_area1_4 = MapRoutes.DEFEND_tram_area1_1;
+	MapRoutes.DEFEND_tram_area1_5 = MapRoutes.DEFEND_tram_area1_1;
+	MapRoutes.DEFEND_tram_area1_6 = MapRoutes.DEFEND_tram_area1_1;
+	MapRoutes.DEFEND_tram_area1_7 = MapRoutes.DEFEND_tram_area1_1;
+	MapRoutes.DEFEND_tram_area1_8 = MapRoutes.DEFEND_tram_area1_1;
+	MapRoutes.DEFEND_tram_area1_9 = MapRoutes.DEFEND_tram_area1_1;
+	MapRoutes.DEFEND_tram_area1_10 = MapRoutes.DEFEND_tram_area1_1;
+	MapRoutes.DEFEND_tram_area1_11 = MapRoutes.DEFEND_tram_area1_1;
+	MapRoutes.DEFEND_tram_area1_12 = MapRoutes.DEFEND_tram_area1_1;
+	MapRoutes.DEFEND_tram_area1_13 = MapRoutes.DEFEND_tram_area1_1;
+	MapRoutes.DEFEND_tram_area1_14 = MapRoutes.DEFEND_tram_area1_1;
+	MapRoutes.DEFEND_tram_area1_15 = MapRoutes.DEFEND_tram_area1_1;
+	MapRoutes.DEFEND_cappoint_1 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_cappoint_2 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_cappoint_3 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_cappoint_4 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_cappoint_5 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_cappoint_6 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_corner1_2 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_corner1_3 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_corner1_4 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_corner1_5 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_corner1_6 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_corner1_7 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_corner1_8 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_corner1_9 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_corner1_10 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_corner1_11 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_corner1_12 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_objective_1 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_objective_2 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_objective_3 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_objective_4 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_objective_5 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_objective_6 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_objective_7 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.DEFEND_objective_8 = MapRoutes.DEFEND_corner1_1;
+	MapRoutes.ATTACK_cappoint_1 = MapRoutes.CAPPOINT_1276;
+	MapRoutes.ATTACK_cappoint_2 = MapRoutes.CAPPOINT_1276;
+	MapRoutes.ATTACK_cappoint_3 = MapRoutes.CAPPOINT_1276;
+	MapRoutes.ATTACK_cappoint_4 = MapRoutes.CAPPOINT_1276;
+	MapRoutes.ATTACK_cappoint_5 = MapRoutes.CAPPOINT_1276;
+	MapRoutes.ATTACK_cappoint_6 = MapRoutes.CAPPOINT_1276;
+	MapRoutes.ATTACK_cappoint_7 = MapRoutes.CAPPOINT_1276;
+	MapRoutes.ATTACK_cappoint_8 = MapRoutes.CAPPOINT_1276;
+	MapRoutes.DEFEND_cappoint_1 = MapRoutes.CAPPOINT_1276;
+	MapRoutes.DEFEND_cappoint_2 = MapRoutes.CAPPOINT_1276;
+	MapRoutes.DEFEND_cappoint_3 = MapRoutes.CAPPOINT_1276;
+	MapRoutes.DEFEND_cappoint_4 = MapRoutes.CAPPOINT_1276;
+	MapRoutes.DEFEND_cappoint_5 = MapRoutes.CAPPOINT_1276;
+	MapRoutes.DEFEND_cappoint_6 = MapRoutes.CAPPOINT_1276;
+	MapRoutes.ATTACK_objective_1 = MapRoutes.FLAG_venomdocs;
+	MapRoutes.ATTACK_objective_2 = MapRoutes.FLAG_venomdocs;
+	MapRoutes.ATTACK_objective_3 = MapRoutes.FLAG_venomdocs;
+	MapRoutes.ATTACK_objective_4 = MapRoutes.FLAG_venomdocs;
+	MapRoutes.ATTACK_objective_5 = MapRoutes.FLAG_venomdocs;
+	Util.Routes( MapRoutes );
+
+	Util.MapDebugPrint( "Omni-bot map script for Tramfight beta 2 executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+};

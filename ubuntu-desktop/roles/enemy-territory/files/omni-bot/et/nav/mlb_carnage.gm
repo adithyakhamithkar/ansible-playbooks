@@ -1,0 +1,873 @@
+/********************************************************
+Waypoints and Script by >WES< P!NNAN & >WES< GRANNY
+********************************************************/
+
+
+global Map =
+{
+	Debug = false,
+	Talk = true, //set this to false if you wont bots talking ingame
+	Quiet = true,
+	Door = "closed",
+
+	Ammo_Cabinet_north_ammocabinet = "AMMOCAB_north_ammocabinet",
+	Ammo_Cabinet_north_ammocabinet_1 = "AMMOCAB_north_ammocabinet_1",
+	Ammo_Cabinet_north_ammocabinet_2 = "AMMOCAB_north_ammocabinet_2",
+	Ammo_Cabinet_north_ammocabinet_3 = "AMMOCAB_north_ammocabinet_3",
+	Ammo_Cabinet_north_ammocabinet_4 = "AMMOCAB_north_ammocabinet_4",
+	Health_Cabinet_north_healthcabinet = "HEALTHCAB_north_healthcabinet",
+	Health_Cabinet_north_healthcabinet_1 = "HEALTHCAB_north_healthcabinet_1",
+	Call_Artillery_ar_call_ax_1 = "CALLARTILLERY_ar_call_ax_1",
+	Artillery_D_ar_ax_1 = "ARTILLERY_D_ar_ax_1",
+	Checkpoint_oldcityflag = "CHECKPOINT_oldcityflag",
+	Build_Command_Post = "BUILD_Command_Post",
+	Build_axis_basement_MG_Gun = "BUILD_axis_basement_MG_Gun",
+	Build_axis_basement_MG_Gun_1 = "BUILD_axis_basement_MG_Gun_1",
+	Build_canyon_bunker_MG42_gun = "BUILD_canyon_bunker_MG42_gun",
+	Build_main_bunker_MG42_gun = "BUILD_main_bunker_MG42_gun",
+	Build_radio_beacon = "BUILD_radio_beacon",
+	Plant_Axis_base_gate = "PLANT_Axis_base_gate",
+	Plant_Command_Post = "PLANT_Command_Post",
+	Plant_axis_basement_MG_Gun = "PLANT_axis_basement_MG_Gun",
+	Plant_battery = "PLANT_battery",
+	Plant_beach_bunker_door = "PLANT_beach_bunker_door",
+	Plant_bunker_door = "PLANT_bunker_door",
+	Plant_canyon_bunker_MG42_gun = "PLANT_canyon_bunker_MG42_gun",
+	Plant_power_generator = "PLANT_power_generator",
+	Plant_radio_beacon = "PLANT_radio_beacon",
+	Explode_axis_basement_MG_Gun = "EXPLODE_axis_basement_MG_Gun",
+	Explode_main_bunker_MG42_gun = "EXPLODE_main_bunker_MG42_gun",
+	Mount_155 = "MOUNTMG42_155",
+	Mount_2198 = "MOUNTMG42_2198",
+	Mount_518 = "MOUNTMG42_518",
+	Mount_axis_basement_MG_Gun = "MOUNTMG42_axis_basement_MG_Gun",
+	Mount_canyon_bunker_MG42_gun = "MOUNTMG42_canyon_bunker_MG42_gun",
+	Mount_mg1gun = "MOUNTMG42_mg1gun",
+	Mount_mg1gun_1 = "MOUNTMG42_mg1gun_1",
+	Mount_mg2gun = "MOUNTMG42_mg2gun",
+	Mount_mg3gun = "MOUNTMG42_mg3gun",
+	Repair_155 = "REPAIRMG42_155",
+	Repair_2198 = "REPAIRMG42_2198",
+	Repair_518 = "REPAIRMG42_518",
+	Repair_axis_basement_MG_Gun = "REPAIRMG42_axis_basement_MG_Gun",
+	Repair_canyon_bunker_MG42_gun = "REPAIRMG42_canyon_bunker_MG42_gun",
+	Repair_mg1gun = "REPAIRMG42_mg1gun",
+	Repair_mg1gun_1 = "REPAIRMG42_mg1gun_1",
+	Repair_mg2gun = "REPAIRMG42_mg2gun",
+	Repair_mg3gun = "REPAIRMG42_mg3gun",
+	Mobile_MG42_mg_al_battery_1 = "MOBILEMG42_mg_al_battery_1",
+	Mobile_MG42_mg_al_battery_2 = "MOBILEMG42_mg_al_battery_2",
+	Mobile_MG42_mg_al_battery_3 = "MOBILEMG42_mg_al_battery_3",
+	Mobile_MG42_mg_ax_1 = "MOBILEMG42_mg_ax_1",
+	Mobile_MG42_mg_ax_2 = "MOBILEMG42_mg_ax_2",
+	Mobile_MG42_mg_ax_3 = "MOBILEMG42_mg_ax_3",
+	Mobile_MG42_mg_ax_4 = "MOBILEMG42_mg_ax_4",
+	Mobile_MG42_mg_ax_5 = "MOBILEMG42_mg_ax_5",
+	Mobile_MG42_mg_ax_6 = "MOBILEMG42_mg_ax_6",
+	Mobile_MG42_mg_ax_battery_1 = "MOBILEMG42_mg_ax_battery_1",
+	Mobile_MG42_mg_ax_battery_2 = "MOBILEMG42_mg_ax_battery_2",
+	Mobile_MG42_mg_ax_battery_3 = "MOBILEMG42_mg_ax_battery_3",
+	Mobile_Mortar_mo_al_start = "MOBILEMORTAR_mo_al_start",
+	Mobile_Mortar_mo_ax_1 = "MOBILEMORTAR_mo_ax_1",
+	Snipe_s_ally_start_1 = "SNIPE_s_ally_start_1",
+	Snipe_s_ally_start_2 = "SNIPE_s_ally_start_2",
+	Snipe_s_ally_start_3 = "SNIPE_s_ally_start_3",
+	Snipe_s_ally_start_4 = "SNIPE_s_ally_start_4",
+	Snipe_s_ax_bunker_1 = "SNIPE_s_ax_bunker_1",
+
+	Navigation =
+	{
+		ladder_2_pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 3);
+				sleep(3);
+			},
+		},
+		ladder_al_pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 4);
+				sleep(4);
+			},
+		},
+	},
+
+	//CP
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	//MG�s
+	axis_basement_MG_Gun_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "axis_basement_MG_Gun_Built" );
+	},
+
+	axis_basement_MG_Gun_1_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "axis_basement_MG_Gun_1_Built" );
+	},
+
+	canyon_bunker_MG42_gun_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "canyon_bunker_MG42_gun_Built" );
+	},
+
+	main_bunker_MG42_gun_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "main_bunker_MG42_gun_Built" );
+	},
+
+	axis_basement_MG_Gun_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "axis_basement_MG_Gun_Destroyed" );
+	},
+
+	canyon_bunker_MG42_gun_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "canyon_bunker_MG42_gun_Destroyed" );
+	},
+
+	//Radio
+	radio_beacon_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+
+		Groups.DisableAllies(Groups.group5);
+		Groups.DisableAxis(Groups.group6);
+		Groups.EnableAllies(Groups.group7);
+		Groups.EnableAxis(Groups.group8);
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.DESTROY_SECONDARY);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTAttack");
+					}
+				}
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.REINFORCE_DEF);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTFallBack");
+					}
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "radio_beacon_Built" );
+	},
+
+	radio_beacon_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "radio_beacon_Destroyed" );
+	},
+
+	//Gates and doors
+	Axis_base_gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group3);
+		Groups.DisableAxis(Groups.group4);
+		Groups.EnableAllies(Groups.group5);
+		Groups.EnableAxis(Groups.group6);
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.PATH_CLEARED);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTAttack");
+					}
+				}
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.REINFORCE_DEF);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTFallBack");
+					}
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "Axis_base_gate_Destroyed" );
+	},
+
+	beach_bunker_door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group1);
+		Groups.DisableAxis(Groups.group2);
+		Groups.EnableAllies(Groups.group3);
+		Groups.EnableAxis(Groups.group4);
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.PATH_CLEARED);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTAttack");
+					}
+				}
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.REINFORCE_DEF);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTFallBack");
+					}
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "beach_bunker_door_Destroyed" );
+	},
+
+	bunker_door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+
+
+		Groups.DisableAllies(Groups.group3);
+		Groups.DisableAxis(Groups.group4);
+		Groups.EnableAllies(Groups.group5);
+		Groups.EnableAxis(Groups.group6);
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.PATH_CLEARED);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTAttack");
+					}
+				}
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.REINFORCE_DEF);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTFallBack");
+					}
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "bunker_door_Destroyed" );
+	},
+
+	//Generator
+	power_generator_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "power_generator_Destroyed" );
+	},
+
+	//Spawnflags
+	oldcityflag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "oldcityflag_Axis_Captured" );
+	},
+
+	oldcityflag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "oldcityflag_Allies_Captured" );
+	},
+
+	frontdoor_right_goto = function (trigger)
+	{
+		vec = ToVector(trigger.Action);
+		if ( vec.x > 17 )   { Map.Door = "open" ; }
+		if ( vec.x < 17 )   { Map.Door = "closed"; }
+		sleep(5);
+
+		Groups.DisableAllies(Groups.group7);
+		Groups.DisableAxis(Groups.group8);
+		Groups.EnableAllies(Groups.group9);
+		Groups.EnableAxis(Groups.group10);
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.DESTROY_PRIMARY);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTAttack");
+					}
+				}
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.REINFORCE_DEF);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTFallBack");
+					}
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "Door is now: ",Map.Door );
+	},
+
+	//Battery
+	battery_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "battery_Destroyed" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "MISSING_STRING", Map.axis_basement_MG_Gun_Built );
+	OnTrigger( "Axis basement MG gun #1 constructed", Map.axis_basement_MG_Gun_1_Built );
+	OnTrigger( "canyon bunker MG42 guns constructed", Map.canyon_bunker_MG42_gun_Built );
+	OnTrigger( "Main beach bunker MG42 guns constructed", Map.main_bunker_MG42_gun_Built );
+	OnTrigger( "^6Allied team has built the Radio", Map.radio_beacon_Built );
+	OnTrigger( "Allies have breached axis base main gate!", Map.Axis_base_gate_Destroyed );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "Axis basement MG gun #1 disabled", Map.axis_basement_MG_Gun_Destroyed );
+	OnTrigger( "^6Allies have destroyed the battery!!!!!!!", Map.battery_Destroyed );
+	OnTrigger( "Allies have blown the lower beach bunker door!", Map.beach_bunker_door_Destroyed );
+	OnTrigger( "Allies have blown the main beach bunker door!", Map.bunker_door_Destroyed );
+	OnTrigger( "canyon bunker MG42 guns disabled", Map.canyon_bunker_MG42_gun_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.power_generator_Destroyed );
+	OnTrigger( "^6Axis have destroyed the Radio", Map.radio_beacon_Destroyed );
+	OnTrigger( "Axis reclaim the forward spawn!", Map.oldcityflag_Axis_Captured );
+	OnTrigger( "Allies capture the forward spawn!", Map.oldcityflag_Allies_Captured );
+
+	//Doortrigger
+	OnTrigger( "frontdoor_right_goto", Map.frontdoor_right_goto );
+
+	//Priority Main goals
+	SetGoalPriority( "PLANT_beach_bunker_door", 0.9 );
+	SetGoalPriority( "PLANT_bunker_door", 0.9 );
+
+	//set offset for better reachable
+	Util.SetGoalOffset( 0, -20, 0, "PLANT_beach_bunker_door" );
+	Util.SetGoalPosition( 5111.796, 9325.875, -703.700, "PLANT_battery" );
+
+	//set max users for goals
+	Util.SetMaxUsersInProgress( 2, "BUILD.*" );
+	Util.SetMaxUsersInProgress( 2, "PLANT.*" );
+	Util.SetMaxUsersInProgress( 1, "SNIPE.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_.*" );
+	Util.SetMaxUsersInProgress( 1, "ATTACK_.*" );
+
+
+	//Set min/max camptime
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=120, MaxCampTime=120});
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=60, MaxCampTime=120});
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=30, MaxCampTime=60});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=60, MaxCampTime=120});
+
+	//clear all goals
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+
+	Util.EnableGoal("ROUTE.*"); //enable routing for both teams
+
+	//enable part 1 goals
+	Groups.EnableAllies(Groups.group1);
+	Groups.EnableAxis(Groups.group2);
+
+	//Routes
+	MapRoutes =
+	{
+
+		MOUNTMG42_518 =
+		{
+			ROUTE_r_alliespawn_1 =
+			{
+				ROUTE_r_beachtunnel_1 =
+				{
+					ROUTE_r_beachtunnel_2 = { ROUTE_r_beachbunker = {}, },
+				},
+			},
+		},
+
+		PLANT_beach_bunker_door =
+		{
+			ROUTE_r_alliespawn_1 =
+			{
+				ROUTE_r_beachtunnel_1 =
+				{
+					ROUTE_r_beachtunnel_3 =
+					{
+						ROUTE_r_beachtunnel_exit = { ROUTE_r_left_beachbunker_front = {}, },
+					},
+				},
+				ROUTE_r_beachtunnel_entrance =
+				{
+					ROUTE_r_left_hill = { ROUTE_r_left_beachbunker = {}, },
+				},
+			},
+		},
+		CHECKPOINT_oldcityflag =
+		{
+			ROUTE_r_alliespawn_2 =
+			{
+				ROUTE_r_bunkertunnel_1 =
+				{
+					ROUTE_r_bunkerstairs =
+					{
+						ROUTE_r_cp_tunnel = { ROUTE_flagladder = {}, },
+					},
+				},
+				ROUTE_r_al_spawn2_exit =
+				{
+					ROUTE_r_left_bunkerhill =
+					{
+						ROUTE_r_left_bunkerhill_1 = { ROUTE_r_left_bunkerhill_2 = {}, },
+					},
+				},
+			},
+		},
+		PLANT_bunker_door =
+		{
+			ROUTE_r_alliespawn_2 =
+			{
+				ROUTE_r_al_spawn2_exit =
+				{
+					ROUTE_r_left_bunkerhill =
+					{
+						ROUTE_r_mgnest =
+						{
+							ROUTE_r_right_bunkerhill = { ROUTE_r_cptop = {}, },
+						},
+					},
+				},
+			},
+		},
+		PLANT_power_generator =
+		{
+			ROUTE_r_allygenspawn =
+			{
+				ROUTE_r_genspawnexit =
+				{
+					ROUTE_r_stairs_split =
+					{
+						ROUTE_r_stairs =
+						{
+							ROUTE_r_leftway =
+							{
+								ROUTE_r_leftdoor = {},
+							},
+							ROUTE_r_rightway =
+							{
+								ROUTE_r_rightway_1 =
+								{
+									ROUTE_r_rightway_2 = {},
+								},
+							},
+						},
+						ROUTE_r_rightway_3 =
+						{
+							ROUTE_r_rightway_1 = { ROUTE_r_rightway_2 = {}, },
+						},
+					},
+				},
+			},
+		},
+		PLANT_battery =
+		{
+			ROUTE_r_allygenspawn =
+			{
+				ROUTE_r_genspawnexit =
+				{
+					ROUTE_r_stairs_split =
+					{
+						ROUTE_r_stairs =
+						{
+							ROUTE_r_rightway_3 =
+							{
+								ROUTE_r_rightway_1 =
+								{
+									ROUTE_r_magnetic_door =
+									{
+										ROUTE_r_battery_ladder =
+										{
+											ROUTE_r_battery = {},
+										},
+										ROUTE_r_battery_stairs =
+										{
+											ROUTE_r_battery_stairs_1 =
+											{
+												ROUTE_r_battery_stairs_2 = {},
+												ROUTE_r_battery_ladder_2 =
+												{
+													ROUTE_r_behind_battery = {},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_r_allygenspawn_1 =
+			{
+				ROUTE_r_genspawnexit =
+				{
+					ROUTE_r_stairs_split =
+					{
+						ROUTE_r_stairs =
+						{
+							ROUTE_r_rightway_3 =
+							{
+								ROUTE_r_rightway_1 =
+								{
+									ROUTE_r_magnetic_door =
+									{
+										ROUTE_r_battery_ladder =
+										{
+											ROUTE_r_battery = {},
+										},
+										ROUTE_r_battery_stairs =
+										{
+											ROUTE_r_battery_stairs_1 =
+											{
+												ROUTE_r_battery_stairs_2 = {},
+												ROUTE_r_battery_ladder_2 =
+												{
+													ROUTE_r_behind_battery = {},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	};
+
+	//Copy Routes
+	MapRoutes.SNIPE_s_ally_start_3 = MapRoutes.MOUNTMG42_518;
+	MapRoutes.SNIPE_s_ally_start_4 = MapRoutes.PLANT_beach_bunker_door;
+
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+// Uncomment for shootable breakables
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 100.0;
+	bot.MaxViewDistance = 2500;
+};
+
+global Groups =
+{
+	//Allied part 1
+	group1 =
+	{
+		Map.Plant_beach_bunker_door,
+		Map.Mount_518,
+		Map.Repair_518,
+		"ATTACK_a_start.*",
+		"MOBILEMORTAR_mo_al_start_1.*",
+		"SNIPE_s_ally_start.*",
+	},
+
+	//Axis part 1
+	group2 =
+	{
+		Map.Call_Artillery_ar_call_ax_1,
+		Map.Artillery_D_ar_ax_1,
+		Map.Build_axis_basement_MG_Gun,
+		Map.Build_canyon_bunker_MG42_gun,
+		Map.Build_Command_Post,
+		Map.Build_main_bunker_MG42_gun,
+		Map.Mobile_MG42_mg_ax_3,
+		"DEFEND_d_start.*",
+		"MOBILEMORTAR_mo_ax_1.*",
+		"SNIPE_s_axis_start.*",
+	},
+
+	//Allied part 2
+	group3 =
+	{
+		Map.Checkpoint_oldcityflag,
+		Map.Plant_axis_basement_MG_Gun,
+		Map.Plant_Axis_base_gate,
+		Map.Plant_bunker_door,
+		Map.Plant_canyon_bunker_MG42_gun,
+		Map.Plant_main_bunker_MG42_gun,
+		"ATTACK_a_bunker.*",
+	},
+
+	//Axis part2
+	group4=
+	{
+		Map.Build_axis_basement_MG_Gun,
+		Map.Build_canyon_bunker_MG42_gun,
+		Map.Build_Command_Post,
+		Map.Build_main_bunker_MG42_gun,
+		Map.Checkpoint_oldcityflag,
+		Map.Mobile_MG42_mg_ax_1,
+		Map.Mobile_MG42_mg_ax_2,
+		Map.Mobile_MG42_mg_ax_4,
+		Map.Mobile_MG42_mg_ax_5,
+		Map.Mount_basement_bunker_MG42_gun,
+		Map.Mount_canyon_bunker_MG42_gun,
+		Map.Mount_main_bunker_MG42_gun,
+		Map.Repair_basement_bunker_MG42_gun,
+		Map.Repair_canyon_bunker_MG42_gun,
+		Map.Repair_main_bunker_MG42_gun,
+		"DEFEND_d_bunker.*",
+	},
+
+	//Allied part 3
+	group5 =
+	{
+		Map.Build_Command_Post,
+		Map.Build_radio_beacon,
+		Map.Plant_Axis_base_gate,
+		Map.Plant_axis_basement_MG_Gun,
+		Map.Plant_bunker_door,
+		Map.Plant_canyon_bunker_MG42_gun,
+		Map.Plant_main_bunker_MG42_gun,
+		Map.Plant_Command_Post,
+		"ATTACK_a_bunker.*",
+		"ATTACK_a_radio.*",
+	},
+
+	//Axis part3
+	group6=
+	{
+		Map.Build_Command_Post,
+		Map.Mount_2198,
+		Map.Plant_Axis_base_gate,
+		Map.Plant_Command_Post,
+		Map.Plant_radio_beacon,
+		Map.Repair_2198,
+		"DEFEND_d_radio.*",
+	},
+
+	//Allies part4
+	group7=
+	{
+		Map.Build_Command_Post,
+		Map.Plant_Axis_base_gate,
+		Map.Plant_Command_Post,
+		Map.Plant_power_generator,
+		"ATTACK_a_generator.*",
+	},
+
+	//Axis part 4
+	group8=
+	{
+		"DEFEND_d_generator.*",
+	},
+
+	//Allies part5
+	group9=
+	{
+		Map.Mobile_MG42_mg_al_battery_1,
+		Map.Mobile_MG42_mg_al_battery_2,
+		Map.Mobile_MG42_mg_al_battery_3,
+		Map.Plant_battery,
+		"ATTACK_a_battery.*",
+	},
+
+	//Axis part 5
+	group10=
+	{
+		Map.Mobile_MG42_mg_ax_battery_1,
+		Map.Mobile_MG42_mg_ax_battery_2,
+		Map.Mobile_MG42_mg_ax_battery_3,
+		"DEFEND_d_battery.*",
+	},
+
+	EnableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, goal );
+			Util.MapDebugPrint("EnableAllies: enabling " + goal, true);
+		}
+	},
+
+	EnableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, goal );
+			Util.MapDebugPrint("EnableAxis: enabling " + goal, true);
+		}
+	},
+
+	DisableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, goal );
+			Util.MapDebugPrint("DisableAllies: disabling " + goal, true);
+		}
+	},
+
+	DisableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, goal );
+			Util.MapDebugPrint("DisableAxis: disabling " + goal, true);
+		}
+	},
+};

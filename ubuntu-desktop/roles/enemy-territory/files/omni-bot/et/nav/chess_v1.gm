@@ -1,0 +1,38 @@
+//==========================================================================================
+//
+//	chess_v1.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	palota	03 July 2010	Initial Script
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	DeathMatch = 1,
+	ShowMovers = false,
+};
+
+global OnMapLoad = function()
+{
+	//there were no problems with plant goals in omnibot 0.71,
+	//omnibot 0.8 needs these corrections
+	foreach (goal in { "PLANT_white_bishop", "PLANT_white_bishop_1", "PLANT_white_king", "PLANT_white_knight",
+		"PLANT_white_pawn", "PLANT_white_pawn_1", "PLANT_white_queen", "PLANT_white_rook", "PLANT_white_rook_1" }){
+		Util.SetGoalOffset(100,100,-90, goal);
+	}
+	//there is white knight, but black kinght !
+	foreach (goal in { "PLANT_black_bishop", "PLANT_black_bishop_1", "PLANT_black_king", "PLANT_black_kinght",
+		"PLANT_black_pawn", "PLANT_black_pawn_1", "PLANT_black_queen", "PLANT_black_rook", "PLANT_black_rook_1" }){
+		Util.SetGoalOffset(-100,-100,-90, goal);
+	}
+
+	// Max users per goal
+
+	// Camp times
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=30, MaxCampTime=80} );
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};

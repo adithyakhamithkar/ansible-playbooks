@@ -1,0 +1,20 @@
+// The new weapon instance is passed to this function as the 'this'
+// Properties can be set like this.Property = x
+
+//////////////////////////////////////////////////////////////////////////
+// Overall weapon properties.
+this.Name = "Akimbo Silenced Luger";
+this.WeaponId = WEAPON.LUGER_AKIMBO_SILENCED;
+this.PrimaryFire.AmmoType = WEAPON.LUGER_AKIMBO_SILENCED;
+
+//////////////////////////////////////////////////////////////////////////
+// Set some weapon properties that affect some internal logic.
+this.PrimaryFire.WeaponType = "instant";
+this.PrimaryFire.ProjectileSpeed = 1000;
+this.PrimaryFire.RequiresAmmo = true;
+this.PrimaryFire.WaterProof = false;
+this.PrimaryFire.InheritsVelocity = false;
+this.PrimaryFire.ProjectileGravity = 0.0;
+this.PrimaryFire.SetTargetBias(CLASS.BREAKABLE, 1.0);
+
+this.PrimaryFire.DefaultDesirability = 0.4;

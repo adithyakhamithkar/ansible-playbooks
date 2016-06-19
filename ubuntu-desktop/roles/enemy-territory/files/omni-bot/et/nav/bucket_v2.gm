@@ -1,0 +1,150 @@
+global Map =
+{
+	allies_jukebox = function ( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_allies" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_axis" );
+	},
+
+	axis_jukebox = function ( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_axis" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_allies" );
+	},
+
+	DontDispenseAmmo = true,
+	DontDispenseHealth = true,
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ ETUtil.AutoTestMap(); }
+
+	OnTrigger( "^1Axis ^7have the jukebox control!", Map.axis_jukebox );
+	OnTrigger( "^4Allies ^7have the jukebox control!", Map.allies_jukebox );
+
+	Util.DisableGoal(".*", true); // all but routes
+	Util.EnableGoal("BUILD_.*", true); // all but routes
+	Util.EnableGoal("PLANT_.*", true); // all but routes
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_allies" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CAMP_ally.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_axis" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CAMP_axis.*" );
+	SetGoalPriority( "PLANT_.*", 0.1, 0, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_Command_Post", 1.1, 0, CLASS.COVERTOPS );
+	SetGoalPriority( "SWITCH_.*", 1.0 );
+
+	Util.SetMaxUsers( 3, "SWITCH_.*" );
+	Util.SetMaxUsers( 1, "BUILD_.*" );
+	Util.SetMaxUsers( 1, "CAMP_.*" );
+
+	MapRoutes =
+	{
+		SWITCH_axis =
+		{
+			ROUTE_247  =
+			{
+				ROUTE_250  =
+				{
+					ROUTE_350  =
+					{
+						ROUTE_159  =
+						{
+							ROUTE_172  =
+							{
+								ROUTE_149  =
+								{
+									ROUTE_152  =
+									{
+									},
+								},
+							},
+						},
+					},
+					ROUTE_128  =
+					{
+						ROUTE_278  =
+						{
+						},
+					},
+					ROUTE_12  =
+					{
+						ROUTE_75  =
+						{
+						},
+					},
+				},
+			},
+		},
+
+		SWITCH_allies =
+		{
+			ROUTE_211  =
+			{
+				ROUTE_232  =
+				{
+					ROUTE_21  =
+					{
+						ROUTE_269  =
+						{
+							ROUTE_60  =
+							{
+								ROUTE_205  =
+								{
+								},
+							},
+						},
+					},
+					ROUTE_41  =
+					{
+						ROUTE_73  =
+						{
+						},
+					},
+					ROUTE_328  =
+					{
+						ROUTE_331  =
+						{
+							ROUTE_334  =
+							{
+								ROUTE_149  =
+								{
+									ROUTE_152  =
+									{
+										ROUTE_205  =
+										{
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+	};
+
+	MapRoutes.CAMP_axis1 = MapRoutes.SWITCH_axis;
+	MapRoutes.CAMP_axis2 = MapRoutes.SWITCH_axis;
+	MapRoutes.CAMP_axis3 = MapRoutes.SWITCH_axis;
+	MapRoutes.CAMP_axis4 = MapRoutes.SWITCH_axis;
+	MapRoutes.CAMP_axis5 = MapRoutes.SWITCH_axis;
+	MapRoutes.CAMP_axis6 = MapRoutes.SWITCH_axis;
+	MapRoutes.CAMP_ally6 = MapRoutes.SWITCH_allies;
+	MapRoutes.CAMP_ally5 = MapRoutes.SWITCH_allies;
+	MapRoutes.CAMP_ally4 = MapRoutes.SWITCH_allies;
+	MapRoutes.CAMP_ally3 = MapRoutes.SWITCH_allies;
+	MapRoutes.CAMP_ally1 = MapRoutes.SWITCH_allies;
+	MapRoutes.CAMP_ally2 = MapRoutes.SWITCH_allies;
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 100.0;
+};

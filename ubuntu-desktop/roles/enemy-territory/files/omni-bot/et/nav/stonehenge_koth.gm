@@ -1,0 +1,61 @@
+//==========================================================================================
+//
+//	stonehenge_koth.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	palota	25 November 2011	Initial Script
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+};
+
+global OnMapLoad = function()
+{
+	Util.LimitToTeam(TEAM.AXIS, ".*_x.*");
+	Util.LimitToTeam(TEAM.ALLIES, ".*_l.*");
+
+	SetGoalPriority( "SNIPE.*", 0.81 );
+
+	SetMapGoalProperties( "CAMP_.*", {MinCampTime=10, MaxCampTime=60} );
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=30, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=30, MaxCampTime=70} );
+
+	MapRoutes =
+	{
+		CHECKPOINT_mainflag = {
+			ROUTE_axis_spawn = {
+				ROUTE_x1 = {},
+				ROUTE_x2 = {},
+				ROUTE_x3 = {},
+				ROUTE_x4 = {},
+				ROUTE_x5 = {},
+				ROUTE_x6 = {},
+				ROUTE_x7 = {},
+				ROUTE_x8 = {},
+			},
+			ROUTE_allied_spawn = {
+				ROUTE_l1 = {},
+				ROUTE_l2 = {},
+				ROUTE_l3 = {},
+				ROUTE_l4 = {},
+				ROUTE_l5 = {},
+				ROUTE_l6 = {},
+				ROUTE_l7 = {},
+				ROUTE_l8 = {},
+			},
+		},
+	};
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.MaxViewDistance = 2800;
+};

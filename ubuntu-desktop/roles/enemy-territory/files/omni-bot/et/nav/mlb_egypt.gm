@@ -1,0 +1,920 @@
+//==========================================================================================
+//
+//	MLB_Egypt.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	Advieszeur	2 May 2008
+//	palota	23 October 2010	updated from omni-bot 0.66 to 0.8, RIDE_boat, paththrough navigation
+//	palota	26 October 2010	fixed routes, priorities, switches AimPosition, mg42 aim vectors, coverspots, GRENADE, MOBILEMG42, ARTILLERY,
+//	      	               	gun can be destroyed after loaded, fixed gold_Returned trigger, added templedoor_Destroyed trigger
+//	palota	29 October 2010	routes to switches and cappoint, ignore boat after temple entrance destroyed, allies suicide after gun fired,
+//	      	               	bots suicide at escape path only when gold returned and not taken again, axis don't repair boat in floodgate
+// palota	19 November 2010	ROUTE_escape_c1, ROUTE_r_temple, role to defend gold, longer MOUNTMG42 camp time, more bots ride boat after barrier destroyed
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	Lift_phase  = 0,                // face 0 of 6 phases boatlifting
+	BarrierIsBuild = false,         //Is Barrier build
+	LowerGate = "close",
+	UpperGate = "close",
+	BoatAtBarrier   = false,        //Boat is at flooddoor
+	BoatAtLowerGate  = false,       //Boat is at flooddoor
+	BoatInLift = false,             //Boat good between flooddoors
+	BoatAtEnd = false,              //Boat at the end of route
+	BoatIsDamaged = false,          // Boat is damaged
+	GunIsLoaded = false,
+	GoldIsStolen = false,
+
+	Movers =
+	{
+		"MOVER_boat",           //retain the boat as a mover
+	},
+
+	Navigation =
+	{
+		climb_rope = {
+			navigate = function(_this) {
+				_this.AddAimRequest(Priority.High, "facing", Vector3(0.4,0,0.8));
+				_this.Bot.HoldButton(BTN.FORWARD, 9);
+				for(j=0; _this.Bot.GetPosition().z < -460; j+=1)
+				{
+					if (j>25) { return; }
+					sleep(0.5);
+				}
+				_this.Bot.HoldButton(BTN.STRAFE_L, 1.5);
+				sleep(0.5);
+				_this.Bot.ReleaseButton(BTN.FORWARD);
+				sleep(1);
+			},
+		},
+	},
+
+	EscapeTrigger =
+	{
+		Name = "EscapeTrigger",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) ){
+				sleep(6);
+				SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_end");
+				SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_d_escape.*");
+				Util.MapDebugPrint( "Escape_Trigger" );
+			}
+		},
+		OnExit = function(ent) {},
+	},
+
+	Roles =
+	{
+		ALLIES =
+		{
+			DEFENDER2 =
+			{
+				numbots = 2,
+			},
+		},
+	},
+
+
+	resetGoals = function()   {
+		Util.DisableGoal("DEFEND_.*" );
+		Util.DisableGoal("ATTACK_.*" );
+		Util.DisableGoal("SNIPE_.*" );
+		Util.DisableGoal("CALLARTILLERY_.*" );
+		Util.DisableGoal("ARTILLERY_.*" );
+		Util.DisableGoal("MOBILEMG42_.*" );
+		Util.MapDebugPrint( "Reset Goals done", true );
+	},
+
+
+	//==== Boat things  ===========================
+
+	Set_Ride = function() {
+		ride = !(Map.BoatAtBarrier && Map.BarrierIsBuild ||
+			Map.BoatAtLowerGate && Map.LowerGate == "close" ||
+			Map.BoatInLift && Map.UpperGate == "close" ||
+			Map.BoatAtEnd || Map.BoatIsDamaged);
+
+		SetAvailableMapGoals( TEAM.AXIS, ride, "RIDE_boat" );
+		if ( Map.BoatIsDamaged )  {
+			Util.MapDebugPrint( "Repair the boat!", true );
+		} else if(ride)  {
+			Util.MapDebugPrint( "Escort the boat!", true );
+		} else {
+			Util.MapDebugPrint( "RIDE_boat disabled", true );
+		}
+	},
+
+	boat_Damaged = function( trigger )   {
+		if ( TestMap )  { return; }
+		Map.BoatIsDamaged = true;
+		Map.Set_Ride();
+		Util.MapDebugPrint( "boat_Damaged" );
+	},
+
+	boat_Repaired = function( trigger )   {
+		if ( TestMap )  { return; }
+		Map.BoatIsDamaged = false;
+		Map.Set_Ride();
+		Util.MapDebugPrint( "boat_Repaired" );
+	},
+
+
+	brickwall_Down = function( trigger )   {
+		if ( TestMap )  { return; }
+		Util.EnableGoal("ROUTE_r_barrier_a1");
+		Util.MapDebugPrint( "Brick wall shot down" );
+	},
+
+	boat_barrier_Built = function( trigger )   {
+		if ( TestMap )  { return; }
+		Map.BarrierIsBuild = true;
+		Map.Set_Ride();
+		SetGoalPriority("REPAIRMG42_156", 0.95);
+		Util.MapDebugPrint( "boat_barrier_Built" );
+	},
+
+	Boat_At_Barrier = function() {
+		if ( TestMap )  { return; }
+		Map.BoatAtBarrier = true;
+		Map.Set_Ride();
+		SetGoalPriority( "PLANT_boat_barrier", 0.95 );
+		Util.OnTriggerPosition( "MOVER_boat", "a_boat_26", 180.0, Map.Past_Barrier  );
+		Util.MapDebugPrint( "Boat at barrier");
+	},
+
+	boat_barrier_Destroyed = function( trigger )   {
+		if ( TestMap )  { return; }
+		Map.BarrierIsBuild = false;
+		Util.SetMaxUsersInProgress( 9, "RIDE_boat" );
+		Map.Set_Ride();
+		SetGoalPriority("REPAIRMG42_156", 0.7);
+		Util.MapDebugPrint( "boat_barrier_Destroyed" );
+	},
+
+	//boat Past barrier
+	Past_Barrier = function( trigger )   {
+		if ( TestMap )  { return; }
+		Map.BoatAtBarrier = false;
+		Map.resetGoals();
+		//Axis
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*MG42_156" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_barrier2_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_s_barrier2_x.*" );
+		//Allies
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_boat_barrier" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "GRENADE_barrier_mg" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_barrier2_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_s_barrier2_l.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, ".*ARTILLERY.*_barrier2_l.*" );
+
+		Util.SetMaxUsersInProgress( 2, "RIDE_boat" );
+		Util.OnTriggerPosition( "MOVER_boat", "a_boat_46", 180.0, Map.Boat_At_LowerGate  );
+		Util.MapDebugPrint( "Boat past barrier" );
+	},
+
+	//boat Past barrier2
+	Past_Barrier2 = function( trigger )   {
+		if ( TestMap )  { return; }
+		Map.resetGoals();
+		//Axis
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_flooddoor_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_s_flooddoor_x.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_generator" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_flooddoor_uppergate" );
+		//Allies
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_generator" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_flooddoor.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_s_flooddoor_l.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, ".*ARTILLERY.*_flooddoor_l.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMG42_flooddoor_l.*" );
+
+		Util.MapDebugPrint( "Boat past second barrier, enable switch and generator" );
+	},
+
+	Boat_At_LowerGate = function() {
+		//Boat arived at closed lowerdoor
+		Map.BoatAtLowerGate = true;
+		Map.Set_Ride();
+		SetGoalPriority( "BUILD_generator", 0.95 );
+		Util.OnTriggerPosition( "MOVER_boat", "BoatPos_lift", 700.0, Map.BoatPos_inlift  );
+		Util.MapDebugPrint( "Boat is for the lower door");
+	},
+
+	//Boat lift
+	generator_Built = function( trigger )   {
+		if ( TestMap )  { return; }
+		SetGoalPriority("SWITCH_flooddoor.*", 0.7);
+		Util.MapDebugPrint( "generator_Built", true );
+	},
+
+	generator_Destroyed = function( trigger )   {
+		if ( TestMap )  { return; }
+		SetGoalPriority("SWITCH_flooddoor.*", 0);
+		Util.MapDebugPrint( "generator_Destroyed", true );
+	},
+
+	//Ship lifting  (6 faces - 2x 3 buttons)
+	upper_gate_Closed = function( trigger )   {
+		if ( TestMap )  { return; }
+
+		Util.DisableGoal("SWITCH_flooddoor.*");
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_generator" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_generator" );
+
+		sleep(3);
+		Map.UpperGate = "close";
+		if ( Map.BoatInLift ) {
+			Map.Lift_phase = 5;
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_flooddoor_uppergate" );
+			Map.Set_Ride();
+		} else {
+			Map.Lift_phase = 1;
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_flooddoor_uppergate" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_flooddoor_waterpump" );
+		}
+
+		Util.MapDebugPrint( "upper_gate_Closed" );
+	},
+
+	waterlevel_Lowered = function( trigger )   {
+		if ( TestMap )  { return; }
+
+		Wp.SetWaypointFlag("flood", "closed", true);
+		Util.DisableGoal("SWITCH_flooddoor.*");
+		sleep(7);
+		if ( Map.BoatInLift ) {
+			Map.Lift_phase = 4;
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_flooddoor_lowergate" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_flooddoor_waterpump" );
+		} else {
+			Map.Lift_phase = 2;
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_flooddoor_waterpump" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_flooddoor_lowergate" );
+		}
+
+		Util.MapDebugPrint( "waterlevel_lowered" );
+	},
+
+	lower_gate_Opened = function( trigger )   {
+		if ( TestMap )  { return; }
+
+		Util.DisableGoal("SWITCH_flooddoor.*");
+		sleep(2);
+		Map.LowerGate = "open";
+
+		if ( Map.BoatInLift ) {
+			Map.Lift_phase = 3;
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_flooddoor_lowergate" );
+		} else {
+			Map.Lift_phase = 3;
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_flooddoor_lowergate" );
+			//Disable Generator
+			SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_generator" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_generator" );
+			Map.Set_Ride();
+		}
+		Util.MapDebugPrint( "lower_gate_Opened" );
+	},
+
+	//boat Past the lower gate
+	Past_LowerGate = function( trigger )   {
+		Map.BoatAtLowerGate = false;
+		Util.DisableGoal("SWITCH_flooddoor_lowergate");
+		Util.MapDebugPrint( "Boat past lower gate", true );
+	},
+
+	//boat in the boat lift
+	BoatPos_inlift   = function( trigger) {
+		if ( Map.BoatInLift ) { return; }
+		Map.BoatInLift = true;
+		Map.Set_Ride();
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Boat" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_flooddoor_lowergate" );
+		//Enable Generator
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_generator" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_generator" );
+		Util.MapDebugPrint( "Boat is in lift" );
+	},
+
+	lower_gate_Closed = function( trigger )   {
+		if ( TestMap )  { return; }
+
+		Util.DisableGoal("SWITCH_flooddoor.*");
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_generator" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_generator" );
+		sleep(2);
+		Map.LowerGate = "close";
+		if ( Map.BoatInLift ) {
+			Map.Lift_phase = 4;
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_flooddoor_lowergate" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_flooddoor_waterpump" );
+		} else {
+			Map.Lift_phase = 2;
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_flooddoor_waterpump" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_flooddoor_lowergate" );
+			Map.Set_Ride();
+		}
+
+		Util.MapDebugPrint( "lower_gate_Closed" );
+	},
+
+	waterlevel_Raised = function( trigger )   {
+		if ( TestMap )  { return; }
+
+		Util.DisableGoal("SWITCH_flooddoor.*");
+		sleep(7);
+		if ( Map.BoatInLift ) {
+			Map.Lift_phase = 5;
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_flooddoor_waterpump" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_flooddoor_uppergate" );
+		} else {
+			Map.Lift_phase = 1;
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_flooddoor_uppergate" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_flooddoor_waterpump" );
+		}
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Boat" );
+		Wp.SetWaypointFlag("flood", "closed", false);
+
+		Util.MapDebugPrint( "waterlevel_Raised" );
+	},
+
+	upper_gate_Opened = function( trigger )   {
+		if ( TestMap )  { return; }
+
+		Util.DisableGoal("SWITCH_flooddoor.*");
+		sleep(3);
+		Map.UpperGate = "open";
+
+		if ( Map.BoatInLift ) {
+			Map.Lift_phase = 6;
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_flooddoor_uppergate" );
+			//Disable Generator
+			SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_generator" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_generator" );
+
+			Map.Set_Ride();
+		} else {
+			Map.Lift_phase = 0;
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_flooddoor_uppergate" );
+		}
+
+		Util.MapDebugPrint( "upper_gate_Opened" );
+	},
+
+	//boat Past the upper gate
+	Past_UpperGate = function( trigger )   {
+		if ( TestMap )  { return; }
+		Map.BoatInLift = false;
+		Util.DisableGoal("SWITCH_flooddoor.*");
+
+		Map.resetGoals();
+		//Axis
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_generator" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_temple_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_a_temple_start" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_s_temple_x.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*MG42_959" );
+		//Allies
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_generator" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_temple_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_s_temple_l.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "GRENADE_temple_mg" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMG42_temple_l.*" );
+
+		Util.MapDebugPrint( "Boat past Upper gate" );
+	},
+
+/////////////////////////////////////////////////////////////////
+
+	//======  Second part of level  (Boatroute is finished)  =======
+
+	templeEntrance_Destroyed = function( trigger )   {
+		if ( TestMap )  { return; }
+
+		//Boat route is finished now
+		Map.BoatAtEnd = true;
+		Map.Set_Ride();
+		Util.IgnoreTargetGoalAll("MOVER_boat");
+
+		Map.resetGoals();       //Reset goals
+		Util.EnableGoal( "ATTACK_a_temple_start" );
+		//Axis
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Boat" );
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*MG42_959" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_temple_entrance_door" );
+		//Allies
+		SetAvailableMapGoals( TEAM.ALLIES, false, "GRENADE_temple_mg" );
+
+		Wp.SetWaypointFlag("c_temple", "closed", false);
+
+		//selfkill for change spawnpoint
+		ETUtil.SuicideSpawn( TEAM.AXIS, 0 );
+
+		Util.MapDebugPrint( "templeEntrance_Destroyed" );
+	},
+
+	templedoor_Planted = function( trigger )   {
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_square.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_s_square_l.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMG42_square_l.*" );
+
+		Util.MapDebugPrint( "templedoor_Planted" );
+	},
+
+	templedoor_Destroyed = function( trigger )   {
+		if ( TestMap )  { return; }
+
+		//Axis
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_square_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_s_square_x.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_temple_entrance_gate" );
+
+		Util.MapDebugPrint( "templedoor_Destroyed" );
+	},
+
+	dynawall_Destroyed = function( trigger )   {
+		if ( TestMap )  { return; }
+
+		Map.resetGoals();       //Reset goals
+		//Axis
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_gun_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_courtyard_floor_crack" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_gun" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "FLAG_ammo" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_cap_ammo" );
+		//Allies
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_gun.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_ammo.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_gun" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMG42_gun_l.*" );
+
+		Util.MapDebugPrint( "dynawall_Destroyed" );
+	},
+
+	cracked_floor_Destroyed = function( trigger )   {
+		if ( TestMap )  { return; }
+		Util.EnableGoal("ROUTE_r_stealammo_a1");
+		Util.SetMaxUsersInProgress( 20, "FLAG_ammo" );
+		Util.MapDebugPrint( "cracked_floor_Destroyed" );
+	},
+
+	const_gun_Destroyed = function( trigger )   {
+		if ( TestMap )  { return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_gun" );
+		Util.MapDebugPrint( "const_gun_Destroyed" );
+	},
+
+	const_gun_Built = function( trigger )   {
+		if ( TestMap )  { return; }
+		if (Map.GunIsLoaded){
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_gun" );
+		}
+		Util.MapDebugPrint( "Gun built" );
+	},
+
+	ammo_Stolen = function( trigger )   {
+		if ( TestMap )  { return; }
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_d_ammo.*" );
+		Util.MapDebugPrint( "Ammo stolen" );
+	},
+
+	ammo_Returned = function( trigger )   {
+		if ( TestMap )  { return; }
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_ammo.*" );
+		Util.MapDebugPrint( "Ammo Returned" );
+	},
+
+	gun_Loaded = function( trigger )   {
+		if ( TestMap )  { return; }
+		Map.GunIsLoaded = true;
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_courtyard_floor_crack" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_d_ammo_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_cap_ammo" );
+		Util.MapDebugPrint( "Gun Loaded" );
+	},
+
+	gun_Ready = function( trigger )   {
+		if ( TestMap )  { return; }
+		SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_gun" );
+		Util.MapDebugPrint( "Gun Ready" );
+	},
+
+	gun_Fired = function( trigger )   {
+		if ( TestMap )  { return; }
+		Map.resetGoals();       //Reset goals
+		//Axis
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_gun" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_gun" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_wall2_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_sarcophagus_room_door" );
+		//Allies
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_gun" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_wall2.*" );
+		ETUtil.SuicideSpawn( TEAM.ALLIES, 0 );
+
+		Util.MapDebugPrint( "Gun Fired" );
+	},
+
+	dynawall2_Destroyed = function( trigger )   {
+		if ( TestMap )  { return; }
+
+		Map.resetGoals();       //Reset goals
+		//Axis
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_gold_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_scaffolding" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "FLAG_gold" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_cap_gold" );
+		//Allies
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_gold.*" );
+		Util.ClearRoleForGoals("DEFEND_d_gold.*", ROLE.DEFENDER2);
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_scaffolding" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMG42_gold_l.*" );
+
+		OnTriggerRegion(Vector3(2400, 5300, -720),800, Map.EscapeTrigger);
+		Wp.SetWaypointFlag("c_temple", "closed", true);
+
+		Util.MapDebugPrint( "dynawall2_Destroyed" );
+	},
+
+	scaffolding_Destroyed = function( trigger )   {
+		if ( TestMap )  { return; }
+		Util.MapDebugPrint( "scaffolding_Destroyed" );
+	},
+
+	scaffolding_Built = function( trigger )   {
+		if ( TestMap )  { return; }
+		Util.MapDebugPrint( "scaffolding_Built" );
+	},
+
+	gold_Suicide = function( bot )
+	{
+		while( bot.GetReinforceTime() > 2 ) {
+			yield();
+		}
+		if (!Map.GoldIsStolen)
+		{
+			bot.ExecCommand("kill");
+		}
+	},
+
+	gold_Stolen = function( trigger )   {
+		if ( TestMap )  { return; }
+
+		Map.GoldIsStolen = true;
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_a_gold_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_escape_.*" );
+
+		Util.SetRoleForGoals("DEFEND_d_gold.*", ROLE.DEFENDER2);
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_escape.*" );
+
+		Util.MapDebugPrint( "gold_Stolen" );
+	},
+
+	gold_Returned = function( trigger )   {
+		if ( TestMap )  { return; }
+
+		Map.GoldIsStolen = false;
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_gold_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_a_escape_.*" );
+
+		Util.ClearRoleForGoals("DEFEND_d_gold.*", ROLE.DEFENDER2);
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_d_escape.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_end");
+
+		//kill all bots who are at river
+		foreach ( bot in BotTable )
+		{
+			pos = bot.GetPosition();
+			if (pos.y > 5100 && (pos.z < -780 || pos.x < 1500))
+			{
+				thread(Map.gold_Suicide, bot);
+			}
+		}
+
+		Util.MapDebugPrint( "gold_Returned" );
+	},
+
+};
+
+
+//============ GLOBAL  MAP LOAD  ====================
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )  { Util.AutoTestMap(); }
+
+	//MOVE GOALS FOR BETTER REACHABLE
+	Util.SetGoalOffset( -10, 252,  180, "PLANT_boat_barrier" );
+	Util.AddUsePoint( "PLANT_gun", Vector3(-1881.266, -3391.333, -1191.875));
+	Util.AddUsePoint( "PLANT_scaffolding", Vector3(1394.185, 1677.112, -1183.875));
+
+	Wp.SetWaypointFlag("flood", "closed", false);
+
+	//GOAL PROPERTIES
+	SetMapGoalProperties( "ATTACK_.*", {mincamptime=5, maxcamptime=25});
+	SetMapGoalProperties( "DEFEND_.*", {mincamptime=30, maxcamptime=300});
+	SetMapGoalProperties( "SNIPE_.*", {mincamptime=60, maxcamptime=300});
+	SetMapGoalProperties( "MOUNTMG42_.*", {mincamptime=60, maxcamptime=200});
+	SetMapGoalProperties( "MOBILEMG42_.*", {mincamptime=80, maxcamptime=400});
+
+	Util.SetMaxUsers( 1, "REPAIRMG42.*" );
+	Util.SetMaxUsers( 1, "GRENADE.*" );
+	Util.SetMaxUsersInProgress( 3, "SWITCH.*" );
+	Util.SetMaxUsers( 20, "ATTACK_a_temple_start" );
+	Util.SetMaxUsers( 20, "DEFEND_end" );
+	Util.SetMaxUsers( 3, "DEFEND_d_escape_l3" );
+	Util.SetMaxUsersInProgress( 2, "FLAG_ammo" );
+
+	Util.DisableGoal(".*", true);       //disable all
+	Util.DisableGoal("ROUTE_r_barrier_a1"); //brick wall
+	Util.DisableGoal("ROUTE_r_stealammo_a1"); //courtyard floor
+
+	//Axis goals
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Boat" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "RIDE_boat" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_boat_barrier" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_barrier_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_s_barrier_x.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, ".*MG42_156" );
+
+	//Allies goals
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_boat_barrier" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_s_barrier_l.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_barrier_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "GRENADE_barrier_mg" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, ".*ARTILLERY.*_barrier_l.*" );
+
+	SetGoalPriority( "SWITCH_flooddoor.*", 0);
+	SetGoalPriority( "BUILD_gun", 0.8 );
+	SetGoalPriority( "FLAG_ammo", 0.5, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "DEFEND_d_escape_l3", 0.49 );
+
+	//Boat
+	OnTrigger( "^1The boat has been damaged!", Map.boat_Damaged );
+	OnTrigger( "^4The boat has been repaired!", Map.boat_Repaired );
+	//Brickwall
+	OnTrigger( "^4The brick wall has been shot down", Map.brickwall_Down );
+	//Barrier
+	OnTrigger( "^dAllied team has built the boat barrier!", Map.boat_barrier_Built );
+	OnTrigger( "^dAxis team has destroyed the boat barrier!", Map.boat_barrier_Destroyed );
+	OnTrigger( "^4The second barrier has been blown", Map.Past_Barrier2 );
+	//Generator
+	OnTrigger( "^4Axis team has fixed the generator!", Map.generator_Built );
+	OnTrigger( "^1The generator broke down!", Map.generator_Destroyed );
+	OnTrigger( "^1Allied team has broken the generator!", Map.generator_Destroyed );
+	//Uppergate
+	OnTrigger( "^dAxis has closed the upper gate!",   Map.upper_gate_Closed );
+	OnTrigger( "^dAllies has closed the upper gate!", Map.upper_gate_Closed );
+	OnTrigger( "^dAxis has opened the upper gate!",   Map.upper_gate_Opened);
+	OnTrigger( "^dAllies has opened the upper gate!", Map.upper_gate_Opened );
+	//Waterlevel
+	OnTrigger( "^dAxis has lowered the water!", Map.waterlevel_Lowered );
+	OnTrigger( "^dAllies has lowered the water!", Map.waterlevel_Lowered );
+	OnTrigger( "^dAxis has raised the water!", Map.waterlevel_Raised );
+	OnTrigger( "^dAllies has raised the water!", Map.waterlevel_Raised );
+	//Lowergate
+	OnTrigger( "^dAxis has opened the lower gate!", Map.lower_gate_Opened );
+	OnTrigger( "^dAllies has opened the lower gate!", Map.lower_gate_Opened );
+	OnTrigger( "^dAxis has closed the lower gate!", Map.lower_gate_Closed );
+	OnTrigger( "^dAllies has closed the lower gate!", Map.lower_gate_Closed );
+
+	//boat is through lower gate
+	OnTrigger( "^1The boat is entering the floodgate  !", Map.Past_LowerGate );
+	//boat is through lift
+	OnTrigger( "^1The boat is through the floodgate  !", Map.Past_UpperGate );
+	OnTrigger( "^4The temple entrance has been destroyed", Map.templeEntrance_Destroyed );
+
+	//Finish boat tour, start second part of level
+	//========================================================================
+	OnTrigger( "Planted at the temple entrance door.", Map.templedoor_Planted );
+	OnTrigger( "the temple entrance door Destroyed.", Map.templedoor_Destroyed );
+	OnTrigger( "^1Axis have breached the Temple entrance!", Map.dynawall_Destroyed );
+
+	//Ammo
+	OnTrigger( "^1Axis has stolen the ammo !", Map.ammo_Stolen );
+	OnTrigger( "^4Allies has returned the ammo !", Map.ammo_Returned );
+	//Gun
+	OnTrigger( "^dAxis team has built the Gun!", Map.const_gun_Built );
+	OnTrigger( "^dAllied team has destroyed the Gun!", Map.const_gun_Destroyed );
+	OnTrigger( "^1Axis has loaded the gun !", Map.gun_Loaded );
+	OnTrigger( "^dThe gun is ready to fire!", Map.gun_Ready );
+	OnTrigger( "^4The Pyramid entrance has been destroyed", Map.gun_Fired );
+
+	OnTrigger( "^dThe scaffolding has been built", Map.scaffolding_Built );
+	OnTrigger( "^dThe scaffolding has been destroyed", Map.scaffolding_Destroyed );
+	//Gold
+	OnTrigger( "Axis have stolen The Gold Crate!", Map.gold_Stolen );
+	OnTrigger( "Flag returned gold!", Map.gold_Returned );
+	//OnTrigger( "^4Axis got away with the gold ^d!!!!!!!!!!", Map.gold_Save );
+
+	OnTrigger( "^dAxis has breached the courtyard floor!", Map.cracked_floor_Destroyed );
+	OnTrigger( "^1Axis has breached the Sarcophagus room wall!", Map.dynawall2_Destroyed );
+
+	//Trigger for the Boat pos
+	Util.OnTriggerPosition( "MOVER_boat", "a_boat_25", 180.0, Map.Boat_At_Barrier  );
+
+	GetGoal("BUILD_Boat").PaththroughFunction = function(_this)
+	{
+		bot = _this.Bot;
+		ent = GetGoal("MOVER_boat").GetEntity();
+		v = GetEntFacing(ent);
+		pos = GetEntityWorldSpace(ent, Vector3(0,-234,-10));
+		for(k=0; k<4; k+=1)
+		{
+			//climb up from water to the boat
+			_this.AddAimRequest(Priority.High, "facing", Vector3(v.x, v.y, 2));
+			sleep(0.1);
+			bot.HoldButton(BTN.FORWARD, BTN.JUMP, 4);
+			sleep(1);
+			bot.ReleaseButton(BTN.JUMP);
+			for(i=0; i<=70 && bot.DistanceTo(pos) > 80; i+=1)
+			{
+				yield();
+			}
+			bot.ReleaseButton(BTN.FORWARD);
+			if (bot.GetPosition().z < pos.z + 40){ break; }
+			//bot has climbed the second ladder, step back and try again
+			bot.HoldButton(BTN.BACKWARD, 0.5);
+			sleep(0.5);
+		}
+		//strafe left or right
+		_this.AddAimRequest(Priority.High, "facing", v);
+		if (RandInt( 0, 9 ) < 5){ b=BTN.STRAFE_L; k=-1; } else { b=BTN.STRAFE_R; k=1; }
+		bot.HoldButton(b, 2);
+		sleep(0.8);
+		//go forward
+		pos = GetEntityWorldSpace(ent, Vector3(71 * k, -59, -10.875));
+		bot.MoveTowards(pos);
+		sleep(1.8);
+		if (Abs(bot.GetPosition().z - pos.z) > 50)
+		{
+			Util.MapDebugPrint("BUILD_Boat paththrough failed", true);
+			 _this.Finished();
+		}
+	};
+
+	// ********************************************************
+	// *****  ROUTES   ****************************************
+	// ********************************************************
+
+	MapRoutes =
+	{
+		//Axis routes
+		PLANT_boat_barrier =
+		{
+			ROUTE_r_spawn_x1 =  {
+				//tunnel route
+				ROUTE_r_barrier_a1 = { Weight = 5, ROUTE_r_barrier_a2 = {}, },
+				//oposite river route
+				ROUTE_r_barrier_c1 = { ROUTE_r_barrier_c2 = {},  },
+				//above route
+				ROUTE_r_barrier_d1 = { ROUTE_r_barrier_d2 = {},  },
+			},
+		},
+
+		BUILD_generator =
+		{
+			ROUTE_r_spawn_x3 =  {
+				//Tunnel route
+				ROUTE_r_lift_a1 = { Weight = 6,
+					ROUTE_r_lift_a2 = {Weight = 3,},
+					ROUTE_r_lift_a3 = {},
+				},
+				//Floodwall route
+				ROUTE_r_lift_b1 = {},
+				ROUTE_r_lift_c1 = {
+					ROUTE_r_lift_c2 = {},
+				},
+			},
+		},
+
+		ATTACK_a_flooddoor_x2 =
+		{
+			ROUTE_r_spawn_x3 =  {
+				//Tunnel route
+				ROUTE_r_lift_a1 = {
+					Weight = 7,
+					ROUTE_r_lift_a2 = {Weight = 3,},
+					ROUTE_r_lift_a3 = {},
+				},
+				//Floodwall route
+				ROUTE_r_lift_b1 = {},
+				ROUTE_r_lift_c1 = {
+					Weight = 2,
+					ROUTE_r_lift_c2 = {},
+				},
+			},
+		},
+
+		PLANT_sarcophagus_room_door =
+		{
+			ROUTE_r_spawn_x8 =  {
+				//Left side
+				ROUTE_r_barrier2_a1 = { ROUTE_r_barrier2_a2 = {}, },
+				//Right side
+				ROUTE_r_barrier2_b1 = { ROUTE_r_barrier2_b2 = {}, },
+			},
+		},
+
+		FLAG_ammo =
+		{
+			ROUTE_r_spawn_x7 =  {
+				//`floorgap`
+				ROUTE_r_stealammo_a1 = { Weight = 2,
+					ROUTE_r_stealgold_a2 = {},
+					ROUTE_r_stealgold_a3 = {},
+				},
+				//Both sides
+				ROUTE_r_stealammo_b1 = { Weight = 0.5 },
+				ROUTE_r_stealammo_c1 = {},
+			},
+		},
+
+		CAPPOINT_cap_gold =
+		{
+			ROUTE_gold = {
+				ROUTE_escape_a1 = { Weight = 2, ROUTE_escape_a2 = {}},
+				ROUTE_escape_b1 = {},
+				ROUTE_escape_c1 = {},
+			}
+		},
+
+		//Allies Routes
+		PLANT_generator =
+		{
+			ROUTE_r_spawn_l3 =  {
+				ROUTE_r_flood_a1 = {},
+				ROUTE_r_flood_b1 = { Weight = 3 },
+			},
+		},
+
+		DEFEND_d_temple_l2 = {
+			ROUTE_r_spawn_l9 = {
+				ROUTE_r_temple_a1 = {},
+				ROUTE_r_temple_a2 = { Weight = 3 },
+			}
+		},
+
+		DEFEND_d_temple_l1 = {
+			ROUTE_r_spawn_l9 = {
+				ROUTE_r_temple_b1 = {},
+			}
+		},
+	};
+
+	// Copy routes  barrier
+	MapRoutes.ATTACK_a_barrier_x1 = MapRoutes.PLANT_boat_barrier;
+	MapRoutes.ATTACK_a_barrier_x2 = MapRoutes.ATTACK_a_barrier_x1;
+	MapRoutes.ATTACK_a_barrier_x3 = MapRoutes.ATTACK_a_barrier_x1;
+	MapRoutes.ATTACK_a_barrier_x4 = MapRoutes.ATTACK_a_barrier_x1;
+	// Copy routes  lift  asis
+	MapRoutes.ATTACK_a_flooddoor_x1 = MapRoutes.ATTACK_a_flooddoor_x2;
+	MapRoutes.ATTACK_a_flooddoor_x4 = MapRoutes.ATTACK_a_flooddoor_x2;
+	MapRoutes.ATTACK_a_flooddoor_x5 = MapRoutes.ATTACK_a_flooddoor_x2;
+	// Copy routes  Steal ammo
+	MapRoutes.FLAG_ammo.ROUTE_r_spawn_x7_2 = MapRoutes.FLAG_ammo.ROUTE_r_spawn_x7;
+	MapRoutes.FLAG_ammo.ROUTE_r_spawn_x7_3 = MapRoutes.FLAG_ammo.ROUTE_r_spawn_x7;
+	// Copy routes  Dynowall2
+	MapRoutes.ATTACK_a_wall2_x1 = MapRoutes.PLANT_sarcophagus_room_door;
+	MapRoutes.ATTACK_a_wall2_x2 = MapRoutes.PLANT_sarcophagus_room_door;
+	MapRoutes.ATTACK_a_wall2_x3 = MapRoutes.PLANT_sarcophagus_room_door;
+	// Copy routes  lift  asis
+	MapRoutes.DEFEND_d_flooddoor_l1 = MapRoutes.PLANT_generator;
+	MapRoutes.DEFEND_d_flooddoor_l2 = MapRoutes.DEFEND_d_flooddoor_l1;
+	MapRoutes.DEFEND_d_flooddoor_l3 = MapRoutes.DEFEND_d_flooddoor_l1;
+	MapRoutes.DEFEND_d_flooddoor_l4 = MapRoutes.DEFEND_d_flooddoor_l1;
+	MapRoutes.DEFEND_d_flooddoor_l5 = MapRoutes.DEFEND_d_flooddoor_l1;
+	MapRoutes.DEFEND_d_flooddoor_l6 = MapRoutes.DEFEND_d_flooddoor_l1;
+	MapRoutes.DEFEND_d_flooddoor_l7 = MapRoutes.DEFEND_d_flooddoor_l1;
+	MapRoutes.DEFEND_d_flooddoor_l8 = MapRoutes.DEFEND_d_flooddoor_l1;
+	// Copy routes  defend temple
+	MapRoutes.DEFEND_d_temple_l3 = MapRoutes.DEFEND_d_temple_l1;
+	MapRoutes.DEFEND_d_temple_l7 = MapRoutes.DEFEND_d_temple_l1;
+	MapRoutes.DEFEND_d_temple_l8 = MapRoutes.DEFEND_d_temple_l1;
+	MapRoutes.DEFEND_d_temple_l10 = MapRoutes.DEFEND_d_temple_l1;
+	MapRoutes.DEFEND_d_temple_l4 = MapRoutes.DEFEND_d_temple_l2;
+	MapRoutes.DEFEND_d_temple_l5 = MapRoutes.DEFEND_d_temple_l2;
+	MapRoutes.DEFEND_d_temple_l6 = MapRoutes.DEFEND_d_temple_l2;
+	MapRoutes.DEFEND_d_temple_l9 = MapRoutes.DEFEND_d_temple_l2;
+	MapRoutes.DEFEND_d_temple_l11 = MapRoutes.DEFEND_d_temple_l2;
+
+	MapRoutes.SWITCH_flooddoor_lowergate =
+	{
+		ROUTE_r_spawn_l3 = MapRoutes.DEFEND_d_flooddoor_l1,
+		ROUTE_r_spawn_x3 = MapRoutes.ATTACK_a_flooddoor_x2,
+	};
+	MapRoutes.SWITCH_flooddoor_waterpump = MapRoutes.SWITCH_flooddoor_lowergate;
+	MapRoutes.SWITCH_flooddoor_uppergate = MapRoutes.SWITCH_flooddoor_lowergate;
+
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};

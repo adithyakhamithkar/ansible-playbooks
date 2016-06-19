@@ -1,0 +1,354 @@
+global Map =
+{
+	Barrierpassed =
+ 	{
+ 		Name="Barrierpassed",
+ 		TriggerOnClass = TEAM.ALLIES,
+		OnEnter = function(ent)
+ 		{
+ 			//Util.MapDebugPrint(GetEntName(ent) + " BarrierPassed");
+			//Map.RideVehicle.truck.Enabled = true;
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_gate.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_joint.*" );
+ 		},
+ 		OnExit = function(ent)
+ 		{
+			Util.MapDebugPrint(GetEntName(ent) + " defending the joint");
+ 		},
+	},
+
+	Ammo_Cabinet_first_ammocabinet = "AMMOCAB_first_ammocabinet",
+	Ammo_Cabinet_first_ammocabinet_1 = "AMMOCAB_first_ammocabinet_1",
+	Ammo_Cabinet_first_ammocabinet_2 = "AMMOCAB_first_ammocabinet_2",
+	Ammo_Cabinet_first_ammocabinet_3 = "AMMOCAB_first_ammocabinet_3",
+	Ammo_Cabinet_first_ammocabinet_4 = "AMMOCAB_first_ammocabinet_4",
+	Ammo_Cabinet_first_ammocabinet_5 = "AMMOCAB_first_ammocabinet_5",
+	Health_Cabinet_first_healthcabinet = "HEALTHCAB_first_healthcabinet",
+	Health_Cabinet_first_healthcabinet_1 = "HEALTHCAB_first_healthcabinet_1",
+	Health_Cabinet_first_healthcabinet_2 = "HEALTHCAB_first_healthcabinet_2",
+	Call_Artillery_arty5 = "CALLARTILLERY_arty5",
+	Call_Artillery_artyspot1 = "CALLARTILLERY_artyspot1",
+	Call_Artillery_artyspot2 = "CALLARTILLERY_artyspot2",
+	Artillery_D_arty1 = "ARTILLERY_D_arty1",
+	Artillery_D_roofarty = "ARTILLERY_D_roofarty",
+	Checkpoint_house_spawn_flag = "CHECKPOINT_house_spawn_flag",
+	Build_House_MG42 = "BUILD_House_MG42",
+	Plant_House_MG42 = "PLANT_House_MG42",
+	Plant_Main_gate = "PLANT_Main_gate",
+	Plant_Power_supply = "PLANT_Power_supply",
+	Mount_248 = "MOUNTMG42_248",
+	Mount_249 = "MOUNTMG42_249",
+	Mount_250 = "MOUNTMG42_250",
+	Mount_250_1 = "MOUNTMG42_250_1",
+	Mount_251 = "MOUNTMG42_251",
+	Mount_251_1 = "MOUNTMG42_251_1",
+	Mount_784 = "MOUNTMG42_784",
+	Mount_House_MG42 = "MOUNTMG42_House_MG42",
+	Mount_axisconstruct_guardpost_mg42_track = "MOUNTMG42_axisconstruct_guardpost_mg42_track",
+	Repair_248 = "REPAIRMG42_248",
+	Repair_249 = "REPAIRMG42_249",
+	Repair_250 = "REPAIRMG42_250",
+	Repair_250_1 = "REPAIRMG42_250_1",
+	Repair_251 = "REPAIRMG42_251",
+	Repair_251_1 = "REPAIRMG42_251_1",
+	Repair_784 = "REPAIRMG42_784",
+	Repair_House_MG42 = "REPAIRMG42_House_MG42",
+	Repair_axisconstruct_guardpost_mg42_track = "REPAIRMG42_axisconstruct_guardpost_mg42_track",
+	Snipe_a1 = "SNIPE_a1",
+	Snipe_b1 = "SNIPE_b1",
+	Snipe_b3 = "SNIPE_b3",
+	Snipe_roof = "SNIPE_roof",
+	Snipe_snipe1 = "SNIPE_snipe1",
+	Snipe_snipe2 = "SNIPE_snipe2",
+	Snipe_spawnsnipe = "SNIPE_spawnsnipe",
+
+	House_MG42_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "House_MG42_Built" );
+	},
+
+	House_MG42_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "House_MG42_Destroyed" );
+	},
+
+	Main_gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Main_gate_Destroyed" );
+	},
+
+	Power_supply_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_main_gate" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_snipe1" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_snipe2" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_gen.*" );
+		//~		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_joint.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_gate.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_D_roofarty" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_ally3" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_ally4" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ally9" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_roof" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_b3" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_jointsnipe2" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_jointsnipe2" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_jointsnipe" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_jointsnipe" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ally1" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ally2" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_allymg" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_spawnsnipe" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_axismg" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_axis1" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_axis2" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_flagsnipe" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_House_MG42" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_r1" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_r2" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_attack.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_ladder" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_ladder" );
+
+		Util.MapDebugPrint( "Power_supply_Destroyed" );
+	},
+
+	house_spawn_flag_Axis_Captured = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_flagsnipe" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_flagsnipe" );
+
+		Util.MapDebugPrint( "house_spawn_flag_Axis_Captured" );
+	},
+
+	house_spawn_flag_Allies_Captured = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_flagsnipe" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_flagsnipe" );
+
+		Util.MapDebugPrint( "house_spawn_flag_Allies_Captured" );
+	},
+	
+	power_plant = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_house_spawn_flag" );
+
+		Util.MapDebugPrint( "planted at power supply" );
+	},
+};
+
+global OnMapLoad = function()
+{	
+	OnTrigger( "MISSING_STRING", Map.House_MG42_Built );
+	OnTrigger( "MISSING_STRING", Map.House_MG42_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Main_gate_Destroyed );
+	OnTrigger( "Allied team has disabled the Power Supply!", Map.Power_supply_Destroyed );
+	OnTrigger( "Axis reclaimed House!", Map.house_spawn_flag_Axis_Captured );
+	OnTrigger( "Allies captured House!", Map.house_spawn_flag_Allies_Captured );
+	OnTrigger( "Planted at the Power supply.", Map.power_plant );
+
+	//~SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	//~SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_gen.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_gate.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_gate.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_main_gate" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_joint.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_joint.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_ally.*" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_snipe1" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_snipe2" );
+	
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_snipe1" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_snipe2" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_roof" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_.*" );
+	
+	
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_spawnsnipe" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_roof" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_a1" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_b1" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_r1" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_r2" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_r1" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_r2" );
+	
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_a1" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_b1" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_flagsnipe" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_b3" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_axis2" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_b3" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_allymg" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_axismg" );
+	
+	SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_House_MG42" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_axismg" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ally3" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ally4" );
+//~	SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_house_spawn_flag" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_House_MG42" );
+	
+	SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_D_roofarty" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_D_roofarty" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_axis1" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_attack.*" );
+	
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_attack.*" );
+	
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_ladder" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_ladder" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_jointsnipe2" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_jointsnipe2" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_jointsnipe" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_jointsnipe" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_.*" );
+	Util.SetMaxUsersInProgress( 1, "ATTACK_.*" );
+	
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=15, MaxCampTime=40} ); 
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=15, MaxCampTime=50} ); 
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=15, MaxCampTime=60} ); 
+
+	SetGoalPriority( "SNIPE_.*", 0.90 );
+	SetGoalPriority( "DEFEND_.*", 0.6 );
+	SetGoalPriority( "ATTACK_.*", 0.6 );
+	
+	SetGoalPriority( "PLANT_Power_supply", 0.95 );
+	SetGoalPriority( "CHECKPOINT_house_spawn_flag", 1.0, TEAM.ALLIES, CLASS.MEDIC );
+	SetGoalPriority( "CHECKPOINT_house_spawn_flag", 0.0, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "CHECKPOINT_house_spawn_flag", 1.0, TEAM.AXIS, CLASS.MEDIC );
+	SetGoalPriority( "CHECKPOINT_house_spawn_flag", 1.0, TEAM.AXIS, CLASS.SOLDIER );
+	
+	Util.SetGoalOffset( -25,0,0, "PLANT_Power_supply" );
+	
+	OnTriggerRegion(AABB(-3814.924,1233.475,-0.875,-3618.443,1480.482,73.125), Map.Barrierpassed);
+	
+//~	OnTriggerRegion(AABB(4188.251,330.844,703.319,4475.376,667.842,777.319), Map.Barrierpassed);
+	MapRoutes =
+	{
+		PLANT_Main_gate = 
+		{
+			ROUTE_flag  = 
+			{
+				ROUTE_flag2  = 
+				{
+					ROUTE_flag3  = 
+					{
+						ROUTE_flag6  = 
+						{
+						},
+					},
+					ROUTE_flag4  = 
+					{
+						ROUTE_flag5  = 
+						{
+						},
+					},
+				},
+			},
+		},
+		
+		PLANT_Power_supply = 
+		{
+			ROUTE_firstspawn  = 
+			{
+				ROUTE_s1  = 
+				{
+					ROUTE_s3  = 
+					{
+						ROUTE_s5  = 
+						{
+							ROUTE_h3  = 
+							{
+							},
+						},
+					},
+					ROUTE_s2  = 
+					{
+						ROUTE_s6  = 
+						{
+							ROUTE_s7  = 
+							{
+								ROUTE_s5  = 
+								{
+									ROUTE_s3  = 
+									{
+										ROUTE_s4  = 
+										{
+											ROUTE_ally50  = 
+											{
+												ROUTE_ally51  = 
+												{
+													ROUTE_ally52  = 
+													{
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_s4  = 
+				{
+					ROUTE_ally50  = 
+					{
+						ROUTE_ally51  = 
+						{
+							ROUTE_ally52  = 
+							{
+							},
+						},
+					},
+				},
+			},
+		},
+	};
+	
+	MapRoutes.DEFEND_ally3 = MapRoutes.PLANT_Main_gate;
+	MapRoutes.DEFEND_ally4 = MapRoutes.PLANT_Main_gate;
+	MapRoutes.ATTACK_attack1 = MapRoutes.PLANT_Main_gate;
+	MapRoutes.ATTACK_attack2 = MapRoutes.PLANT_Main_gate;
+	MapRoutes.ATTACK_attack3 = MapRoutes.PLANT_Main_gate;
+	
+	MapRoutes.DEFEND_ally1 = MapRoutes.PLANT_Power_supply;
+	MapRoutes.DEFEND_ally2 = MapRoutes.PLANT_Power_supply;
+	MapRoutes.DEFEND_ally9 = MapRoutes.PLANT_Power_supply;
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	 bot.TargetBreakableDist = 100.0;
+	 bot.MaxViewDistance = 3700.0;
+};

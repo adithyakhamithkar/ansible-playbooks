@@ -1,0 +1,15 @@
+global Map = 
+{
+	PanzerMap = true,
+};
+global OnMapLoad = function()
+{
+	OnTriggerRegion(AABB(-87.273,-268.442,157.948,147.206,256.851,387.406),RegionTrigger.DisableBotPush); //center bridge
+	Util.DisableGoal("HEALTHCAB_center");
+	Util.DisableGoal("AMMOCAB_tree");
+};
+global OnBotJoin = function(bot)
+{
+	ETUtil.ChangeToPanzer(bot);
+	bot.MaxViewDistance = 1850.0;
+};

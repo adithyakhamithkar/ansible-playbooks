@@ -1,0 +1,466 @@
+global Map =
+{
+	Quiet = true, // this gets rid of all the goal initialization spam 
+
+	Ammo_Cabinet_allied_ammocabinet = "AMMOCAB_allied_ammocabinet",
+	Ammo_Cabinet_axis_ammocabinet = "AMMOCAB_axis_ammocabinet",
+	Health_Cabinet_allied_healthcabinet = "HEALTHCAB_allied_healthcabinet",
+	Health_Cabinet_axis_healthcabinet = "HEALTHCAB_axis_healthcabinet",
+	Call_Artillery_897 = "CALLARTILLERY_897",
+	Artillery_D_353 = "ARTILLERY_D_353",
+	Checkpoint_ForwardSpawn_flag = "CHECKPOINT_ForwardSpawn_flag",
+	Build_Allied_Command_Post = "BUILD_Allied_Command_Post",
+	Build_Axis_Command_Post = "BUILD_Axis_Command_Post",
+	Plant_Allied_Command_Post = "PLANT_Allied_Command_Post",
+	Plant_Axis_Command_Post = "PLANT_Axis_Command_Post",
+	Plant_Communications_Tower = "PLANT_Communications_Tower",
+	Plant_Gate_Hatch = "PLANT_Gate_Hatch",
+	Plant_Warehouse_Entrance = "PLANT_Warehouse_Entrance",
+/*	Explode_AlliesGarageRadio = "EXPLODE_AlliesGarageRadio",
+	Explode_AlliesTowerRadio = "EXPLODE_AlliesTowerRadio",
+	Explode_AxisSpawnRadio = "EXPLODE_AxisSpawnRadio",
+	Explode_AxisTowerRadio = "EXPLODE_AxisTowerRadio",
+	Explode_obj_block01 = "EXPLODE_obj_block01",
+*/	Mount_354 = "MOUNTMG42_354",
+	Mount_624 = "MOUNTMG42_624",
+	Mount_647 = "MOUNTMG42_647",
+	Mount_900 = "MOUNTMG42_900",
+	Repair_354 = "REPAIRMG42_354",
+	Repair_624 = "REPAIRMG42_624",
+	Repair_647 = "REPAIRMG42_647",
+	Repair_900 = "REPAIRMG42_900",
+	Snipe_855 = "SNIPE_855",
+	Snipe_877 = "SNIPE_877",
+	Snipe_879 = "SNIPE_879",
+	Snipe_886 = "SNIPE_886",
+	Snipe_887 = "SNIPE_887",
+	Snipe_888 = "SNIPE_888",
+	Snipe_889 = "SNIPE_889",
+	Snipe_890 = "SNIPE_890",
+	Snipe_895 = "SNIPE_895",
+	Snipe_axis_snipe = "SNIPE_axis_snipe",
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		Util.EnableGoal("AMMOCAB_allied_ammocabinet");
+		Util.EnableGoal("HEALTHCAB_allied_healthcabinet");
+		Util.EnableGoal("HEALTHCAB_94");
+		Util.EnableGoal("AMMOCAB_95");
+		
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		Util.EnableGoal("AMMOCAB_axis_ammocabinet");
+		Util.EnableGoal("HEALTHCAB_axis_healthcabinet");
+		Util.EnableGoal("HEALTH_470");
+		Util.EnableGoal("AMMO_471");
+
+		Util.MapDebugPrint("axis Command_Post_Built");
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	Communications_Tower_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Communications_Tower_Destroyed" );
+	},
+
+	Gate_Hatch_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Communications_Tower" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Warehouse_Entrance" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_t.*" );
+		Wp.SetWaypointFlag( "hatch1", "closed", false );
+		Util.MapDebugPrint("Gate hatch blown");
+
+		Util.MapDebugPrint( "Gate_Hatch_Destroyed" );
+	},
+
+	Warehouse_Entrance_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_ax25" );
+
+		Util.MapDebugPrint("warehouse  blown");
+	},
+
+	ForwardSpawn_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "ForwardSpawn_flag_Axis_Captured" );
+	},
+
+	ForwardSpawn_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "ForwardSpawn_flag_Allies_Captured" );
+	},
+	
+	door_open = function(trigger)
+	{
+		if ( TestMap )
+			{ return; }
+	
+		vel = ToVector(trigger.Action);
+			
+		if ( vel.y > 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Communications_Tower" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_t.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_ForwardSpawn_flag" );
+			//~	SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_D_arty1" );
+			//~	SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_D_arty2" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "CALLARTILLERY_call1" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "CALLARTILLERY_call2" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_door2" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_door3" );
+
+			Map.DoorStatus = 1;
+			Util.MapDebugPrint( "door open" );
+		}
+		else if ( vel.y < 0 )
+		{ 
+				SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_door3" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_door2" );
+				Map.DoorStatus = 0;
+				Util.MapDebugPrint("^1 door closed", true); 
+		}
+	},
+	
+	hanger_open = function(trigger)
+	{
+		if ( TestMap )
+			{ return; }
+	
+		vel = ToVector(trigger.Action);
+			
+		if ( vel.y < 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_door1" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_door1" );
+
+			Util.MapDebugPrint( "hangerOpen", true );
+		}
+		else if ( vel.y > 0 )
+		{ 
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_door1" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_door1" );
+
+			Util.MapDebugPrint("^1hangerClosed", true); 
+		}		
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "MISSING_STRING", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Communications_Tower_Destroyed );
+	OnTrigger( "Axis team breached the Gate Hatch!", Map.Gate_Hatch_Destroyed );
+	OnTrigger( "Axis team breached the Warehouse Door!", Map.Warehouse_Entrance_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.ForwardSpawn_flag_Axis_Captured );
+	OnTrigger( "MISSING_STRING", Map.ForwardSpawn_flag_Allies_Captured );
+	OnTrigger( "big_gate1_goto", Map.door_open );
+	OnTrigger( "hangar_lever1_goto", Map.hanger_open );
+
+	
+	Util.DisableGoal(".*"); 
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_def.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_def_dyno" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Allied_Command_Post" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42_354" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "REPAIRMG42_354" );
+//	SetAvailableMapGoals( TEAM.ALLIES, true, "GRENADE_ally2" );
+//	SetAvailableMapGoals( TEAM.ALLIES, true, "GRENADE_ally1" );
+	
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Axis_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Gate_Hatch" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_ForwardSpawn_flag" );
+	
+	SetAvailableMapGoals( TEAM.AXIS, true, "GRENADE_g1");
+	SetAvailableMapGoals( TEAM.AXIS, true, "GRENADE_radio");
+	SetAvailableMapGoals( TEAM.AXIS, true, "GRENADE_axis4");
+	SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_ax1");
+	SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_door2" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_door1" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_900" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_900" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_door3" );
+
+	
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 2, "CHECKPOINT_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "REPAIRMG42_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "SWITCH_.*" );
+	
+
+	Util.SetGoalPosition( 1665.7, 2648.9, -279.875, "PLANT_Warehouse_Entrance" ) ;
+	Util.SetGoalPosition( 988.66, 833.859, 114.125, "REPAIRMG42_900" ) ;
+
+
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=30, MaxCampTime=90} );
+	SetMapGoalProperties( "MOUNT_.*", {MinCampTime=30, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=30, MaxCampTime=90} );
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=60, MaxCampTime=90} ); 
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=30, MaxCampTime=90} );
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=30, MaxCampTime=90} ); 
+	
+	
+
+	SetGoalPriority( "PLANT_Warehouse_Entrance", 0.0, TEAM.AXIS, CLASS.COVERTOPS );
+	SetGoalPriority( "SNIPE_.*", 0.95, TEAM.AXIS, CLASS.COVERTOPS );
+	Util.EnableGoal("ROUTE_.*"); //enables for both teams
+//	SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_ax25" );
+	
+	
+	Wp.SetWaypointFlag( "hatch1", "closed", true );
+		
+	MapRoutes =
+	
+	{
+		DEFEND_def1 = 
+		{
+			ROUTE_a1  = 
+			{
+				ROUTE_a2  = 
+				{
+					ROUTE_a3  = {},
+					ROUTE_a4  = {Weight = 4,},
+						ROUTE_a199  = 
+						{
+							ROUTE_ax15  = 
+							{
+								ROUTE_a5  = 
+								{
+									ROUTE_a6  = 
+									{
+									},
+								},
+							},
+						},
+					
+					ROUTE_a99  = {Weight = 2,},
+						ROUTE_ax15  = 
+						{
+							ROUTE_a5  = 
+							{
+								ROUTE_a6  = 
+								{
+								},
+							},
+						},
+					
+				},
+			},
+		},
+
+
+
+		
+		PLANT_Communications_Tower = 
+		{
+			ROUTE_ax1  = 
+			{
+				ROUTE_ax18  = {Weight = 2},
+					ROUTE_18a  = 
+					{
+						ROUTE_ax19  = 
+						{
+							ROUTE_ax19a  = 
+							{
+								ROUTE_ax20  = 
+								{
+									ROUTE_ax21  = 
+									{
+										ROUTE_ax22  = 
+										{
+											ROUTE_ax23  = 
+											{
+												ROUTE_ax24  = 
+												{
+													ROUTE_ax25  = 
+													{
+														ROUTE_a5  = 
+														{
+															ROUTE_a6  = 
+															{
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				
+				ROUTE_flag8  = 
+				{
+					ROUTE_ax17  = 
+					{
+						ROUTE_ax13  = 
+						{
+							ROUTE_ax12  = 
+							{
+								ROUTE_ax14  = 
+								{
+									ROUTE_ax15  = 
+									{
+										ROUTE_a5  = 
+										{
+											ROUTE_a6  = 
+											{
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_ax6  = 
+				{
+					ROUTE_ax7  = 
+					{
+						ROUTE_ax8  = 
+						{
+							ROUTE_ax9  = 
+							{
+								ROUTE_ax10  = 
+								{
+									ROUTE_ax11  = 
+									{
+										ROUTE_ax12  = 
+										{
+											ROUTE_ax15  = 
+											{
+												ROUTE_a5  = 
+												{
+													ROUTE_a6  = 
+													{
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		
+		CHECKPOINT_ForwardSpawn_flag = 
+		{
+			ROUTE_a1  = 
+			{
+				ROUTE_flag1  = 
+				{
+					ROUTE_flag2  = 
+					{
+						ROUTE_flag3  = 
+						{
+							ROUTE_flag4  = 
+							{
+								ROUTE_flag5  = 
+								{
+									ROUTE_flag6  = 
+									{
+										ROUTE_flag7  = 
+										{
+										},
+										ROUTE_flag9  = 
+										{
+										},
+										ROUTE_flag8  = 
+										{
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	};
+
+	MapRoutes.DEFEND_def2 = MapRoutes.DEFEND_def1;
+	MapRoutes.DEFEND_def3 = MapRoutes.DEFEND_def1;
+	MapRoutes.DEFEND_def4 = MapRoutes.DEFEND_def1;
+	MapRoutes.DEFEND_def5 = MapRoutes.DEFEND_def1;
+	MapRoutes.DEFEND_def6 = MapRoutes.DEFEND_def1;
+	MapRoutes.BUILD_Allied_Command_Post = MapRoutes.DEFEND_def1;
+	MapRoutes.ATTACK_t1 = MapRoutes.PLANT_Communications_Tower;
+	MapRoutes.ATTACK_t2 = MapRoutes.PLANT_Communications_Tower;
+	MapRoutes.ATTACK_t3 = MapRoutes.PLANT_Communications_Tower;
+	MapRoutes.ATTACK_t4 = MapRoutes.PLANT_Communications_Tower;
+	MapRoutes.ATTACK_t5 = MapRoutes.PLANT_Communications_Tower;
+	MapRoutes.PLANT_Warehouse_Entrance = MapRoutes.PLANT_Communications_Tower;
+	MapRoutes.SWITCH_door3 = MapRoutes.CHECKPOINT_ForwardSpawn_flag;
+	
+	Util.Routes(MapRoutes);
+//~	Util.UpdateSwitchData();
+	Util.MapDebugPrint("OnMapLoad");
+	
+ 
+	//copy some routes
+	MapRoutes.DEFEND_def2 = MapRoutes.DEFEND_def1;
+	MapRoutes.DEFEND_def3 = MapRoutes.DEFEND_def1;
+	MapRoutes.DEFEND_def4 = MapRoutes.DEFEND_def1;
+	MapRoutes.DEFEND_def5 = MapRoutes.DEFEND_def1;
+	MapRoutes.DEFEND_def6 = MapRoutes.DEFEND_def1;
+	
+	MapRoutes.BUILD_Allied_Command_Post = MapRoutes.DEFEND_def1;
+	MapRoutes.ATTACK_t1 = MapRoutes.PLANT_Communications_Tower;
+	MapRoutes.ATTACK_t2 = MapRoutes.PLANT_Communications_Tower;
+	MapRoutes.ATTACK_t3 = MapRoutes.PLANT_Communications_Tower;
+	MapRoutes.ATTACK_t4 = MapRoutes.PLANT_Communications_Tower;
+	MapRoutes.ATTACK_t5 = MapRoutes.PLANT_Communications_Tower;
+	MapRoutes.PLANT_Warehouse_Entrance = MapRoutes.PLANT_Communications_Tower;
+	
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint("OnMapLoad");
+};
+
+global OnBotJoin = function( bot )
+{
+	 bot.TargetBreakableDist = 100.0;
+	 bot.MaxViewDistance = 3000.5;
+};

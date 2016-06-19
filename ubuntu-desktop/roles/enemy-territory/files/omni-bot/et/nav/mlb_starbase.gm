@@ -1,0 +1,486 @@
+// 2007-7-11 ,version 2 ,By Hank_Officer
+
+global Map =
+{
+	Build_teleporter1 = "BUILD_South_Teleporter",
+	Build_teleporter2 = "BUILD_North_Teleporter",
+	Build_const_tc = "BUILD_Starbase_Entrance_Barrier",
+	Build_const_td = "BUILD_Base_Controls",
+	Build_const_te = "BUILD_Forward_Spawn",
+	
+	Destroy_const_td = "PLANT_Base_Controls",
+	Destroy_const_tc = "PLANT_Starbase_Entrance_Barrier",
+	Destroy_const_te = "PLANT_Forward_Spawn",
+	Destroy_blast_door_1 = "PLANT_Starbase_Blast_Door",
+	Destroy_blast_door_2 = "PLANT_Starbase_Blast_Door_1",
+	Destroy_teleporter1 = "PLANT_South_Teleporter",
+	Destroy_teleporter2 = "PLANT_North_Teleporter",
+	Destroy_processor = "PLANT_Gravitational_Processor",
+	
+	AMMOCAB_245 = "AMMOCAB_122",
+	AMMOCAB_133 = "AMMOCAB_133",
+	AMMOCAB_194 = "AMMOCAB_194",
+	AMMOCAB_310 = "AMMOCAB_310",
+	
+	barrier_status = 0, // 0 = destroyed, 1 = constructed
+	
+	Navigation =
+	{
+		jump_1_pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.JUMP, 0.5);
+				_this.Bot.HoldButton(BTN.FORWARD, 0.5);
+				sleep(0.5);
+			},
+		},
+	},
+	
+	blastdoor1_destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+	
+		// Axis		
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_blast1A_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Destroy_const_tc );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_frontattack_.*" );
+		
+		// Allies	
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_frontdefend_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_fronttopdefend_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_blast1A_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_blast2A_.*" );
+		
+		if( Map.barrier_status == 0 )
+		{
+			// Allies
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_frontdefend_.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_fronttopdefend_.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_const_tc );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_forwardD_.*" );
+		
+			// Axis
+			SetGoalPriority( Map.Build_const_te, 2.0 );	
+			SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_const_te );
+		}
+		else
+		{
+			// Allies
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_frontdefend_.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_fronttopdefend_.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_const_tc );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_forwardD_.*" );
+		
+			// Axis
+			SetGoalPriority( Map.Build_const_te, 1.0 );	
+			SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_const_te );
+		}
+
+		Util.MapDebugPrint( "blastdoor1_destroyed" );
+	},
+	
+	blastdoor2_destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		// Axis
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_blast2A_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Destroy_const_tc );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_frontattack_.*" );
+		
+		// Allies	
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_frontdefend_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_fronttopdefend_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_blast1A_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_blast2A_.*" );
+		
+		if( Map.barrier_status == 0 )
+		{
+			// Allies
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_frontdefend_.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_fronttopdefend_.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_const_tc );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_forwardD_.*" );
+		
+			// Axis
+			SetGoalPriority( Map.Build_const_te, 2.0 );	
+			SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_const_te );
+		}
+		else
+		{
+			// Allies
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_frontdefend_.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_fronttopdefend_.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_const_tc );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_forwardD_.*" );
+		
+			// Axis
+			SetGoalPriority( Map.Build_const_te, 1.0 );	
+			SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_const_te );
+		}
+
+		Util.MapDebugPrint( "blastdoor1_destroyed" );
+	},
+	
+	barrier_constructed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.barrier_status = 1;
+
+		Util.MapDebugPrint( "barrier_constructed" );
+	},
+	
+	barrier_destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.barrier_status = 0;
+		
+		// Allies
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_frontdefend_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_fronttopdefend_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_const_tc );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_forwardD_.*" );
+		
+		// Axis
+		SetGoalPriority( Map.Build_const_te, 2.0 );	
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_const_te );
+
+		Util.MapDebugPrint( "barrier_destroyed" );
+	},
+	
+	Forward_constructed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		// Allies
+		SetGoalPriority( Map.Build_teleporter2, 2.0 );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_forwardD_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_teleporter1 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_teleporter2 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Destroy_const_td );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_maproomD_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_centerD_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_basecontrolD_.*" );
+		
+		// Axis
+		SetGoalPriority( Map.Destroy_processor, 2.0 );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_frontattack_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_NEARendobjA_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Destroy_processor );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_const_td );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Destroy_teleporter1 );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Destroy_teleporter2 );
+
+		Util.MapDebugPrint( "Forward_constructed" );
+	},
+	
+	Forward_destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		// Allies	
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_const_tc );
+
+		Util.MapDebugPrint( "Forward_destroyed" );
+	},
+	
+	defend_endobj = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		// Allies
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_maproomD_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_centerD_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_endobjD_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_NEARendobjD_.*" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "Map.AMMOCAB_310" );
+
+		Util.MapDebugPrint( "defend_endobj" );
+	},
+	
+	endobj_planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		// Allies
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_NEARendobjD_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_basecontrolD_.*" );
+		
+		// Axis
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_endobjD_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_NEARendobjA_.*" );
+		
+		Util.MapDebugPrint( "endobj_planted" );
+	},
+	
+	endobj_defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		// Allies
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_NEARendobjD_.*" );
+		
+		// Axis
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_endobjD_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_NEARendobjA_.*" );
+
+		Util.MapDebugPrint( "endobj_defused" );
+	},
+	
+	barrier_planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		if( Map.barrier_status == 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_forwardD_.*" );
+		}
+
+		Util.MapDebugPrint( "barrier_planted" );
+	},
+	
+	barrier_defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		if( Map.barrier_status == 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_forwardD_.*" );
+		}
+
+		Util.MapDebugPrint( "barrier_defused" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	Util.MapDebugPrint( "MLB-Starbase waypoints by Hank_Officer" );
+
+	OnTrigger( "^3The ^1Axis Forward spawn ^3has been constructed", Map.Forward_constructed );
+	OnTrigger( "^3The ^1Axis Forward spawn ^1has been destroyed", Map.Forward_destroyed );
+	OnTrigger( "^1Axis have breached the Starbase North Blast door !!", Map.blastdoor1_destroyed );
+	OnTrigger( "^1Axis have breached the Starbase South blast door !!", Map.blastdoor2_destroyed );
+	OnTrigger( "^3The Starbase ^1entrance barrier ^3has been constructed", Map.barrier_constructed );
+	OnTrigger( "^3The Starbase ^1entrance barrier ^3has been destroyed", Map.barrier_destroyed );
+	OnTrigger( "^3The ^1North Teleporter ^3has been constructed", Map.defend_endobj );
+	OnTrigger( "Planted at Gravitational Processor.", Map.endobj_planted );
+	OnTrigger( "Defused at Gravitational Processor.", Map.endobj_defused );
+	OnTrigger( "Planted at Starbase Entrance Barrier.", Map.barrier_planted );
+	OnTrigger( "Defused at Starbase Entrance Barrier.", Map.barrier_defused );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "Map.AMMOCAB_310" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "Map.AMMOCAB_310" );
+	
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=10, MaxCampTime=30});
+	SetMapGoalProperties( "BUILD_.*", {ignoretarget=true});
+	SetMapGoalProperties( "PLANT_.*", {ignoretarget=true});
+	
+	SetGoalPriority( "MOUNTMG42_.*", 0.0, 0, CLASS.ENGINEER );
+	
+	// allies
+	SetGoalPriority( Map.Build_const_tc, 2.0 );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_teleporter1 );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_teleporter2 );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Destroy_const_td );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Destroy_const_te );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_const_tc );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_blast1A_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_blast2A_.*" );
+	
+	// axis
+	SetGoalPriority( Map.Destroy_const_tc, 2.0 );
+	SetGoalPriority( Map.Destroy_blast_door_1, 5.0 );
+	SetGoalPriority( Map.Destroy_blast_door_2, 5.0 );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Destroy_const_tc );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_const_td );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_const_te );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Destroy_teleporter1 );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Destroy_teleporter2 );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Destroy_processor );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_blast1A_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_blast2A_.*" );
+	
+	MapRoutes =
+	{
+		PLANT_Gravitational_Processor =
+		{	
+			ROUTE_forwardspawn = 
+			{
+				ROUTE_Maproom = 
+				{
+					ROUTE_centerA = 
+					{
+						ROUTE_TOPorBOM = 
+						{
+							ROUTE_TOPrightendobjA = {},
+							ROUTE_TOPleftendobjA = {},
+							ROUTE_BOMrightendobjA = {Weight = 3},
+							ROUTE_BOMleftendobjA = {Weight = 3},
+						},
+					},
+					ROUTE_TOalliesspawn =
+					{
+						ROUTE_TOPrightendobjA = {Weight = 3},
+						ROUTE_TOPleftendobjA = {Weight = 3},
+						ROUTE_BOMrightendobjA = {},
+						ROUTE_BOMleftendobjA = {},
+					},
+				},
+				ROUTE_basecontrolA = 
+				{
+					ROUTE_TOPrightendobjA = {Weight = 3},
+					ROUTE_TOPleftendobjA = {Weight = 3},
+					ROUTE_BOMrightendobjA = {},
+					ROUTE_BOMleftendobjA = {},
+				},
+				ROUTE_TPcenter = 
+				{
+					ROUTE_centerA = 
+					{
+						ROUTE_TOPorBOM = 
+						{
+							ROUTE_NEARendobj_north = {},
+							ROUTE_NEARendobj_south = {},
+						},
+					},
+				},
+			},
+		},
+		ATTACK_frontattack_1 =
+		{	
+			ROUTE_axisspawn_1 = 
+			{
+				ROUTE_downattack = 
+				{
+					ROUTE_blastdoor1 = {},
+				},
+				ROUTE_blastdoor2 = {},
+				ROUTE_blastdoor2side = {},
+			},
+		},
+		DEFEND_forwardD_1 =
+		{	
+			ROUTE_alliesspawn = 
+			{
+				ROUTE_center = {},
+				ROUTE_front = {},
+			},
+		},
+		DEFEND_NEARendobjD_1 =
+		{	
+			ROUTE_alliesspawn = 
+			{
+				ROUTE_northTP = {},
+				ROUTE_southTP = {},
+				ROUTE_Alliesmain = {},
+				ROUTE_Alliesside = {},
+			},
+		},
+		DEFEND_maproomD_1 =
+		{
+			ROUTE_alliesspawn = 
+			{
+				ROUTE_center = {},
+			},
+		},
+		DEFEND_fronttopdefend_1 =
+		{
+			ROUTE_alliesfrontspawn = {},
+			ROUTE_alliesspawn = 
+			{
+				ROUTE_front = {},
+			},
+		},
+		PLANT_Starbase_Blast_Door = 
+		{
+			ROUTE_axisspawn_1 = 
+			{
+				ROUTE_blastdoor1 = {},
+			},
+		},
+		PLANT_Starbase_Blast_Door_1 = 
+		{
+			ROUTE_axisspawn_1 = 
+			{
+				ROUTE_blastdoor2 = {},
+			},
+		},
+	};
+	
+	MapRoutes.DEFEND_frontdefend_2 = MapRoutes.DEFEND_fronttopdefend_1;
+	MapRoutes.DEFEND_frontdefend_3 = MapRoutes.DEFEND_fronttopdefend_1;
+	MapRoutes.DEFEND_frontdefend_4 = MapRoutes.DEFEND_fronttopdefend_1;
+	MapRoutes.DEFEND_frontdefend_5 = MapRoutes.DEFEND_fronttopdefend_1;
+	MapRoutes.DEFEND_frontdefend_5 = MapRoutes.DEFEND_fronttopdefend_1;
+	MapRoutes.DEFEND_fronttopdefend_2 = MapRoutes.DEFEND_fronttopdefend_1;
+	MapRoutes.DEFEND_fronttopdefend_3 = MapRoutes.DEFEND_fronttopdefend_1;
+	MapRoutes.DEFEND_fronttopdefend_4 = MapRoutes.DEFEND_fronttopdefend_1;
+	
+	MapRoutes.DEFEND_maproomD_2 = MapRoutes.DEFEND_maproomD_1;
+	MapRoutes.DEFEND_maproomD_3 = MapRoutes.DEFEND_maproomD_1;
+	MapRoutes.DEFEND_maproomD_4 = MapRoutes.DEFEND_maproomD_1;
+	MapRoutes.DEFEND_maproomD_5 = MapRoutes.DEFEND_maproomD_1;
+	MapRoutes.DEFEND_maproomD_6 = MapRoutes.DEFEND_maproomD_1;
+	MapRoutes.DEFEND_maproomD_7 = MapRoutes.DEFEND_maproomD_1;
+	MapRoutes.DEFEND_maproomD_8 = MapRoutes.DEFEND_maproomD_1;
+	MapRoutes.DEFEND_maproomD_9 = MapRoutes.DEFEND_maproomD_1;
+	MapRoutes.DEFEND_centerD_1 = MapRoutes.DEFEND_maproomD_1;
+	MapRoutes.DEFEND_centerD_2 = MapRoutes.DEFEND_maproomD_1;
+	MapRoutes.DEFEND_centerD_3 = MapRoutes.DEFEND_maproomD_1;
+	MapRoutes.DEFEND_centerD_4 = MapRoutes.DEFEND_maproomD_1;
+	MapRoutes.DEFEND_centerD_5 = MapRoutes.DEFEND_maproomD_1;
+	MapRoutes.DEFEND_basecontrolD_1 = MapRoutes.DEFEND_maproomD_1;
+	MapRoutes.DEFEND_basecontrolD_2 = MapRoutes.DEFEND_maproomD_1;
+	
+	MapRoutes.DEFEND_endobjD_1 = MapRoutes.DEFEND_NEARendobjD_1;
+	MapRoutes.DEFEND_endobjD_2 = MapRoutes.DEFEND_NEARendobjD_1;
+	MapRoutes.DEFEND_endobjD_3 = MapRoutes.DEFEND_NEARendobjD_1;
+	MapRoutes.DEFEND_endobjD_4 = MapRoutes.DEFEND_NEARendobjD_1;
+	MapRoutes.DEFEND_endobjD_5 = MapRoutes.DEFEND_NEARendobjD_1;
+	MapRoutes.DEFEND_endobjD_6 = MapRoutes.DEFEND_NEARendobjD_1;
+	MapRoutes.DEFEND_endobjD_7 = MapRoutes.DEFEND_NEARendobjD_1;
+	MapRoutes.DEFEND_endobjD_8 = MapRoutes.DEFEND_NEARendobjD_1;
+	MapRoutes.DEFEND_NEARendobjD_2 = MapRoutes.DEFEND_NEARendobjD_1;
+	MapRoutes.DEFEND_NEARendobjD_3 = MapRoutes.DEFEND_NEARendobjD_1;
+	MapRoutes.DEFEND_NEARendobjD_4 = MapRoutes.DEFEND_NEARendobjD_1;
+	MapRoutes.DEFEND_NEARendobjD_5 = MapRoutes.DEFEND_NEARendobjD_1;
+	
+	MapRoutes.DEFEND_forwardD_2 = MapRoutes.DEFEND_forwardD_1;
+	MapRoutes.DEFEND_forwardD_3 = MapRoutes.DEFEND_forwardD_1;
+	MapRoutes.DEFEND_forwardD_4 = MapRoutes.DEFEND_forwardD_1;
+	MapRoutes.DEFEND_forwardD_5 = MapRoutes.DEFEND_forwardD_1;
+	MapRoutes.DEFEND_forwardD_6 = MapRoutes.DEFEND_forwardD_1;
+	
+	MapRoutes.ATTACK_frontattack_2 = MapRoutes.ATTACK_frontattack_1;
+	MapRoutes.ATTACK_frontattack_3 = MapRoutes.ATTACK_frontattack_1;
+	
+	MapRoutes.ATTACK_NEARendobjA_1 = MapRoutes.PLANT_Gravitational_Processor;
+	MapRoutes.ATTACK_NEARendobjA_2 = MapRoutes.PLANT_Gravitational_Processor;
+	MapRoutes.ATTACK_NEARendobjA_3 = MapRoutes.PLANT_Gravitational_Processor;
+	MapRoutes.ATTACK_NEARendobjA_4 = MapRoutes.PLANT_Gravitational_Processor;
+	
+	Util.Routes(MapRoutes);
+};
+
+global OnBotJoin = function( bot )
+{
+};

@@ -1,0 +1,25 @@
+this.GoalType = "MOVER";
+this.Version = 1;
+this.DefaultPriority = 1.0;
+this.DynamicPosition = true;
+this.DynamicOrientation = true;
+this.CreateOnLoad = false;
+this.RolePriorityBonus = 0.1;
+
+//////////////////////////////////////////////////////////////////////////
+
+this.UpgradeVersion = function(Props)
+{
+	// version 0 is string,string key/values from the old waypoint format
+	if(Props.Version==0)
+	{
+		// Version 1 Schema, upgrade from waypoint format
+		Props.Version = 1;
+	}
+	else if(Props.Version == this.Version)
+	{
+
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////

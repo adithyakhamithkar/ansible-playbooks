@@ -1,0 +1,292 @@
+this.GoalType = "MOUNT";
+this.Version = 1;
+this.DefaultPriority = 0.79;
+this.MinRadius = 30;
+this.RolePriorityBonus = 0.1;
+this.MaxUsers_InUse(1);
+this.MaxUsers_InProgress(2);
+this.AimMode = "velocity";
+
+//////////////////////////////////////////////////////////////////////////
+CheckForGoal = function(var)
+{
+	if(Util.GoalExists(var))
+	{
+		return true;
+	}
+
+	return "Goal not found";
+};
+
+this.Schema = Schema();
+this.Schema.Offsets = Validate.TableOf("vector3").Default({});
+
+// cs: can't do this when it relies on interface goals that are deferred.
+//this.Schema.Vehicle = Validate.Type("string").Default(" ").CheckCallback(CheckForGoal);
+
+//////////////////////////////////////////////////////////////////////////
+
+this.InitNewGoal = function()
+{
+	this.Schema.Check(this);
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.UpgradeVersion = function(Props)
+{
+	// version 0 is string,string key/values from the old waypoint format
+	if(Props.Version==0)
+	{
+		// Version 1 Schema, upgrade from waypoint format
+		this.Schema.Check(Props);
+		Props.Version = 1;
+	}
+	else if(Props.Version == this.Version)
+	{
+		this.Schema.Check(Props);
+		this.Vehicle = Props.Vehicle;
+
+		if ( Props.AimMode ) {
+			this.AimMode = Props.AimMode;
+		}
+
+		if (Props.Offsets)
+		{
+			this.Offsets = Props.Offsets;
+		}
+		else
+		{
+			this.Offsets = table();
+		}
+
+		if(!this.Schema.Check(this))
+		{
+			this.DisableGoal(true);
+		}
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.Render = function()
+{
+	offset2 = Vector3(0,0,64);
+
+	if ( this.Vehicle )
+	{
+		vehGoal = GetGoal(this.Vehicle);
+		if ( vehGoal )
+		{
+			vehEnt = vehGoal.GetEntity();
+		}
+	}
+
+	this.RenderAimMode = this.AimMode;
+
+	while(this.RenderGoal == true)
+	{
+		goalName = this.GetName();
+		goalBasePos = this.GetPosition();
+		goalPos = goalBasePos + offset2;
+
+		// update the aim mode rendering if it was changed externally ( in map script )
+		if ( this.RenderAimMode != this.AimMode ) {
+			this.ExtraDebugText = null;
+			this.RenderAimMode = this.AimMode;
+		}
+
+		if(this.ExtraDebugText==null)
+		{
+			this.ExtraDebugText = "";
+
+			if (this.Vehicle) {
+				this.ExtraDebugText += format("Vehicle: %s\n",this.Vehicle);
+			}
+
+			if (this.AimMode) {
+				tbl = this.AimMode;
+				if (typeId(tbl) != 6) {
+					tbl = { tbl };
+				}
+				str = "";
+				foreach (mode in tbl)
+				{
+					str1 = ToString(mode);
+					if ( typeId(mode) == 3 ){
+						str1 = "Vec3" + str1;
+					}
+					if (str != ""){
+						str = str + ",\n";
+					}
+					str = str + str1;
+				}
+				this.ExtraDebugText += format("AimMode: %s", str);
+			}
+		}
+
+		this.RenderDefault();
+
+		if ( this.Vehicle && this.Offsets )
+		{
+			if ( !vehGoal || !vehEnt )
+			{
+				vehGoal = GetGoal(this.Vehicle);
+				if ( vehGoal )
+				{
+					vehEnt = vehGoal.GetEntity();
+				}
+			}
+
+			if ( vehEnt && EntityIsValid(vehEnt) )
+			{
+				foreach ( id and offset in this.Offsets )
+				{
+					// if it's excluded, draw it red
+					if ( this.ExcludeIndexes && typeId(Util.GetTableKey(this.ExcludeIndexes, id)) != 0 ) {
+						clr = COLOR.RED;
+					}
+					else if ( this.StartIndex == id && typeId(this.StartIndex) != 0 ) {
+						clr = COLOR.GREEN;
+					}
+					else {
+						clr = COLOR.BLUE;
+					}
+
+					offsetPos = GetEntityWorldSpace( vehEnt, offset );
+					//offsetPos = GroundPoint(offsetPos);
+					DrawLine(offsetPos,offsetPos+Vector3(0,0,64),clr,2);
+					DrawText3d(offsetPos+Vector3(0,0,64),goalName + " offset " + ToString(id),COLOR.WHITE,2,textDrawRadius);
+				}
+			}
+		}
+
+		if(this.IsDisabled())
+		{
+			DrawLine(goalPos,goalBasePos,COLOR.RED,2);
+		}
+		else
+		{
+			DrawLine(goalPos,goalBasePos,COLOR.GREEN,2);
+		}
+
+		sleep(2);
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.SaveToTable = function(SaveTable)
+{
+	// save the goal specific properties
+	SaveTable.Vehicle = this.Vehicle;
+	SaveTable.Offsets = this.Offsets;
+	SaveTable.AimMode = this.AimMode;
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.Help = function()
+{
+	print(this.GoalType,"goal, version",this.Version);
+	print("Requires:");
+	print("     vehicle - The goal name of the vehicle to mount");
+	print("Optional:");
+	print("     offset - recommended for better pathing results");
+	print("     aim - velocity (default), random, opposite, or position");
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.SetProperty = function(property, value)
+{
+	switch(property)
+	{
+		case "aim":
+		{
+			if ( value == "velocity" || value == "random" || value == "opposite" ) {
+				this.AimMode = value;
+			}
+			else if ( value == "position" ) {
+				this.AimMode = Util.TraceForPosition();
+			}
+			else {
+				print(this.GoalType, ": invalid aim type.");
+				print("valid values are 'velocity', 'random', 'opposite', or 'position'");
+			}
+		}
+		case "vehicle":
+		{
+			if ( value.Find("MOVER") != -1 && GetGoal(value) )
+			{
+				this.Vehicle = value;
+			}
+			else
+			{
+				print(this.GoalType, ": wrong type or goal not found, expecting mover" );
+			}
+		}
+		case "offset":
+		{
+			if ( value == "clearall" || value == "clear" )
+			{
+				tableClear(this.Offsets);
+			}
+			else
+			{
+				bGood = false;
+				i = ToInt(value);
+				if (typeId(i) == 1)
+				{
+					if(this.Vehicle)
+					{
+						g = GetGoal(this.Vehicle);
+						if (g)
+						{
+							bGood = true;
+							pPos = GetEntPosition(GetLocalEntity());
+							offset = GetEntityLocalSpace(g.GetEntity(), pPos);
+
+							// make em add sequentially
+							n = tableCount(this.Offsets);
+							if ( i < 0 || i > n )
+							{
+								i = n;
+							}
+
+							this.Offsets[ i ] = offset;
+							print("Offest",i,"set to",offset);
+						}
+					}
+				}
+				else
+				{
+					print(this.GoalType, ": Invalid offset index, expecting int");
+				}
+
+				if (!bGood)
+				{
+					print(this.GoalType, ": Vehicle must be set first");
+				}
+			}
+		}
+		default:
+		{
+			print(this.GoalType, ": Invalid property:", property);
+		}
+	}
+
+	// null the debug text so it will be rebuilt
+	this.ExtraDebugText = null;
+};
+
+//////////////////////////////////////////////////////////////////////////
+global CreateGui = function(object, guidef)
+{
+};
+//////////////////////////////////////////////////////////////////////////
+this.HudDisplay = function(window)
+{
+	this.CreateGuiFromSchema(this.Schema);
+};
+

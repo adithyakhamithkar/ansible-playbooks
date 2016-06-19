@@ -1,0 +1,187 @@
+//==========================================================================================
+//
+//	sedesrc1.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	palota	22 January 2012	Initial Script
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+	entranceDestroyed = false,
+
+	SetFlag = function(b)
+	{
+		Util.SetPercentInProgress( 50, "FLAG_gold_crate" );
+		SetAvailableMapGoals( TEAM.ALLIES, b, "FLAG_gold_crate" );
+		SetAvailableMapGoals( TEAM.AXIS, b, "DEFEND_gold.*" );
+		SetAvailableMapGoals( TEAM.AXIS, b, "MOBILEMG42_gold.*" );
+		if(b){
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_exit.*" );
+			SetGoalPriority( "BUILD_Command_Post", 0.78, TEAM.AXIS );
+		}
+	},
+
+	Switch_Allies = function( trigger )
+	{
+		Util.SetMaxUsersInProgress( 6, "SWITCH_main" );
+		Util.LimitToTeam(TEAM.AXIS, "SWITCH_main");
+		Util.MapDebugPrint( "Switch_Allies" );
+	},
+
+	Switch_Axis = function( trigger )
+	{
+		Util.SetMaxUsersInProgress( 2, "SWITCH_main" );
+		Util.LimitToTeam(TEAM.ALLIES, "SWITCH_main");
+		Util.MapDebugPrint( "Switch_Axis" );
+	},
+
+	Main_Entrance_Destroyed = function( trigger )
+	{
+		Map.entranceDestroyed = true;
+		Util.DisableGoal(".*_entrance.*");
+		Util.DisableGoal("CHECKPOINT_oldcityflag");
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_switch.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Generator" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Post" );
+		SetGoalPriority( "SWITCH_main", 0.4 );
+		Map.SetFlag(true);
+		Util.MapDebugPrint( "Main_Entrance_Destroyed" );
+	},
+
+	Generator_Built = function( trigger )
+	{
+		Util.EnableGoal("ROUTE_wall.*");
+		Util.MapDebugPrint( "Generator_Built" );
+	},
+
+	Generator_Destroyed = function( trigger )
+	{
+		Util.DisableGoal("ROUTE_wall.*");
+		Util.MapDebugPrint( "Generator_Destroyed" );
+	},
+
+	oldcityflag_Axis_Captured = function( trigger )
+	{
+		Util.SetMaxUsers( 1, "CHECKPOINT_oldcityflag" );
+		Map.SetFlag(false);
+		Util.MapDebugPrint( "oldcityflag_Axis_Captured" );
+	},
+
+	oldcityflag_Allies_Captured = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_oldcityflag" );
+		Util.SetMaxUsers( 7, "CHECKPOINT_oldcityflag" );
+		Map.SetFlag(true);
+		Util.MapDebugPrint( "oldcityflag_Allies_Captured" );
+	},
+
+	gold_crate_Taken = function( trigger )
+	{
+		SetGoalPriority( "DEFEND_exit.*", 0.95 );
+		Util.SetMaxUsers( 10, "DEFEND_exit.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_gold.*" );
+		Util.MapDebugPrint( "gold_crate_Taken" );
+	},
+
+	gold_crate_Returned = function( trigger )
+	{
+		SetGoalPriority( "DEFEND_exit.*", 0.8 );
+		Util.SetMaxUsers( 1, "DEFEND_exit.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_gold.*" );
+		Util.MapDebugPrint( "gold_crate_Returned" );
+	},
+
+	gold_crate_Secured = function( trigger )
+	{
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "gold_crate_Secured" );
+	},
+
+	left_door_goto = function(trigger)
+	{
+		if(ToVector(trigger.Action).y<0){
+			Util.EnableGoal("ROUTE_side_door");
+			Util.LimitToTeam(TEAM.AXIS, "SWITCH_side");
+			Util.MapDebugPrint( "side door opened" );
+		}else{
+			Util.DisableGoal("ROUTE_side_door");
+			Util.LimitToTeam(TEAM.ALLIES, "SWITCH_side");
+			Util.MapDebugPrint( "side door closed" );
+		}
+	},
+};
+
+global OnMapLoad = function()
+{
+	OnTrigger( "^4Switch lowered!", Map.Switch_Allies );
+	OnTrigger( "^1Switch raised!", Map.Switch_Axis );
+	OnTrigger( "Allies have breached the Main Entrance", Map.Main_Entrance_Destroyed );
+	OnTrigger( "^1Allies have built the Generator!", Map.Generator_Built );
+	OnTrigger( "^1Axis have damaged the Generator!", Map.Generator_Destroyed );
+	OnTrigger( "Axis reclaim the Old City!", Map.oldcityflag_Axis_Captured );
+	OnTrigger( "Allies capture the Old City!", Map.oldcityflag_Allies_Captured );
+	OnTrigger( "goldrush_allies_gold1_taken", Map.gold_crate_Taken );
+	OnTrigger( "Flag returned gold_crate!", Map.gold_crate_Returned );
+	OnTrigger( "Allies captured goldbar_holder", Map.gold_crate_Secured );
+	OnTrigger("left_door_goto", Map.left_door_goto);
+
+	Util.DisableGoal( ".*", true );
+	Util.EnableGoal("PLANT_Command_Post");
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_entrance.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_switch.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "TRIPMINE_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_entrance.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Generator" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_entrance.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_side" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Main_Entrance" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_oldcityflag" );
+
+	SetGoalPriority( "PLANT_Main_Entrance", 0.95 );
+	SetGoalPriority( "FLAG.*", 0.98, TEAM.AXIS, 0, true );
+	SetGoalPriority( "DEFEND_exit.*", 0.8 );
+	SetGoalPriority( "CHECKPOINT_oldcityflag", 0.79, TEAM.AXIS );
+	SetGoalPriority( "DEFEND_gold.*", 0.51 );
+
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "CHECKPOINT_oldcityflag" );
+	Util.SetMaxUsers( 1, "BUILD_Command_Post" );
+	Util.SetMaxUsers( 1, "SWITCH_side" );
+
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=10, MaxCampTime=40} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=30, MaxCampTime=80} );
+
+	Util.AddUsePoint("PLANT_Main_Entrance", { Vec3(-416.981, 1693.323, -903.875), Vec3(-345.776, 1609.907, -903.875)});
+
+	MapRoutes =
+	{
+		PLANT_Main_Entrance = {
+			ROUTE_allied_spawn = {
+				ROUTE_west1 = {},
+				ROUTE_west2 = {},
+				ROUTE_side_door = { Weight=2, ROUTE_north_west = {} },
+			}
+		},
+		FLAG_gold_crate = {
+			ROUTE_flag_spawn = {
+				ROUTE_wall1 = {},
+				ROUTE_wall2 = {},
+				ROUTE_center = {},
+			}
+		},
+	};
+	MapRoutes.SWITCH_main = MapRoutes.PLANT_Main_Entrance;
+	MapRoutes["ATTACK_entrance.*"] = MapRoutes.PLANT_Main_Entrance;
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};

@@ -1,0 +1,618 @@
+global Map =
+{
+	Quiet = true,
+	Debug = false,
+	FLAG_relic = "FLAG_relic",
+	Plant_Side_Door = "PLANT_Side_Door",
+	Explode_138 = "EXPLODE_138",
+	Explode_prisoner_trigger = "EXPLODE_prisoner_trigger",
+	RelicStatus = false,
+	DoorStatus = false,
+	AlarmStatus = false,
+	Grate_Destroyed = false,
+	TwoMinute = false,
+	DontDispenseAmmo = false,
+	DispenseAmmoTime = 1,
+
+	//set to false if you don't want allies /killing
+	Suicide = true,
+
+	Switches =
+	{
+		Alarm =
+		{
+			Enabled = true,
+			Priority = 0.87,	// More than relic
+			WaypointName = "alarm",
+			LimitBots = 1,
+			LimitTeam = (1<<TEAM.ALLIES),
+			AimPosition = Vector3(-239.082, -623.875,414.684),
+		},
+	},
+
+	gratebot = 0,
+	Navigation =
+	{
+		railjump =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.JUMP, 0.25);
+				sleep(0.25);
+			},
+		},
+		sewer =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.CROUCH, 2);
+				sleep(2);
+			},
+		},
+		sewerladder =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 3);
+				sleep(3);
+			},
+		},
+		sewerladderb =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 6);
+				sleep(1);
+				if ( Map.gratebot < 1 && !Map.Grate_Destroyed )
+				{
+					Map.gratebot += 1;
+					_this.AddWeaponRequest(Priority.High, WEAPON.KNIFE );
+					_this.BlockForWeaponChange( WEAPON.KNIFE );
+					_this.Bot.HoldButton(BTN.ATTACK1, 3);
+				}
+
+				sleep(5);
+				Map.gratebot -= 1;
+			},
+		},
+	},
+
+	Side_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.DoorStatus = true;
+		Util.EnableGoal("ROUTE_door");
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_rPlant.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_bEngPlant.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_bRelic.*" );
+	},
+	Side_Door_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if (Map.RelicStatus == true)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFUSE_.*" );
+		}
+	},
+	Side_Door_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+	},
+
+	Holy_Relic_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.RelicStatus = true;
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_rDeliver.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFUSE_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_bDeliver.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_bRoamDeliver" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_bSpawnkill" );
+
+		//Map.Switches.Alarm.LimitTeam = null;	// No one should go for it once obj is taken
+		Map.Switches.Alarm.LimitTeam = (1<<TEAM.ALLIES); // Allies should still try to get it (shorter spawn time)
+	},
+	Holy_Relic_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.RelicStatus = false;
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_bSpawnkill" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_bRelic.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_bSnipe.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFUSE_.*" );
+
+		if (Map.TwoMinute == false)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_bMain.*" );
+		}
+
+		if (Map.DoorStatus == false)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_rPlant.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_bEngPlant.*" );
+		}
+		foreach ( id and bot in BotTable )
+		{
+			if ( bot.GetTeam() == TEAM.ALLIES )
+			{
+				if ( Map.Suicide && bot.GetReinforceTime() < 8 )
+				{
+					bot.ExecCommand( "kill" );
+				}
+			}
+		}
+
+		if (Map.AlarmStatus == true)	// Allies own it
+		{
+			Map.Switches.Alarm.LimitTeam = (1<<TEAM.AXIS);
+		}
+		else
+		{
+			Map.Switches.Alarm.LimitTeam = (1<<TEAM.ALLIES);
+		}
+	},
+	two_minute = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal("SNIPE_.*");	// Push inside
+		Map.TwoMinute = true;
+
+		if (Map.RelicStatus == false)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_bRelic.*" );
+		}
+	},
+
+	thirty_second = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.RelicStatus == true || !MAP_TALK ) { return; }
+
+		foreach ( id and bot in BotTable )
+		{
+			if (RandInt(0,10) < 2)
+			{
+				bot.SayVoice(VOICE.G_GOODGAME);
+			}
+			sleep(0.5);
+			if (bot.GetTeam() == TEAM.ALLIES)
+			{
+				if (RandInt(0,10) < 2)
+				{
+					bot.SayVoice(VOICE.G_CHEER);
+				}
+				sleep(0.5);
+			}
+		}
+	},
+	alarm_on = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.AlarmStatus = true;
+		Map.Switches.Alarm.LimitTeam = (1<<TEAM.AXIS);
+	},
+	alarm_off = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.AlarmStatus = false;
+		Map.Switches.Alarm.LimitTeam = (1<<TEAM.ALLIES);	// Allies go for alarm first
+	},
+	round_end = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if (Map.RelicStatus == false)	// Allies win
+		{
+			ETUtil.WinningChat( TEAM.ALLIES );
+			ETUtil.LosingChat( TEAM.AXIS );
+		}
+		else				// Axis win
+		{
+			ETUtil.WinningChat( TEAM.AXIS );
+			ETUtil.LosingChat( TEAM.ALLIES );
+		}
+
+		Util.MapDebugPrint( "round_end" );
+	},
+	SewerTrigger =
+	{
+		Name = "SewerTrigger",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.AXIS )
+			{
+				if ( Map.RelicStatus == true )
+				{
+					if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+					{
+						SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_.*" );
+						SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_bTruck.*" );
+
+						b = Util.IsBot(ent);
+						if(b)
+						{
+							b.SayTeam("I'm taking relic via sewer!");
+							foreach ( id and bot in BotTable )
+							{
+								if ( bot.GetTeam() == TEAM.ALLIES )
+								{
+									bot.SayTeam("Relic is going sewer!");
+									break;
+								}
+							}
+						}
+
+					}
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+	DoorTrigger =
+	{
+		Name = "DoorTrigger",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.AXIS )
+			{
+				if ( Map.RelicStatus == true )
+				{
+					if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+					{
+						if (b)
+						{
+							b = Util.IsBot(ent);
+							b.SayTeam("I'm taking relic via door!");
+						}
+						foreach ( id and bot in BotTable )
+						{
+							if ( bot.GetTeam() == TEAM.ALLIES )
+							{
+								bot.SayTeam("Relic is going door!");
+								break;
+							}
+						}
+					}
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+	RoofTrigger =
+	{
+		Name = "RoofTrigger",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.AXIS )
+			{
+				if ( Map.RelicStatus == true )
+				{
+					if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+					{
+						if (b)
+						{
+							b = Util.IsBot(ent);
+							b.SayTeam("I'm taking relic via roof!");
+						}
+						foreach ( id and bot in BotTable )
+						{
+							if ( bot.GetTeam() == TEAM.ALLIES )
+							{
+								bot.SayTeam("Relic is going roof!");
+								break;
+							}
+						}
+					}
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+	AltarTrigger =
+	{
+		Name = "AltarTrigger",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.AXIS )
+			{
+				if ( Map.RelicStatus == true )
+				{
+					if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+					{
+						if (b)
+						{
+							b = Util.IsBot(ent);
+							b.SayTeam("I'm taking relic via altar!");
+						}
+						foreach ( id and bot in BotTable )
+						{
+							if ( bot.GetTeam() == TEAM.ALLIES )
+							{
+								bot.SayTeam("Relic is going behind altar!");
+								break;
+							}
+						}
+
+					}
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	check_grate = function()
+	{
+		wpOne = {};
+		wpTwo = {};
+		Wp.GetWaypointByName("top", wpOne);
+		Wp.GetWaypointByName("bottom", wpTwo);
+		offset = Vector3(0,0,10);
+
+		while( !Map.Grate_Destroyed )
+		{
+			tr = TraceLine( wpOne.position + offset, wpTwo.position + offset, null, TRACE.ALL, 0, false );
+
+			 if ( tr.fraction < 1 )
+			 {
+				if ( Map.Debug )
+					{ DrawDebugLine(wpOne.position + offset, wpTwo.position + offset, COLOR.RED, 0.25); }
+			 }
+			 else
+			 {
+				if ( Map.Debug )
+					{ DrawDebugLine(wpOne.position + offset, wpTwo.position + offset, COLOR.GREEN, 0.25); }
+				Map.Grate_Destroyed = true;
+
+			 }
+
+			 sleep(0.25);
+		}
+
+		Util.MapDebugPrint( "grate_destroyed" );
+	},
+};
+
+global OnMapLoad = function()
+{
+
+	thread(Map.check_grate);
+
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "the Side Door Destroyed.", Map.Side_Door_Destroyed );
+	OnTrigger( "Planted at the Side Door.", Map.Side_Door_Planted );
+	OnTrigger( "Defused at the Side Door.", Map.Side_Door_Defused );
+	OnTrigger( "Axis have stolen the Holy Relic!", Map.Holy_Relic_Taken );
+	OnTrigger( "Flag returned relic!", Map.Holy_Relic_Returned );
+	OnTrigger( "two minute warning.", Map.two_minute );
+	OnTrigger( "thirty second warning.", Map.thirty_second );
+	OnTrigger( "The Allied Alarm is on", Map.alarm_on );
+	OnTrigger( "The Allied Alarm is off", Map.alarm_off );
+	OnTrigger( "Round End.", Map.round_end );
+
+	SetMapGoalProperties( "SNIPE_.*", {mincamptime=45, maxcamptime=60});
+	SetMapGoalProperties( "ATTACK_.*", {mincamptime=10, maxcamptime=20});
+	SetMapGoalProperties( "DEFEND_.*", {mincamptime=20, maxcamptime=35});
+	SetMapGoalProperties( "DEFEND_bRoam.*", {mincamptime=0, maxcamptime=1});
+	SetMapGoalProperties( "DEFEND_bDeliver.*", {mincamptime=5, maxcamptime=10});
+	SetMapGoalProperties( "DEFEND_bTruck.*", {mincamptime=5, maxcamptime=10});
+	ETUtil.SetPrimaryGoals(1.0);
+	Util.DisableGoal(".*", true); //all but routes
+	Util.DisableGoal("ROUTE_door");
+
+	Util.SetMaxUsersInProgress ( 1, "ATTACK.*" );
+
+	SetGoalPriority( "DEFEND_bEngPlant.*", 0.9);	// Higher than alarm
+	SetGoalPriority( "ATTACK_rPlant.*", 0.86);	// More than OBJ
+	SetGoalPriority( "DEFEND_bRoam.*", 0.49);
+	SetGoalPriority( "CALL.*", 1.0 );
+	SetGoalPriority( "ARTILLLERY.*", 1.0 );
+
+	ETUtil.LimitToClass( "DEFEND_bEngPlant.*", TEAM.ALLIES, CLASS.ENGINEER );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_rPlant.*" );
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_bEngPlant.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_bMain.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_bSnipe.*" );
+
+	Util.EnableGoal("FLAG_relic");
+	Util.EnableGoal("CAPPOINT_truck");
+
+	Map.Switches.Alarm.LimitTeam = (1<<TEAM.ALLIES);	// Allies go for alarm first
+
+	Util.UpdateSwitchData();
+
+	// Triggers to know where relic is going
+	tOne = OnTriggerRegion(AABB(-360,-636,-344,-248,-459,-175), Map.SewerTrigger);
+	tTwo = OnTriggerRegion(AABB(1110,1055,-1,1156,1167,77), Map.DoorTrigger);
+	tThree = OnTriggerRegion(AABB(1138,368,655,1176,501,705), Map.RoofTrigger);
+	tFour = OnTriggerRegion(AABB(1665,-48,-112,1703,48,-12), Map.AltarTrigger);
+
+	MapRoutes =
+	{
+		DEFEND_bRelic_1 =
+		{
+			ROUTE_bspawn =
+			{
+				ROUTE_rearalliedspawn = {Weight = 3,},
+				ROUTE_rearaltar = {},
+			},
+		},
+		CAPPOINT_truck =
+		{
+			ROUTE_relicsteal =
+			{
+				ROUTE_organroof =
+				{
+					Weight = 2,
+					ROUTE_roof = {},
+				},
+				ROUTE_door =
+				{
+					Weight = 4,
+					ROUTE_northgallery = {Weight = 2,},
+					ROUTE_maingallery = {Weight = 2,},
+					ROUTE_sewer = {},
+				},
+				ROUTE_rearaltar =
+				{
+					ROUTE_northgallery = {},
+					ROUTE_maingallery = {Weight = 2,},
+					ROUTE_sewer = {},
+				},
+				ROUTE_rearalliedspawn =
+				{
+					ROUTE_sewer = {Weight = 2,},
+					ROUTE_southgallery = {},
+				},
+			},
+		},
+		PLANT_Side_Door =
+		{
+			ROUTE_rspawn =
+			{
+				ROUTE_northentrance =
+				{
+					Weight = 3,
+					ROUTE_maingallery = {},
+					ROUTE_northgallery = {Weight = 2,},
+				},
+				ROUTE_southentrance =
+				{
+					Weight = 2,
+					ROUTE_maingallery = {},
+				},
+				ROUTE_sewer = {},
+			},
+		},
+		ATTACK_rPlant_1 =
+		{
+			ROUTE_rspawn =
+			{
+				ROUTE_northentrance =
+				{
+					Weight = 2,
+					ROUTE_n_maingallery = {Weight=2,},
+					ROUTE_maingallery = {},
+					ROUTE_northgallery = {},
+				},
+				ROUTE_southentrance =
+				{
+					Weight = 2,
+					ROUTE_maingallery = {},
+					ROUTE_s_maingallery = {},
+				},
+				ROUTE_sewer = {},
+			},
+		},
+		FLAG_relic =
+		{
+			ROUTE_rspawn =
+			{
+				ROUTE_northentrance =
+				{
+					Weight = 3,
+					ROUTE_northgallery = {},
+					ROUTE_n_maingallery =
+					{
+						ROUTE_door = {},
+						ROUTE_rearaltar = {},
+					},
+					ROUTE_maingallery =
+					{
+						ROUTE_door = {},
+						ROUTE_rearaltar = {},
+					},
+					ROUTE_roof =
+					{
+						ROUTE_organroof = {},
+					},
+				},
+				ROUTE_southentrance =
+				{
+					Weight = 3,
+					ROUTE_s_maingallery =
+					{
+						ROUTE_door = {},
+						ROUTE_rearaltar = {},
+					},
+					ROUTE_maingallery =
+					{
+						ROUTE_door = {},
+						ROUTE_rearaltar = {},
+					},
+					ROUTE_roof =
+					{
+						ROUTE_organroof = {},
+					},
+				},
+				ROUTE_sewer =
+				{
+					ROUTE_rearaltar = {},
+					ROUTE_door = {},
+				},
+			},
+		},
+	};
+	MapRoutes.DEFEND_bRelic_2 = MapRoutes.DEFEND_bRelic_1;
+	MapRoutes.DEFEND_bRelic_3 = MapRoutes.DEFEND_bRelic_1;
+	MapRoutes.DEFEND_bRelic_4 = MapRoutes.DEFEND_bRelic_1;
+	MapRoutes.DEFEND_bRelic_5 = MapRoutes.DEFEND_bRelic_1;
+	MapRoutes.ATTACK_rPlant_2 = MapRoutes.ATTACK_rPlant_1;
+
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 100.0;
+};
+

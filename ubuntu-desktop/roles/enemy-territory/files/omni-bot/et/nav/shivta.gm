@@ -1,0 +1,328 @@
+//==========================================================================================
+//
+//	shivta.gm (Sh!vta 0.2.1)
+//
+//	Who		When		What
+//------------------------------------------------------------------------------------------
+//	Scab's		17 June 2011	Initial Script
+//	MickyP		21 June 2011	KillRegion
+//	Scab's		08 August 2011	Landmines added
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	Wall = 1,
+	ShowMovers = false,
+
+	KillZone =
+	{
+		//Bots get stuck when building the wooden barrier if wall was not been blown
+		Name = "KillZone",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			b = Util.IsBot(ent);
+			if (b)
+			{                      
+				sleep(1);
+				b.ExecCommand("kill");
+			}
+		},
+		OnExit = function(ent)
+		{
+ 
+		},
+	},
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Fence_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.Wall == 1 )
+			{		
+			KillZone = OnTriggerRegion(AABB(-720.875,-320.875,563.069,-175.125,-63.125,698.794),Map.KillZone);
+			print ("kill zone");
+			}
+
+		Util.MapDebugPrint( "Fence_Built" );
+	},
+
+	Fence_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint ( "Fence_Destroyed " );
+	},
+
+	Wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Wall = 0;
+		DeleteTriggerRegion("KillZone");
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Fence");
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_scr_AXIS_GOLD");
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_Book");
+		Util.SetMaxUsers( 4, "BUILD_Fence" );
+		Util.MapDebugPrint( "Wall_Destroyed!" );
+	},
+
+	Axis_Docs_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Wall_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Wall.*");
+		SetAvailableMapGoals ( TEAM.AXIS, true, "DEFEND_Book.*");
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Book.*");
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANTMINE_Wall.*");
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Fence");
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Fence");
+		Util.MapDebugPrint( "Axis_Docs_Taken");
+		},
+
+	Axis_Docs_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Wall_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Wall.*");
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Book.*");
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Book.*");
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_Wall.*");
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Fence");
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Fence");
+		Util.MapDebugPrint( "Axis_Docs_Returned" );
+	},
+
+	Axis_Docs_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Docs_Secured" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+	{ Util.AutoTestMap(); }
+
+	// Register callback functions
+
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Allies team has destroyed the Allied Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "^2The Fence has been constructed.", Map.Fence_Built );
+	OnTrigger( "^1The Fence has been destroyed.", Map.Fence_Destroyed );
+	OnTrigger( "The Allies have destroyed the North Wall!", Map.Wall_Destroyed );
+	OnTrigger( "The Allied have stolen the book!", Map.Axis_Docs_Taken );
+	OnTrigger( "The Axis have retrieved the book!", Map.Axis_Docs_Returned );
+	OnTrigger( "Allies have stolen the book successful!", Map.Axis_Docs_Secured );
+
+	Util.DisableGoal( ".*", true ); // all but routes
+
+	Util.EnableGoal( "AMMOCAB.*" );
+	Util.EnableGoal( "HEALTHCAB.*" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Wall_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Wall.*");
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Fence");
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Wall");
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Allied_Command_Post");
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Axis_Command_Post");
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE.*");
+	
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "BUILD_Allied_Command_Post" );
+	Util.SetMaxUsers( 1, "BUILD_Axis_Command_Post" );
+	Util.SetMaxUsers( 1, "BUILD_Fence" );
+
+	SetGoalPriority( "BUILD_Axis_Command_Post", 0.78, TEAM.AXIS);
+	SetGoalPriority( "PLANTMINE_Obj.*", 0.78, TEAM.AXIS);
+
+	// Camp times
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=60} );
+
+	MapRoutes =
+	{
+		PLANT_Wall =
+		{
+			ROUTE_Spawn_Allied  =
+			{
+				ROUTE_Allied_Back  =
+				{
+				},
+				ROUTE_Allies_Middle  =
+				{
+				},
+				ROUTE_Near_Top  =
+				{
+					ROUTE_Far_Top  =
+					{
+					},
+				},
+			},
+		},
+		DEFEND_Wall_1 =
+		{
+			ROUTE_Axis_Spawn  =
+			{
+				ROUTE_House_Top  =
+				{
+				},
+				ROUTE_House_Lower  =
+				{
+				},
+			},
+		},
+		CAPPOINT_Book =
+		{
+			ROUTE_Docs  =
+			{
+				ROUTE_Fence  =
+				{
+				},
+			},
+			ROUTE_Bush  =
+			{
+			},
+		},
+		ATTACK_Book_1 =
+		{
+			ROUTE_Spawn_Allied  =
+			{
+				ROUTE_Allied_Back  =
+				{
+					ROUTE_House_Lower  =
+					{
+						ROUTE_Bush  =
+						{
+						},
+						ROUTE_Fence  =
+						{
+						},
+					},
+				},
+				ROUTE_Back_Side  =
+				{
+					ROUTE_Empty_House  =
+					{
+						ROUTE_Fence  =
+						{
+						},
+						ROUTE_Bush  =
+						{
+						},
+					},
+				},
+			},
+		},
+		DEFEND_Book_1 =
+		{
+			ROUTE_Axis_Spawn  =
+			{
+				ROUTE_Axis_Well  =
+				{
+				},
+				ROUTE_House_Lower  =
+				{
+					ROUTE_Bush  =
+					{
+					},
+					ROUTE_Fence  =
+					{
+					},
+				},
+			},
+		},
+
+	};
+
+	MapRoutes.ATTACK_Wall_1 = MapRoutes.PLANT_Wall;
+	MapRoutes.ATTACK_Wall_2 = MapRoutes.PLANT_Wall;
+	MapRoutes.ATTACK_Wall_3 = MapRoutes.PLANT_Wall;
+	MapRoutes.ATTACK_Wall_4 = MapRoutes.PLANT_Wall;
+	MapRoutes.ATTACK_Wall_5 = MapRoutes.PLANT_Wall;
+	MapRoutes.ATTACK_Wall_6 = MapRoutes.PLANT_Wall;
+	MapRoutes.DEFEND_Wall_2 = MapRoutes.DEFEND_Wall_1;
+	MapRoutes.DEFEND_Wall_3 = MapRoutes.DEFEND_Wall_1;
+	MapRoutes.DEFEND_Wall_4 = MapRoutes.DEFEND_Wall_1;
+	MapRoutes.DEFEND_Wall_5 = MapRoutes.DEFEND_Wall_1;
+	MapRoutes.PLANTMINE_Wall_1 = MapRoutes.DEFEND_Wall_1;
+	MapRoutes.PLANTMINE_Wall_2 = MapRoutes.DEFEND_Wall_1;
+	MapRoutes.PLANTMINE_Wall_3 = MapRoutes.DEFEND_Wall_1;
+	MapRoutes.PLANTMINE_Wall_4 = MapRoutes.DEFEND_Wall_1;
+	MapRoutes.PLANTMINE_Wall_5 = MapRoutes.DEFEND_Wall_1;
+	MapRoutes.PLANT_Fence = MapRoutes.PLANT_Wall;
+	MapRoutes.FLAG_scr_AXIS_GOLD = MapRoutes.PLANT_Wall;
+	MapRoutes.ATTACK_Book_2 = MapRoutes.ATTACK_Book_1;
+	MapRoutes.ATTACK_Book_3 = MapRoutes.ATTACK_Book_1;
+	MapRoutes.ATTACK_Book_4 = MapRoutes.ATTACK_Book_1;
+	MapRoutes.ATTACK_Book_5 = MapRoutes.ATTACK_Book_1;
+	MapRoutes.DEFEND_Book_2 = MapRoutes.DEFEND_Book_1;
+	MapRoutes.DEFEND_Book_3 = MapRoutes.DEFEND_Book_1;
+	MapRoutes.DEFEND_Book_4 = MapRoutes.DEFEND_Book_1;
+	MapRoutes.DEFEND_Book_5 = MapRoutes.DEFEND_Book_1;
+	MapRoutes.PLANTMINE_Obj_1 = MapRoutes.DEFEND_Book_1;
+	MapRoutes.PLANTMINE_Obj_2 = MapRoutes.DEFEND_Book_1;
+	MapRoutes.PLANTMINE_Obj_3 = MapRoutes.DEFEND_Book_1;
+
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	// Uncomment for shootable breakables
+	//~bot.TargetBreakableDist = 90.0;
+	// Only set MaxViewDistance on maps with limited sight (e.g. fog)
+	//~bot.MaxViewDistance = 2400;
+};

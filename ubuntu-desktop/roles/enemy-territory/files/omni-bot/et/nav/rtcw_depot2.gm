@@ -1,0 +1,557 @@
+global Map =
+{
+	Ammo_Cabinet_first_ammocabinet = "AMMOCAB_first_ammocabinet",
+	Call_Artillery_251 = "CALLARTILLERY_251",
+	Call_Artillery_411 = "CALLARTILLERY_411",
+	Call_Artillery_43 = "CALLARTILLERY_43",
+	Call_Artillery_508 = "CALLARTILLERY_508",
+	Call_Artillery_551 = "CALLARTILLERY_551",
+	Call_Artillery_889 = "CALLARTILLERY_889",
+	Artillery_D_235 = "ARTILLERY_D_235",
+	Artillery_D_263 = "ARTILLERY_D_263",
+	Artillery_D_45 = "ARTILLERY_D_45",
+	Artillery_D_46 = "ARTILLERY_D_46",
+	Artillery_D_480 = "ARTILLERY_D_480",
+	Artillery_S_263 = "ARTILLERY_S_263",
+	Artillery_S_46 = "ARTILLERY_S_46",
+	Artillery_S_480 = "ARTILLERY_S_480",
+	Artillery_S_77 = "ARTILLERY_S_77",
+	Checkpoint_forward_bunker_flag = "CHECKPOINT_forward_bunker_flag",
+	Checkpoint_trackside_flag = "CHECKPOINT_trackside_flag",
+	Checkpoint_warehouse_flag = "CHECKPOINT_warehouse_flag",
+	Build_Allied_Command_Post = "BUILD_Allied_Command_Post",
+	Build_Axis_Command_Post = "BUILD_Axis_Command_Post",
+	Plant_Allied_Command_Post = "PLANT_Allied_Command_Post",
+	Plant_Allies_Field_HQ = "PLANT_Allies_Field_HQ",
+	Plant_Anti_Aircraft_Gun = "PLANT_Anti_Aircraft_Gun",
+	Plant_Axis_Command_Post = "PLANT_Axis_Command_Post",
+	Plant_North_Gate = "PLANT_North_Gate",
+	Plant_South_Gate = "PLANT_South_Gate",
+	Mount_877 = "MOUNTMG42_877",
+	Mount_mg1 = "MOUNTMG42_mg1",
+	Mount_mg2 = "MOUNTMG42_mg2",
+	Mount_mg4 = "MOUNTMG42_mg4",
+	Mount_mg5 = "MOUNTMG42_mg5",
+	Repair_877 = "REPAIRMG42_877",
+	Repair_mg1 = "REPAIRMG42_mg1",
+	Repair_mg2 = "REPAIRMG42_mg2",
+	Repair_mg4 = "REPAIRMG42_mg4",
+	Repair_mg5 = "REPAIRMG42_mg5",
+	Snipe_snipe2 = "SNIPE_snipe2",
+	Snipe_snipe3 = "SNIPE_snipe3",
+	Snipe_snipe4 = "SNIPE_snipe4",
+	Snipe_snipe7 = "SNIPE_snipe7",
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Allies_Field_HQ_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allies_Field_HQ_Destroyed" );
+	},
+
+	Anti_Aircraft_Gun_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Anti_Aircraft_Gun_Destroyed" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	North_Gate_Destroyed = function( trigger )
+	{
+		SetGoalPriority( "PLANT_Allies_Field_HQ", 1.0, TEAM.AXIS, CLASS.ENGINEER );
+
+		Util.MapDebugPrint( "North_Gate_Destroyed" );
+	},
+
+	South_Gate_Destroyed = function( trigger )
+	{
+		SetGoalPriority( "PLANT_Anti_Aircraft_Gun", 1.0, TEAM.ALLIES, CLASS.ENGINEER );
+
+		Util.MapDebugPrint( "South_Gate_Destroyed" );
+	},
+
+	forward_bunker_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "forward_bunker_flag_Axis_Captured" );
+	},
+
+	forward_bunker_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "forward_bunker_flag_Allies_Captured" );
+	},
+
+	trackside_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "trackside_flag_Axis_Captured" );
+	},
+
+	trackside_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "trackside_flag_Allies_Captured" );
+	},
+
+	warehouse_flag_Axis_Captured = function( trigger )
+	{
+		Util.ChangeSpawn(TEAM.AXIS, 4, 4);
+
+		Util.MapDebugPrint( "warehouse_flag_Axis_Captured" );
+	},
+
+	warehouse_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "warehouse_flag_Allies_Captured" );
+	},
+	
+	aa_plant = function( trigger )
+	{
+		foreach ( id and bot in BotTable )
+		{
+			if ( bot.GetTeam() == TEAM.AXIS )
+			{
+				bot.ChangeSpawnPoint( 5 ); 
+			}
+		}
+
+		Util.MapDebugPrint( "aa_plant" );
+	},
+	
+	hq_plant = function( trigger )
+	{
+		foreach ( id and bot in BotTable )
+		{
+			if ( bot.GetTeam() == TEAM.ALLIES )
+			{
+				bot.ChangeSpawnPoint( 3 ); 
+			}
+		}
+
+		Util.MapDebugPrint( "hq_plant" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	MapRoutes =
+	{
+		PLANT_South_Gate = 
+		{
+			ROUTE_allies3  = 
+			{
+				ROUTE_forwardflag  = 
+				{
+					ROUTE_forwardflag1  = 
+					{
+						ROUTE_forwardflag3  = 
+						{
+							ROUTE_forwardflag4  = 
+							{
+							},
+						},
+					},
+					ROUTE_forwardflag2  = 
+					{
+					},
+				},
+			},
+		},
+		
+		PLANT_Anti_Aircraft_Gun = 
+		{
+			ROUTE_fs3  = 
+			{
+				ROUTE_aagun_left  = 
+				{
+					ROUTE_left1  = 
+					{
+						ROUTE_left2  = 
+						{
+							ROUTE_left3  = 
+							{
+								ROUTE_axis7  = 
+								{
+								},
+							},
+						},
+					},
+				},
+				ROUTE_aagun_right  = 
+				{
+					ROUTE_right1  = 
+					{
+						ROUTE_right2  = 
+						{
+							ROUTE_rright4  = 
+							{
+								ROUTE_rright5  = 
+								{
+									ROUTE_rright6  = 
+									{
+										ROUTE_rright7  = 
+										{
+										},
+									},
+								},
+							},
+							ROUTE_right3  = 
+							{
+							},
+						},
+					},
+				},
+			},
+		},
+
+
+
+
+		
+		PLANT_Allies_Field_HQ = 
+		{
+			ROUTE_axis1  = 
+			{
+				ROUTE_axis6  = 
+				{
+					ROUTE_axis8  = 
+					{
+						ROUTE_axis_20  = 
+						{
+							ROUTE_axis_21  = 
+							{
+								ROUTE_axis_22  = 
+								{
+									ROUTE_axis_23  = 
+									{
+										ROUTE_axis10  = 
+										{
+											ROUTE_forwardflag3  = 
+											{
+												ROUTE_forwardflag2  = 
+												{
+													ROUTE_axis50  = 
+													{
+														ROUTE_axis51  = 
+														{
+															ROUTE_axis52  = 
+															{
+																ROUTE_axis53  = 
+																{
+																},
+															},
+														},
+													},
+												},
+												ROUTE_forwardflag1  = 
+												{
+													ROUTE_axis_12  = 
+													{
+														ROUTE_axis_13  = 
+														{
+															ROUTE_axis_14  = 
+															{
+																ROUTE_axis_15  = 
+																{
+																	ROUTE_axis_16  = 
+																	{
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_fs4  = 
+			{
+				ROUTE_aagun_left  = 
+				{
+					ROUTE_axis9  = 
+					{
+						ROUTE_forwardflag3  = 
+						{
+							ROUTE_forwardflag1  = 
+							{
+								ROUTE_axis_12  = 
+								{
+									ROUTE_axis_13  = 
+									{
+										ROUTE_axis_14  = 
+										{
+											ROUTE_axis_15  = 
+											{
+												ROUTE_axis_16  = 
+												{
+												},
+											},
+										},
+									},
+								},
+							},
+							ROUTE_forwardflag2  = 
+							{
+								ROUTE_axis50  = 
+								{
+									ROUTE_axis51  = 
+									{
+										ROUTE_axis52  = 
+										{
+											ROUTE_axis53  = 
+											{
+												ROUTE_axis54  = 
+												{
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_forwardflag3  = 
+				{
+					ROUTE_forwardflag2  = 
+					{
+						ROUTE_axis50  = 
+						{
+							ROUTE_axis51  = 
+							{
+								ROUTE_axis52  = 
+								{
+									ROUTE_axis53  = 
+									{
+										ROUTE_axis54  = 
+										{
+										},
+									},
+								},
+							},
+						},
+					},
+					ROUTE_forwardflag1  = 
+					{
+						ROUTE_axis_12  = 
+						{
+							ROUTE_axis_13  = 
+							{
+								ROUTE_axis_14  = 
+								{
+									ROUTE_axis_15  = 
+									{
+										ROUTE_axis_16  = 
+										{
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+	
+		
+		DEFEND_gun1 = 
+		{
+			ROUTE_axis1  = 
+			{
+				ROUTE_axis11  = 
+				{
+				},
+				ROUTE_axis4  = 
+				{
+					ROUTE_axis5  = 
+					{
+					},
+				},
+			},
+		},
+
+
+
+	};
+	
+	MapRoutes.DEFEND_gun5 = MapRoutes.DEFEND_gun1;
+	MapRoutes.DEFEND_gun6 = MapRoutes.DEFEND_gun1;
+	MapRoutes.DEFEND_gun7 = MapRoutes.DEFEND_gun1;
+	MapRoutes.ATTACK_radio1 = MapRoutes.PLANT_Allies_Field_HQ;
+	MapRoutes.ATTACK_radio2 = MapRoutes.PLANT_Allies_Field_HQ;
+	MapRoutes.ATTACK_radio3 = MapRoutes.PLANT_Allies_Field_HQ;
+	MapRoutes.ATTACK_radio4 = MapRoutes.PLANT_Allies_Field_HQ;
+	MapRoutes.ATTACK_radio5 = MapRoutes.PLANT_Allies_Field_HQ;
+	MapRoutes.CHECKPOINT_forward_bunker_flag = MapRoutes.DEFEND_gun1;
+	
+	MapRoutes.ATTACK_gun0 = MapRoutes.PLANT_Anti_Aircraft_Gun;
+	MapRoutes.ATTACK_gun99 = MapRoutes.PLANT_Anti_Aircraft_Gun;
+
+	Util.Routes(MapRoutes);
+
+
+	OnTrigger( "MISSING_STRING", Map.Allied_Command_Post_Built );
+	OnTrigger( "MISSING_STRING", Map.Axis_Command_Post_Built );
+	OnTrigger( "MISSING_STRING", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Allies_Field_HQ_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Anti_Aircraft_Gun_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "Axis have destroyed the North Gate!", Map.North_Gate_Destroyed );
+	OnTrigger( "Allies have destroyed the South Gate!", Map.South_Gate_Destroyed );
+	OnTrigger( "Axis have captured the Forward Deployment Area!", Map.forward_bunker_flag_Axis_Captured );
+	OnTrigger( "MISSING_STRING", Map.forward_bunker_flag_Allies_Captured );
+	OnTrigger( "MISSING_STRING", Map.trackside_flag_Axis_Captured );
+	OnTrigger( "MISSING_STRING", Map.trackside_flag_Allies_Captured );
+	OnTrigger( "Axis have captured the Warehouse flag!", Map.warehouse_flag_Axis_Captured );
+	OnTrigger( "MISSING_STRING", Map.warehouse_flag_Allies_Captured );
+	OnTrigger( "Planted at the Anti-Aircraft gun.", Map.aa_plant);
+	OnTrigger( "Planted at the Allies Field HQ.", Map.hq_plant);
+	
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_877" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_mg1" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_mg4" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_mg2" );
+//	SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_North_Gate" );
+//~	SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_mg5" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_877" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_mg1" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_mg4" );
+//~	SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_mg2" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_mg5" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_877" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_mg1" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_mg4" );
+//~	SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_mg2" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_mg5" );
+	
+	SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_877" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_mg1" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_mg4" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_mg2" );
+//~	SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_mg5" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Axis_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Allied_Command_Post" );
+	
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_radio.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_gun.*" );
+	
+	
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_gun.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_radio.*" );
+	
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_.*" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_warehouse_flag" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_trackside_flag" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_trackside_flag" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_snipe7" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_snipe4" );
+	
+	SetGoalPriority( "PLANT_South_Gate", 1.0, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "DEFEND_radio1", 0.7, TEAM.ALLIES, CLASS.COVERTOPS );
+	SetGoalPriority( "DEFEND_radio2", 0.7, TEAM.ALLIES, CLASS.COVERTOPS );
+//	SetGoalPriority( "PLANT_North_Gate", 0.9, TEAM.AXIS, CLASS.ENGINEER );
+//~	SetGoalPriority( "CHECKPOINT_warehouse_flag", 1.0, TEAM.AXIS, 0 );
+	
+	SetGoalPriority( "MOUNTMG42_.*", 0.2, 0, CLASS.MEDIC );
+	SetGoalPriority( "CHECKPOINT_forward_bunker_flag", 0.6, 0, 0 );
+	SetGoalPriority( "DEFEND_.*", 0.4, 0, CLASS.ENGINEER );
+	
+	Util.SetGoalOffset( 0,-20,0, "PLANT_South_Gate" );
+	Util.SetGoalOffset( 0,20,0, "PLANT_North_Gate" );
+//~	Util.SetGoalOffset( 65,0,0, "PLANT_Anti_Aircraft_Gun" );
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=40} ); 
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=15, MaxCampTime=40} ); 
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=15, MaxCampTime=40} );
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "BUILD_.*" );
+	Util.SetMaxUsers( 2, "PLANT_.*" );
+	Util.SetMaxUsers( 1, "PLANT_North_Gate" );
+	Util.SetMaxUsers( 1, "PLANT_South_Gate" );
+	
+	
+	Util.SetMaxUsers( 2, "CHECKPOINT_.*" );
+//~	Util.SetGoalOffset( -60,0,0, "PLANT_Allies_Field_HQ" );
+	Util.SetGoalPosition( 723, 1450, -239, Map.Plant_Allies_Field_HQ );
+	Util.SetGoalPosition( 4971, 7996, 132, Map.Plant_Anti_Aircraft_Gun );
+	
+	Util.DisableGoal("MOVER_.*");
+	Util.DisableGoal("CALLARTILLERY_.*");
+	SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_axis1" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_D_axis1" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "CALLARTILLERY_axis1" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_D_axis1" );
+	
+	//SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	//SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	 bot.TargetBreakableDist = 100.0;
+};

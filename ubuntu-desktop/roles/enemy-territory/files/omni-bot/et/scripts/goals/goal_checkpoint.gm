@@ -1,0 +1,74 @@
+this.Name = "CHECKPOINT";
+this.Parent = "HighLevel";
+this.SkipGetPriorityWhenActive = true;
+
+this.Initialize = function()
+{
+	this.Bot.QueryGoalsTable = table();
+};
+
+this.GetPriority = function()
+{
+	while(1)
+	{
+		count = this.QueryGoals(this.Bot.QueryGoalsTable,0xf7e4a57f /* CHECKPOINT */);
+		if ( count > 0 )
+		{
+			foreach ( id and goal in this.Bot.QueryGoalsTable )
+			{
+				if ( goal.IsAvailable(this.Bot.GetTeam()) ) {
+					this.MapGoal = goal;
+					this.Priority = goal.GetGoalPriority(this.Bot);
+					break;
+				}
+			}
+		}
+
+		tableClear(this.Bot.QueryGoalsTable);
+
+		sleep(2);
+	}
+};
+
+this.Enter = function()
+{
+	if(!this.MarkInProgress(this.MapGoal)) {
+		this.BlackboardDelay(5, this.MapGoal);
+		this.Finished();
+	}
+};
+
+this.Update = function()
+{
+	if ( this.RouteTo(this.MapGoal) == EVENT.PATH_SUCCESS )
+	{
+		if(!this.MarkInUse(this.MapGoal)) {
+			this.BlackboardDelay(5, this.MapGoal);
+			this.Finished();
+		}
+
+		pos = this.MapGoal.GetPosition();
+		this.AddAimRequest(Priority.High, "position", pos);
+
+		team = this.Bot.GetTeam();
+		timeout = 60; // 3 seconds
+
+		while( timeout > 0 && this.MapGoal.IsAvailable(team) ) {
+			this.Bot.MoveTowards(pos);
+			yield();
+			timeout -= 1;
+		}
+
+		if ( timeout < 1 ) {
+			this.BlackboardDelay(10, this.MapGoal);
+		}
+	}
+	else
+	{
+		this.BlackboardDelay(10, this.MapGoal);
+		Util.ScriptDebugPrint(this.MapGoal.GetName(), "pathfailed");
+	}
+
+	this.Finished();
+};
+

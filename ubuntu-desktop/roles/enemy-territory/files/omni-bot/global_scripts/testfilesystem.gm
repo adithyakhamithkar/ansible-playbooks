@@ -1,0 +1,152 @@
+//////////////////////////////////////////////////////////////////////////
+test_file_exists = function()
+{
+	print("Testing FileExists");
+	global myFile = File();
+	assert(myFile.Open("exists.txt", "text", false));
+	myFile.Close();
+	assert(System.FileExists("exists.txt"));
+};
+//////////////////////////////////////////////////////////////////////////
+test_file_delete = function()
+{
+	print("Testing FileDelete");
+	global myFile = File();
+	assert(myFile.Open("deletethisfile.txt", "text", false));
+	myFile.Close();
+	assert(System.FileDelete("deletethisfile.txt"));
+};
+//////////////////////////////////////////////////////////////////////////
+test_file_binary = function()
+{
+	print("Testing Open & Write Binary");
+	global myFile = File();
+	assert(myFile);
+	//////////////////////////////////////////////////////////////////////////
+	// Test Data
+	testData =
+	{
+		554321,
+		1.0,
+		"This is a string Test",
+		"This is another string Test",
+		"One\tmore\ttest\twith\ttabs",
+	};
+	//////////////////////////////////////////////////////////////////////////
+	print("Testing Binary Writing");
+	assert(myFile.Open("testwrite_binary.txt", "binary", false));
+	foreach ( k and v in testData )
+	{
+		assert(myFile.Write(v));
+	}
+	myFile.Close();
+	//////////////////////////////////////////////////////////////////////////
+	print("Testing Binary Reading");
+	assert(myFile.Open("testwrite_binary.txt", "binary"));
+	foreach ( k and v in testData )
+	{
+		t = typeName(v);
+		if(t == "int") { assert(myFile.ReadInt() == v); }
+		else if(t == "float") { assert(myFile.ReadFloat() == v); }
+		else if(t == "string") { assert(myFile.ReadString() == v); }
+	}
+	myFile.Close();
+};
+//////////////////////////////////////////////////////////////////////////
+test_file_text = function()
+{
+	print("Testing Open & Write Text Mode");
+	global myFile = File();
+	assert(myFile);
+	//////////////////////////////////////////////////////////////////////////
+	// Test Data
+	testData =
+	{
+		554321,
+		1.0,
+		"ThisIsAStringTest",
+		"ThisIsAnotherStringTest",
+		"OneMore",
+	};
+	testLineData =
+	{
+		"This Is A String Test For ReadLine",
+		"This Is Another String Test For ReadLine",
+		"One more For ReadLine",
+		"One\tmore\ttest\twith\ttabs",
+		"",
+	};
+	//////////////////////////////////////////////////////////////////////////
+	print("Testing Text Writing");
+	assert(myFile.Open("testwrite_text.txt", "text", false));
+	foreach ( k and v in testData )
+	{
+		assert(myFile.Write(v, System.NewLine));
+	}
+	foreach ( k and v in testLineData )
+	{
+		assert(myFile.Write(v, System.NewLine));
+	}
+	myFile.Close();
+	//////////////////////////////////////////////////////////////////////////
+	print("Testing Text Reading");
+	global myFile = File();
+	assert(myFile);
+	assert(myFile.Open("testwrite_text.txt", "text"));
+	foreach ( k and v in testData )
+	{
+		t = typeName(v);
+		if(t == "int") { assert(myFile.ReadInt() == v); }
+		else if(t == "float") { assert(myFile.ReadFloat() == v); }
+		else if(t == "string") { assert(myFile.ReadString() == v); }
+	}
+	foreach ( k and v in testLineData )
+	{
+		assert(myFile.ReadLine() == v);
+	}
+	myFile.Close();
+};
+//////////////////////////////////////////////////////////////////////////
+test_file_enumerate_files = function()
+{
+	print("Testing File Enumerations");
+	enum_callback = function(filename)
+	{
+		print("File: ", filename);
+	};
+	System.FileEnumerate("", enum_callback);
+	print("Testing File Enumerations Done");
+};
+//////////////////////////////////////////////////////////////////////////
+test_file_size = function()
+{
+	print("Testing File Size Function");
+	global myFile = File();
+	assert(myFile);
+	assert(myFile.Open("testfilesize.txt", "text", false));
+	assert(myFile.Write("howdydoody"));
+	myFile.Close();
+	assert(myFile.Open("testfilesize.txt", "text"));
+	print("File Size is", myFile.FileSize(), "expecting 10.");
+	assert(myFile.FileSize() == 10);
+};
+//////////////////////////////////////////////////////////////////////////
+global cleanUpFunction = function()
+{
+	if(myFile)
+	{
+		myFile.Close();
+	}
+};
+//////////////////////////////////////////////////////////////////////////
+print("-------------------------");
+print("Testing Script File System");
+EnableScriptDebug(true);
+unitTest(test_file_exists);
+unitTest(test_file_delete);
+unitTest(test_file_binary);
+unitTest(test_file_text);
+unitTest(test_file_enumerate_files);
+unitTest(test_file_size);
+EnableScriptDebug(false);
+print("-------------------------");

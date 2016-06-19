@@ -1,0 +1,581 @@
+global Map =
+{
+	Barrierpassed =
+ 	{
+ 		Name="Barrierpassed",
+ 		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+ 		OnEnter = function(ent)
+ 		{
+ 			//Util.MapDebugPrint(GetEntName(ent),"BarrierPassed");
+			//Map.RideVehicle.truck.Enabled = true;
+			SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Truck_Barrier_2" );
+ 		},
+ 		OnExit = function(ent)
+ 		{
+			//Util.MapDebugPrint(GetEntName(ent),"exited aabb trigger");
+ 		},
+	},
+	
+	killswitch =
+ 	{
+ 		Name="killswitch",
+ 		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+ 		OnEnter = function(ent)
+ 		{
+			Util.DisableGoal("SWITCH_.*");
+ 		},
+ 		OnExit = function(ent)
+ 		{
+			Util.MapDebugPrint(GetEntName(ent),"");
+ 		},
+	},
+	
+	bar1 =
+ 	{
+ 		Name="bar1",
+ 		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+ 		OnEnter = function(ent)
+ 		{
+ 			
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_barrier.*" );
+ 		},
+ 		OnExit = function(ent)
+ 		{
+			Util.MapDebugPrint();
+ 		},
+	},
+	
+	shift =
+ 	{
+ 		Name="shift",
+ 		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+ 		OnEnter = function(ent)
+ 		{
+ 			Util.SetGoalPosition( 6298.444,-1281.874,728.125, "DEFEND_path4" );
+			Util.SetGoalPosition( 6319.109,-633.051,768.125, "DEFEND_path3" );
+			Util.SetGoalPosition( 6118.449,-610.702,768.125, "DEFEND_path6" );
+			Util.SetGoalPosition( 6581.387,-1255.768,728.125, "DEFEND_path5" );
+			Util.SetGoalPosition( 6218.918,-1280.722,728.125, "DEFEND_path1" );
+			Util.SetGoalPosition( 7137.875,-863.852,728.235, "DEFEND_path2" );
+ 		},
+ 		OnExit = function(ent)
+ 		{
+			Util.MapDebugPrint();
+ 		},
+	},
+	
+	truck_at_barrier =
+ 	{
+ 		Name="truck_at_barrier",
+ 		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+ 		OnEnter = function(ent)
+ 		{
+ 			//Util.MapDebugPrint(GetEntName(ent),"BarrierPassed");
+			//Map.RideVehicle.truck.Enabled = true;
+			Util.DisableGoal("AMMOCAB_.*");
+			Util.DisableGoal("HEALTHCAB_.*");
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_truckdef.*" );
+			
+			SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_North_Tower" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_north" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Command_Post" );
+			
+			Util.MapDebugPrint(GetEntName(ent),"entered barrier trigger");
+ 		},
+ 		OnExit = function(ent)
+ 		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_truckdef.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_barrier.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_path.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_.*" );
+			
+			Util.MapDebugPrint(GetEntName(ent),"");
+ 		},
+	},
+	
+	nothing =
+ 	{
+ 		Name="nothing",
+ 		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+ 		OnEnter = function(ent)
+ 		{
+ 			//Util.MapDebugPrint(GetEntName(ent),"BarrierPassed");
+			//Map.RideVehicle.truck.Enabled = true;
+			
+			SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Command_Post" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Command_Post" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Door_Controls" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Door_Controls" );
+			Util.DisableGoal("AMMOCAB_.*"); //enables for both teams
+			Util.DisableGoal("HEALTHCAB_.*"); //enables for both teams
+ 		},
+ 		OnExit = function(ent)
+ 		{
+			Util.MapDebugPrint(GetEntName(ent),"exited nothing trigger");
+ 		},
+	},
+	
+	spawnback =
+ 	{
+ 		Name="spawnback",
+ 		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+ 		OnEnter = function(ent)
+ 		{
+			Util.ChangeSpawn( TEAM.ALLIES, 4);
+ 		},
+ 		OnExit = function(ent)
+ 		{
+			//Util.MapDebugPrint(GetEntName(ent),"allies spawnback");
+ 		},
+	},
+
+	Ammo_Cabinet_supply4xxx = "AMMOCAB_supply4xxx",
+	Health_Cabinet_health3xxx = "HEALTHCAB_health3xxx",
+	Flag_gold_crate = "FLAG_gold_crate",
+	Flag_gold_crate_1 = "FLAG_gold_crate_1",
+	Cappoint_21 = "CAPPOINT_21",
+	Build_Command_Post = "BUILD_Command_Post",
+	Build_Door_Controls = "BUILD_Door_Controls",
+	Build_Truck = "BUILD_Truck",
+	Build_Truck_Barrier_2 = "BUILD_Truck_Barrier_2",
+	Plant_Command_Post = "PLANT_Command_Post",
+	Plant_Door_Controls = "PLANT_Door_Controls",
+	Plant_North_Tower = "PLANT_North_Tower",
+	Plant_South_Tower = "PLANT_South_Tower",
+	Plant_Truck_Barrier_2 = "PLANT_Truck_Barrier_2",
+	Mover_truck = "MOVER_truck",
+//~	radar_status = "0"
+	
+	Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Built" );
+	},
+
+	Door_Controls_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Door_Controls_Built" );
+	},
+
+	Truck_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Truck_Built" );
+	},
+
+	Truck_Barrier_2_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Truck_Barrier_2_Built" );
+	},
+
+	Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Destroyed" );
+	},
+
+	Door_Controls_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Door_Controls_Destroyed" );
+	},
+
+	North_Tower_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Flag_gold_crate );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Flag_gold_crate_1 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_north" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_south" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_north.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_south.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_cp" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_ally1" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_ally2" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_north2" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_tower" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_radar.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Door_Controls" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMORTAR_mrt1" );
+
+		Util.ChangeSpawn( TEAM.AXIS, 1 );
+
+		Util.MapDebugPrint( "North_Tower_Destroyed" );
+	},
+
+	South_Tower_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Flag_gold_crate );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Flag_gold_crate_1 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "HEALTHCAB_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_radar.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_north.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_south.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_north" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_south" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_south" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_cp" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_ally1" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_ally2" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_north2" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_tower" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Door_Controls" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMORTAR_mrt1" );
+
+		Util.ChangeSpawn( TEAM.AXIS, 1 );
+
+		Util.MapDebugPrint( "South_Tower_Destroyed" );
+	},
+
+	Truck_Barrier_2_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Truck_Barrier_2_Destroyed" );
+	},
+
+	gold_crate_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "gold_crate_Taken" );
+	},
+
+	gold_crate_1_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "gold_crate_1_Taken" );
+	},
+
+	CAPPOINT_21_Captured = function( trigger )
+	{
+//~		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Truck_Barrier_2" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Door_Controls" );
+
+		Util.MapDebugPrint( "CAPPOINT_21_Captured" );
+	},
+	
+	truck_damaged = function( trigger )
+	{
+		Util.SetPositionGoal( Map.Build_Truck, Map.Mover_truck );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_truck" );
+		Util.MapDebugPrint( "truck blasted" );
+	},
+	
+	castle_gate_open = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_.*" );
+		
+		Util.MapDebugPrint( "gate open" );
+	},
+	
+	castle_gate_closed = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_.*" );
+		
+		Util.MapDebugPrint( "gate closed" );
+	},
+	
+	south_plant = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_south" );
+
+		Util.MapDebugPrint( "planted south" );
+	},
+	
+	north_plant = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_north" );
+	
+		Util.MapDebugPrint( "planted north" );
+	},
+	
+	control_plant = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "planted controls" );
+	},
+	
+	allies_escaping = function( trigger )
+	{
+//~		Map.EscortVehicle.truck.Enabled = true;
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_truck" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_radar.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "Build_Truck" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_North_Tower" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Flag_gold_crate );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Flag_gold_crate_1 );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Command_Post" );
+		Util.ChangeSpawn( TEAM.AXIS, 4 );
+
+//~		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_path.*" );
+	
+		Util.MapDebugPrint( "allies escaping" );
+	},
+	
+	past_bridge = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Command_Post" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Command_Post" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Truck_Barrier_2" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_radar.*" );
+		
+		Util.MapDebugPrint( "past bridge" );
+	},
+	
+	two_min = function( trigger )
+	{
+		Util.MapDebugPrint( "2 mins" );
+	},
+	
+	crate_returned = function( trigger )
+	{
+		Util.MapDebugPrint( "crate_returned" );
+	},
+	
+	spawn_cap = function( trigger )
+	{
+//~		Map.Switches.door1.Enabled = true;
+		Util.ChangeSpawn(TEAM.ALLIES, 5, 4);
+		
+		Util.MapDebugPrint( "allies spawn forward", true );
+		Util.MapDebugPrint( "door switch active" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Command_Post_Built );
+	OnTrigger( "^1Axis have built the Door Controls!", Map.Door_Controls_Built );
+	OnTrigger( "^3The Truck has been repaired!", Map.Truck_Built );
+	OnTrigger( "^1The Truck Barrier has been constructed.", Map.Truck_Barrier_2_Built );
+	OnTrigger( "MISSING_STRING", Map.Command_Post_Destroyed );
+	OnTrigger( "^3Allies have destroyed the Door Controls!", Map.Door_Controls_Destroyed );
+	OnTrigger( "^3Allies have destroyed the North Tower Wall!", Map.North_Tower_Destroyed );
+	OnTrigger( "^3Allies have destroyed the South Tower Wall!", Map.South_Tower_Destroyed );
+	OnTrigger( "^3The Truck Barrier has been destroyed.", Map.Truck_Barrier_2_Destroyed );
+	OnTrigger( "Allies have stolen The Radar Prototype!", Map.gold_crate_Taken );
+	OnTrigger( "MISSING_STRING", Map.gold_crate_1_Taken );
+	OnTrigger( "^1The Truck has been damaged!", Map.truck_damaged );
+	OnTrigger( "^3Castle Gate is now open!", Map.castle_gate_open );
+	OnTrigger( "^1Castle Gate is now closed!", Map.castle_gate_closed );
+	OnTrigger( "^3Allied team has secured a Radar Prototype!", Map.CAPPOINT_21_Captured );
+	OnTrigger( "Planted at the South Tower.", Map.south_plant );
+	OnTrigger( "Planted at the North Tower.", Map.north_plant );
+	OnTrigger( "Planted at the Door Controls.", Map.control_plant );
+	OnTrigger( "^2Allied team is escaping with the Radar Prototypes!", Map.allies_escaping );
+	OnTrigger( "^3The Truck has passed the Bridge!", Map.past_bridge );
+	OnTrigger( "two minute warning.", Map.two_min );
+	OnTrigger( "Flag returned gold_crate!", Map.crate_returned );
+	OnTrigger( "^3Allied team Spawns now inside the Castle!", Map.spawn_cap );
+	
+	Util.DisableGoal("SWITCH_.*");
+	Util.DisableGoal("AIRSTRIKE_.*");
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Flag_gold_crate );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Flag_gold_crate_1 );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_truck" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "HEALTHCAB_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "AMMOCAB_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Truck" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Truck_Barrier_2" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Command_Post" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Command_Post" );
+	
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_radar.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_radar.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Door_Controls" );
+	
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_north" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMORTAR_mrt1" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_south" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_north2" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_ally1" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_ally2" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_axis_north.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_axis_south.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_cp" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_path.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ESCORT_truck" );
+	
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_path.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_truckdef.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_barrier.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_barrier.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_truckdef.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_tower" );
+	
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=30, MaxCampTime=90} );
+	
+	SetGoalPriority( "BUILD_Truck", 0.90 );
+	SetGoalPriority( "PLANT_Door_Controls", 0.89, TEAM.ALLIES, CLASS.COVERTOPS );
+	SetGoalPriority( "PLANT_Door_Controls", 0.0, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_South_Tower", 0.99, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_North_Tower", 0.99, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_Command_Post", 0.00, 0, CLASS.ENGINEER );
+	SetGoalPriority( "MOBILEMORTAR_.*", 0.99, TEAM.ALLIES, CLASS.SOLDIER );
+	
+	Util.SetGoalOffset( 0,-30, 0, "PLANT_Truck_Barrier_2" );
+	
+	Util.SetGoalPosition( -846.406,-1067.66, 698.69, "PLANT_South_Tower" );
+	Util.SetGoalPosition( -521.6,521.652, 672.326, "PLANT_North_Tower" );
+	
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "PLANT_Base_Gate" );
+	Util.SetMaxUsers( 1, "PLANT_Side_Entrance" );
+	Util.SetMaxUsers( 1, "BUILD.*" );
+	Util.SetMaxUsers( 1, "CAMP.*" );
+	Util.SetMaxUsers( 2, "SWITCH_.*" );
+	Util.SetMaxUsers( 3, "ESCORT_.*" );
+
+	//~SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	//~SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+	
+	OnTriggerRegion(AABB(4188.251,330.844,703.319,4475.376,667.842,777.319), Map.Barrierpassed);
+	OnTriggerRegion(AABB(4069.322,677.388,703.125,4470.875,1213.123,792.895), Map.truck_at_barrier);
+	OnTriggerRegion(AABB(-286.272,-297.871,703.125,-192.438,0.875,777.125), Map.nothing);
+	OnTriggerRegion(AABB(2597.543,-104.339,703.125,2843.690,320.091,787.896), Map.spawnback);
+//~	OnTriggerRegion(AABB(4346.670,-227.108,703.125,4611.178,6.754,777.125), Map.killzone);
+	killswitch = OnTriggerRegion(AABB(-832.875,-313.898,703.125,-771.276,23.741,777.125),Map.killswitch);
+	bar1 = OnTriggerRegion(AABB(924.612,-385.918,703.125,976.874,85.434,777.125),Map.bar1);
+	shift = OnTriggerRegion(AABB(5197.343,-1105.230,703.125,5246.487,-267.859,781.125),Map.shift);
+	MapRoutes =
+	{
+		PLANT_South_Tower = 
+		{
+			ROUTE_allyspawn  = 
+			{
+				ROUTE_s1  = 
+				{
+					ROUTE_s3  = 
+					{
+						ROUTE_s4  = 
+						{
+							ROUTE_s5  = 
+							{
+								ROUTE_s6  = 
+								{
+								},
+								ROUTE_s55  = 
+								{
+									ROUTE_s56  = 
+									{
+										ROUTE_s54  = 
+										{
+										},
+										ROUTE_s53  = 
+										{
+										},
+									},
+								},
+							},
+						},
+					},
+					ROUTE_s2  = 
+					{
+						ROUTE_s50  = 
+						{
+							ROUTE_s51  = 
+							{
+							},
+						},
+					},
+				},
+			},
+		},
+		
+		PLANT_Truck_Barrier_2 = 
+		{
+			ROUTE_allyspawn  = 
+			{
+				ROUTE_s1  = 
+				{
+					ROUTE_s3  = 
+					{
+						ROUTE_s4  = 
+						{
+						},
+					},
+				},
+				ROUTE_d1  = 
+				{
+					ROUTE_d3  = 
+					{
+						ROUTE_d4  = 
+						{
+						},
+					},
+				},
+			},
+		},
+		
+		DEFEND_barrier2 = 
+		{
+			ROUTE_axis75  = 
+			{
+				ROUTE_d6  = 
+				{
+					ROUTE_axis101  = 
+					{
+					},
+					ROUTE_axis102  = 
+					{
+						ROUTE_axis103  = 
+						{
+						},
+					},
+				},
+			},
+		},
+	};
+
+	MapRoutes.PLANT_North_Tower = MapRoutes.PLANT_South_Tower;
+	MapRoutes.DEFEND_north = MapRoutes.PLANT_South_Tower;
+	MapRoutes.DEFEND_south = MapRoutes.PLANT_South_Tower;
+	MapRoutes.DEFEND_truckdef1 = MapRoutes.PLANT_Truck_Barrier_2;
+	MapRoutes.DEFEND_truckdef2 = MapRoutes.PLANT_Truck_Barrier_2;
+	MapRoutes.DEFEND_truckdef3 = MapRoutes.PLANT_Truck_Barrier_2;
+	MapRoutes.DEFEND_barrier3 = MapRoutes.DEFEND_barrier2;
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	 bot.TargetBreakableDist = 50.0;
+};

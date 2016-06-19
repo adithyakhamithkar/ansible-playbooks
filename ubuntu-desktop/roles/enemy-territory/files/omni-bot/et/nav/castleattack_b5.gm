@@ -1,0 +1,1475 @@
+//==========================================================================================
+//
+//	castleattack_b5.gm
+//
+//	Who              		When			What
+//------------------------------------------------------------------------------------------
+//	native12			27 November 2010	Initial Script
+//					12 December 2010	Released
+//	castleattack_b5.way		12 December 2010	Size: 267 540 b
+//	castleattack_b5_goals.gm	12 December 2010	Size: 86 450 b
+//==========================================================================================
+//	ToDo:	some routes ?
+
+global Map =
+{
+	Debug = 0, // please set to zero before distributing your script
+
+	ShowMovers = false,
+
+	Neutral_Command_Post_Dyno = 0,
+	Tunnel_Doors_1_Dyno = 0,
+	TankStatus = 0,
+	TunnelDoorsBuilt = 0,
+	TankAtTunnelDoors = 0,
+	TankPassTunnelDoors = 0,
+	TankPassBunkerExit = 0,
+	MemorialDestroyed = 0,
+	TankAtCastleGates = 0,
+	TankPassCastleGates = 0,
+	CastleGatesBuilt = 0,
+	AxisCP = 0,
+	AlliedCP = 0,
+	AxisBunker = 1,
+	AlliedBunker = 0,
+	TankInTunnelToMemorial = 0,
+	RadioPartsTaken = 0,
+	RadioPartsDropped = 0,
+	RadioPartsCaptured = 0,
+	DocumentsTaken = 0,
+	DocumentsDropped = 0,
+	DocumentsCaptured = 0,
+
+	LadderLowFacing = null,
+	LadderUppFacing = null,
+
+	Navigation =
+	{
+		//  	/bot waypoint_setproperty paththrough Navigation_PT:ladder_low
+		ladder_low =
+		{
+			navigate = function(_this)
+			{
+				Util.MapDebugPrint("ladder_low");
+
+				if ( !Map.LadderLowFacing )
+				{
+					Map.LadderLowFacing = Util.WpNameInfo("Ladder_Low");
+				}
+				_this.AddAimRequest(Priority.VeryHigh, "facing", Map.LadderLowFacing.facing);
+				_this.Bot.HoldButton(BTN.JUMP, 1);
+				_this.Bot.HoldButton(BTN.FORWARD, 5);
+
+				Map.LadderLowFacing = null;
+				sleep(6); // for how ever long the bot should keep the aim request
+			},
+		},
+		//  	/bot waypoint_setproperty paththrough Navigation_PT:ladder_upp
+		ladder_upp =
+		{
+			navigate = function(_this)
+			{
+				Util.MapDebugPrint("ladder_upp");
+
+				if ( !Map.LadderUppFacing )
+				{
+					Map.LadderUppFacing = Util.WpNameInfo("Ladder_Low");
+				}
+				_this.AddAimRequest(Priority.VeryHigh, "facing", Map.LadderUppFacing.facing);
+				_this.Bot.HoldButton(BTN.BACKWARD, 3);
+
+				Map.LadderUppFacing = null;
+				sleep(3); // for how ever long the bot should keep the aim request
+			},
+		},
+	},
+
+	Tank_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.TankStatus = 1;
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Tank" );
+		SetGoalPriority( "BUILD_Tank", 0.92, TEAM.ALLIES, CLASS.ENGINEER );
+
+		if ( Map.TankAtTunnelDoors == 1 and Map.TunnelDoorsBuilt == 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_tank" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNT_tank" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOUNT_tank" );
+		}
+		else if ( Map.TankAtTunnelDoors == 1 and Map.TunnelDoorsBuilt == 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_tank" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNT_tank" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOUNT_tank" );
+		}
+		else if ( Map.TankAtCastleGates == 1 and Map.CastleGatesBuilt == 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_tank" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNT_tank" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOUNT_tank" );
+		}
+		else if ( Map.TankAtCastleGates == 1 and Map.CastleGatesBuilt == 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_tank" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNT_tank" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOUNT_tank" );
+		}
+		else if ( Map.MemorialDestroyed == 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_tank" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNT_tank" );
+
+			SetAvailableMapGoals( TEAM.AXIS, false, "MOUNT_tank" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_tank" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNT_tank" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOUNT_tank" );
+		}
+
+		Util.MapDebugPrint( "^3Tank_Built" );
+	},
+
+	Tank_Damaged = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.TankStatus = 0;
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_tank" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNT_tank" );
+		SetGoalPriority( "BUILD_Tank", 0.92, TEAM.ALLIES, CLASS.ENGINEER );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNT_tank" );
+
+		if ( Map.TankAtTunnelDoors == 1 and Map.TunnelDoorsBuilt == 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Tank" );
+		}
+		else if ( Map.TankAtTunnelDoors == 1 and Map.TunnelDoorsBuilt == 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Tank" );
+		}
+		else if ( Map.TankAtCastleGates == 1 and Map.CastleGatesBuilt == 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Tank" );
+		}
+		else if ( Map.TankAtCastleGates == 1 and Map.CastleGatesBuilt == 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Tank" );
+		}
+		else if ( Map.MemorialDestroyed == 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Tank" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Tank" );
+		}
+
+		Util.MapDebugPrint( "^3Tank_Damaged" );
+	},
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.AlliedCP = 1;
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Neutral_Command_Post" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Neutral_Command_Post" );
+
+		Util.MapDebugPrint( "^3Allied_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.AxisCP = 1;
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Neutral_Command_Post" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Neutral_Command_Post" );
+
+		Util.MapDebugPrint( "^3Axis_Command_Post_Built" );
+	},
+
+	Neutral_Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Neutral_Command_Post_Dyno += 1;
+
+		if ( Map.AlliedCP == 1)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFUSE_Neutral_Command_Post_.*" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFUSE_Neutral_Command_Post_.*" );
+		}
+
+		Util.MapDebugPrint( "^3Neutral_Command_Post_Planted" );
+	},
+
+	Neutral_Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Neutral_Command_Post_Dyno -= 1;
+
+		Util.MapDebugPrint( "^3Neutral_Command_Post_Defused" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Neutral_Command_Post_Dyno = 0;
+		Map.AlliedCP = 0;
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Neutral_Command_Post" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFUSE_Neutral_Command_Post_.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Neutral_Command_Post" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Neutral_Command_Post" );
+
+		Util.MapDebugPrint( "^3Neutral_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Neutral_Command_Post_Dyno = 0;
+		Map.AxisCP = 0;
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Neutral_Command_Post" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Neutral_Command_Post_.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Neutral_Command_Post" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Neutral_Command_Post" );
+
+		Util.MapDebugPrint( "^3Neutral_Command_Post_Destroyed" );
+	},
+
+	Trigger_CallartilleryStart =
+ 	{
+ 		Name="Trigger_CallartilleryStart",
+		TriggerOnEntity = GetGoal("MOVER_tank").GetEntity(),
+ 		OnEnter = function(ent)
+ 		{
+
+			Util.MapDebugPrint(GetEntName(ent) + " ^3entered Trigger_CallartilleryStart", true);
+ 		},
+ 		OnExit = function(ent)
+ 		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_Axis_Start_2" );
+ 			SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_Axis_Start_3" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_Axis_Start_4" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_Callartillery_Trigger_.*" );
+
+			Util.MapDebugPrint(GetEntName(ent) + " ^3exited Trigger_CallartilleryStart", true);
+ 		},
+	},
+
+	Trigger_Callartillery =
+ 	{
+ 		Name="Trigger_Callartillery",
+		TriggerOnEntity = GetGoal("MOVER_tank").GetEntity(),
+ 		OnEnter = function(ent)
+ 		{
+ 			SetAvailableMapGoals( TEAM.AXIS, false, "AIRSTRIKE_Axis_Start_4" );
+ 			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Axis_Start_.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allied_Start_.*" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_Start_13" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_Start_14" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_Axis_Start_5" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_Axis_Start_6" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, ".*_Allied_Callartillery_Trigger_.*" );
+
+			Util.MapDebugPrint(GetEntName(ent) + " ^3entered Trigger_Callartillery", true);
+ 		},
+ 		OnExit = function(ent)
+ 		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_Axis_Start_5" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_Axis_Start_6" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_Axis_Start_7" );
+
+			Util.MapDebugPrint(GetEntName(ent) + " ^3exited Trigger_Callartillery", true);
+ 		},
+	},
+
+	Tunnel_Doors_1_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.TunnelDoorsBuilt = 1;
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Tunnel_Doors_1" );
+
+		if ( Map.TankAtTunnelDoors == 0 and Map.TankPassTunnelDoors == 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Tunnel_Doors_1" );
+		}
+		else if ( Map.TankAtTunnelDoors == 1 and Map.TankPassTunnelDoors == 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Tunnel_Doors_1" );
+			sleep(0.5);
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Tunnel_Doors_1" );
+
+			SetGoalPriority( "PLANT_Tunnel_Doors_1", 0.95, TEAM.ALLIES, CLASS.ENGINEER );
+
+			if ( Map.TankStatus == 0 )
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Tank" );
+			}
+			else
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_tank" );
+
+				SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNT_tank" );
+			}
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Tunnel_Doors_1" );
+		}
+
+		Util.MapDebugPrint( "^3Tunnel_Doors_1_Built" );
+	},
+
+	Tunnel_Doors_1_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tunnel_Doors_1_Dyno += 1;
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFUSE_Tunnel_Doors_1_.*" );
+
+		if ( Map.TankAtTunnelDoors == 1 and Map.TankStatus == 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Tank" );
+		}
+
+		Util.MapDebugPrint( "^3Tunnel_Doors_1_Planted" );
+	},
+
+	Tunnel_Doors_1_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tunnel_Doors_1_Dyno -= 1;
+
+		Util.MapDebugPrint( "^3Tunnel_Doors_1_Defused" );
+	},
+
+	Tunnel_Doors_1_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.TunnelDoorsBuilt = 0;
+		Map.Tunnel_Doors_1_Dyno = 0;
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Tunnel_Doors_1_.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Tunnel_Doors_1" );
+		SetGoalPriority( "PLANT_Tunnel_Doors_1", 0.81, TEAM.ALLIES, CLASS.ENGINEER );
+
+		if ( Map.TankAtTunnelDoors == 0 and Map.TankPassTunnelDoors == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Tunnel_Doors_1" );
+		}
+		else if ( Map.TankAtTunnelDoors == 1 and Map.TankStatus == 0 and Map.TankPassTunnelDoors == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Tunnel_Doors_1" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Tank" );
+			sleep(0.5);
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Tank" );
+
+			SetGoalPriority( "BUILD_Tank", 0.95, TEAM.ALLIES, CLASS.ENGINEER );
+		}
+		else if ( Map.TankAtTunnelDoors == 1 and Map.TankStatus == 1 and Map.TankPassTunnelDoors == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Tunnel_Doors_1" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_tank" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNT_tank" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Tunnel_Doors_1" );
+		}
+
+		Util.MapDebugPrint( "^3Tunnel_Doors_1_Destroyed" );
+	},
+
+	Trigger_TunnelDoors =
+ 	{
+ 		Name="Trigger_TunnelDoors",
+		TriggerOnEntity = GetGoal("MOVER_tank").GetEntity(),
+ 		OnEnter = function(ent)
+ 		{
+ 			Map.TankAtTunnelDoors = 1;
+
+			SetAvailableMapGoals( TEAM.AXIS, false, "AIRSTRIKE_Axis_Start_7" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Castle_Gates_2" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_Axis_Start_15" );
+
+			if ( Map.TunnelDoorsBuilt == 1 )
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Tank" );
+				SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_tank" );
+				SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Tunnel_Doors_1" );
+				sleep(0.5);
+				SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Tunnel_Doors_1" );
+
+				SetGoalPriority( "PLANT_Tunnel_Doors_1", 0.95, TEAM.ALLIES, CLASS.ENGINEER );
+			}
+
+			Util.MapDebugPrint(GetEntName(ent) + " ^3entered Trigger_TunnelDoors", true);
+ 		},
+ 		OnExit = function(ent)
+ 		{
+
+			Util.MapDebugPrint(GetEntName(ent) + " ^3exited Trigger_TunnelDoors", true);
+ 		},
+	},
+
+	Tank_passBarrier1 =
+ 	{
+ 		Name="Tank_passBarrier1",
+		TriggerOnEntity = GetGoal("MOVER_tank").GetEntity(),
+ 		OnEnter = function(ent)
+ 		{
+ 			Map.TankAtTunnelDoors = 0;
+			Map.TankPassTunnelDoors = 1;
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allied_Callartillery_Trigger_.*" );
+
+			if ( Map.CastleGatesBuilt == 1 )
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Castle_Gates_2" );
+			}
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_InsideBunker_.*" );
+
+			SetGoalPriority( "DEFEND_Axis_InsideBunker_.*", 0.55, TEAM.AXIS, 0 );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_AtCastleBarrier_.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_Allied_AtCastleBarrier_1" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "CALLARTILLERY_Allied_AtCastleBarrier_2" );
+
+			Util.MapDebugPrint(GetEntName(ent) + " ^3entered Tank_passBarrier1", true);
+ 		},
+ 		OnExit = function(ent)
+ 		{
+			Util.SetMaxUsers( 2, "CHECKPOINT_.*" );
+
+			Util.MapDebugPrint(GetEntName(ent) + " ^3exited Tank_passBarrier1", true);
+ 		},
+	},
+
+	Allies_capture_bunker = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.AxisBunker = 0;
+		Map.AlliedBunker = 1;
+
+		Util.ChangeSpawn( TEAM.AXIS, 1 );
+		Util.ChangeSpawn( TEAM.ALLIES, 3 );
+
+		if ( Map.MemorialDestroyed == 0 and Map.TankPassBunkerExit == 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_bunker_flag" );
+
+			SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_Axis_Start_1" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Axis_Start_13" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Axis_Start_14" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Bunker_Spawn_.*" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_bunker_flag" );
+		}
+		else if ( Map.MemorialDestroyed == 0 and Map.TankPassBunkerExit == 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_bunker_flag" );
+
+			SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_Axis_Start_1" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Axis_Start_13" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Axis_Start_14" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Bunker_Spawn_.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_Bunker_Spawn_.*" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_bunker_flag" );
+		}
+
+		Util.MapDebugPrint( "^3Allies_capture_bunker" );
+	},
+
+	Axis_capture_bunker = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.AxisBunker = 1;
+		Map.AlliedBunker = 0;
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Bunker_Spawn_1" );
+
+		if ( Map.TankPassBunkerExit == 1 and Map.TankPassCastleGates == 0 and Map.TankInTunnelToMemorial == 0 )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam()  == TEAM.AXIS )
+				{
+					if ( bot.GetClass() == CLASS.ENGINEER )
+					{
+						bot.ChangeSpawnPoint( 1 );
+					}
+					else
+					{
+						if ( RandInt(0,1) < 1)
+						{
+							bot.ChangeSpawnPoint( 3 );
+						}
+						else
+						{
+							bot.ChangeSpawnPoint( 1 );
+						}
+					}
+				}
+			}
+		}
+		else if ( Map.TankPassBunkerExit == 1 and Map.TankPassCastleGates == 1 and Map.TankInTunnelToMemorial == 0 )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam()  == TEAM.AXIS )
+				{
+					Util.ChangeSpawn(TEAM.AXIS, 3, 3);
+				}
+			}
+		}
+		else if ( Map.TankPassBunkerExit == 1 and Map.TankPassCastleGates == 1 and Map.TankInTunnelToMemorial == 1 )
+		{
+			Util.ChangeSpawn( TEAM.AXIS, 1 );
+		}
+		else
+		{
+			Util.ChangeSpawn( TEAM.AXIS, 3 );
+		}
+
+		Util.ChangeSpawn( TEAM.ALLIES, 2 );
+
+		if ( Map.MemorialDestroyed == 0 and Map.TankPassBunkerExit == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_bunker_flag" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Bunker_Spawn_.*" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_Axis_Start_1" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_Start_13" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_Start_14" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_bunker_flag" );
+		}
+		else if ( Map.MemorialDestroyed == 0 and Map.TankPassBunkerExit == 1 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_bunker_flag" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_Axis_Start_1" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Axis_Start_13" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Axis_Start_14" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Bunker_Spawn_.*" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Bunker_Spawn_.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_bunker_flag" );
+		}
+
+		Util.MapDebugPrint( "^3Axis_capture_bunker" );
+	},
+
+	Tank_passBunkerSpawn =
+ 	{
+ 		Name="Tank_passBunkerSpawn",
+		TriggerOnEntity = GetGoal("MOVER_tank").GetEntity(),
+ 		OnEnter = function(ent)
+ 		{
+
+
+			Util.MapDebugPrint(GetEntName(ent) + " ^3entered Tank_passBunkerSpawn", true);
+ 		},
+ 		OnExit = function(ent)
+ 		{
+			Map.TankPassBunkerExit = 1;
+
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Axis_Callartillery_Trigger_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_Start_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Axis_InsideBunker_.*" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_Axis_AtCastleBarrier_12" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtCastleBarrier_.*" );
+
+			Util.MapDebugPrint(GetEntName(ent) + " ^3exited Tank_passBunkerSpawn", true);
+ 		},
+	},
+
+	Castle_Gates_2_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.CastleGatesBuilt = 1;
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Castle_Gates_2" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_Near_Barrier2" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_Bunker_Cabinets" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_Bunker_Way" );
+
+		if ( Map.TankPassTunnelDoors == 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Castle_Gates_2" );
+		}
+		else if ( Map.TankPassTunnelDoors == 1 and Map.TankAtCastleGates == 0 and Map.TankPassCastleGates == 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Castle_Gates_2" );
+		}
+		else if ( Map.TankPassTunnelDoors == 1 and Map.TankAtCastleGates == 1 and Map.TankPassCastleGates == 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Castle_Gates_2" );
+			sleep(0.5);
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Castle_Gates_2" );
+
+			SetGoalPriority( "PLANT_Castle_Gates_2", 0.95, TEAM.ALLIES, CLASS.ENGINEER );
+
+			if ( Map.TankStatus == 0 )
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Tank" );
+			}
+			else
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_tank" );
+
+				SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNT_tank" );
+			}
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Castle_Gates_2" );
+		}
+
+		Util.MapDebugPrint( "^3Castle_Gates_2_Built" );
+	},
+
+	Castle_Gates_2_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Castle_Gates_2_Dyno += 1;
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFUSE_Castle_Gates_2_.*" );
+
+		if ( Map.TankAtCastleGates == 1 and Map.TankStatus == 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Tank" );
+		}
+
+		Util.MapDebugPrint( "^3Castle_Gates_2_Planted" );
+	},
+
+	Castle_Gates_2_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Castle_Gates_2_Dyno -= 1;
+		Util.MapDebugPrint( "^3Castle_Gates_2_Defused" );
+	},
+
+	Castle_Gates_2_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.CastleGatesBuilt = 0;
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_Near_Barrier2" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_Bunker_Cabinets" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_Bunker_Way" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Castle_Gates_2_.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Castle_Gates_2" );
+		SetGoalPriority( "PLANT_Castle_Gates_2", 0.81, TEAM.ALLIES, CLASS.ENGINEER );
+
+		if ( Map.TankPassTunnelDoors == 1 and Map.TankAtCastleGates == 0 and Map.TankPassCastleGates == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Castle_Gates_2" );
+		}
+		else if ( Map.TankPassTunnelDoors == 1 and Map.TankAtCastleGates == 1 and Map.TankStatus == 0 and Map.TankPassCastleGates == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Castle_Gates_2" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Tank" );
+			sleep(0.5);
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Tank" );
+
+			SetGoalPriority( "BUILD_Tank", 0.95, TEAM.ALLIES, CLASS.ENGINEER );
+		}
+		else if ( Map.TankPassTunnelDoors == 1 and Map.TankAtCastleGates == 1 and Map.TankStatus == 1 and Map.TankPassCastleGates == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Castle_Gates_2" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_tank" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNT_tank" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Castle_Gates_2" );
+		}
+
+		Util.MapDebugPrint( "^3Castle_Gates_2_Destroyed" );
+	},
+
+	Trigger_CastleGates =
+ 	{
+ 		Name="Trigger_CastleGates",
+		TriggerOnEntity = GetGoal("MOVER_tank").GetEntity(),
+ 		OnEnter = function(ent)
+ 		{
+ 			Map.TankAtCastleGates = 1;
+
+			SetAvailableMapGoals( TEAM.AXIS, false, "AIRSTRIKE_Axis_AtCastleBarrier_12" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_Axis_AtCastleBarrier_1" );
+
+			if ( Map.CastleGatesBuilt == 1 )
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Tank" );
+				SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_tank" );
+				SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Castle_Gates_2" );
+				sleep(0.5);
+				SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Castle_Gates_2" );
+
+				SetGoalPriority( "PLANT_Castle_Gates_2", 0.95, TEAM.ALLIES, CLASS.ENGINEER );
+			}
+
+			Util.MapDebugPrint(GetEntName(ent) + " ^3entered Trigger_CastleGates", true);
+ 		},
+ 		OnExit = function(ent)
+ 		{
+
+			Util.MapDebugPrint(GetEntName(ent) + " ^3exited Trigger_CastleGates", true);
+ 		},
+	},
+
+	Tank_passCastleGates =
+ 	{
+ 		Name="Tank_passCastleGates",
+		TriggerOnEntity = GetGoal("MOVER_tank").GetEntity(),
+ 		OnEnter = function(ent)
+ 		{
+ 			Map.TankAtCastleGates = 0;
+			Map.TankPassCastleGates = 1;
+
+			SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_Start_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_AtCastleBarrier_.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allied_AtCastleBarrier_.*" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_Axis_AtCastleBarrier_1" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtCastleBarrier_2" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtCastleBarrier_3" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_PastCastleGates_.*" );
+
+			SetGoalPriority( "DEFEND_Axis_AtCastleBarrier_2", 0.6, TEAM.AXIS, 0 );
+			SetGoalPriority( "DEFEND_Axis_AtCastleBarrier_3", 0.6, TEAM.AXIS, 0 );
+			SetGoalPriority( "DEFEND_Axis_PastCastleGates_.*", 0.56, TEAM.AXIS, 0 );
+			SetGoalPriority( "CHECKPOINT_bunker_flag", 0.54, TEAM.AXIS, 0 );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_AtCastleBarrier_12" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_AtCastleBarrier_13" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_PastCastleGates_.*" );
+
+			Util.MapDebugPrint(GetEntName(ent) + " ^3entered Tank_passCastleGates", true);
+ 		},
+ 		OnExit = function(ent)
+ 		{
+
+			Util.MapDebugPrint(GetEntName(ent) + " ^3exited Tank_passCastleGates", true);
+ 		},
+	},
+
+	Tank_InTunnelToMemorial =
+ 	{
+ 		Name="Tank_InTunnelToMemorial",
+		TriggerOnEntity = GetGoal("MOVER_tank").GetEntity(),
+ 		OnEnter = function(ent)
+ 		{
+ 			Map.TankInTunnelToMemorial = 1;
+
+			SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_AtCastleBarrier_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_PastCastleGates_.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allied_AtCastleBarrier_.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allied_PastCastleGates_.*" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_TankInTunnelToMemorial_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_InUnderground_1" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_InUnderground_2" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_InUnderground_3" );
+
+			SetGoalPriority( "DEFEND_Axis_InUnderground_.*", 0.55, TEAM.AXIS, 0 );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_TankInTunnelToMemorial_.*" );
+
+			Util.MapDebugPrint(GetEntName(ent) + " ^3entered Tank_InTunnelToMemorial", true);
+ 		},
+ 		OnExit = function(ent)
+ 		{
+
+			Util.MapDebugPrint(GetEntName(ent) + " ^3exited Tank_InTunnelToMemorial", true);
+ 		},
+	},
+
+	Memorial_destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.MemorialDestroyed = 1;
+		Map.AxisBunker = 0;
+		Map.AlliedBunker = 1;
+
+		Util.ChangeSpawn( TEAM.AXIS, 1 );
+		Util.ChangeSpawn( TEAM.ALLIES, 3 );
+
+		Wp.SetWaypointFlag( "Waypoint_under_memorial", "closed", false);
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Tank" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_tank" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNT_tank" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_Bunker_Spawn_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_bunker_flag" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "AMMOCAB_north_ammocabinet" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "HEALTHCAB_north_healthcabinet" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allied_PastCastleGates_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*_Allied_TankInTunnelToMemorial_.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_bunker_flag" );
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_Start_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_Callartillery_Trigger_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_AtCastleBarrier_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_PastCastleGates_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_Axis_TankInTunnelToMemorial_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Bunker_Spawn_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "AMMOCAB_north_ammocabinet" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "HEALTHCAB_north_healthcabinet" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNT_tank" );
+
+		sleep(1.5);
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocuments_1" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocuments_3" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocuments_4" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocuments_5" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtRadioParts_2" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtRadioParts_3" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtRadioParts_4" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtRadioParts_5" );
+
+		SetGoalPriority( "DEFEND_Axis_AtDocuments_.*", 0.7, TEAM.AXIS, 0 );
+		SetGoalPriority( "DEFEND_Axis_AtDocuments_5", 0.72, TEAM.AXIS, CLASS.MEDIC );
+		SetGoalPriority( "DEFEND_Axis_AtRadioParts_.*", 0.7, TEAM.AXIS, 0 );
+		SetGoalPriority( "DEFEND_Axis_AtRadioParts_5", 0.72, TEAM.AXIS, CLASS.MEDIC );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_allied_parts_one" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_allied_parts_two" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Weak_Wall" );
+
+		WeaponTable.SetWeaponAvailability(CLASS.SOLDIER, WEAPON.PANZERFAUST, false);
+		WeaponTable.SetWeaponAvailability(CLASS.ENGINEER, { WEAPON.KAR98, WEAPON.CARBINE }, false);
+
+		Util.MapDebugPrint( "^3Memorial_destroyed" );
+
+		sleep(5);
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Axis_InUnderground_.*" );
+	},
+
+	Weak_Wall_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Weak_Wall_.*" );
+
+		Map.Weak_Wall_Dyno += 1;
+
+		Util.MapDebugPrint( "^3Weak_Wall_Planted" );
+	},
+
+	Weak_Wall_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Weak_Wall_Dyno -= 1;
+
+		Util.MapDebugPrint( "^3Weak_Wall_Defused" );
+	},
+
+	Weak_Wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "^3Weak_Wall_Destroyed" );
+	},
+
+	allied_parts_one_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.RadioPartsTaken = 1;
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Axis_AtRadioParts_.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_CappointRadioParts" );
+
+		if ( Map.RadioPartsDropped == 1 )
+		{
+			Map.RadioPartsDropped = 0;
+		}
+
+		if ( Map.DocumentsTaken == 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_AtTransmitter_3" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_AtTransmitter_4" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_AtTransmitter_1" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_AtTransmitter_2" );
+			sleep(0.5);
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocuments_.*" );
+
+			Util.SetMaxUsers( 8, "FLAG_.*" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_AtTransmitter_.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_AtTransmitter_.*" );
+		}
+
+		Util.MapDebugPrint( "^3Allies have stolen Radio Parts!" );
+	},
+
+	RadioParts_dropped = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.RadioPartsDropped = 1;
+
+		SetGoalPriority( "FLAGRETURN_allied_parts_one_dropped", 0.81, TEAM.AXIS, 0 );
+
+		if ( Map.DocumentsTaken == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_1" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_2" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_3" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_4" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_1" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_2" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_5" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_7" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_10" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_1" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_3" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_4" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_6" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_8" );
+		}
+
+		Util.MapDebugPrint( "^3Radio parts dropped" );
+	},
+
+	allied_parts_one_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.RadioPartsTaken = 0;
+		Map.RadioPartsDropped = 0;
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_CappointRadioParts" );
+
+		if ( Map.DocumentsTaken == 0 and Map.DocumentsCaptured == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Axis_AtDocuments_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_.*" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocuments_1" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocuments_3" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocuments_4" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocuments_5" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtRadioParts_2" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtRadioParts_3" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtRadioParts_4" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtRadioParts_5" );
+
+			Util.SetMaxUsers( 4, "FLAG_.*" );
+		}
+		else if ( Map.DocumentsTaken == 1 and Map.DocumentsCaptured == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_AtTransmitter_3" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_AtTransmitter_4" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_AtTransmitter_1" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_AtTransmitter_2" );
+			sleep(0.5);
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtRadioParts_.*" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_.*" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtRadioParts_.*" );
+		}
+
+		Util.MapDebugPrint( "^3Axis have returned the radio parts!" );
+	},
+
+	allied_parts_one_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.RadioPartsCaptured = 1;
+		Map.RadioPartsDropped = 0;
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_CappointRadioParts" );
+
+		if ( Map.DocumentsTaken == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_.*" );
+		}
+
+		Util.MapDebugPrint( "^3The Allies have secured the radio parts!" );
+	},
+
+	allied_parts_two_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.DocumentsTaken = 1;
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Axis_AtDocuments_.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_CappointDocuments" );
+
+		if ( Map.DocumentsDropped == 1 )
+		{
+			Map.DocumentsDropped = 0;
+		}
+
+		if ( Map.RadioPartsTaken == 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_AtTransmitter_3" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_AtTransmitter_4" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_AtTransmitter_1" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_AtTransmitter_2" );
+			sleep(0.5);
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtRadioParts_.*" );
+
+			Util.SetMaxUsers( 8, "FLAG_.*" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_AtTransmitter_.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_AtTransmitter_.*" );
+		}
+
+		Util.MapDebugPrint( "^3Allies have stolen Secret Documents!" );
+	},
+
+	SecretDocuments_dropped = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.DocumentsDropped = 1;
+
+		SetGoalPriority( "FLAGRETURN_allied_parts_two_dropped", 0.81, TEAM.AXIS, 0 );
+
+		if ( Map.RadioPartsTaken == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_1" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_2" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_3" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_4" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_1" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_2" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_5" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_7" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_10" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_1" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_3" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_4" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_6" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_8" );
+		}
+
+		Util.MapDebugPrint( "^3Secret documents dropped" );
+	},
+
+	allied_parts_two_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.DocumentsTaken = 0;
+		Map.DocumentsDropped = 0;
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_CappointDocuments" );
+
+		if ( Map.RadioPartsTaken == 0 and Map.RadioPartsCaptured == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Axis_AtRadioParts_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_.*" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocuments_1" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocuments_3" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocuments_4" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocuments_5" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtRadioParts_2" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtRadioParts_3" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtRadioParts_4" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtRadioParts_5" );
+
+			Util.SetMaxUsers( 4, "FLAG_.*" );
+		}
+		else if ( Map.RadioPartsTaken == 1 and Map.RadioPartsCaptured == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_AtTransmitter_3" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_AtTransmitter_4" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_AtTransmitter_1" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_AtTransmitter_2" );
+			sleep(0.5);
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocuments_.*" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_.*" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_AtDocuments_.*" );
+		}
+
+		Util.MapDebugPrint( "^3Axis have returned the secret documents!" );
+	},
+
+	allied_parts_two_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.DocumentsCaptured = 1;
+		Map.DocumentsDropped = 0;
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_CappointDocuments" );
+
+		if ( Map.RadioPartsTaken == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AtTransmitter_.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AtTransmitter_.*" );
+		}
+
+		Util.MapDebugPrint( "^3The Allies have secured the secret documents!" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// Register callback functions
+	OnTrigger( "Tank Barrier #2 has been constructed.", Map.Castle_Gates_2_Built );
+	OnTrigger( "Planted at Castle Gates #2.", Map.Castle_Gates_2_Planted );
+	OnTrigger( "Defused at Castle Gates #2.", Map.Castle_Gates_2_Defused );
+	OnTrigger( "Tank Barrier #2 has been destroyed.", Map.Castle_Gates_2_Destroyed );
+
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "Planted at the Neutral Command Post.", Map.Neutral_Command_Post_Planted );
+	OnTrigger( "Defused at the Neutral Command Post.", Map.Neutral_Command_Post_Defused );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Axis_Command_Post_Destroyed );
+
+	OnTrigger( "The Tank has been repaired!", Map.Tank_Built );
+	OnTrigger( "The Tank has been damaged!", Map.Tank_Damaged );
+
+	OnTrigger( "Tank Barrier #1 has been constructed.", Map.Tunnel_Doors_1_Built );
+	OnTrigger( "Planted at Tunnel Doors #1.", Map.Tunnel_Doors_1_Planted );
+	OnTrigger( "Defused at Tunnel Doors #1.", Map.Tunnel_Doors_1_Defused );
+	OnTrigger( "Tank Barrier #1 has been destroyed.", Map.Tunnel_Doors_1_Destroyed );
+
+	OnTrigger( "Allied team has destroyed the Memorial!", Map.Memorial_destroyed );
+
+	OnTrigger( "Allies capture the Bunker!", Map.Allies_capture_bunker );
+	OnTrigger( "Axis capture the Bunker!", Map.Axis_capture_bunker );
+
+	OnTrigger( "Allies have stolen Radio Parts!", Map.allied_parts_one_Taken );
+	OnTrigger( "Allies have stolen Secret Documents!", Map.allied_parts_two_Taken );
+	OnTrigger( "Radio Parts dropped.", Map.RadioParts_dropped );
+	OnTrigger( "Secret Documents dropped.", Map.SecretDocuments_dropped );
+	OnTrigger( "Axis have returned the radio parts!", Map.allied_parts_one_Returned );
+	OnTrigger( "Axis have returned the secret documents!", Map.allied_parts_two_Returned );
+	OnTrigger( "The Allies have secured the radio parts!", Map.allied_parts_one_Secured );
+	OnTrigger( "The Allies have secured the secret documents!", Map.allied_parts_two_Secured );
+
+	OnTrigger( "Planted at Weak Wall.", Map.Weak_Wall_Planted );
+	OnTrigger( "Defused at Weak Wall.", Map.Weak_Wall_Defused );
+	OnTrigger( "Allies have destroyed the weak dungeon*Wall", Map.Weak_Wall_Destroyed );
+
+	Util.DisableGoal( ".*", true ); // all but routes
+
+	//~SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Tunnel_Doors_1" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Neutral_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_bunker_flag" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_Axis_Start_2" );
+ 	SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_Axis_Start_3" );
+ 	SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_Axis_Start_1" );
+ 	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Axis_Start_.*" );
+ 	SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_north_ammocabinet" );
+ 	SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_north_healthcabinet" );
+ 	SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_.*" );
+ 	SetAvailableMapGoals( TEAM.AXIS, true, "FLAGRETURN_.*" );
+
+	//~SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Tank" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Neutral_Command_Post" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_bunker_flag" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_Allied_Start_2" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CALLARTILLERY_Allied_Start_1" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allied_Start_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_Allied_Start_8" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_north_ammocabinet" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "HEALTHCAB_north_healthcabinet" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_.*" );
+
+	// Max users per goal
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "MOUNT_tank" );
+	Util.SetMaxUsers( 3, "CHECKPOINT_.*" );
+	Util.SetMaxUsers( 2, "ESCORT_tank" );
+	Util.SetMaxUsers( 4, "FLAG_.*" );
+	Util.SetMaxUsers( 4, "FLAGRETURN_.*" );
+
+	Util.SetMaxUsersInProgress( 3, "DEFEND_Bunker_Spawn_.*" );
+
+	Util.AddUseWp( "PLANT_Tunnel_Doors_1", "Plant_Waypoint" );
+	Util.AddUseWp( "PLANT_Castle_Gates_2", "Plant_Waypoint2" );
+
+	// goal priorities
+	SetGoalPriority( "BUILD_Neutral_Command_Post", 0.45, 0, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_Neutral_Command_Post", 0.40, 0, CLASS.ENGINEER );
+
+	SetGoalPriority( "MOUNT_tank", 0.8, TEAM.ALLIES, 0 );
+	SetGoalPriority( "DEFEND_Bunker_Spawn_.*", 0.65, TEAM.ALLIES, 0 );
+
+	SetGoalPriority( "DEFEND_Axis_Start_13", 0.7, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Axis_Start_14", 0.7, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_Bunker_Spawn_.*", 0.65, TEAM.AXIS, 0 );
+	SetGoalPriority( "DEFEND_AtTransmitter_.*", 0.78, TEAM.AXIS, 0 );
+
+	// Camp times
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=60, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=360, MaxCampTime=420} );
+	SetMapGoalProperties( "MOUNT_tank", {MinCampTime=180, MaxCampTime=210} );
+
+	CallartilleryStartTrigger = OnTriggerRegion(AABB(402.598,-1936.270,233.125,832.174,-1791.349,307.125), Map.Trigger_CallartilleryStart);
+	CallartilleryTrigger = OnTriggerRegion(AABB(-2014.010,-2912.456,322.125,-1490.408,-2405.697,493.641), Map.Trigger_Callartillery);
+	TunnelDoorsTrigger = OnTriggerRegion(AABB(-2905.614,-879.409,481.236,-2596.953,-811.788,663.150), Map.Trigger_TunnelDoors);
+	PastBarrier1 = OnTriggerRegion(AABB(-2937.548,-686.150,511.678,-2574.877,-630.719,589.125), Map.Tank_passBarrier1);
+	PastBunkerSpawnExit = OnTriggerRegion(AABB(-3712.869,1032.100,710.904,-2921.716,1127.764,796.437), Map.Tank_passBunkerSpawn);
+	CastleGatesTrigger = OnTriggerRegion(AABB(-515.402,1963.617,773.125,-380.613,2224.007,962.997), Map.Trigger_CastleGates);
+	PastCastleGates = OnTriggerRegion(AABB(-301.166,2054.535,773.125,-141.247,2344.959,847.125), Map.Tank_passCastleGates);
+	TunnelToMemorial = OnTriggerRegion(AABB(1467.075,2887.125,772.078,1824.875,3122.852,888.560), Map.Tank_InTunnelToMemorial);
+
+	Wp.SetWaypointFlag( "Waypoint_under_memorial", "closed", true);
+
+	MapRoutes =
+	{
+		CHECKPOINT_bunker_flag =
+		{
+			ROUTE_Allied_First_Spawn =
+			{
+				ROUTE_Allied_Under_Bell =
+				{
+					ROUTE_Cave_Door =
+					{
+						ROUTE_CP =
+						{
+
+						},
+					},
+				},
+			},
+			ROUTE_Axis_Castle_Spawn =
+			{
+				ROUTE_Hotel =
+				{
+					ROUTE_Hotel_Door =
+					{
+						ROUTE_Near_Barrier2 =
+						{
+							ROUTE_Bunker_Cabinets =
+							{
+								ROUTE_Bunker_Way =
+								{
+
+								},
+							},
+						},
+						ROUTE_Ladder =
+						{
+							Weight = 3,
+							ROUTE_Tunnel =
+							{
+								ROUTE_Tunnel_Spawn_Exit =
+								{
+
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		DEFUSE_Tunnel_Doors_1_1 =
+		{
+			ROUTE_Bunker_Spawn =
+			{
+				ROUTE_Bunker_Way =
+				{
+					ROUTE_Defuse_Doors_1 =
+					{
+						ROUTE_Defuse_Doors_2 =
+						{
+
+						},
+					},
+				},
+			},
+		},
+	};
+
+	MapRoutes.DEFUSE_Tunnel_Doors_1_2 = MapRoutes.DEFUSE_Tunnel_Doors_1_1;
+	MapRoutes.DEFUSE_Tunnel_Doors_1_3 = MapRoutes.DEFUSE_Tunnel_Doors_1_1;
+	MapRoutes.DEFUSE_Tunnel_Doors_1_4 = MapRoutes.DEFUSE_Tunnel_Doors_1_1;
+	MapRoutes.DEFUSE_Tunnel_Doors_1_5 = MapRoutes.DEFUSE_Tunnel_Doors_1_1;
+
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "^3Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	if ( Map.AxisBunker == 1 )
+	{
+		Util.ChangeSpawn( TEAM.AXIS, 3 );
+		Util.ChangeSpawn( TEAM.ALLIES, 2 );
+	}
+	else
+	{
+		Util.ChangeSpawn( TEAM.AXIS, 1 );
+		Util.ChangeSpawn( TEAM.ALLIES, 3 );
+	}
+
+	// Uncomment for shootable breakables
+	bot.TargetBreakableDist = 300.0;
+	// Only set MaxViewDistance on maps with limited sight (e.g. fog)
+	//~bot.MaxViewDistance = 2400;
+};

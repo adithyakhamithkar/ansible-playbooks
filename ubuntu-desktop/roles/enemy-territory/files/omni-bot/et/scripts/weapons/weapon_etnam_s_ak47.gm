@@ -1,0 +1,23 @@
+if (GetModName()!="etpub" || GetCvar("g_etnamFlags")==0){ return; }
+
+//////////////////////////////////////////////////////////////////////////
+
+WEAPON.SAK47 = 110; 					// Defined into g_etbot_interface.cpp
+
+//////////////////////////////////////////////////////////////////////////
+// Overall weapon properties.
+this.Name = "SAK47";
+this.WeaponId = WEAPON.SAK47;
+this.PrimaryFire.AmmoType = WEAPON.SAK47;
+
+//////////////////////////////////////////////////////////////////////////
+// Set some weapon properties that affect some internal logic.
+this.PrimaryFire.WeaponType = "instant";
+this.PrimaryFire.ProjectileSpeed = 1000;
+this.PrimaryFire.RequiresAmmo = true;
+this.PrimaryFire.WaterProof = false;
+
+this.PrimaryFire.DefaultDesirability = 0.7;
+
+this.PrimaryFire.LowAmmoThreshold = 1;
+this.PrimaryFire.LowAmmoPriority = 0.8;

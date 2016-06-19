@@ -1,0 +1,53 @@
+// This script provides functionality for the bots to 'hunt' their targets
+
+// These parameters are required
+this.Name = "Hunt";	// The name of the goal.
+this.Parent = "HighLevel";		// The name of the parent. This setting determines where in the state tree the goal will reside in.
+this.AutoAdd = false;
+
+this.LimitToTargetClass(CLASS.ANYPLAYER);
+
+this.Initialize = function()
+{
+	this.HuntPriority = 0.2;
+	this.DistanceTolerance = 200.f;
+};
+
+this.Enter = function()
+{
+	// Set up some finish criteria
+	this.AddFinishCriteria(this.TargetEntity,"deleted");
+	this.AddFinishCriteria(this.TargetEntity,"health lessthan",1);
+	this.AddFinishCriteria(this.TargetEntity,"hasentflag",ENTFLAG.LIMBO);
+};
+
+this.Exit = function()
+{
+	this.TargetEntity = null;
+	this.TargetPosition = null;
+};
+
+this.GetPriority = function()
+{
+	this.TargetEntity = this.Bot.GetTarget();
+
+	if ( this.TargetEntity )
+	{
+		this.TargetPosition = GetEntPosition(this.TargetEntity);
+
+		if ( this.TargetPosition && this.Bot.DistanceTo(this.TargetPosition) > this.DistanceTolerance )
+		{
+			this.Priority = this.HuntPriority;
+			block(0);
+		}
+	}
+
+	sleep(1);
+};
+
+this.Update = function()
+{
+	this.GotoAsync(this.TargetPosition, this.DistanceTolerance);
+	sleep(this.Bot.MemorySpan);
+	this.Finished();
+};

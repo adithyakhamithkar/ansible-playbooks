@@ -1,0 +1,322 @@
+// This script sets difficulty settings for the bots
+this.Name = "Difficulty";
+this.Parent = "LowLevel";
+this.Debug = false;
+this.AutoAdd = true;
+this.AlwaysRecieveEvents = true;
+
+this.AdjustAim = ConfigGet("Difficulty","AdjustAim", true);
+this.UseWeaponSpecificTolerances = true;
+
+this.Initialize = function()
+{
+	this.CurrentDifficulty = ConfigGet("Difficulty","CurrentDifficulty", 4);
+	// run it once at start
+	this.FirstRun = true;
+};
+
+this.GetPriority = function()
+{
+	yield();
+	if ( this.FirstRun ) {
+		this.FirstRun = false;
+		this.Priority = 1.0;
+	}
+	block(0);
+};
+
+this.Update = function()
+{
+	this.FirstRun = false;
+
+	// if a bot profile sets a ProfileSkill, this will run only once per round.
+	if ( !this.Bot.LockSkill && (typeId(this.Bot.aimskill) == 0 || this.CurrentDifficulty != this.Bot.aimskill) )
+	{
+		if (!this.Bot.ProfileSkill)
+		{
+			this.Bot.aimskill = this.CurrentDifficulty;
+		}
+		else
+		{
+			this.Bot.aimskill = this.Bot.ProfileSkill;
+			this.Bot.LockSkill = true;
+		}
+
+		if( this.Bot.aimskill < 0 )
+		{
+			n = tableCount(this.difficulties);
+			useDiff = RandInt(0, n-1);
+		}
+		else
+		{
+			useDiff = this.Bot.aimskill;
+		}
+
+		if ( !this.difficulties[useDiff] )
+		{
+			useDiff = 4; // use original default
+		}
+
+		difficulty = this.difficulties[useDiff];
+		this.Bot.FieldOfView = difficulty.FieldOfView;
+		this.Bot.ReactionTime = difficulty.ReactionTime;
+		this.Bot.MemorySpan = difficulty.MemorySpan;
+		this.Bot.AimPersistance = difficulty.AimPersistance;
+		this.Bot.MaxTurnSpeed = difficulty.MaxTurnSpeed;
+		this.Bot.AimStiffness = difficulty.AimStiffness;
+		this.Bot.AimDamping = difficulty.AimDamping;
+		this.Bot.AimTolerance = difficulty.AimTolerance;
+		this.Bot.DefaultTolerance = this.Bot.AimTolerance;
+		this.Bot.WeaponTolerances = difficulty.WeaponTolerances;
+
+		// don't accumulate percentages every difficulty change
+		if(!this.Bot.OriginalMaxView) { this.Bot.OriginalMaxView = this.Bot.MaxViewDistance; }
+		this.Bot.MaxViewDistance = this.Bot.OriginalMaxView * (difficulty.MaxViewPercent * .01);
+
+		if ( this.Debug ) {
+			print( "--- " +this.Bot.Name + " Aim Properties ---" );
+			print( "Difficulty: " + useDiff );
+			print( "FieldOfView: " + this.Bot.FieldOfView );
+			print( "ReactionTime: " + this.Bot.ReactionTime );
+			print( "MemorySpan: " + this.Bot.MemorySpan );
+			print( "AimPersistance: " + this.Bot.AimPersistance );
+			print( "MaxTurnSpeed: " + this.Bot.MaxTurnSpeed );
+			print( "AimStiffness: " + this.Bot.AimStiffness );
+			print( "AimDamping: " + this.Bot.AimDamping );
+			print( "AimTolerance: " + this.Bot.AimTolerance );
+			print( "MaxViewDistance: " + this.Bot.MaxViewDistance );
+			print( "------------ " );
+		}
+
+		if ( this.AdjustAim ) {
+			this.AdjustWeaponProperties(this.Bot, difficulty);
+		}
+
+		this.SetAimToleranceForWeapon(this.Bot.GetCurrentWeapon());
+	}
+
+	this.Finished();
+};
+
+this.difficulties =
+{
+	// Difficulty 0
+	{
+		FieldOfView = 90.0,
+		ReactionTime = 2.0,
+		MemorySpan = 1.5,
+		AimPersistance = 1.0,
+		MaxTurnSpeed = 720.0,
+		AimStiffness = 60.0,
+		AimDamping = 20.0,
+		AimTolerance = 125,
+		AimErrorX = 25,
+		AimErrorY = 25,
+		AimOffsetX = 0,
+		AimOffsetY = 0,
+		AimOffsetZ = -15,
+		MaxViewPercent = 65,
+		WeaponTolerances =
+		{
+			VENOM = 128,
+		},
+	},
+	// Difficulty 1
+	{
+		FieldOfView = 90.0,
+		ReactionTime = 2.0,
+		MemorySpan = 1.5,
+		AimPersistance = 1.0,
+		MaxTurnSpeed = 720.0,
+		AimStiffness = 60.0,
+		AimDamping = 20.0,
+		AimTolerance = 125,
+		AimErrorX = 25,
+		AimErrorY = 25,
+		AimOffsetX = 0,
+		AimOffsetY = 0,
+		AimOffsetZ = -15,
+		MaxViewPercent = 65,
+		SnipeDelay = 2.0,
+		WeaponTolerances =
+		{
+			VENOM = 128,
+		},
+	},
+	// Difficulty 2
+	{
+		FieldOfView = 100.0,
+		ReactionTime = 2.0,
+		MemorySpan = 2.0,
+		AimPersistance = 1.0,
+		MaxTurnSpeed = 720.0,
+		AimStiffness = 50.0,
+		AimDamping = 15.0,
+		AimTolerance = 110,
+		AimErrorX = 20,
+		AimErrorY = 20,
+		AimOffsetX = 0,
+		AimOffsetY = 0,
+		AimOffsetZ = -15,
+		MaxViewPercent = 75,
+		SnipeDelay = 1.6,
+		WeaponTolerances =
+		{
+			VENOM = 128,
+		},
+	},
+	// Difficulty 3
+	{
+		FieldOfView = 105.0,
+		ReactionTime = 1.0,
+		MemorySpan = 2.5,
+		AimPersistance = 2.0,
+		MaxTurnSpeed = 720.0,
+		AimStiffness = 60.0,
+		AimDamping = 15.0,
+		AimTolerance = 100,
+		AimErrorX = 15,
+		AimErrorY = 15,
+		AimOffsetX = 0,
+		AimOffsetY = 0,
+		AimOffsetZ = -12,
+		MaxViewPercent = 85,
+		SnipeDelay = 0.8,
+		WeaponTolerances =
+		{
+			VENOM = 128,
+		},
+	},
+	// Difficulty 4
+	{
+		FieldOfView = 110.0,
+		ReactionTime = 0.75,
+		MemorySpan = 3.0,
+		AimPersistance = 2.0,
+		MaxTurnSpeed = 720.0,
+		AimStiffness = 65.0,
+		AimDamping = 15.0,
+		AimTolerance = 90,
+		AimErrorX = 10,
+		AimErrorY = 10,
+		AimOffsetX = 0,
+		AimOffsetY = 0,
+		AimOffsetZ = -10,
+		MaxViewPercent = 90,
+		SnipeDelay = 0.4,
+		WeaponTolerances =
+		{
+			VENOM = 128,
+		},
+	},
+	// Difficulty 5
+	{
+		FieldOfView = 120.0,
+		ReactionTime = 0.5,
+		MemorySpan = 3.0,
+		AimPersistance = 2.0,
+		MaxTurnSpeed = 720.0,
+		AimStiffness = 75.0,
+		AimDamping = 10.0,
+		AimTolerance = 64,
+		AimErrorX = 5,
+		AimErrorY = 5,
+		AimOffsetX = 0,
+		AimOffsetY = 0,
+		AimOffsetZ = -5,
+		MaxViewPercent = 100,
+		SnipeDelay = 0.2,
+		WeaponTolerances =
+		{
+			VENOM = 128,
+		},
+	},
+	// Difficulty 6
+	{
+		FieldOfView = 180.0,
+		ReactionTime = 0.0,
+		MemorySpan = 4.0,
+		AimPersistance = 2.0,
+		MaxTurnSpeed = 720.0,
+		AimStiffness = 75.0,
+		AimDamping = 10.0,
+		AimTolerance = 64,
+		AimErrorX = 0,
+		AimErrorY = 0,
+		AimOffsetX = 0,
+		AimOffsetY = 0,
+		AimOffsetZ = 0,
+		MaxViewPercent = 110,
+		SnipeDelay = 0.1,
+		WeaponTolerances =
+		{
+			VENOM = 128,
+		},
+	},
+};
+
+this.AdjustWeaponProperties = function(bot, difficulty)
+{
+	aimError = Vec2(difficulty.AimErrorX, difficulty.AimErrorY);
+
+	foreach ( weap in WEAPON )
+	{
+		w = bot.GetWeapon(weap);
+		if ( w )
+		{
+			w.PrimaryFire.MaxAimError = aimError;
+			w.PrimaryFire.AimOffset = Vec3(difficulty.AimOffsetX, difficulty.AimOffsetY, difficulty.AimOffsetZ + w.PrimaryFire.AimOffsetZ);
+		}
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+this.Commands["difficulty"] =
+{
+	Func = function( _params )
+	{
+		if(typeId(_params[0]) != 0)
+		{
+			diff = Clamp( ToInt(_params[0], 4), -1, tableCount(this.difficulties)-1 );
+
+			ConfigSet("Difficulty","CurrentDifficulty", diff);
+			this.CurrentDifficulty = diff;
+			print("Difficulty Changed", diff, " for ", this.Bot.Name);
+			this.Priority = 1.0; // run update if the bot is alive
+			this.FirstRun = true; // run update after spawn if the bot is dead or waiting for medic
+		}
+
+		diff = ConfigGet("Difficulty","CurrentDifficulty", diff);
+		print("Difficulty:", diff);
+	},
+
+	Help =
+	{
+		"Sets the bots difficulty (-1...6), -1 is random, default 4",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+this.SetAimToleranceForWeapon = function(weaponId)
+{
+	if (this.FirstRun || !this.UseWeaponSpecificTolerances ) { return; }
+	yield(); yield(); // need to make sure DefaultTolerance is set.
+	if (!this.Bot) { return; }
+
+	weaponName = Util.WeaponName(weaponId);
+	if ( this.Bot.WeaponTolerances && this.Bot.WeaponTolerances[weaponName] ) {
+		if ( this.Debug ) {
+			this.Bot.Say("changing aim tolerance to " + this.Bot.WeaponTolerances[weaponName] + " for " + weaponName);
+		}
+		this.Bot.AimTolerance = this.Bot.WeaponTolerances[weaponName];
+	} else {
+		if ( this.Debug ) {
+			this.Bot.Say(format("using default tolerance for %s",weaponName));
+		}
+		this.Bot.AimTolerance = this.Bot.DefaultTolerance;
+	}
+};
+
+this.Events[EVENT.WEAPON_CHANGE] = this.SetAimToleranceForWeapon;

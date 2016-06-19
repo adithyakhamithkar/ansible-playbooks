@@ -1,0 +1,537 @@
+// This script contains functionality to allow fieldops or medic bots to deliver ammo or health to people that request it.
+
+// These parameters are required
+this.Name = "DeliverSupplies";	// The name of the goal.
+this.Parent = "HighLevel";	// The name of the parent. This setting determines where in the state tree the goal will reside in.
+this.KillAndRevive = true;	// Do a quick kill and revive if target health is less than 37
+
+this.AlwaysRecieveEvents = true;
+
+// possible options
+this.LimitToClass(CLASS.FIELDOPS, CLASS.MEDIC);
+this.DeliverPriority = 0.9;
+this.DeliverAfterRevivePriority = 1.1;
+this.RangeLimit = 1500.0;
+
+// states
+this.DELIVER_PACKS = 1;
+this.KILL_TARGET = 2;
+this.SWITCH_TO_SYRINGE = 3;
+this.REVIVE_TARGET = 4;
+this.CURE_POISON_WITH_NEEDLE = 5;
+this.HEAL_WITH_NEEDLE = 6;
+
+this.Initialize = function()
+{
+	this.PacksToThrow = 3;
+	this.Respond = false;
+	this.CuringPoisonWithNeedle = false;
+	this.HealingWithNeedle = false;
+};
+
+this.GetPriority = function()
+{
+	block( this.Bot.Name + "_deliversupplies" );
+
+	sleep(0.5);
+	if ( this.Bot.RevivedTargetEnt ) {
+		this.TargetEntity =  this.Bot.RevivedTargetEnt;
+		this.Bot.RevivedTargetEnt = null;
+		this.Supply = WEAPON.MEDKIT;
+		//this.Bot.Say("delivering to " + GetEntName(this.TargetEntity));
+
+		// cs: if we've activated from a revive goal, lets give it a higher priority than normal.
+		this.Priority = this.DeliverAfterRevivePriority;
+	}
+};
+
+this.Enter = function()
+{
+	this.FriendlyFire = GetCvar("g_friendlyfire");
+	this.PacksThrown = 0;
+	this.TargetPosition = GetEntPosition(this.TargetEntity);
+	this.OnTarget = false;
+
+	if ( this.Respond )
+	{
+		targetName = GetEntName(this.TargetEntity);
+
+		if(this.Supply == WEAPON.AMMO_PACK)
+		{
+			this.Bot.SayTeam("Coming with Ammo, ^7", targetName, "^5!^2");
+		}
+		else if(this.Supply == WEAPON.MEDKIT)
+		{
+			this.Bot.SayTeam("Coming with Health, ^7", targetName, "^5!^2");
+		}
+	}
+
+	// Set up some finish criteria
+	this.AddFinishCriteria(this.TargetEntity,"deleted");
+	this.AddFinishCriteria(this.Bot.GetGameEntity(),"not weaponcharged", this.Supply);
+	this.AddFinishCriteria(this.TargetEntity,"hasentflag",ENTFLAG.LIMBO);
+
+	this.KillTarget = false;
+	if ( this.Supply == WEAPON.MEDKIT && this.FriendlyFire == 1 && this.KillAndRevive == true && this.Bot.HasAmmo(WEAPON.SYRINGE))
+	{
+		this.KillTarget = true;
+		this.AddFinishCriteria(this.TargetEntity,"health greaterthan",90);
+	}
+
+	if ( !this.KillTarget )
+	{
+		this.AddFinishCriteria(this.TargetEntity,"health lessthan",1);
+	}
+
+	this.DynamicGotoThread = this.ForkThread(this.DynamicGoto);
+};
+
+this.Exit = function()
+{
+	if ( this.DynamicGotoThread )
+		{ this.KillThread(this.DynamicGotoThread); }
+
+	this.TargetEntity = null;
+	this.TargetPosition = null;
+	this.DelayNextResponse = false;
+	this.OnTarget = false;
+	this.Bot.KillingForRevive = false; // allow appropriate voice chats again
+	this.CuringPoisonWithNeedle = false;
+	this.HealingWithNeedle = false;
+};
+
+this.DynamicGoto = function()
+{
+	if(this.Goto(this.TargetPosition, 128.f) == EVENT.PATH_SUCCESS)
+	{
+		this.OnTarget = true;
+	}
+	else
+	{
+		this.Finished();
+	}
+};
+
+this.CurePoisonWithNeedle = function()
+{
+	if ( !this.TargetEntity || !GetEntFlags(this.TargetEntity, ENTFLAG.POISONED) ) {
+		return false;
+	}
+
+	mod = GetModName();
+	switch(mod)
+	{
+		case "nitmod":
+		{
+			if ( GetCvar("g_poison") == 1 ) {
+				return true;
+			}
+		}
+		case "noquarter":
+		{
+			return true;
+		}
+		default:
+		{
+			return false;
+		}
+	}
+
+	return false;
+};
+
+this.CheckHealthForNeedle = function()
+{
+	haTable = {};
+	GetEntHealthAndArmor(this.TargetEntity, haTable);
+
+	// from etpub and nq code. assuming other mods are the same.
+	return haTable.Health <= haTable.MaxHealth * 0.25;
+};
+
+this.CanHealWithNeedle = function()
+{
+	if ( !this.TargetEntity ) {
+		return false;
+	}
+
+	// todo: check all mods for the cvar. etpub and nq for sure have g_medics. and probably nitmod, chaos and silentmod
+	if ( !(GetCvar("g_medics") & 64) ) {
+		return false;
+	}
+
+	return this.CheckHealthForNeedle();
+};
+
+this.Update = function()
+{
+	counter = 0;
+
+	while(1)
+	{
+		entPos = GetEntPosition(this.TargetEntity);
+
+		if ( entPos.IsZero() )
+			{ this.Finished(); }
+
+		// repath or quit if the target has moved too far from the goto destination
+		d = DistanceBetween(entPos,this.TargetPosition);
+		if( d > 128 && d < 500)
+		{
+			if ( this.DynamicGotoThread )
+				{ this.KillThread(this.DynamicGotoThread); }
+			this.TargetPosition = entPos;
+			this.DynamicGotoThread = this.ForkThread(this.DynamicGoto);
+		}
+		else if ( d > 500 )
+		{
+			//stop chasing
+			this.Finished();
+		}
+
+		if ( this.OnTarget )
+		{
+			this.Bot.StuckPos = null;
+			this.Priority = 2.0;
+
+			// aim at target while waiting for weapon change
+			pos = GetEntEyePosition(this.TargetEntity);
+			this.AddAimRequest(Priority.High, "position",pos);
+
+			hasNeedle = Util.HasAmmoForWeapon(this.Bot, WEAPON.SYRINGE) > 0;
+
+			if (this.KillTarget) {
+				hlth = Util.GetEntHealth(this.TargetEntity);
+
+				// cs: there is no finish criteria set when KillAndRevive is enabled
+				//     so we need to make sure that they are still alive.
+				//     a lack of finish criteria for health isn't critical because the medic will
+				//     have needed to be here to revive anyway.
+				if (hlth < 1) {
+					this.Finished();
+				}
+				else if (hlth < 37) {
+					this.Bot.KillingForRevive = true; // for voice chats
+				}
+				else {
+					this.KillTarget = false;
+				}
+			}
+
+			if ( hasNeedle && this.CanHealWithNeedle() ) {
+				this.State = this.SWITCH_TO_SYRINGE;
+				this.HealingWithNeedle = true;
+			}
+			else if ( hasNeedle && this.CurePoisonWithNeedle() ) {
+				this.State = this.SWITCH_TO_SYRINGE;
+				this.CuringPoisonWithNeedle = true;
+			}
+			else if ( !this.KillTarget || !hasNeedle || this.Bot.HasTarget() ) {
+				this.State = this.DELIVER_PACKS;
+			}
+			else {
+				this.State = this.KILL_TARGET;
+			}
+
+			this.TimeOnTarget = 0;
+			while(1)
+			{
+				switch(this.State)
+				{
+					case this.DELIVER_PACKS:
+					{
+						this.UpdateDeliverPacks();
+					}
+					case this.KILL_TARGET:
+					{
+						this.UpdateKillTarget();
+					}
+					case this.SWITCH_TO_SYRINGE:
+					{
+						this.UpdateSwitchToSyringe();
+					}
+					case this.REVIVE_TARGET:
+					{
+						this.UpdateReviveTarget();
+					}
+					case this.CURE_POISON_WITH_NEEDLE:
+					{
+						this.UpdateCurePoisonWithNeedle();
+					}
+					case this.HEAL_WITH_NEEDLE:
+					{
+						this.UpdateHealWithNeedle();
+					}
+					default:
+					{
+						this.Finished();
+					}
+				}
+				yield();
+				this.TimeOnTarget += 2; // each update func has a yield too.
+			}
+
+			this.Finished();
+		}
+		else
+		{
+			// workaround for target standing directly on waypoint (path_success never fired)
+			d = DistanceBetween(entPos, this.Bot.GetPosition());
+			if ( d < 70 )
+			{
+				counter += 1;
+				if ( counter > 30 )
+				{
+					if ( this.DynamicGotoThread )
+					{
+						this.KillThread(this.DynamicGotoThread);
+						this.DynamicGotoThread = null;
+					}
+					this.OnTarget = true;
+				}
+			}
+			else
+			{
+				counter = 0;
+			}
+		}
+
+		yield();
+	}
+};
+
+this.UpdateDeliverPacks = function()
+{
+	if ( this.PacksThrown >= this.PacksToThrow || !this.Bot.IsWeaponCharged(this.Supply) ) {
+		this.Finished();
+	}
+
+	pos = GetEntEyePosition(this.TargetEntity);
+	if (pos)
+	{
+		d = this.Bot.DistanceTo(pos);
+		if (d < 60 || d < 90 && this.TimeOnTarget > 20)
+		{
+			this.Bot.MoveTowards(pos);
+			if ( this.Bot.GetCurrentWeapon() != this.Supply )
+			{
+				this.AddWeaponRequest(Priority.High, this.Supply);
+			}
+			else
+			{
+				//move towards them while giving packs
+				this.AddAimRequest(Priority.High, "position",pos);
+				yield();
+				this.Bot.HoldButton(BTN.ATTACK1, 0.25);
+			}
+		}
+		else if (d > 250 || this.TimeOnTarget > 50)
+		{
+			this.Finished();
+		}
+		else
+		{
+			//move towards
+			this.AddAimRequest(Priority.Medium, "position",pos);
+			this.Bot.MoveTowards(pos);
+			this.Bot.HoldButton(BTN.SPRINT, 0.25);
+		}
+	}
+	else
+	{
+		this.Finished();
+	}
+	sleep(0.25);
+};
+
+this.UpdateKillTarget = function()
+{
+	hlth = Util.GetEntHealth(this.TargetEntity);
+	if ( hlth < 1 ) {
+		this.Bot.KilledForRevive = true; // for voice chats
+		this.State = this.SWITCH_TO_SYRINGE;
+		return;
+	}
+
+	// give them 5 seconds to complete
+	if ( this.TimeOnTarget > 100 ) {
+		this.Finished();
+	}
+
+	pos = GetEntEyePosition(this.TargetEntity);
+	if (pos)
+	{
+		// shoot at their head
+		this.AddAimRequest(Priority.High, "position",pos);
+		this.Bot.MoveTowards(pos);
+		this.Bot.HoldButton(BTN.ATTACK1, 0.25);
+	}
+	else
+	{
+		this.Finished();
+	}
+	yield();
+};
+
+this.UpdateSwitchToSyringe = function()
+{
+	this.AddWeaponRequest(Priority.High, WEAPON.SYRINGE);
+
+	if ( this.CuringPoisonWithNeedle ) {
+		this.State = this.CURE_POISON_WITH_NEEDLE;
+	}
+	else if ( this.HealingWithNeedle ) {
+		this.State = this.HEAL_WITH_NEEDLE;
+	}
+	else {
+		this.BlockForWeaponChange(WEAPON.SYRINGE);
+		this.State = this.REVIVE_TARGET;
+	}
+};
+
+this.UpdateReviveTarget = function()
+{
+	hlth = Util.GetEntHealth(this.TargetEntity);
+	if ( hlth > 0 ) {
+		this.State = this.DELIVER_PACKS;
+
+		// move off them
+		pos = GetEntEyePosition(this.TargetEntity) + Vector3(48,48,0);
+		if ( pos )
+		{
+			this.Goto(pos);
+		}
+		else
+		{
+			this.Finished();
+		}
+
+		return;
+	}
+
+	pos = GetEntEyePosition(this.TargetEntity);
+	if (pos)
+	{
+		this.AddAimRequest(Priority.High, "position",pos);
+		this.Bot.MoveTowards(pos);
+		this.Bot.HoldButton(BTN.ATTACK1, 0.25);
+	}
+	else
+	{
+		this.Finished();
+	}
+	yield();
+};
+
+this.UpdateCurePoisonWithNeedle = function()
+{
+	pos = GetEntEyePosition(this.TargetEntity);
+	if (pos && this.TargetEntity && GetEntFlags(this.TargetEntity, ENTFLAG.POISONED))
+	{
+		this.AddAimRequest(Priority.High, "position",pos);
+		this.Bot.MoveTowards(pos);
+		if (this.Bot.GetCurrentWeapon() == WEAPON.SYRINGE) {
+			this.Bot.PressButton(BTN.ATTACK1);
+		}
+	}
+	else
+	{
+		this.Finished();
+	}
+
+	yield();
+};
+
+this.UpdateHealWithNeedle = function()
+{
+	// give them 5 seconds to complete
+	if ( this.TimeOnTarget > 100 ) {
+		this.Finished();
+	}
+	pos = GetEntPosition(this.TargetEntity);
+
+	// finish when target is healed
+	if (!pos || !this.CheckHealthForNeedle()) {
+		this.Finished();
+	}
+
+	botPos = this.Bot.GetPosition();
+	dist = DistanceBetween(botPos, pos);
+
+	// finish if target escaped
+	if (dist > 300) {
+		this.Finished();
+	}
+
+	// sprint to target
+	if (dist > 45)
+	{
+		this.Bot.MoveTowards(pos);
+		if(dist > 70) {
+			this.Bot.PressButton(BTN.SPRINT);
+		}
+	}
+
+	if (!GetEntFlags(this.TargetEntity, ENTFLAG.PRONE, ENTFLAG.CROUCHED)) {
+		pos += Vector3(0,0,32);
+	}
+	this.AddAimRequest(Priority.High, "position", pos);
+
+	if (DistanceBetween(pos, botPos + this.Bot.GetFacing() * 30) < 50 &&
+		this.Bot.GetCurrentWeapon() == WEAPON.SYRINGE)
+	{
+		this.Bot.PressButton(BTN.ATTACK1);
+	}
+
+	yield();
+};
+
+this.Events[EVENT.TEAM_VOICE] = function(whoSaidIt, macroId)
+{
+	packType = null;
+	if(macroId == VOICE.NEED_AMMO && this.Bot && this.Bot.GetClass() == CLASS.FIELDOPS) {
+		packType = WEAPON.AMMO_PACK;
+	}
+	else if(macroId == VOICE.NEED_MEDIC && this.Bot && this.Bot.GetClass() == CLASS.MEDIC) {
+		packType = WEAPON.MEDKIT;
+	}
+	else
+	{
+		return;
+	}
+
+	if(this.IsActive() || this.DelayNextResponse)
+	{
+		return;
+	}
+
+	if ( GetEntFlags(whoSaidIt, ENTFLAG.DEAD ) || this.Bot.DistanceTo(whoSaidIt) > this.RangeLimit )
+	{
+		return;
+	}
+
+	if (this.Bot.IsWeaponCharged(packType)) {
+		this.TargetEntity = whoSaidIt;
+		this.Supply = packType;
+
+		this.Priority = this.DeliverPriority;
+		this.DelayNextResponse = true;
+		sleep(10);
+		if(this.DelayNextResponse) // can be null if bot disconnected
+		{
+			this.DelayNextResponse = false;
+			// if we haven't activated by now, don't bother
+			if(!this.IsActive()) {
+				this.Priority = 0;
+			}
+		}
+	}
+};
+
+this.Events[EVENT.WEAPON_FIRE] = function(weaponId, projectileEntity)
+{
+	if(weaponId == this.Supply && this.Bot)
+	{
+		this.PacksThrown += 1;
+	}
+ };

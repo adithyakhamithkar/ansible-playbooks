@@ -1,0 +1,23 @@
+// The new weapon instance is passed to this function as the 'this'
+// Properties can be set like this.Property = x
+
+//////////////////////////////////////////////////////////////////////////
+// Overall weapon properties.
+this.Name = "Grenade Ally";
+this.WeaponId = WEAPON.ALLY_GRENADE;
+
+//////////////////////////////////////////////////////////////////////////
+// Set some weapon properties that affect some internal logic.
+this.PrimaryFire.WeaponType = "grenade";
+this.PrimaryFire.ProjectileSpeed = 900;
+this.PrimaryFire.RequiresAmmo = true;
+this.PrimaryFire.WaterProof = true;
+this.PrimaryFire.SplashRadius = 256.0;
+this.PrimaryFire.InheritsVelocity = false;
+this.PrimaryFire.ProjectileGravity = 1.0;
+this.PrimaryFire.FuseTime = 4.0;
+this.PrimaryFire.FireOnRelease = true;
+
+this.PrimaryFire.SetTargetBias(CLASS.VEHICLE_HVY, 0.9);
+this.PrimaryFire.DefaultDesirability = 0.0;
+this.PrimaryFire.SetDesirabilityRange(0, 512, 0.2);

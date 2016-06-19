@@ -1,0 +1,381 @@
+//==========================================================================================
+//
+//	springfield_pb.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	palota	04 April 2012	new gm script, goals, fixed teleports
+//	palota	07 June 2012	covertops can destroy spawnwall
+//
+//==========================================================================================
+//
+global Map =
+{
+	Debug = 0,
+	phase = 0,
+	barrier1Destroyed = true,
+	barrier2Destroyed = true,
+
+	Roles =
+	{
+		AXIS =
+		{
+			DEFENDER2 = {
+				numbots = 2,
+				crucialClass = CLASS.MEDIC,
+			},
+		},
+	},
+
+	Navigation =
+	{
+		door1 = {navigate=function(_this){ //Simpsons house
+			_this.Goto(Vec3(401.875, -0.079, 154.303));
+			sleep(3);
+			_this.Goto(Vec3(167.826, -1.572, 154.125));
+		}},
+	},
+
+	SetEscort = function()
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, Map.phase>=10 && Map.phase!=50 && (Map.phase!=20 || Map.barrier1Destroyed) && (Map.phase!=70 || Map.barrier2Destroyed), "ESCORT_truck");
+	},
+
+	Truck_Stolen = function( trigger )
+	{
+		Map.phase=10;
+		Map.SetEscort();
+		SetAvailableMapGoals(TEAM.AXIS, true, "BUILD_Truck_Barrier_2");
+		SetAvailableMapGoals(TEAM.AXIS, true, "SNIPE_x.*");
+		SetAvailableMapGoals(TEAM.AXIS, true, "MOBILEMORTAR_x1");
+		SetAvailableMapGoals(TEAM.AXIS, true, "DEFEND_barrier.*");
+		SetAvailableMapGoals(TEAM.AXIS, true, "PLANTMINE_square.*");
+		SetAvailableMapGoals(TEAM.ALLIES, true, "BUILD_Command_Post");
+		SetAvailableMapGoals(TEAM.ALLIES, true, "ATTACK_square.*");
+		SetAvailableMapGoals(TEAM.ALLIES, true, "PLANT_Truck_Barrier_1");
+		SetAvailableMapGoals(TEAM.ALLIES, true, ".*MG42_mg42_bank");
+		SetAvailableMapGoals(TEAM.ALLIES, true, "SNIPE_l.*");
+		SetAvailableMapGoals(TEAM.AXIS, false, "DEFEND_house.*");
+		SetAvailableMapGoals(TEAM.AXIS, false, "MOBILEMG42_house.*");
+		SetAvailableMapGoals(TEAM.ALLIES, false, "ATTACK_house.*");
+		Util.SetMaxUsers( 3, "BUILD_Truck_Barrier_1" );
+		SetGoalPriority("BUILD_Truck_Barrier_1", 0.91, TEAM.AXIS);
+		Util.ForceRouting( "BUILD_Truck", false );
+		WeaponTable.SetWeaponAvailability( CLASS.SOLDIER, WEAPON.FLAMETHROWER, false );
+		OnTriggerRegion(AABB(-4100,-934,-6,-3860,-728,96), Map.TruckAtBarrier1);
+		Util.MapDebugPrint( "Truck_Stolen" );
+	},
+
+	Truck_Built = function( trigger )
+	{
+		Util.MapDebugPrint( "Truck_Built" );
+	},
+
+	Truck_Damaged = function( trigger )
+	{
+		Util.MapDebugPrint( "Truck_Damaged" );
+	},
+
+	Truck_Barrier_1_Built = function( trigger )
+	{
+		Map.barrier1Destroyed = false;
+		Map.SetEscort();
+		Util.MapDebugPrint( "Truck_Barrier_1_Built" );
+	},
+
+	Truck_Barrier_1_Destroyed = function( trigger )
+	{
+		Map.barrier1Destroyed = true;
+		Map.SetEscort();
+		Util.MapDebugPrint( "Truck_Barrier_1_Destroyed" );
+	},
+
+	TruckAtBarrier1 =
+	{
+		Name = "Barrier1Trigger",
+		TriggerOnClass = { CLASS.VEHICLE, CLASS.VEHICLE_HVY },
+		OnEnter = function(ent)
+		{
+			Map.phase=20;
+			SetAvailableMapGoals(TEAM.ALLIES, true, "SMOKEBOMB_barrier1" );
+			SetGoalPriority("PLANT_Truck_Barrier_1", 0.95, TEAM.ALLIES);
+			Map.SetEscort();
+			DeleteTriggerRegion("Barrier1Trigger");
+			Util.MapDebugPrint( "Truck_At_Barrier1" );
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	Truck_At_Barrier = function( trigger )
+	{
+		truckPos = GetEntPosition(GetGoal("MOVER_truck").GetEntity());
+		if(DistanceBetween(truckPos, Vec3(-3941.353, -902.399, 16.125)) < 300){
+		}else if(DistanceBetween(truckPos, Vec3(-3887.745, -2645.676, 16.125)) < 400){
+		}
+		Map.SetEscort();
+	},
+
+	Truck_Past_Barrier_1 = function( trigger )
+	{
+		Map.phase=30;
+		SetAvailableMapGoals(TEAM.AXIS, true, "BUILD_Moes_wall");
+		SetAvailableMapGoals(TEAM.AXIS, true, "MOBILEMG42_bus.*");
+		SetAvailableMapGoals(TEAM.AXIS, true, "DEFEND_square.*");
+		SetAvailableMapGoals(TEAM.AXIS, false, "DEFEND_barrier.*");
+		SetAvailableMapGoals(TEAM.AXIS, false, "MOBILEMORTAR_x1");
+		SetAvailableMapGoals(TEAM.AXIS, false, "BUILD_Truck_Barrier_1");
+		SetAvailableMapGoals(TEAM.AXIS, false, ".*_Command_Post");
+		SetAvailableMapGoals(TEAM.ALLIES, false, "SMOKEBOMB_barrier1" );
+		SetGoalPriority("BUILD_Truck_Barrier_2", 0.8, TEAM.AXIS);
+		SetGoalPriority("REPAIRMG42_mg42_bank", 0.91, TEAM.ALLIES);
+		OnTriggerRegion(AABB(-6368,-2333,-9,-6220,-2218,65), Map.TruckAtBus);
+		Util.MapDebugPrint( "Truck_Past_Barrier_1" );
+	},
+
+	TruckAtBus =
+	{
+		Name = "BusTrigger",
+		TriggerOnClass = { CLASS.VEHICLE, CLASS.VEHICLE_HVY },
+		OnEnter = function(ent)
+		{
+			Map.phase=50;
+			Map.SetEscort();
+			SetAvailableMapGoals(TEAM.AXIS, true, "TRIPMINE_x.*");
+			SetAvailableMapGoals(TEAM.ALLIES, true, "PLANT_spawnwall" ); //does not work in Omni-bot 0.81, requires Omni-bot 0.82
+			SetAvailableMapGoals(TEAM.ALLIES, true, "PLANT_Schoolbus" );
+			SetAvailableMapGoals(TEAM.ALLIES, true, "CAPPOINT_truck");
+			SetAvailableMapGoals(TEAM.ALLIES, false, "BUILD_Truck");
+			SetGoalPriority("REPAIRMG42_mg42_bank", 0.81, TEAM.ALLIES);
+			DeleteTriggerRegion("BusTrigger");
+			Util.MapDebugPrint("truck at bus");
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	plutoninum_Accessible = function()
+	{
+		sleep(2);
+		SetAvailableMapGoals(TEAM.AXIS, true, "DEFEND_moe.*");
+		SetAvailableMapGoals(TEAM.ALLIES, true, "FLAG_plutoniumcase");
+		SetAvailableMapGoals(TEAM.ALLIES, true, "PLANT_Moes_wall");
+		Util.SetRoleForGoals("DEFEND_square.*", ROLE.DEFENDER2 );
+		WeaponTable.SetWeaponAvailability( CLASS.SOLDIER, WEAPON.FLAMETHROWER, true );
+	},
+
+	Schoolbus_Destroyed = function( trigger )
+	{
+		Util.EnableGoal("ROUTE_bus");
+		Map.plutoninum_Accessible();
+		Util.MapDebugPrint( "Schoolbus_Destroyed" );
+	},
+
+	spawnwall_Destroyed = function( trigger )
+	{
+		Util.EnableGoal("ROUTE_spawnwall");
+		SetAvailableMapGoals(TEAM.ALLIES, false, "PLANT_spawnwall" );
+		Map.plutoninum_Accessible();
+		Util.MapDebugPrint( "spawnwall_Destroyed" );
+	},
+
+	Moes_wall_Built = function( trigger )
+	{
+		Util.DisableGoal("ROUTE_moe_wall");
+		Util.MapDebugPrint( "Moes_wall_Built" );
+	},
+
+	Moes_wall_Destroyed = function( trigger )
+	{
+		Util.EnableGoal("ROUTE_moe_wall");
+		Util.MapDebugPrint( "Moes_wall_Destroyed" );
+	},
+
+	plutoniumcase_Taken = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, true, "BUILD_Truck");
+		SetGoalPriority("BUILD_Truck_Barrier_2", 0.9, TEAM.AXIS);
+		Util.MapDebugPrint( "plutoniumcase_Taken" );
+	},
+
+	plutoniumcase_Returned = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, false, "BUILD_Truck");
+		Util.MapDebugPrint( "plutoniumcase_Returned" );
+	},
+
+	Plutonium_Captured = function( trigger )
+	{
+		Map.phase=60;
+		Map.SetEscort();
+		SetAvailableMapGoals(TEAM.AXIS, true, "DEFEND_escape.*");
+		SetAvailableMapGoals(TEAM.ALLIES, true, "PLANT_Truck_Barrier_2");
+		SetAvailableMapGoals(TEAM.AXIS, false, "TRIPMINE_x.*");
+		SetAvailableMapGoals(TEAM.AXIS, false, "DEFEND_moe.*");
+		SetAvailableMapGoals(TEAM.AXIS, false, "BUILD_Moes_wall");
+		SetAvailableMapGoals(TEAM.AXIS, false, "MOBILEMG42_bus.*");
+		SetAvailableMapGoals(TEAM.ALLIES, false, "PLANT_Moes_wall");
+		SetAvailableMapGoals(TEAM.ALLIES, false, "PLANT_Schoolbus" );
+		SetAvailableMapGoals(TEAM.ALLIES, false, "PLANT_spawnwall" );
+		Util.SetMaxUsers( 2, "BUILD_Truck_Barrier_2" );
+		SetGoalPriority("REPAIRMG42_mg42_bank", 0.91, TEAM.ALLIES);
+		Util.ClearRoleForGoals("DEFEND_square.*", ROLE.DEFENDER2 );
+		WeaponTable.SetWeaponAvailability( CLASS.SOLDIER, WEAPON.FLAMETHROWER, false );
+		OnTriggerRegion(AABB(-3850,-2751,-6,-3600,-2567,103), Map.TruckAtBarrier2);
+		Util.MapDebugPrint( "Plutonium_Captured" );
+	},
+
+	Truck_Barrier_2_Built = function( trigger )
+	{
+		Map.barrier2Destroyed = false;
+		Map.SetEscort();
+		Util.MapDebugPrint( "Truck_Barrier_2_Built" );
+	},
+
+	Truck_Barrier_2_Destroyed = function( trigger )
+	{
+		Map.barrier2Destroyed = true;
+		Map.SetEscort();
+		Util.MapDebugPrint( "Truck_Barrier_2_Destroyed" );
+	},
+
+	TruckAtBarrier2 =
+	{
+		Name = "Barrier2Trigger",
+		TriggerOnClass = { CLASS.VEHICLE, CLASS.VEHICLE_HVY },
+		OnEnter = function(ent)
+		{
+			Map.phase=70;
+			SetAvailableMapGoals(TEAM.AXIS, false, "PLANTMINE_square.*");
+			SetAvailableMapGoals(TEAM.AXIS, false, "DEFEND_square.*");
+			SetGoalPriority("PLANT_Truck_Barrier_2", 0.95, TEAM.ALLIES);
+			Map.SetEscort();
+			DeleteTriggerRegion("Barrier2Trigger");
+			Util.MapDebugPrint( "Truck_At_Barrier2" );
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	Truck_Past_Barrier_2 = function( trigger )
+	{
+		Map.phase=80;
+		SetAvailableMapGoals(TEAM.AXIS, false, "BUILD_Truck_Barrier_2");
+		Util.MapDebugPrint( "Truck_Past_Barrier_2" );
+	},
+
+	Allies_Escaped = function( trigger )
+	{
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "Allies_Escaped" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	OnTrigger( "Allied team has stolen the Truck!", Map.Truck_Stolen );
+	OnTrigger( "The Truck has been repaired!", Map.Truck_Built );
+	OnTrigger( "The Truck has been damaged!", Map.Truck_Damaged );
+	OnTrigger( "Truck Barrier #1 has been constructed.", Map.Truck_Barrier_1_Built );
+	OnTrigger( "Truck Barrier #1 has been destroyed.", Map.Truck_Barrier_1_Destroyed );
+	OnTrigger( "Truck Barrier #2 has been constructed.", Map.Truck_Barrier_2_Built );
+	OnTrigger( "Truck Barrier #2 has been destroyed.", Map.Truck_Barrier_2_Destroyed );
+	OnTrigger( "goldrush_axis_truck_barrier1", Map.Truck_Past_Barrier_1 );
+	OnTrigger( "goldrush_axis_truck_barrier2", Map.Truck_Past_Barrier_2 );
+	OnTrigger( "Moeswall has been rebuilt", Map.Moes_wall_Built );
+	OnTrigger( "Allies have breached Moes wall!", Map.Moes_wall_Destroyed );
+	OnTrigger( "the Schoolbus Destroyed.", Map.Schoolbus_Destroyed );
+	OnTrigger( "Axis spawnwall destroyed!", Map.spawnwall_Destroyed );
+	OnTrigger( "Allies have stolen The Plutonium!", Map.plutoniumcase_Taken );
+	OnTrigger( "Flag returned plutoniumcase!", Map.plutoniumcase_Returned );
+	OnTrigger( "Allied team has secured the Plutonium!", Map.Plutonium_Captured );
+	OnTrigger( "Allied team escaped with the Plutonium!", Map.Allies_Escaped );
+
+	Util.DisableGoal( ".*", true );
+	Util.DisableGoal("ROUTE_bus");
+	Util.DisableGoal("ROUTE_spawnwall");
+	Util.EnableGoal("AMMOCAB.*");
+	Util.EnableGoal("HEALTHCAB.*");
+	Util.EnableGoal("PLANT_Command_Post");
+	SetAvailableMapGoals(TEAM.AXIS, true, "BUILD_Command_Post");
+	SetAvailableMapGoals(TEAM.AXIS, true, "DEFEND_house.*");
+	SetAvailableMapGoals(TEAM.AXIS, true, "MOBILEMG42_house.*");
+	SetAvailableMapGoals(TEAM.AXIS, true, "BUILD_Truck_Barrier_1");
+	SetAvailableMapGoals(TEAM.ALLIES, true, "ATTACK_house.*");
+	SetAvailableMapGoals(TEAM.ALLIES, true, "BUILD_Truck");
+
+	SetGoalPriority("BUILD_Truck_Barrier_1", 0.89, TEAM.AXIS);
+	SetGoalPriority("BUILD_Truck_Barrier_2", 0.7, TEAM.AXIS);
+	SetGoalPriority("PLANT_Command_Post", 0.6, TEAM.AXIS, CLASS.ENGINEER);
+	SetGoalPriority("PLANT_spawnwall", 0.8, TEAM.ALLIES, CLASS.ENGINEER);
+	SetGoalPriority("MOUNTMG42_mg42_bank", 0.85, TEAM.ALLIES, CLASS.SOLDIER);
+	SetGoalPriority("SNIPE_.*", 0.8);
+
+	SetMapGoalProperties("DEFEND_.*", {mincamptime=15, maxcamptime=50} );
+	SetMapGoalProperties("SNIPE_.*", {MinCampTime=20, MaxCampTime=60} );
+	SetMapGoalProperties("MOBILEMG42_.*", {MinCampTime=25, MaxCampTime=60} );
+	SetMapGoalProperties("MOUNTMG42_.*", {MinCampTime=30, MaxCampTime=90} );
+
+	Util.SetMaxUsersInProgress( 3, "ESCORT_truck" );
+	Util.SetMaxUsers( 1, "BUILD_Command_Post" );
+	Util.SetMaxUsers( 1, "BUILD_Moes_wall" );
+	Util.SetMaxUsers( 1, "BUILD_Truck_Barrier_1" );
+	Util.SetMaxUsers( 1, "BUILD_Truck_Barrier_2" );
+	Util.SetMaxUsers( 1, "PLANT_spawnwall" );
+	Util.SetMaxUsers( 1, "REPAIRMG42_.*" );
+
+	Util.ClearRoleForGoals("DEFEND_square.*", ROLE.DEFENDER2 );
+
+	Util.ForceRouting( "BUILD_Truck", true );
+
+	Util.AddUsePoint( "PLANT_Truck_Barrier_1", { Vec3(-4107.064, -834.790, 16.125), Vec3(-4202.764, -968.147, 16.125) });
+	Util.AddUsePoint( "PLANT_Truck_Barrier_2", { Vec3(-3492.646, -2586.968, 16.125) });
+	Util.AddUsePoint( "PLANT_Schoolbus", { Vec3(-6385,-2644,16) });
+
+	MapRoutes =
+	{
+		BUILD_Command_Post = {
+			ROUTE_allied_spawn = {
+				ROUTE_allied1 = {},
+				ROUTE_allied2 = {},
+				ROUTE_allied3 = {},
+			},
+		},
+		FLAG_plutoniumcase = {
+			ROUTE_allied_spawn = { Weight=3,
+				ROUTE_bus = {
+					ROUTE_moe_wall = {},
+					ROUTE_moe_door = {},
+				},
+				ROUTE_spawnwall = {},
+			},
+		},
+		CAPPOINT_truck = {
+			ROUTE_plutonium = {
+				ROUTE_bus = {},
+				ROUTE_axis_spawn = {},
+			}
+		},
+	};
+	MapRoutes["ATTACK_house.*"] = MapRoutes.BUILD_Command_Post;
+	MapRoutes.PLANT_Command_Post = MapRoutes.BUILD_Command_Post;
+	MapRoutes.BUILD_Truck = MapRoutes.BUILD_Command_Post;
+	MapRoutes.FLAG_plutoniumcase.ROUTE_house_spawn = MapRoutes.FLAG_plutoniumcase.ROUTE_allied_spawn;
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 90.0; //Simpsons house windows
+
+	if (bot.GetTeam()==TEAM.ALLIES)
+	{
+		bot.ChangeSpawnPoint(RandInt(0,1)*2+1);
+	}
+};

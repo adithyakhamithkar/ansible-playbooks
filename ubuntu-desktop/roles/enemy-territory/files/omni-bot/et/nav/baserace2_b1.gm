@@ -1,0 +1,821 @@
+//==========================================================================================
+//
+//	baserace2_b1.gm
+//
+//	Who		            When			What
+//------------------------------------------------------------------------------------------
+//	BubbaG1		            25 August 2011		Initial Script
+//      BubbaG1 & **DRC**Stunner    11 September 2011           Final Routing & Waypoints
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0, // please set to zero before distributing your script
+	ShowMovers = false,
+
+	Allied_Outpost_Dyno = 0,
+	AlliedGate = 0,
+	AlliedLeftFence = 0,
+	AlliedForwardFence = 0,
+	AlliedRightFence = 0,
+	AlliedTower = 0,
+	AlliedMed = 0,
+	AlliedTac = 0,
+	AlliedArm = 0,
+	AlliedEng = 0,
+	AlliedSpawn = 0,
+	AxisGate = 0,
+	AxisLeftFence = 0,
+	AxisForwardFence = 0,
+	AxisRightFence = 0,
+	AxisTower = 0,
+	AxisMed = 0,
+	AxisTac = 0,
+	AxisArm = 0,
+	AxisEng = 0,
+	AxisSpawn = 0,
+	Axis_Outpost_Dyno = 0,	
+
+	Axis_Construction_Materials_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Construction_Materials_Taken" );
+	},
+
+	Allied_Construction_Materials_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Construction_Materials_Taken" );
+	},
+
+	Axis_Construction_Materials_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Construction_Materials_Returned" );
+	},
+
+	Allied_Construction_Materials_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Construction_Materials_Returned" );
+	},
+
+	Axis_Secured_Gate = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.AxisGate += 1;
+		if ( Map.AxisGate == 3 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_axis_gate" );
+			Util.MapDebugPrint( "Axis_Secured_Gate_Complete" );
+		}
+
+		Util.MapDebugPrint( "Axis_Secured_Gate" );
+	},
+
+	Axis_Secured_Left_Fence = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AxisLeftFence += 1;
+		if ( Map.AxisLeftFence == 4 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_axis_left_wall" );
+			Util.MapDebugPrint( "Axis_Secured_Left_Fence_Complete" );
+		}
+
+		Util.MapDebugPrint( "Axis_Secured_Left_Fence" );
+	},
+
+	Axis_Secured_Forward_Fence = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AxisForwardFence += 1;
+		if ( Map.AxisForwardFence == 4 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_axis_forward_wall" );
+			Util.MapDebugPrint( "Axis_Secured_Forward_Fence_Complete" );
+		}
+
+		Util.MapDebugPrint( "Axis_Secured_Forward_Fence" );
+	},
+
+	Axis_Secured_Right_Fence = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AxisRightFence += 1;
+		if ( Map.AxisRightFence == 4 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_axis_right_wall" );
+			Util.MapDebugPrint( "Axis_Secured_Right_Fence_Complete" );
+		}
+
+		Util.MapDebugPrint( "Axis_Secured_Right_Fence" );
+	},
+
+	Axis_Secured_Tower = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AxisTower += 1;
+		if ( Map.AxisTower == 4 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_axis_tower" );
+			Util.MapDebugPrint( "Axis_Secured_Tower_Complete" );
+		}
+
+		Util.MapDebugPrint( "Axis_Secured_Tower" );
+	},
+
+	Axis_Secured_Med = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AxisMed += 1;
+		if ( Map.AxisMed == 4 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_axis_med" );
+			Util.MapDebugPrint( "Axis_Secured_Med_Complete" );
+		}
+
+		Util.MapDebugPrint( "Axis_Secured_Med" );
+	},
+
+	Axis_Secured_Tac = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AxisTac += 1;
+		if ( Map.AxisTac == 4 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_axis_tac" );
+			Util.MapDebugPrint( "Axis_Secured_Tac_Complete" );
+		}
+		
+		Map.AxisAvailableCAPPOINTS();
+
+		Util.MapDebugPrint( "Axis_Secured_Tac" );
+	},
+
+	Axis_Secured_Arm = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AxisArm += 1;
+		if ( Map.AxisArm == 4 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_axis_arm" );
+			Util.MapDebugPrint( "Axis_Secured_Arm_Complete" );
+		}
+
+		Util.MapDebugPrint( "Axis_Secured_Arm" );
+	},
+
+	Axis_Secured_Eng = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AxisEng += 1;
+		if ( Map.AxisEng == 4 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_axis_eng" );
+			Util.MapDebugPrint( "Axis_Secured_Eng_Complete" );
+		}
+		
+		Map.AxisAvailableCAPPOINTS();
+		
+		Util.MapDebugPrint( "Axis_Secured_Eng" );
+	},
+
+	Axis_Secured_Spawn = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AxisSpawn += 1;
+		if ( Map.AxisSpawn == 4 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_axis_spawn" );
+			Util.MapDebugPrint( "Axis_Secured_Spawn_Complete" );
+		}
+		
+		Map.AxisAvailableCAPPOINTS();
+
+		Util.MapDebugPrint( "Axis_Secured_Spawn" );
+	},
+
+	Allied_Secured_Gate = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AlliedGate += 1;
+		if ( Map.AlliedGate == 3 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_allied_gate" );
+			Util.MapDebugPrint( "Allied_Secured_Gate_Complete" );
+		}
+
+		Util.MapDebugPrint( "Allied_Secured_Gate" );
+	},
+
+	Allied_Secured_Left_Fence = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AlliedLeftFence += 1;
+		if ( Map.AlliedLeftFence == 4 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_allied_left_wall" );
+			Util.MapDebugPrint( "Allied_Secured_Left_Fence_Complete" );
+		}
+
+		Util.MapDebugPrint( "Allied_Secured_Left_Fence" );
+	},
+
+	Allied_Secured_Forward_Fence = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AlliedForwardFence += 1;
+		if ( Map.AlliedForwardFence == 4 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_allied_forward_wall" );
+			Util.MapDebugPrint( "Allied_Secured_Forward_Fence_Complete" );
+		}
+
+		Util.MapDebugPrint( "Allied_Secured_Forward_Fence" );
+	},
+
+	Allied_Secured_Right_Fence = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AlliedRightFence += 1;
+		if ( Map.AlliedRightFence == 4 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_allied_right_wall" );
+			Util.MapDebugPrint( "Allied_Secured_Right_Fence_Complete" );
+		}
+
+		Util.MapDebugPrint( "Allied_Secured_Right_Fence" );
+	},
+
+	Allied_Secured_Tower = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AlliedTower += 1;
+		if ( Map.AlliedTower == 4 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_allied_tower" );
+			Util.MapDebugPrint( "Allied_Secured_Tower_Complete" );
+		}
+
+		Util.MapDebugPrint( "Allied_Secured_Tower" );
+	},
+
+	Allied_Secured_Med = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AlliedMed += 1;
+		if ( Map.AlliedMed == 4 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_allied_med" );
+			Util.MapDebugPrint( "Allied_Secured_Med_Complete" );
+		}
+
+		Util.MapDebugPrint( "Allied_Secured_Med" );
+	},
+
+	Allied_Secured_Tac = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AlliedTac += 1;
+		if ( Map.AlliedTac == 4 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_allied_tac" );
+			Util.MapDebugPrint( "Allied_Secured_Tac_Complete" );
+		}
+		
+		Map.AlliedAvailableCAPPOINTS();
+
+		Util.MapDebugPrint( "Allied_Secured_Tac" );
+	},
+
+	Allied_Secured_Arm = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AlliedArm += 1;
+		if ( Map.AlliedArm == 4 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_allied_arm" );
+			Util.MapDebugPrint( "Allied_Secured_Arm_Complete" );
+		}
+
+		Util.MapDebugPrint( "Allied_Secured_Arm" );
+	},
+
+	Allied_Secured_Eng = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AlliedEng += 1;
+		if ( Map.AlliedEng == 4 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_allied_eng" );
+			Util.MapDebugPrint( "Allied_Secured_Eng_Complete" );
+		}
+		
+		Map.AlliedAvailableCAPPOINTS();
+
+		Util.MapDebugPrint( "Allied_Secured_Eng" );
+	},
+
+	Allied_Secured_Spawn = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.AlliedSpawn += 1;
+		if ( Map.AlliedSpawn == 4 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_allied_spawn" );
+			Util.MapDebugPrint( "Allied_Secured_Spawn_Complete" );
+		}
+		
+		Map.AlliedAvailableCAPPOINTS();
+
+		Util.MapDebugPrint( "Allied_Secured_Spawn" );
+	},
+	
+	AxisAvailableCAPPOINTS = function()
+	{
+		if ( Map.AxisEng == 4 && Map.AxisTac == 4 && Map.AxisSpawn >= 2 )
+		{
+			if ( Map.AxisArm < 4 )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_axis_arm" );
+			}
+			if ( Map.AxisMed < 4 )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_axis_med" );
+			}
+			if ( Map.AxisGate < 3 )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_axis_gate" );
+			}
+			if ( Map.AxisForwardFence < 4 )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_axis_forward_wall" );
+			}
+			if ( Map.AxisLeftFence < 4 )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_axis_left_wall" );
+			}
+			if ( Map.AxisRightFence < 4 )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_axis_right_wall" );
+			}
+			if ( Map.AxisTower < 4 )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_axis_tower" );
+			}
+		}
+
+		Util.MapDebugPrint( "AxisAvailableCAPPOINTS" );
+	},
+
+	AlliedAvailableCAPPOINTS = function()
+	{
+		if ( Map.AlliedEng == 4 && Map.AlliedTac == 4 && Map.AlliedSpawn >= 2 )
+		{
+			if ( Map.AlliedArm < 4 )
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_allied_arm" );
+			}
+			if ( Map.AlliedMed < 4 )
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_allied_med" );
+			}
+			if ( Map.AlliedGate < 3 )
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_allied_gate" );
+			}
+			if ( Map.AlliedForwardFence < 4 )
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_allied_forward_wall" );
+			}
+			if ( Map.AlliedLeftFence < 4 )
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_allied_left_wall" );
+			}
+			if ( Map.AlliedRightFence < 4 )
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_allied_right_wall" );
+			}
+			if ( Map.AlliedTower < 4 )
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_allied_tower" );
+			}
+		}
+
+		Util.MapDebugPrint( "AlliedAvailableCAPPOINTS" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// Register callback functions
+	OnTrigger( "Axis have stolen Construction Materials!", Map.Axis_Construction_Materials_Taken );
+	OnTrigger( "Allies have stolen Construction Materials!", Map.Allied_Construction_Materials_Taken );
+	OnTrigger( "Allies have returned Construction Materials!", Map.Axis_Construction_Materials_Returned );
+	OnTrigger( "Axis have returned Construction Materials!", Map.Allied_Construction_Materials_Returned );
+	OnTrigger( "Axis captured gate_axis_capzone", Map.Axis_Secured_Gate );
+	OnTrigger( "Axis captured leftfence_axis_capzone", Map.Axis_Secured_Left_Fence );
+	OnTrigger( "Axis captured forwardfence_axis_capzone", Map.Axis_Secured_Forward_Fence );
+	OnTrigger( "Axis captured rightfence_axis_capzone", Map.Axis_Secured_Right_Fence );
+	OnTrigger( "Axis captured asstower_axis_capzone", Map.Axis_Secured_Tower );
+	OnTrigger( "Axis captured medical_axis_capzone", Map.Axis_Secured_Med );
+	OnTrigger( "Axis captured tactical_axis_capzone", Map.Axis_Secured_Tac );
+	OnTrigger( "Axis captured armory_axis_capzone", Map.Axis_Secured_Arm );
+	OnTrigger( "Axis captured engineering_axis_capzone", Map.Axis_Secured_Eng );
+	OnTrigger( "Axis captured spawn_axis_capzone", Map.Axis_Secured_Spawn );
+	OnTrigger( "Allies captured gate_allied_capzone", Map.Allied_Secured_Gate );
+	OnTrigger( "Allies captured leftfence_allied_capzone", Map.Allied_Secured_Left_Fence );
+	OnTrigger( "Allies captured forwardfence_allied_capzone", Map.Allied_Secured_Forward_Fence );
+	OnTrigger( "Allies captured rightfence_allied_capzone", Map.Allied_Secured_Right_Fence );
+	OnTrigger( "Allies captured asstower_allied_capzone", Map.Allied_Secured_Tower );
+	OnTrigger( "Allies captured medical_allied_capzone", Map.Allied_Secured_Med );
+	OnTrigger( "Allies captured tactical_allied_capzone", Map.Allied_Secured_Tac );
+	OnTrigger( "Allies captured armory_allied_capzone", Map.Allied_Secured_Arm );
+	OnTrigger( "Allies captured engineering_allied_capzone", Map.Allied_Secured_Eng );
+	OnTrigger( "Allies captured spawn_allied_capzone", Map.Allied_Secured_Spawn );
+
+	//~Util.DisableGoal( ".*", true ); // all but routes
+	SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_.*" );
+	
+	SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_axis_eng" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_axis_tac" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_axis_spawn" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_allied_eng" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_allied_tac" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_allied_spawn" );
+
+	SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Allied_Outpost" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Axis_Outpost" );
+
+	// Max users per goal
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsersInProgress( 1, "FLAG_Construction_Materials_4" );
+	Util.SetMaxUsersInProgress( 1, "FLAG_Construction_Materials_5" );
+
+	// Camp times
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=60} );
+
+	MapRoutes = 
+	{
+		FLAG_Construction_Materials_2 = 
+		{
+			ROUTE_allied_spawn = 
+			{
+				ROUTE_allied_right_pond_1 = 
+				{
+					ROUTE_allied_right_pond_2 = 
+					{
+						Weight = 3,
+					},
+					ROUTE_allied_right_2 = {},
+				},
+				ROUTE_allied_right_1 = 
+				{
+					ROUTE_allied_right_2 = 
+					{
+						Weight = 3,
+					},
+					ROUTE_allied_right_pond_2 = {},
+				},
+			},
+		},
+		FLAG_Construction_Materials_3 = 
+		{
+			ROUTE_allied_spawn = 
+			{
+				ROUTE_allied_left_pond_1 = 
+				{
+					ROUTE_allied_left_pond_2 = 
+					{
+						Weight = 3,
+					},
+					ROUTE_allied_left_2 = {},
+				},
+				ROUTE_allied_left_1 = 
+				{
+					ROUTE_allied_left_2 = 
+					{
+						Weight = 3,
+					},
+					ROUTE_allied_left_pond_2 = {},
+				},
+			},
+		},
+		FLAG_Construction_Materials = 
+		{
+			ROUTE_axis_spawn = 
+			{
+				ROUTE_axis_right_pond_1 = 
+				{
+					ROUTE_axis_right_pond_2 = 
+					{
+						Weight = 3,
+					},
+					ROUTE_axis_right_2 = {},
+				},
+				ROUTE_axis_right_1 = 
+				{
+					ROUTE_axis_right_2 = 
+					{
+						Weight = 3,
+					},
+					ROUTE_axis_right_pond_2 = {},
+				},
+			},
+		},
+		FLAG_Construction_Materials_1 = 
+		{
+			ROUTE_axis_spawn = 
+			{
+				ROUTE_axis_left_pond_1 = 
+				{
+					ROUTE_axis_left_pond_2 = 
+					{
+						Weight = 3,
+					},
+					ROUTE_axis_left_2 = {},
+				},
+				ROUTE_axis_left_1 = 
+				{
+					ROUTE_axis_left_2 = 
+					{
+						Weight = 3,
+					},
+					ROUTE_axis_left_pond_2 = {},
+				},
+			},
+		},
+		CAPPOINT_axis_eng = 
+		{
+			ROUTE_axis_right_mat = 
+			{
+				ROUTE_axis_right_2 = 
+				{
+					Weight = 3,
+					ROUTE_axis_right_1 = 
+					{
+						Weight = 2,
+						ROUTE_axis_sneak_right = {},
+						ROUTE_axis_spawn = {},
+						ROUTE_axis_right_under = {},
+					},
+					ROUTE_axis_right_pond_1 = 
+					{
+						ROUTE_axis_spawn = {},
+						ROUTE_axis_right_under = {},
+					},
+					ROUTE_axis_right_under = {},
+					ROUTE_axis_sneak_right = {},
+				},
+				ROUTE_axis_right_pond_2 = 
+				{
+					ROUTE_axis_right_pond_1 = 
+					{
+						Weight = 2,
+						ROUTE_axis_spawn = {},
+						ROUTE_axis_right_under = {},
+					},
+					ROUTE_axis_right_1 = 
+					{
+						ROUTE_axis_spawn = {},
+						ROUTE_axis_right_under = {},
+					},
+					ROUTE_axis_right_under = {},					
+				},
+				ROUTE_water_1 = 
+				{
+					ROUTE_axis_spawn = {},
+					ROUTE_axis_right_under = {},
+					ROUTE_axis_left_under = {},
+				},
+			},
+			ROUTE_axis_left_mat = 
+			{
+				ROUTE_axis_left_2 = 
+				{
+					Weight = 3,
+					ROUTE_axis_left_1 = 
+					{
+						Weight = 2,
+						ROUTE_axis_sneak_left = {},
+						ROUTE_axis_spawn = {},
+						ROUTE_axis_left_under = {},						
+					},
+					ROUTE_axis_left_pond_1 = 
+					{
+						ROUTE_axis_spawn = {},
+						ROUTE_axis_left_under = {},						
+					},
+					ROUTE_axis_left_under = {},
+					ROUTE_axis_sneak_left = {},
+				},
+				ROUTE_axis_left_pond_2 = 
+				{
+					ROUTE_axis_left_pond_1 = 
+					{
+						Weight = 2,
+						ROUTE_axis_spawn = {},
+						ROUTE_axis_left_under = {},
+						ROUTE_axis_sneak_left = {},
+					},
+					ROUTE_axis_left_1 = 
+					{
+						ROUTE_axis_spawn = {},
+						ROUTE_axis_left_under = {},
+						ROUTE_axis_sneak_left = {},
+					},
+					ROUTE_axis_left_under = {},					
+				},
+				ROUTE_water_1 = 
+				{
+					ROUTE_axis_spawn = {},
+					ROUTE_axis_right_under = {},
+					ROUTE_axis_left_under = {},
+				},
+			},
+		},
+		CAPPOINT_allied_eng = 
+		{
+			ROUTE_allied_right_mat = 
+			{
+				ROUTE_allied_right_2 = 
+				{
+					Weight = 3,
+					ROUTE_allied_right_1 = 
+					{
+						Weight = 2,
+						ROUTE_allied_sneak_right = {},
+						ROUTE_allied_spawn = {},
+						ROUTE_allied_right_under = {},
+					},
+					ROUTE_allied_right_pond_1 = 
+					{
+						ROUTE_allied_sneak_right = {},
+						ROUTE_allied_spawn = {},
+						ROUTE_allied_right_under = {},
+					},
+					ROUTE_allied_right_under = {},
+					ROUTE_allied_sneak_right = {},
+				},
+				ROUTE_allied_right_pond_2 = 
+				{
+					ROUTE_allied_right_pond_1 = 
+					{
+						Weight = 2,
+						ROUTE_allied_spawn = {},
+						ROUTE_allied_right_under = {},
+						ROUTE_allied_sneak_right = {},
+					},
+					ROUTE_allied_right_1 = 
+					{
+						ROUTE_allied_sneak_right = {},
+						ROUTE_allied_spawn = {},
+						ROUTE_allied_right_under = {},
+					},
+					ROUTE_allied_right_under = {},					
+				},
+				ROUTE_water_1 = 
+				{
+					ROUTE_allied_spawn = {},
+					ROUTE_allied_right_under = {},
+					ROUTE_allied_left_under = {},
+				},
+			},
+			ROUTE_allied_left_mat = 
+			{
+				ROUTE_allied_left_2 = 
+				{
+					Weight = 3,
+					ROUTE_allied_left_1 = 
+					{
+						Weight = 2,
+						ROUTE_allied_sneak_left = {},
+						ROUTE_allied_spawn = {},
+						ROUTE_allied_left_under = {},
+					},
+					ROUTE_allied_left_pond_1 = 
+					{
+						ROUTE_allied_sneak_left = {},
+						ROUTE_allied_spawn = {},
+						ROUTE_allied_left_under = {},
+					},
+					ROUTE_allied_left_under = {},
+					ROUTE_allied_sneak_left = {},
+				},
+				ROUTE_allied_left_pond_2 = 
+				{
+					ROUTE_allied_left_pond_1 = 
+					{
+						Weight = 2,
+						ROUTE_allied_spawn = {},
+						ROUTE_allied_left_under = {},
+					},
+					ROUTE_allied_left_1 = 
+					{
+						ROUTE_allied_sneak_left = {},
+						ROUTE_allied_spawn = {},
+						ROUTE_allied_left_under = {},
+					},
+					ROUTE_allied_left_under = {},					
+				},
+				ROUTE_water_1 = 
+				{
+					ROUTE_allied_spawn = {},
+					ROUTE_allied_right_under = {},
+					ROUTE_allied_left_under = {},
+				},
+			},
+		},
+	};
+	
+	MapRoutes.CAPPOINT_axis_tower = MapRoutes.CAPPOINT_axis_eng;
+	MapRoutes.CAPPOINT_axis_right_wall = MapRoutes.CAPPOINT_axis_eng;
+	MapRoutes.CAPPOINT_axis_forward_wall = MapRoutes.CAPPOINT_axis_eng;
+	MapRoutes.CAPPOINT_axis_med = MapRoutes.CAPPOINT_axis_eng;
+	MapRoutes.CAPPOINT_axis_tac = MapRoutes.CAPPOINT_axis_eng;
+	MapRoutes.CAPPOINT_axis_spawn = MapRoutes.CAPPOINT_axis_eng;
+	MapRoutes.CAPPOINT_axis_gate = MapRoutes.CAPPOINT_axis_eng;
+	MapRoutes.CAPPOINT_axis_arm = MapRoutes.CAPPOINT_axis_eng;
+	MapRoutes.CAPPOINT_axis_left_wall = MapRoutes.CAPPOINT_axis_eng;
+
+	MapRoutes.CAPPOINT_allied_tower = MapRoutes.CAPPOINT_allied_eng;
+	MapRoutes.CAPPOINT_allied_right_wall = MapRoutes.CAPPOINT_allied_eng;
+	MapRoutes.CAPPOINT_allied_forward_wall = MapRoutes.CAPPOINT_allied_eng;
+	MapRoutes.CAPPOINT_allied_med = MapRoutes.CAPPOINT_allied_eng;
+	MapRoutes.CAPPOINT_allied_tac = MapRoutes.CAPPOINT_allied_eng;
+	MapRoutes.CAPPOINT_allied_spawn = MapRoutes.CAPPOINT_allied_eng;
+	MapRoutes.CAPPOINT_allied_gate = MapRoutes.CAPPOINT_allied_eng;
+	MapRoutes.CAPPOINT_allied_arm = MapRoutes.CAPPOINT_allied_eng;
+	MapRoutes.CAPPOINT_allied_left_wall = MapRoutes.CAPPOINT_allied_eng;
+	
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{	
+	if ( bot.GetTeam() == TEAM.ALLIES )
+	{
+		bot.ChangeSpawnPoint( 0 );
+	}
+	Util.MapDebugPrint( bot.Name + " joined the map." );
+};

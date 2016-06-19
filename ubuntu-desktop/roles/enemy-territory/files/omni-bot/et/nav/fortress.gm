@@ -1,0 +1,625 @@
+/********************************************************
+Script and waypoints made by  >WES< P!NNAN & >WES< GRANNY
+********************************************************/
+
+
+global Map =
+{
+	ShowMovers = false,
+	Debug = false,
+	Quiet = true,
+	
+	Ammo_Cabinet_north_ammocabinet = "AMMOCAB_north_ammocabinet",
+	Health_Cabinet_north_healthcabinet = "HEALTHCAB_north_healthcabinet",
+	Call_Artillery_ar_al_call_bridge = "CALLARTILLERY_ar_al_call_bridge",
+	Call_Artillery_ar_al_call_left_tower = "CALLARTILLERY_ar_al_call_left_tower",
+	Call_Artillery_ar_al_call_right_tower = "CALLARTILLERY_ar_al_call_right_tower",
+	Call_Artillery_ar_ax_call_corner = "CALLARTILLERY_ar_ax_call_corner",
+	Call_Artillery_ar_ax_call_left_tower = "CALLARTILLERY_ar_ax_call_left_tower",
+	Call_Artillery_ar_ax_call_leftwindow = "CALLARTILLERY_ar_ax_call_leftwindow",
+	Call_Artillery_ar_ax_call_mg_1 = "CALLARTILLERY_ar_ax_call_mg_1",
+	Call_Artillery_ar_ax_call_right_tower = "CALLARTILLERY_ar_ax_call_right_tower",
+	Artillery_S_ar_al_corner = "ARTILLERY_S_ar_al_corner",
+	Artillery_S_ar_al_left_tower = "ARTILLERY_S_ar_al_left_tower",
+	Artillery_S_ar_al_right_tower = "ARTILLERY_S_ar_al_right_tower",
+	Artillery_S_ar_ax_bridge = "ARTILLERY_S_ar_ax_bridge",
+	Artillery_S_ar_ax_corner = "ARTILLERY_S_ar_ax_corner",
+	Artillery_S_ar_ax_fortress_exit = "ARTILLERY_S_ar_ax_fortress_exit",
+	Artillery_S_ar_ax_hill_left = "ARTILLERY_S_ar_ax_hill_left",
+	Artillery_S_ar_ax_hill_right = "ARTILLERY_S_ar_ax_hill_right",
+	Build_Command_Post = "BUILD_Command_Post",
+	Build_Tank = "BUILD_Tank",
+	Build_assault_ramp = "BUILD_assault_ramp",
+	Build_castle_bridge = "BUILD_castle_bridge",
+	Build_footbridge = "BUILD_footbridge",
+	Build_tank_barrier = "BUILD_tank_barrier",
+	Plant_Axis_HQ = "PLANT_Axis_HQ",
+	Plant_Command_Post = "PLANT_Command_Post",
+	Plant_assault_ramp = "PLANT_assault_ramp",
+	Plant_castle_bridge = "PLANT_castle_bridge",
+	Plant_castle_wall = "PLANT_castle_wall",
+	Plant_footbridge = "PLANT_footbridge",
+	Plant_tank_barrier = "PLANT_tank_barrier",
+	Mount_mg42_axisHQ = "MOUNTMG42_mg42_axisHQ",
+	Mount_mg42_bridge = "MOUNTMG42_mg42_bridge",
+	Mount_mg42_village = "MOUNTMG42_mg42_village",
+	Repair_mg42_axisHQ = "REPAIRMG42_mg42_axisHQ",
+	Repair_mg42_bridge = "REPAIRMG42_mg42_bridge",
+	Repair_mg42_village = "REPAIRMG42_mg42_village",
+	Mobile_MG42_mg_al_1 = "MOBILEMG42_mg_al_1",
+	Mobile_MG42_mg_al_2 = "MOBILEMG42_mg_al_2",
+	Mobile_MG42_mg_ax_wall = "MOBILEMG42_mg_ax_wall",
+	Mobile_MG42_mg_radio_1 = "MOBILEMG42_mg_radio_1",
+	Mobile_MG42_mg_radio_2 = "MOBILEMG42_mg_radio_2",
+	Mobile_MG42_mg_street_1 = "MOBILEMG42_mg_street_1",
+	Mobile_MG42_mg_street_2 = "MOBILEMG42_mg_street_2",
+	Mobile_MG42_mg_street_3 = "MOBILEMG42_mg_street_3",
+	Snipe_s_right_tower = "SNIPE_s_right_tower",
+	Snipe_s_bridge = "SNIPE_s_bridge",
+	Mover_tank = "MOVER_tank",
+	Mount_tank = "MOUNT_tank",
+	
+	Navigation =
+	{
+		southplankpt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 3);
+				sleep(3);
+			},			
+		},
+		westplankpt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 3);
+				sleep(3);
+			},			
+		},
+		eastplankpt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 3);
+				sleep(3);
+			},			
+		},
+	},
+
+	Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Built" );
+	},
+
+	Tank_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Tank_Built" );
+	},
+	
+	Tank_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		//center it every time it is damaged
+		Util.SetPositionGoal( Map.Build_Tank, Map.Mover_tank );
+		
+		if ( Map.Checkpoint_1 )
+		{ Util.SetGoalOffset( 0, -120, 0, Map.Build_Tank ); }
+
+		Util.MapDebugPrint( "Tank_Destroyed" );
+	},
+	
+	allies_steal_tank = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Groups.DisableAllies(Groups.group3);
+		Groups.DisableAxis(Groups.group4);
+		Groups.EnableAllies(Groups.group5);
+		Groups.EnableAxis(Groups.group6);
+
+		Util.MapDebugPrint( "allies have stolen the tank" );
+	},
+	
+	tank_reaches_checkpoint_1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.Checkpoint_1 = true;
+
+		Util.MapDebugPrint( "Tank_reaches_checkpoint_1" );
+	},
+	
+	tank_reaches_corner = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Groups.DisableAllies(Groups.group5);
+		Groups.DisableAxis(Groups.group6);
+		Groups.EnableAllies(Groups.group7);
+		Groups.EnableAxis(Groups.group8);	
+		
+		Util.MapDebugPrint( "Tank_reaches_corner" );
+	},
+
+	assault_ramp_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "assault_ramp_Built" );
+	},
+
+	castle_bridge_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "castle_bridge_Built" );
+	},
+
+	footbridge_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "footbridge_Built" );
+	},
+
+	tank_barrier_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "tank_barrier_Built" );
+	},
+
+	Axis_HQ_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_HQ_Destroyed" );
+	},
+
+	Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Destroyed" );
+	},
+
+	assault_ramp_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "assault_ramp_Destroyed" );
+	},
+
+	castle_bridge_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "castle_bridge_Destroyed" );
+	},
+
+	castle_wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Groups.DisableAllies(Groups.group1);
+		Groups.DisableAxis(Groups.group2);
+		Groups.EnableAllies(Groups.group3);
+		Groups.EnableAxis(Groups.group4);
+
+		Util.MapDebugPrint( "castle_wall_Destroyed" );
+	},
+
+	footbridge_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "footbridge_Destroyed" );
+	},
+
+	tank_barrier_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "tank_barrier_Destroyed" );
+	},
+	
+	blow_doors = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Groups.DisableAllies(Groups.group7);
+		Groups.DisableAxis(Groups.group8);
+		Groups.EnableAllies(Groups.group9);
+		Groups.EnableAxis(Groups.group10);
+
+		Util.MapDebugPrint( "Bankdoor_destroyed" );
+	},
+	
+	tank_at_location = function(trigger)
+	{
+		switch(Map.VehicleLocation)
+		{
+			case 1:
+			{
+				ETUtil.SetExcludeIndexes( "BUILD_Tank", {1,2,3,4} );
+				ETUtil.SetExcludeIndexes( "MOUNT_tank", {1,2,3,4} );			
+				Map.tank_reaches_checkpoint_1();
+			}
+			case 2:
+			{
+				Map.tank_reaches_corner();
+			}
+		}
+		Util.MapDebugPrint("tank at location " + Map.VehicleLocation, true);
+	},
+
+	tank_left_location = function(trigger)
+	{
+		switch(Map.VehicleLocation)
+		{
+			case 1:
+			{
+				ETUtil.SetExcludeIndexes( "BUILD_Tank" );
+				ETUtil.SetExcludeIndexes( "MOUNT_tank" );
+			}
+		}
+		Util.MapDebugPrint("tank left location " + Map.VehicleLocation, true);
+	},	
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Command_Post_Built );
+	OnTrigger( "The Tank has been repaired!", Map.Tank_Built );
+	OnTrigger( "The Tank has been damaged!", Map.Tank_Destroyed );
+	OnTrigger( "Allied team has stolen the Tank!", Map.allies_steal_tank );
+	OnTrigger( "Allies have constructed the assault ramp!", Map.assault_ramp_Built );
+	OnTrigger( "Allies have constructed the castle bridge!", Map.castle_bridge_Built );
+	OnTrigger( "Allies have constructed the footbridge!", Map.footbridge_Built );
+	OnTrigger( "Axis have constructed the tank barrier!", Map.tank_barrier_Built );
+	OnTrigger( "Allies have destroyed the Axis HQ!", Map.Axis_HQ_Destroyed );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Command_Post_Destroyed );
+	OnTrigger( "Axis have destroyed the assault ramp!", Map.assault_ramp_Destroyed );
+	OnTrigger( "Axis have destroyed the castle bridge!", Map.castle_bridge_Destroyed );
+	OnTrigger( "Allies have breached the castle wall!", Map.castle_wall_Destroyed );
+	OnTrigger( "Axis have destroyed the footbridge!", Map.footbridge_Destroyed );
+	OnTrigger( "Allies have destroyed the tank barrier!", Map.tank_barrier_Destroyed );
+	OnTrigger( "Allied team has destroyed the Bank Doors!", Map.blow_doors );
+	OnTrigger( "tank at location", Map.tank_at_location );
+	OnTrigger( "tank left location", Map.tank_left_location );
+	
+	//set up a positional trigger for the tank
+	location1 = OnTriggerRegion(AABB(-192.875,2849.909,319.125,64.875,3009.381,393.125),RegionTrigger.VehicleTrigger);
+	location2 = OnTriggerRegion(AABB(-196.874,5342.090,319.125,200.597,5615.575,439.042),RegionTrigger.VehicleTrigger);
+	
+	
+	//set offset for better reachable
+	Util.SetGoalOffset( 0, -60, -60, "PLANT_castle_wall" );
+	Util.SetGoalOffset( 0, -40, 0, "BUILD_footbridge" );
+	
+	//set max users for goals
+	Util.SetMaxUsersInProgress( 2, "BUILD.*" );
+	Util.SetMaxUsersInProgress( 2, "PLANT.*" );
+	Util.SetMaxUsersInProgress( 1, "SNIPE.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND.*" );
+	Util.SetMaxUsersInProgress( 1, "ATTACK.*" );
+	Util.SetMaxUsersInProgress( 1, "MOUNTMG42.*" );
+	Util.SetMaxUsersInProgress( 1, "MOBILEM.*" );
+	
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=120, MaxCampTime=120});
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=60, MaxCampTime=120});
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=30, MaxCampTime=60});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=60, MaxCampTime=120});
+
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+	
+	Util.EnableGoal("ROUTE.*"); //enable routing for both teams
+	
+	//enable part 1 goals
+	Groups.EnableAllies(Groups.group1);
+	Groups.EnableAxis(Groups.group2);
+	
+	//Routes
+	MapRoutes =
+	{
+		PLANT_castle_wall =
+		{
+			ROUTE_r_alliedspawn_1 =
+			{
+				ROUTE_r_lefttunnelexit = 
+				{
+					ROUTE_r_left_cliff = { ROUTE_r_left_tower = {}, },
+				},
+				ROUTE_r_righttunnelexit =
+				{
+					ROUTE_r_right_cliff = { ROUTE_r_right_tower = {}, },
+				},
+			},
+		},
+		
+		MOBILEMG42_mg_ax_wall =
+		{
+			ROUTE_r_axisspawn_1 =
+			{
+				ROUTE_r_left_exit =
+				{
+					ROUTE_r_tower_1 = { ROUTE_r_cp = {}, },
+				},
+			},
+		},
+		
+		BUILD_castle_bridge =
+		{
+			ROUTE_r_axisspawn_1 =
+			{
+				ROUTE_r_left_exit = { ROUTE_r_tower_1 = {}, },
+			},
+		},
+		
+		PLANT_Axis_HQ =
+		{
+			ROUTE_r_axisspawn_1 =
+			{
+				ROUTE_r_left_exit =
+				{
+					ROUTE_r_rightbridge =
+					{
+						ROUTE_r_split_1 =
+						{
+							ROUTE_r_backyard = {},
+							ROUTE_r_split_2 = 
+							{
+								ROUTE_r_courtyard = {},
+								ROUTE_r_split_3 = {},
+							},
+						},
+					},
+					ROUTE_r_bridge =
+					{
+						ROUTE_r_street_2 = 
+						{
+							ROUTE_r_courtyard = {},
+							ROUTE_r_split_2 =
+							{
+								ROUTE_r_backyard = {},
+							},
+						},
+					},
+				},
+			},
+		},
+	};
+		
+	//copy some routes
+	MapRoutes.BUILD_assault_ramp = MapRoutes.PLANT_castle_wall;
+	MapRoutes.BUILD_Tank = MapRoutes.PLANT_castle_wall;
+	MapRoutes.ATTACK_a_radio_1 = MapRoutes.PLANT_Axis_HQ;
+	MapRoutes.ATTACK_a_radio_2 = MapRoutes.PLANT_Axis_HQ;
+	MapRoutes.ATTACK_a_radio_3 = MapRoutes.PLANT_Axis_HQ;
+	MapRoutes.ATTACK_a_radio_4 = MapRoutes.PLANT_Axis_HQ;
+	MapRoutes.ATTACK_a_radio_5 = MapRoutes.PLANT_Axis_HQ;
+	MapRoutes.ATTACK_a_radio_6 = MapRoutes.PLANT_Axis_HQ;
+	
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.MaxViewDistance = 2500;
+	bot.TargetBreakableDist = 100.0;
+	
+	//Sniper setting
+
+	if( class == CLASS.COVERTOPS )
+	{
+        	if ( bot.HasWeapon(WEAPON.K43) || bot.HasWeapon(WEAPON.GARAND))
+        	{
+          		bot.MaxViewDistance = 10000.0;
+        	}
+	}
+};
+
+global Groups =
+{
+	//allied part 1
+	group1 =
+	{
+		Map.Plant_castle_wall,
+		Map.Call_Artillery_ar_al_call_left_tower,
+		Map.Call_Artillery_ar_al_call_right_tower,
+		Map.Artillery_S_ar_al_left_tower,
+		Map.Artillery_S_ar_al_right_tower,
+		Map.Mount_mg42_bridge,
+		Map.Repair_mg42_bridge,
+		"MOBILEMORTAR_mo_al_start.*",
+		"ATTACK_a_right_cliff.*",
+		"ATTACK_a_left_cliff.*",
+		"ATTACK_a_right_pilar",
+		"ATTACK_a_left_pilar",
+	},
+
+	//axis part 1
+	group2 =
+	{
+		Map.Ammo_Cabinet_north_ammocabinet,
+		Map.Health_Cabinet_north_healthcabinet,
+		Map.Build_Command_Post,
+		Map.Call_Artillery_ar_ax_call_left_tower,
+		Map.Call_Artillery_ar_ax_call_right_tower,
+		Map.Artillery_S_ar_ax_hill_left,
+		Map.Artillery_S_ar_ax_hill_right,
+		Map.Snipe_s_right_tower,
+		Map.Mobile_MG42_mg_ax_wall,
+		"DEFEND_d_wall.*",
+		"MOBILEMORTAR_mo_ax_left_tower.*",
+		"MOBILEMORTAR_mo_ax_right_tower.*",
+	},
+	
+	//allied part 2
+	group3 =
+	{
+		Map.Build_assault_ramp,
+		Map.Build_Tank,
+		Map.Mover_tank,
+		Map.Mount_tank,
+		"ATTACK_a_tank.*",
+	},
+	
+	//axis part 2
+	group4 =
+	{
+		Map.Mobile_MG42_mg_ax_wall,
+		"DEFEND_d_wall_1",
+		"DEFEND_d_wall_2",
+		"DEFEND_d_wall_3",
+		"DEFEND_d_wall_4",
+		"DEFEND_d_wall_5",
+		"DEFEND_d_wall_10",
+		"DEFEND_d_tank.*",
+	},
+	
+	//allied part 3
+	group5 =
+	{
+		Map.Ammo_Cabinet_north_ammocabinet,
+		Map.Health_Cabinet_north_healthcabinet,
+		Map.Call_Artillery_ar_al_call_bridge,
+		Map.Artillery_S_ar_al_corner,
+		Map.Build_Tank,
+		Map.Mover_tank,
+		Map.Mount_tank,
+		Map.Plant_Command_Post,
+		Map.Build_Command_Post,
+		Map.Build_castle_bridge,
+		Map.Build_footbridge,
+		Map.Snipe_s_bridge,
+		"ATTACK_a_bridge.*",
+		"ATTACK_a_street.*",
+	},
+	
+	//axis part 3
+	group6 =
+	{
+		Map.Call_Artillery_ar_ax_call_leftwindow,
+		Map.Artillery_S_ar_ax_fortress_exit,
+		Map.Artillery_S_ar_ax_bridge,
+		Map.Build_tank_barrier,
+		Map.Plant_castle_bridge,
+		Map.Plant_footbridge,
+		Map.Mount_mg42_village,
+		Map.Repair_mg42_village,
+		Map.Mobile_MG42_mg_street_1,
+		Map.Mobile_MG42_mg_street_2,
+		Map.Mobile_MG42_mg_street_3,
+		"DEFEND_d_street.*",
+	},
+	
+	//allied part 4
+	group7 =
+	{
+		Map.Plant_tank_barrier,
+		Map.Build_Tank,
+		Map.Mover_tank,
+		Map.Mount_tank,
+		"ATTACK_a_courtyard.*",
+	},
+	
+	//axis part 4
+	group8 =
+	{
+		Map.Artillery_S_ar_ax_corner,
+		Map.Call_Artillery_ar_ax_call_corner,
+		Map.Mount_mg42_axisHQ,
+		Map.Repair_mg42_axisHQ,
+		"DEFEND_d_courtyard.*",
+	},
+	
+	//allied part 5
+	group9 =
+	{
+		Map.Plant_Axis_HQ,
+		Map.Mobile_MG42_mg_al_1,
+		Map.Mobile_MG42_mg_al_2,
+		"ATTACK_a_radio.*",
+	},
+	
+	//axis part5 
+	group10 =
+	{
+		Map.Artillery_S_ar_ax_corner,
+		Map.Call_Artillery_ar_ax_call_corner,
+		Map.Mount_mg42_axisHQ,
+		Map.Repair_mg42_axisHQ,
+		Map.Mobile_MG42_mg_radio_1,
+		Map.Mobile_MG42_mg_radio_2,
+		"DEFEND_d_courtyard.*",
+		"DEFEND_d_radio.*",
+	},
+		
+	EnableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, goal );
+			Util.MapDebugPrint("EnableAllies: enabling " + goal, true);
+		}
+	},
+	
+	EnableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, goal );
+			Util.MapDebugPrint("EnableAxis: enabling " + goal, true);
+		}
+	},
+
+	DisableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, goal );
+			Util.MapDebugPrint("DisableAllies: disabling " + goal, true);
+		}
+	},
+
+	DisableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, goal );
+			Util.MapDebugPrint("DisableAxis: disabling " + goal, true);
+		}
+	},	
+};

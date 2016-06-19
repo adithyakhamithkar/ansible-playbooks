@@ -1,0 +1,20 @@
+if (GetModName()!="noquarter") { return; }
+
+//////////////////////////////////////////////////////////////////////////
+// Overall weapon properties.
+WEAPON.KNIFE_KABAR = WEAPON.KNIFE; // don't change! this is intended
+
+this.Name = "Knife_kabar";
+this.WeaponId = WEAPON.KNIFE_KABAR;
+
+//////////////////////////////////////////////////////////////////////////
+// Set some weapon properties that affect some internal logic.
+this.PrimaryFire.WeaponType = "melee";
+this.PrimaryFire.RequiresAmmo = false;
+this.PrimaryFire.WaterProof = true;
+
+this.PrimaryFire.DefaultDesirability = 0.01;
+this.PrimaryFire.SetDesirabilityRange(0, 48, 0.2);
+this.PrimaryFire.SetDesirabilityRange(48, 130, 0.02);
+
+this.PrimaryFire.SetTargetBias(CLASS.BREAKABLE, 5.0);

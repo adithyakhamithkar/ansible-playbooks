@@ -1,0 +1,1309 @@
+if ( Mapgm == null )
+{
+	// Store it neatly under a global table.
+	global Mapgm = table();
+
+	global MapGoals = table();
+	global MapScript = table();
+	global MapTestScript = table();
+	global GameName = GetGameName();
+	global ModName = GetModName();
+
+	// Customize the following values:
+	global WriteMapGoalDef = false; // store goal names in Map table
+	global WriteDynoTriggers = true; // register plant/defuse events and store # of dynos planted
+	global DisableDynoAfterPlant = false; // disable plant goals when planted once, reenable on defuse
+	global AddRouteFunction = true; // add the InitializeRoute function with skeleton routing for primary goals
+
+	///////////////////////////////////////////////////////////////////////////////
+
+	Mapgm.GetGoalNameTable = function( GoalExp )
+	{
+		GoalTable = table();
+		TempTable = table();
+		ExpLength = GoalExp.Length() - 1;
+		CheckCharPos = ExpLength - 1;
+
+		GetGoals( GoalTable, 0, GoalExp );
+
+		foreach ( index and Goal in GoalTable )
+		{
+			GoalName = Goal.GetName();
+			CheckLMSPos = GoalName.Length() - 4;
+
+			if ( GoalName.Mid( CheckLMSPos, 4 ) == "_lms" )
+				{ continue; }
+
+			if ( GoalName.Mid( CheckCharPos, 1 ) != "_" )
+				{ continue; }
+
+			TempTable[ GoalName ] = GoalName;
+		}
+
+		GoalNameTable = tableSort( TempTable );
+
+		return GoalNameTable;
+	};
+
+	///////////////////////////////////////////////////////////////////////////////
+
+	Mapgm.GetGoalTable = function( GoalNameTable )
+	{
+		GoalTable = table();
+
+		foreach ( index and GoalName in GoalNameTable )
+			{ GoalTable[ index ] = GetGoal( GoalName ); }
+
+		return GoalTable;
+	};
+
+	///////////////////////////////////////////////////////////////////////////////
+	// The function will take an expression of goals and add prefixes
+	Mapgm.MakeGoalDef = function( FileTable, GoalExp, Prefix )
+	{
+		if ( !WriteMapGoalDef )
+			{ return; }
+
+		ExpLength = GoalExp.Length() - 1;
+		GoalNameTable = Mapgm.GetGoalNameTable( GoalExp );
+
+		AddToName = "";
+
+		if ( Prefix )
+			{ AddToName = Prefix; }
+
+		foreach ( index and GoalName in GoalNameTable )
+		{
+			NewName = AddToName + GoalName.RightAt( ExpLength );
+			Util.AddToTable( FileTable, "\t" + NewName + " = \"" + GoalName + "\"," );
+		}
+	};
+
+	///////////////////////////////////////////////////////////////////////////////
+	// The function will take a description and an expression of goals and output
+	// a goal comments gm script
+	Mapgm.MakeGoalTableComment = function( GoalDesc, GoalExp )
+	{
+		Team1Goals = table();
+		Team2Goals = table();
+		Team3Goals = table();
+		Team4Goals = table();
+
+		GoalNameTable = Mapgm.GetGoalNameTable( GoalExp );
+		GoalTable = Mapgm.GetGoalTable( GoalNameTable );
+
+		foreach ( index and Goal in GoalTable )
+		{
+			if ( Goal.IsAvailable( 1 ) && Util.HaveTeam[ 1 ] )
+				{ Util.AddToTable( Team1Goals, GoalNameTable[ index ] ); }
+
+			if ( Goal.IsAvailable( 2 ) && Util.HaveTeam[ 2 ] )
+				{ Util.AddToTable( Team2Goals, GoalNameTable[ index ] ); }
+
+			if ( Goal.IsAvailable( 3 ) && Util.HaveTeam[ 3 ] )
+				{ Util.AddToTable( Team3Goals, GoalNameTable[ index ] ); }
+
+			if ( Goal.IsAvailable( 4 ) && Util.HaveTeam[ 4 ] )
+				{ Util.AddToTable( Team4Goals, GoalNameTable[ index ] ); }
+		}
+
+		if ( tableCount( Team1Goals ) && Util.HaveTeam[ 1 ] )
+		{
+			teamname = Util.TeamNames[ 1 ][ 0 ];
+			Util.AddToTable( MapGoals, "\/\/ " + teamname + " " + GoalDesc );
+
+			foreach ( index and GoalName in Team1Goals )
+				{ Util.AddToTable( MapGoals, "\t" + GoalName ); }
+		}
+
+		if ( tableCount( Team2Goals ) && Util.HaveTeam[ 2 ] )
+		{
+			teamname = Util.TeamNames[ 2 ][ 0 ];
+			Util.AddToTable( MapGoals, "\/\/ " + teamname + " " + GoalDesc );
+
+			foreach ( index and GoalName in Team2Goals )
+				{ Util.AddToTable( MapGoals, "\t" + GoalName ); }
+		}
+
+		if ( tableCount( Team3Goals ) && Util.HaveTeam[ 3 ] )
+		{
+			teamname = Util.TeamNames[ 3 ][ 0 ];
+			Util.AddToTable( MapGoals, "\/\/ " + teamname + " " + GoalDesc );
+
+			foreach ( index and GoalName in Team3Goals )
+				{ Util.AddToTable( MapGoals, "\t" + GoalName ); }
+		}
+
+		if ( tableCount( Team4Goals ) && Util.HaveTeam[ 4 ] )
+		{
+			teamname = Util.TeamNames[ 4 ][ 0 ];
+			Util.AddToTable( MapGoals, "\/\/ " + teamname + " " + GoalDesc );
+
+			foreach ( index and GoalName in Team4Goals )
+				{ Util.AddToTable( MapGoals, "\t" + GoalName ); }
+		}
+	};
+
+	///////////////////////////////////////////////////////////////////////////////
+	// The function will take an expression of goals and output a trigger function
+	// in gm script
+	Mapgm.MakeOnTriggerFunctions = function( FileTable, GoalExp, Suffix )
+	{
+		GoalNameTable = Mapgm.GetGoalNameTable( GoalExp );
+		ExpLength = GoalExp.Length() - 1;
+		AddToName = "";
+
+		if ( Suffix )
+			{ AddToName = Suffix; }
+
+		foreach ( GoalName in GoalNameTable )
+		{
+			if ( GoalName.Mid( 0, 10 ) == "CHECKPOINT" )
+			{
+				for ( i = 1 ; i < 5 ; i += 1 )
+				{
+					if ( Util.HaveTeam[ i ] )
+					{
+						teamname = Util.TeamNames[ i ][ 1 ];
+						NewName = GoalName.RightAt( ExpLength );
+						NewName += "_" + teamname;
+						NewName += AddToName;
+						Util.AddToTable( FileTable, "\t" + NewName + " = function( trigger )" );
+						Util.AddToTable( FileTable, "\t{" );
+						Util.AddToTable( FileTable, "\t\tif ( TestMap )" );
+						Util.AddToTable( FileTable, "\t\t\t{ return; }" );
+						Util.AddToTable( FileTable, "" );
+						Util.AddToTable( FileTable, "\t\tUtil.MapDebugPrint( \"" + NewName + "\" );" );
+						Util.AddToTable( FileTable, "\t}," );
+						Util.AddToTable( FileTable, "" );
+					}
+				}
+
+				continue;
+			}
+
+			if ( Suffix == "_Planted" )
+			{
+				NewName = GoalName.RightAt( ExpLength );
+				NewName += AddToName;
+				Util.AddToTable( FileTable, "\t" + NewName + " = function( trigger )" );
+				Util.AddToTable( FileTable, "\t{" );
+				Util.AddToTable( FileTable, "\t\tif ( TestMap )" );
+				Util.AddToTable( FileTable, "\t\t\t{ return; }" );
+				Util.AddToTable( FileTable, "" );
+				dynoCounterChanged = false;
+				if ( DisableDynoAfterPlant )
+				{
+					mg = GetGoal( GoalName );
+					if ( mg.IsAvailable( 1 ) && Util.HaveTeam[ 1 ] )
+					{
+						Util.AddToTable( FileTable, "\t\tMap." + GoalName.RightAt( ExpLength ) + "_Dyno += 1;" );
+						if ( WriteMapGoalDef )
+							{ Util.AddToTable( FileTable, "\t\tSetAvailableMapGoals( TEAM." + Util.TeamNames[ 1 ][ 0 ] + ", false, " + "Map.Plant_" + GoalName.RightAt( ExpLength ) + " );" ); }
+						else
+							{ Util.AddToTable( FileTable, "\t\tSetAvailableMapGoals( TEAM." + Util.TeamNames[ 1 ][ 0 ] + ", false, " + "\"PLANT_" + GoalName.RightAt( ExpLength ) + "\" );" ); }
+						Util.AddToTable( FileTable, "" );
+						dynoCounterChanged = true;
+					}
+					if ( mg.IsAvailable( 2 ) && Util.HaveTeam[ 2 ] )
+					{
+						if ( WriteMapGoalDef )
+						{
+							if ( !dynoCounterChanged )
+								{ Util.AddToTable( FileTable, "\t\tMap." + GoalName.RightAt( ExpLength ) + "_Dyno += 1;" ); }
+							else
+								{ Util.AddToTable( FileTable, "\t\t\/\/ CHECK! Is this a valid goal for both teams?"); }
+							Util.AddToTable( FileTable, "\t\tSetAvailableMapGoals( TEAM." + Util.TeamNames[ 2 ][ 0 ] + ", false, " + "Map.Plant_" + GoalName.RightAt( ExpLength ) + " );" );
+							Util.AddToTable( FileTable, "" );
+						}
+						else
+						{
+							if ( !dynoCounterChanged )
+								{ Util.AddToTable( FileTable, "\t\tMap." + GoalName.RightAt( ExpLength ) + "_Dyno += 1;" ); }
+							else
+								{ Util.AddToTable( FileTable, "\t\t\/\/ CHECK! Is this a valid goal for both teams?"); }
+							Util.AddToTable( FileTable, "\t\tSetAvailableMapGoals( TEAM." + Util.TeamNames[ 2 ][ 0 ] + ", false, " + "\"PLANT_" + GoalName.RightAt( ExpLength ) + "\" );" );
+							Util.AddToTable( FileTable, "" );
+						}
+					}
+				}
+				else if ( WriteDynoTriggers )
+					{ Util.AddToTable( FileTable, "\t\tMap." + GoalName.RightAt( ExpLength ) + "_Dyno += 1;" ); }
+				Util.AddToTable( FileTable, "\t\tUtil.MapDebugPrint( \"" + NewName + "\" );" );
+				Util.AddToTable( FileTable, "\t}," );
+				Util.AddToTable( FileTable, "" );
+				continue;
+			}
+
+			if ( Suffix == "_Defused" )
+			{
+				NewName = GoalName.RightAt( ExpLength );
+				NewName += AddToName;
+				Util.AddToTable( FileTable, "\t" + NewName + " = function( trigger )" );
+				Util.AddToTable( FileTable, "\t{" );
+				Util.AddToTable( FileTable, "\t\tif ( TestMap )" );
+				Util.AddToTable( FileTable, "\t\t\t{ return; }" );
+				Util.AddToTable( FileTable, "" );
+				dynoCounterChanged = false;
+				if ( DisableDynoAfterPlant )
+				{
+					mg = GetGoal( GoalName );
+					if ( mg.IsAvailable( 1 ) && Util.HaveTeam[ 1 ] )
+					{
+						Util.AddToTable( FileTable, "\t\tMap." + GoalName.RightAt( ExpLength ) + "_Dyno -= 1;" );
+						Util.AddToTable( FileTable, "\t\tif ( Map." + GoalName.RightAt( ExpLength ) + "_Dyno < 1 )" );
+						if ( WriteMapGoalDef )
+							{ Util.AddToTable( FileTable, "\t\t\t{ SetAvailableMapGoals( TEAM." + Util.TeamNames[ 1 ][ 0 ] + ", true, Map.Plant_" + GoalName.RightAt( ExpLength ) + " ); }" ); }
+						else
+							{ Util.AddToTable( FileTable, "\t\t\t{ SetAvailableMapGoals( TEAM." + Util.TeamNames[ 1 ][ 0 ] + ", true, \"PLANT_" + GoalName.RightAt( ExpLength ) + "\" ); }" ); }
+						Util.AddToTable( FileTable, "" );
+						dynoCounterChanged = true;
+					}
+					if ( mg.IsAvailable( 2 ) && Util.HaveTeam[ 2 ] )
+					{
+						if ( WriteMapGoalDef )
+						{
+							if ( !dynoCounterChanged )
+								{ Util.AddToTable( FileTable, "\t\tMap." + GoalName.RightAt( ExpLength ) + "_Dyno -= 1;" ); }
+							else
+								{ Util.AddToTable( FileTable, "\t\t\/\/ CHECK! Is this a valid goal for both teams?"); }
+							Util.AddToTable( FileTable, "\t\tif ( Map." + GoalName.RightAt( ExpLength ) + "_Dyno < 1 )" );
+							Util.AddToTable( FileTable, "\t\t\t{ SetAvailableMapGoals( TEAM." + Util.TeamNames[ 2 ][ 0 ] + ", true, Map.Plant_" + GoalName.RightAt( ExpLength ) + " ); }" );
+							Util.AddToTable( FileTable, "" );
+						}
+						else
+						{
+							if ( !dynoCounterChanged )
+								{ Util.AddToTable( FileTable, "\t\tMap." + GoalName.RightAt( ExpLength ) + "_Dyno -= 1;" ); }
+							else
+								{ Util.AddToTable( FileTable, "\t\t\/\/ CHECK! Is this a valid goal for both teams?"); }
+							Util.AddToTable( FileTable, "\t\tif ( Map." + GoalName.RightAt( ExpLength ) + "_Dyno < 1 )" );
+							Util.AddToTable( FileTable, "\t\t\t{ SetAvailableMapGoals( TEAM." + Util.TeamNames[ 2 ][ 0 ] + ", true, \"PLANT_" + GoalName.RightAt( ExpLength ) + "\" ); }" );
+							Util.AddToTable( FileTable, "" );
+						}
+					}
+				}
+				else if ( WriteDynoTriggers )
+					{ Util.AddToTable( FileTable, "\t\tMap." + GoalName.RightAt( ExpLength ) + "_Dyno -= 1;" ); }
+				Util.AddToTable( FileTable, "\t\tUtil.MapDebugPrint( \"" + NewName + "\" );" );
+				Util.AddToTable( FileTable, "\t}," );
+				Util.AddToTable( FileTable, "" );
+				continue;
+			}
+
+			if ( Suffix == "_Destroyed" )
+			{
+				NewName = GoalName.RightAt( ExpLength );
+				NewName += AddToName;
+				Util.AddToTable( FileTable, "\t" + NewName + " = function( trigger )" );
+				Util.AddToTable( FileTable, "\t{" );
+				Util.AddToTable( FileTable, "\t\tif ( TestMap )" );
+				Util.AddToTable( FileTable, "\t\t\t{ return; }" );
+				Util.AddToTable( FileTable, "" );
+				if ( GameName == "Enemy Territory" && ( DisableDynoAfterPlant || WriteDynoTriggers ) )
+				{
+					mg = GetGoal( GoalName );
+					if ( (mg.IsAvailable( 1 ) && Util.HaveTeam[ 1 ]) || (mg.IsAvailable( 2 ) && Util.HaveTeam[ 2 ]) )
+					{
+						Util.AddToTable( FileTable, "\t\tMap." + GoalName.RightAt( ExpLength ) + "_Dyno = 0;" );
+						Util.AddToTable( FileTable, "" );
+					}
+				}
+				Util.AddToTable( FileTable, "\t\tUtil.MapDebugPrint( \"" + NewName + "\" );" );
+				Util.AddToTable( FileTable, "\t}," );
+				Util.AddToTable( FileTable, "" );
+				continue;
+			}
+
+			NewName = GoalName.RightAt( ExpLength );
+			checkalpha = NewName.Mid( 0, 1 );
+
+			if ( !( checkalpha < "0" || checkalpha > "9" ) )
+			{
+				NewName = GoalExp.Mid(0, ExpLength -1) + "_" +
+					GoalName.RightAt( ExpLength );
+			}
+
+			NewName += AddToName;
+			Util.AddToTable( FileTable, "\t" + NewName + " = function( trigger )" );
+			Util.AddToTable( FileTable, "\t{" );
+			Util.AddToTable( FileTable, "\t\tif ( TestMap )" );
+			Util.AddToTable( FileTable, "\t\t\t{ return; }" );
+			Util.AddToTable( FileTable, "" );
+			Util.AddToTable( FileTable, "\t\tUtil.MapDebugPrint( \"" + NewName + "\" );" );
+			Util.AddToTable( FileTable, "\t}," );
+			Util.AddToTable( FileTable, "" );
+		}
+	};
+
+	///////////////////////////////////////////////////////////////////////////////
+	// The function will take an expression of goals and output a trigger function
+	// in gm script
+	Mapgm.MakeTestMapOnTriggerFunctions = function( FileTable, GoalExp, Suffix )
+	{
+		GoalNameTable = Mapgm.GetGoalNameTable( GoalExp );
+		ExpLength = GoalExp.Length() - 1;
+		AddToName = "";
+
+		if ( Suffix )
+			{ AddToName = Suffix; }
+
+		foreach ( GoalName in GoalNameTable )
+		{
+			if ( GoalName.Mid( 0, 10 ) == "CHECKPOINT" )
+			{
+				for ( i = 1 ; i < 5 ; i += 1 )
+				{
+					if ( Util.HaveTeam[ i ] )
+					{
+						teamname = Util.TeamNames[ i ][ 1 ];
+						NewName = GoalName.RightAt( ExpLength );
+						NewName += "_" + teamname;
+						NewName += AddToName;
+						Util.AddToTable( FileTable, "\t" + NewName + " = function( trigger )" );
+						Util.AddToTable( FileTable, "\t{" );
+						Util.AddToTable( FileTable, "\t\tTestMap.Pass();" );
+						Util.AddToTable( FileTable, "" );
+						Util.AddToTable( FileTable, "\t\tUtil.MapDebugPrint( \"" + NewName + "\" );" );
+						Util.AddToTable( FileTable, "\t}," );
+						Util.AddToTable( FileTable, "" );
+					}
+				}
+
+				continue;
+			}
+
+			NewName = GoalName.RightAt( ExpLength );
+			checkalpha = NewName.Mid( 0, 1 );
+
+			if ( !( checkalpha < "0" || checkalpha > "9" ) )
+			{
+				NewName = GoalExp.Mid(0, ExpLength -1) + "_" +
+					GoalName.RightAt( ExpLength );
+			}
+
+			NewName += AddToName;
+			Util.AddToTable( FileTable, "\t" + NewName + " = function( trigger )" );
+			Util.AddToTable( FileTable, "\t{" );
+			Util.AddToTable( FileTable, "\t\tTestMap.Pass();" );
+			Util.AddToTable( FileTable, "" );
+			Util.AddToTable( FileTable, "\t\tUtil.MapDebugPrint( \"" + NewName + "\" );" );
+			Util.AddToTable( FileTable, "\t}," );
+			Util.AddToTable( FileTable, "" );
+		}
+	};
+
+	///////////////////////////////////////////////////////////////////////////////
+	// The function will take an expression of goals and output a trigger call in gm
+	// script
+	Mapgm.MakeOnTriggerCalls = function( FileTable, GoalExp, Suffix )
+	{
+		GoalNameTable = Mapgm.GetGoalNameTable( GoalExp );
+		GoalTable = Mapgm.GetGoalTable( GoalNameTable );
+		ExpLength = GoalExp.Length() - 1;
+		AddToName = "";
+
+		if ( Suffix )
+			{ AddToName = Suffix; }
+
+		foreach ( index and GoalName in GoalNameTable )
+		{
+			if ( ModName == "Fortress Forever" ||
+				ModName == "Team Fortress" ||
+				ModName == "openfortress" )
+			{
+				if ( GoalName.Mid( 0, 5 ) == "FLAG_" )
+				{
+					FunctionString = GoalName.RightAt( 5 );
+					NewName = GoalName.RightAt( ExpLength );
+					NewName += AddToName;
+					Util.AddToTable( FileTable, "\tOnTrigger( \"Flag " +
+						FunctionString + " pickedup\", Map." + NewName + " );" );
+					continue;
+				}
+
+				if ( GoalName.Mid( 0, 9 ) == "CAPPOINT_" )
+				{
+					NewName = GoalName.RightAt( ExpLength );
+					NewName += AddToName;
+
+					for ( i = 1 ; i < 5 ; i += 1 )
+					{
+						if ( Util.HaveTeam[ i ] &&
+						     !GoalTable[ index ].IsAvailable( i ) )
+						{
+							FunctionString = Util.TeamNames[ i ][ 2 ];
+							Util.AddToTable( FileTable,
+								"\tOnTrigger( \"Flag " +
+								FunctionString + "_flag returned\", Map."
+								+ NewName + " );" );
+						}
+					}
+					continue;
+				}
+			}
+
+			if ( GoalName.Mid( 0, 10 ) == "CHECKPOINT" )
+			{
+				for ( i = 1 ; i < 5 ; i += 1 )
+				{
+					if ( Util.HaveTeam[ i ] )
+					{
+						teamname = Util.TeamNames[ i ][ 1 ];
+						NewName = GoalName.RightAt( ExpLength );
+						NewName += "_" + teamname;
+						NewName += AddToName;
+						Util.AddToTable( FileTable,
+							"\tOnTrigger( \"MISSING_STRING\", " +
+							"Map." + NewName + " );" );
+					}
+				}
+
+				continue;
+			}
+
+			if ( Suffix == "_Planted" )
+			{
+				NewName = GoalName.RightAt( ExpLength );
+				NewName += AddToName;
+				if ( GoalName == "PLANT_Allied_Command_Post" )
+				{
+					Util.AddToTable( FileTable, "\tOnTrigger( \"Planted at the Allied Command Post.\", " + "Map." + NewName + " );" );
+					continue;
+				}
+				if ( GoalName == "PLANT_Axis_Command_Post" )
+				{
+					Util.AddToTable( FileTable, "\tOnTrigger( \"Planted at the Axis Command Post.\", " + "Map." + NewName + " );" );
+					continue;
+				}
+				else
+				{
+					Util.AddToTable( FileTable, "\tOnTrigger( \"Planted at the MISSING_STRING.\", " + "Map." + NewName + " );" );
+					continue;
+				}
+			}
+
+			if ( Suffix == "_Defused" )
+			{
+				NewName = GoalName.RightAt( ExpLength );
+				NewName += AddToName;
+				if ( GoalName == "PLANT_Allied_Command_Post" )
+				{
+					Util.AddToTable( FileTable, "\tOnTrigger( \"Defused at the Allied Command Post.\", " + "Map." + NewName + " );" );
+					continue;
+				}
+				if ( GoalName == "PLANT_Axis_Command_Post" )
+				{
+					Util.AddToTable( FileTable, "\tOnTrigger( \"Defused at the Axis Command Post.\", " + "Map." + NewName + " );" );
+					continue;
+				}
+				else
+				{
+					Util.AddToTable( FileTable, "\tOnTrigger( \"Defused at the MISSING_STRING.\", " + "Map." + NewName + " );" );
+					continue;
+				}
+			}
+
+			NewName = GoalName.RightAt( ExpLength );
+			checkalpha = NewName.Mid( 0, 1 );
+
+			if ( !( checkalpha < "0" || checkalpha > "9" ) )
+			{
+				NewName = GoalExp.Mid(0, ExpLength -1) + "_" +
+					GoalName.RightAt( ExpLength );
+			}
+
+			NewName += AddToName;
+			Util.AddToTable( FileTable,
+				"\tOnTrigger( \"MISSING_STRING\", Map." +
+				NewName + " );" );
+		}
+	};
+
+	///////////////////////////////////////////////////////////////////////////////
+	// The function will take an expression of goals and output a trigger call in gm
+	// script
+	Mapgm.MakeTestMapOnTriggerCalls = function( FileTable, GoalExp, Suffix )
+	{
+		GoalNameTable = Mapgm.GetGoalNameTable( GoalExp );
+		ExpLength = GoalExp.Length() - 1;
+		AddToName = "";
+
+		if ( Suffix )
+			{ AddToName = Suffix; }
+
+		FunctionString = "MISSING_STRING";
+		TestMapFunction = "TestMap.Pass";
+
+		foreach ( GoalName in GoalNameTable )
+		{
+			if ( ModName == "Fortress Forever" ||
+				ModName == "Team Fortress" ||
+				ModName == "openfortress" )
+			{
+				if ( GoalName.Mid( 0, 5 ) == "FLAG_" )
+				{
+					FunctionString = GoalName.RightAt( 5 );
+
+					if ( FunctionString == "blue_flag" ||
+					     FunctionString == "red_flag" ||
+					     FunctionString == "yellow_flag" ||
+					     FunctionString == "green_flag" ||
+					     FunctionString == "blueflag" ||
+					     FunctionString == "redflag" ||
+					     FunctionString == "yellowflag" ||
+					     FunctionString == "greenflag" ||
+					     FunctionString == "ball" )
+						{ TestMapFunction = "TestMap.OnFlag"; }
+					else
+						{ TestMapFunction = "TestMap.OnCPFlag"; }
+
+					Util.AddToTable( FileTable, "\t\tOnTrigger( \"" +
+						FunctionString + "\", " + TestMapFunction + " );" );
+					continue;
+				}
+
+				if ( GoalName.Mid( 0, 9 ) == "CAPPOINT_" )
+				{
+					continue;
+				}
+			}
+
+			if ( GoalName.Mid( 0, 10 ) == "CHECKPOINT" )
+			{
+				for ( i = 1 ; i < 5 ; i += 1 )
+				{
+					if ( Util.HaveTeam[ i ] )
+					{
+						teamname = Util.TeamNames[ i ][ 1 ];
+						NewName = GoalName.RightAt( ExpLength );
+						NewName += "_" + teamname;
+						NewName += AddToName;
+						Util.AddToTable( FileTable,
+							"\t\tOnTrigger( \"MISSING_STRING\", Map." +
+							NewName + " );" );
+					}
+				}
+
+				continue;
+			}
+
+			NewName = GoalName.RightAt( ExpLength );
+			checkalpha = NewName.Mid( 0, 1 );
+
+			if ( !( checkalpha < "0" || checkalpha > "9" ) )
+			{
+				NewName = GoalExp.Mid(0, ExpLength -1) + "_" +
+					GoalName.RightAt( ExpLength );
+			}
+
+			NewName += AddToName;
+			Util.AddToTable( FileTable, "\t\tOnTrigger( \"" +
+				FunctionString + "\", Map." + NewName + " );" );
+		}
+	};
+
+	///////////////////////////////////////////////////////////////////////////////
+	// The function will take an expression of goals and output a runtest call in gm
+	// script
+	Mapgm.MakeRunTestCalls = function( ClassString, GoalExp, Prefix )
+	{
+		GoalNameTable = Mapgm.GetGoalNameTable( GoalExp );
+		GoalTable = Mapgm.GetGoalTable( GoalNameTable );
+		ExpLength = GoalExp.Length() - 1;
+		AddToName = "";
+
+		if ( Prefix )
+			{ AddToName = Prefix; }
+
+		for ( i = 1 ; i < 5 ; i += 1 )
+		{
+			if ( Util.HaveTeam[ i ] )
+			{
+				AddedGoals = false;
+				GoalTimeOut = 120;
+
+				foreach ( index and Goal in GoalTable )
+				{
+					GoalName = GoalNameTable[ index ];
+
+					if ( GoalName.Mid( 0, 6 ) == "SENTRY" )
+						{ GoalTimeOut = 180; }
+
+					NewName = AddToName +
+						GoalName.RightAt( ExpLength );
+
+					if ( Goal.IsAvailable( i ) )
+					{
+						teamname = "TEAM." + Util.TeamNames[ i ][ 0 ];
+						Util.AddToTable( MapTestScript,
+							"\t\tTestMap.RunTest( " + teamname +
+							", "+ ClassString + ", Map." + NewName +
+							", " + GoalTimeOut + " );" );
+						AddedGoals = true;
+					}
+				}
+
+				if ( AddedGoals )
+					{ Util.AddToTable( MapTestScript, "" ); }
+			}
+		}
+	};
+
+	///////////////////////////////////////////////////////////////////////////////
+
+	Mapgm.MakeCTFRunTestCalls = function()
+	{
+		FlagTable = table();
+		GetGoals( FlagTable, 0, "FLAG_.*" );
+		TotalFlags = tableCount( FlagTable );
+		CappointTable = table();
+		GetGoals( CappointTable, 0, "CAPPOINT_.*" );
+		TotalCappoints = tableCount( CappointTable );
+
+		if ( TotalFlags == 0 && TotalCappoints == 0 )
+			{ return; }
+
+		TotalTeams = 0;
+
+		if ( Util.HaveTeam[ 1 ] )
+			{ TotalTeams += 1; }
+
+		if ( Util.HaveTeam[ 2 ] )
+			{ TotalTeams += 1; }
+
+		if ( Util.HaveTeam[ 3 ] )
+			{ TotalTeams += 1; }
+
+		if ( Util.HaveTeam[ 4 ] )
+			{ TotalTeams += 1; }
+
+		//~ print("TotalTeams:", TotalTeams, "TotalFlags:", TotalFlags,
+			//~ "TotalCappoints:", TotalCappoints);
+
+		// Simple CTF or Simple CTF with a single flag (ball)
+		if ( ( TotalFlags == 1 ) || ( TotalCappoints == 1 ) ||
+		     ( TotalTeams == TotalFlags && TotalTeams == TotalCappoints ) )
+		{
+			for ( i = 1 ; i < 5 ; i += 1 )
+			{
+				if ( Util.HaveTeam[ i ] )
+				{
+					foreach ( j and FlagGoal in FlagTable )
+					{
+						if ( FlagGoal.IsAvailable( i ) )
+						{
+							FlagGoalName = FlagGoal.GetName();
+							FlagLength = FlagGoalName.Length() - 5;
+							FlagName = FlagGoalName.Mid( 5, FlagLength );
+
+							foreach ( k and CappointGoal in CappointTable )
+							{
+								if ( CappointGoal.IsAvailable( i ) )
+								{
+									teamname = "TEAM." + Util.TeamNames[ i ][ 0 ];
+									CappointGoalName = CappointGoal.GetName();
+									CappointLength = CappointGoalName.Length() - 9;
+									CappointName = CappointGoalName.Mid( 9, CappointLength );
+									Util.AddToTable( MapTestScript, "\t\tTestMap.RunTest( " +
+										teamname + ", " + Util.FlagCarrier + ", Map.Flag_" +
+										FlagName + ", 120 );" );
+									Util.AddToTable( MapTestScript, "\t\tTestMap.RunTest( " +
+										teamname + ", " + Util.FlagCarrier + ", Map.Cappoint_" +
+										CappointName + ", 120 );" );
+									Util.AddToTable( MapTestScript, "\t\tsleep( 2 );" );
+									Util.AddToTable( MapTestScript, "" );
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return;
+		}
+
+		// Simple CP CTF
+		if ( TotalFlags == TotalCappoints )
+		{
+			TempTable = table();
+
+			foreach ( i and Goal in FlagTable )
+				{ TempTable[ Goal.GetName() ] = Goal; }
+
+			FlagTableSorted = tableSort( TempTable, "key" );
+
+			TempTable = table();
+
+			foreach ( i and Goal in CappointTable )
+				{ TempTable[ Goal.GetName() ] = Goal; }
+
+			CappointTableSorted = tableSort( TempTable, "key" );
+
+			for ( i = 1 ; i < 5 ; i += 1 )
+			{
+				if ( Util.HaveTeam[ i ] )
+				{
+					Util.AddToTable( MapTestScript, "\t\tsleep( 45 );" );
+					foreach ( j and FlagGoalName in FlagTableSorted )
+					{
+						FlagGoal = GetGoal( FlagGoalName );
+						CappointGoalName = CappointTableSorted[ j ];
+						CappointGoal = GetGoal( CappointGoalName );
+
+						if ( FlagGoal.IsAvailable( i ) && CappointGoal.IsAvailable( i ) )
+						{
+							teamname = "TEAM." + Util.TeamNames[ i ][ 0 ];
+							FlagLength = FlagGoalName.Length() - 5;
+							FlagName = FlagGoalName.Mid( 5, FlagLength );
+							CappointLength = CappointGoalName.Length() - 9;
+							CappointName = CappointGoalName.Mid( 9, CappointLength );
+							Util.AddToTable( MapTestScript, "\t\tTestMap.RunTest( " +
+								teamname + ", " + Util.FlagCarrier + ", Map.Flag_" +
+								FlagName + ", 120 );" );
+							Util.AddToTable( MapTestScript, "\t\tTestMap.RunTest( " +
+								teamname + ", " + Util.FlagCarrier + ", Map.Cappoint_" +
+								CappointName + ", 120 );" );
+							Util.AddToTable( MapTestScript, "\t\tsleep( 15 );" );
+							Util.AddToTable( MapTestScript, "" );
+						}
+					}
+				}
+			}
+
+			return;
+		}
+
+		// No idea, pop em out
+		Mapgm.MakeRunTestCalls( Util.FlagCarrier, "FLAG.*", "Flag_" );
+		Mapgm.MakeRunTestCalls( Util.FlagCarrier, "CAPPOINT.*", "Cappoint_" );
+	};
+
+	///////////////////////////////////////////////////////////////////////////////
+
+	Mapgm.DecideTeams = function( _params )
+	{
+		if ( tableCount( _params ) > 0 )
+		{
+			Util.HaveTeam[ 1 ] = false;
+			Util.HaveTeam[ 2 ] = false;
+			Util.HaveTeam[ 3 ] = false;
+			Util.HaveTeam[ 4 ] = false;
+
+			foreach ( i and param in _params )
+			{
+				Util.HaveTeam[ param ] = true;
+			}
+		}
+	};
+
+	///////////////////////////////////////////////////////////////////////////////
+	// The function will create a map script template in gm script
+	Mapgm.MakeMapgm = function( _params )
+	{
+		Mapgm.DecideTeams( _params );
+		Util.ProcessMovers();
+
+		if ( GameName == "RTCW-MP" && GetGameType() == 7 )
+			{ MapName = GetMapName() + "_cp"; }
+		else
+			{ MapName = GetMapName(); }
+
+		gmName = MapName + ".gm";
+
+		// check for existence of file before possibly destroying something
+		if ( System.FileExists(gmName) )
+		{
+			print( "^8For security reasons, the make map gm script won't overwrite existing files." );
+			print( "^8Please delete the file " + gmName + " in the user directory and do /map_restart before creating a new one." );
+			tableClear( MapScript );
+			return;
+		}
+
+		Mapgm.MakeRevisionHeader( MapScript, gmName );
+		Util.AddToTable( MapScript, "global Map =" );
+		Util.AddToTable( MapScript, "{" );
+		Util.AddToTable( MapScript, "\tDebug = 1, \/\/ please set to zero before distributing your script" );
+		Util.AddToTable( MapScript, "\tShowMovers = false," );
+		Util.AddToTable( MapScript, "" );
+
+		if ( GameName == "Enemy Territory" && ( DisableDynoAfterPlant || WriteDynoTriggers ) )
+			{ Mapgm.AddDynoCounters( MapScript, "PLANT.*", "Plant_" ); }
+		Mapgm.MakeGoalDef( MapScript, "AMMOCAB.*", "Ammo_Cabinet_" );
+		Mapgm.MakeGoalDef( MapScript, "HEALTHCAB.*", "Health_Cabinet_" );
+		Mapgm.MakeGoalDef( MapScript, "CALLARTILLERY.*", "Call_Artillery_" );
+		Mapgm.MakeGoalDef( MapScript, "ARTILLERY.*", "Artillery_" );
+		Mapgm.MakeGoalDef( MapScript, "CHECKPOINT.*", "Checkpoint_" );
+		Mapgm.MakeGoalDef( MapScript, "FLAG.*", "Flag_" );
+		Mapgm.MakeGoalDef( MapScript, "CAPPOINT.*", "Cappoint_" );
+		Mapgm.MakeGoalDef( MapScript, "BUILD.*", "Build_" );
+		Mapgm.MakeGoalDef( MapScript, "PLANT.*", "Plant_" );
+		Mapgm.MakeGoalDef( MapScript, "EXPLODE.*", "Explode_" );
+		Mapgm.MakeGoalDef( MapScript, "MOUNTMG42.*", "Mount_" );
+		Mapgm.MakeGoalDef( MapScript, "REPAIRMG42.*", "Repair_" );
+		Mapgm.MakeGoalDef( MapScript, "MOBILEMG42.*", "Mobile_MG42_" );
+		Mapgm.MakeGoalDef( MapScript, "MOBILEMORTAR.*", "Mobile_Mortar_" );
+		Mapgm.MakeGoalDef( MapScript, "SNIPE.*", "Snipe_" );
+		Mapgm.MakeGoalDef( MapScript, "ATTACK.*", "Attack_" );
+		Mapgm.MakeGoalDef( MapScript, "DEFEND.*", "Defend_" );
+		Mapgm.MakeGoalDef( MapScript, "MOVER.*", "Mover_" );
+		Mapgm.MakeGoalDef( MapScript, "PLANTMINE.*", "Plant_Mine_" );
+		Mapgm.MakeGoalDef( MapScript, "SENTRY.*", "Sentry_" );
+		Mapgm.MakeGoalDef( MapScript, "DETPACK.*", "Detpack_" );
+		Mapgm.MakeGoalDef( MapScript, "PIPETRAP.*", "Pipetrap_" );
+
+		if ( WriteMapGoalDef )
+			{ Util.AddToTable( MapScript, "" ); }
+
+		Mapgm.MakeOnTriggerFunctions( MapScript, "BUILD.*", "_Built" );
+		if ( GameName == "Enemy Territory" && WriteDynoTriggers )
+		{
+			Mapgm.MakeOnTriggerFunctions( MapScript, "PLANT.*", "_Planted" );
+			Mapgm.MakeOnTriggerFunctions( MapScript, "PLANT.*", "_Defused" );
+		}
+		Mapgm.MakeOnTriggerFunctions( MapScript, "PLANT.*", "_Destroyed" );
+		Mapgm.MakeOnTriggerFunctions( MapScript, "DETPACK.*", "_Destroyed" );
+		Mapgm.MakeOnTriggerFunctions( MapScript, "FLAG.*", "_Taken" );
+		if ( GameName == "Enemy Territory" )
+		{
+			Mapgm.MakeOnTriggerFunctions( MapScript, "FLAG.*", "_Returned" );
+			Mapgm.MakeOnTriggerFunctions( MapScript, "FLAG.*", "_Secured" );
+		}
+		else
+			{ Mapgm.MakeOnTriggerFunctions( MapScript, "CAPPOINT.*", "_Captured" ); }
+		Mapgm.MakeOnTriggerFunctions( MapScript, "CHECKPOINT.*", "_Captured" );
+
+		Util.AddToTable( MapScript, "};" );
+		Util.AddToTable( MapScript, "" );
+
+		Util.AddToTable( MapScript, "global OnMapLoad = function()" );
+		Util.AddToTable( MapScript, "{" );
+		Util.AddToTable( MapScript, "\tif ( TestMapOn )" );
+		Util.AddToTable( MapScript, "\t\t{ Util.AutoTestMap(); }" );
+
+		Util.AddToTable( MapScript, "" );
+		Util.AddToTable( MapScript, "\t\/\/ Register callback functions" );
+
+		Mapgm.MakeOnTriggerCalls( MapScript, "BUILD.*", "_Built" );
+		if ( GameName == "Enemy Territory" && WriteDynoTriggers )
+		{
+			Mapgm.MakeOnTriggerCalls( MapScript, "PLANT.*", "_Planted" );
+			Mapgm.MakeOnTriggerCalls( MapScript, "PLANT.*", "_Defused" );
+		}
+		Mapgm.MakeOnTriggerCalls( MapScript, "PLANT.*", "_Destroyed" );
+		Mapgm.MakeOnTriggerCalls( MapScript, "DETPACK.*", "_Destroyed" );
+		Mapgm.MakeOnTriggerCalls( MapScript, "FLAG.*", "_Taken" );
+		if ( GameName == "Enemy Territory" )
+		{
+			Mapgm.MakeOnTriggerCalls( MapScript, "FLAG.*", "_Returned" );
+			Mapgm.MakeOnTriggerCalls( MapScript, "FLAG.*", "_Secured" );
+		}
+		else
+			{ Mapgm.MakeOnTriggerCalls( MapScript, "CAPPOINT.*", "_Captured" ); }
+		Mapgm.MakeOnTriggerCalls( MapScript, "CHECKPOINT.*", "_Captured" );
+
+		Util.AddToTable( MapScript, "" );
+		Util.AddToTable( MapScript, "\t\/\/~Util.DisableGoal( \".*\", true ); \/\/ all but routes" );
+
+		if ( Util.HaveTeam[ 1 ] )
+		{
+			Util.AddToTable( MapScript, "\t\/\/~SetAvailableMapGoals( TEAM." +
+				Util.TeamNames[ 1 ][ 0 ] + ", true, \"ATTACK_.*\" );" );
+		}
+
+		if ( Util.HaveTeam[ 2 ] )
+		{
+			Util.AddToTable( MapScript, "\t\/\/~SetAvailableMapGoals( TEAM." +
+				Util.TeamNames[ 2 ][ 0 ] + ", true, \"ATTACK_.*\" );" );
+		}
+
+		if ( Util.HaveTeam[ 3 ] )
+		{
+			Util.AddToTable( MapScript, "\t\/\/~SetAvailableMapGoals( TEAM." +
+				Util.TeamNames[ 3 ][ 0 ] + ", true, \"ATTACK_.*\" );" );
+		}
+
+		if ( Util.HaveTeam[ 4 ] )
+		{
+			Util.AddToTable( MapScript, "\t\/\/~SetAvailableMapGoals( TEAM." +
+				Util.TeamNames[ 4 ][ 0 ] + ", true, \"ATTACK_.*\" );" );
+		}
+
+		Util.AddToTable( MapScript, "" );
+
+		if ( GameName == "Enemy Territory" )
+		{
+			Util.AddToTable( MapScript, "\t\/\/ Max users per goal" );
+			Util.AddToTable( MapScript, "\t//Util.SetMaxUsers( 1, \"DEFEND_.*\" );" );
+			Util.AddToTable( MapScript, "\t//Util.SetMaxUsers( 1, \"GRENADE_.*\" );" );
+			Util.AddToTable( MapScript, "\t//Util.SetMaxUsers( 1, \"MOUNTMG42_.*\" );" );
+			Util.AddToTable( MapScript, "" );
+			Util.AddToTable( MapScript, "\t\/\/ Camp times" );
+			Util.AddToTable( MapScript, "\tSetMapGoalProperties( \"MOUNTMG42_.*\", {MinCampTime=15, MaxCampTime=90} );" );
+			Util.AddToTable( MapScript, "\tSetMapGoalProperties( \"MOBILEMG42_.*\", {MinCampTime=10, MaxCampTime=60} );" );
+			Util.AddToTable( MapScript, "" );
+		}
+
+		Util.AddToTable( MapScript, "" );
+
+		Util.AddToTable( MapScript, "\tUtil.MapDebugPrint( \"Omni-bot map script for \" + GetMapName() + \" executed.\" );" );
+
+		Util.AddToTable( MapScript, "};" );
+
+		Util.AddToTable( MapScript, "" );
+		Util.AddToTable( MapScript, "global OnBotJoin = function( bot )" );
+		Util.AddToTable( MapScript, "{" );
+		Util.AddToTable( MapScript, "\t\/\/ Uncomment for shootable breakables" );
+		Util.AddToTable( MapScript, "\t\/\/~bot.TargetBreakableDist = 90.0;" );
+		Util.AddToTable( MapScript, "\t\/\/ Only set MaxViewDistance on maps with limited sight (e.g. fog)" );
+		Util.AddToTable( MapScript, "\t\/\/~bot.MaxViewDistance = 2400;" );
+		Util.AddToTable( MapScript, "};" );
+		
+		if (AddRouteFunction)
+		{
+			Util.AddToTable( MapScript, "" );
+			Util.AddToTable( MapScript, "global InitializeRoutes = function()" );
+			Util.AddToTable( MapScript, "{" );
+			Util.AddToTable( MapScript, "\tMapRoutes =" );
+			Util.AddToTable( MapScript, "\t{" );
+
+			goals = Util.GoalTable(Util.PrimaryRouteGoalQuery, 0);
+			foreach ( goal in goals )
+			{
+				Util.AddToTable(MapScript, format("\t\t%s =", goal.GetName()));
+				Util.AddToTable(MapScript,"\t\t{");
+				Util.AddToTable(MapScript,"\t\t},");
+			}
+			
+			Util.AddToTable( MapScript, "\t};" );
+			Util.AddToTable( MapScript, "\tUtil.Routes(MapRoutes);" );
+			Util.AddToTable( MapScript, "};" );
+		}
+
+		gmfile = File();
+		assert( gmfile.Open( gmName, "text", false, false ), "^1Error writing to script file!" );
+
+		foreach( index and record in MapScript )
+		{
+			if ( record == "" )
+			{
+				assert( gmfile.Write( System.NewLine ), "^1Error writing to script file!" );
+				continue;
+			}
+
+			assert( gmfile.Write( record, System.NewLine ), "^1Error writing to script file!" );
+		}
+
+		print( "^gMap script template " + gmName + " created. File size: " + gmfile.FileSize() + " bytes." );
+		gmfile.Close();
+		tableClear( MapScript );
+	};
+
+	///////////////////////////////////////////////////////////////////////////////
+	// The function will create a test map script template in gm script
+	Mapgm.MakeTestMapgm = function( _params )
+	{
+		Mapgm.DecideTeams( _params );
+		Util.ProcessMovers();
+
+		if ( GameName == "RTCW-MP" && GetGameType() == 7 )
+			{ MapName = GetMapName() + "_cp"; }
+		else
+			{ MapName = GetMapName(); }
+
+		testName = MapName + "_test.gm";
+
+		Util.AddToTable( MapTestScript, "global Map =" );
+		Util.AddToTable( MapTestScript, "{" );
+		Util.AddToTable( MapTestScript, "\tMapName = \"" + MapName + "\"," );
+		Util.AddToTable( MapTestScript, "\tQuiet = true," );
+
+		Mapgm.MakeGoalDef( MapTestScript, "AMMOCAB.*", "Ammo_Cabinet_" );
+		Mapgm.MakeGoalDef( MapTestScript, "HEALTHCAB.*", "Health_Cabinet_" );
+		Mapgm.MakeGoalDef( MapTestScript, "CALLARTILLERY.*", "Call_Artillery_" );
+		Mapgm.MakeGoalDef( MapTestScript, "ARTILLERY.*", "Artillery_" );
+		Mapgm.MakeGoalDef( MapTestScript, "CHECKPOINT.*", "Checkpoint_" );
+		Mapgm.MakeGoalDef( MapTestScript, "FLAG.*", "Flag_" );
+		Mapgm.MakeGoalDef( MapTestScript, "CAPPOINT.*", "Cappoint_" );
+		Mapgm.MakeGoalDef( MapTestScript, "BUILD.*", "Build_" );
+		Mapgm.MakeGoalDef( MapTestScript, "PLANT.*", "Plant_" );
+		Mapgm.MakeGoalDef( MapTestScript, "EXPLODE.*", "Explode_" );
+		Mapgm.MakeGoalDef( MapTestScript, "MOUNTMG42.*", "Mount_" );
+		Mapgm.MakeGoalDef( MapTestScript, "REPAIRMG42.*", "Repair_" );
+		Mapgm.MakeGoalDef( MapTestScript, "MOBILEMG42.*", "Mobile_MG42_" );
+		Mapgm.MakeGoalDef( MapTestScript, "MOBILEMORTAR.*", "Mobile_Mortar_" );
+		Mapgm.MakeGoalDef( MapTestScript, "SNIPE.*", "Snipe_" );
+		Mapgm.MakeGoalDef( MapTestScript, "MOVER.*", "Mover_" );
+		Mapgm.MakeGoalDef( MapTestScript, "PLANTMINE.*", "Plant_Mine_" );
+		Mapgm.MakeGoalDef( MapTestScript, "SENTRY.*", "Sentry_" );
+		Mapgm.MakeGoalDef( MapTestScript, "DETPACK.*", "Detpack_" );
+		Mapgm.MakeGoalDef( MapTestScript, "PIPETRAP.*", "Pipetrap_" );
+
+		Util.AddToTable( MapTestScript, "" );
+
+		Mapgm.MakeTestMapOnTriggerFunctions( MapTestScript, "BUILD.*", "_Built" );
+		Mapgm.MakeTestMapOnTriggerFunctions( MapTestScript, "PLANT.*", "_Destroyed" );
+		Mapgm.MakeTestMapOnTriggerFunctions( MapTestScript, "DETPACK.*", "_Destroyed" );
+		Mapgm.MakeTestMapOnTriggerFunctions( MapTestScript, "FLAG.*", "_Taken" );
+		Mapgm.MakeTestMapOnTriggerFunctions( MapTestScript, "CAPPOINT.*", "_Captured" );
+		Mapgm.MakeTestMapOnTriggerFunctions( MapTestScript, "CHECKPOINT.*", "_Captured" );
+
+		Util.AddToTable( MapTestScript, "" );
+
+		Util.AddToTable( MapTestScript, "\tTests = function()" );
+		Util.AddToTable( MapTestScript, "\t{" );
+
+		Mapgm.MakeTestMapOnTriggerCalls( MapTestScript, "BUILD.*", "_Built" );
+		Mapgm.MakeTestMapOnTriggerCalls( MapTestScript, "PLANT.*", "_Destroyed" );
+		Mapgm.MakeTestMapOnTriggerCalls( MapTestScript, "DETPACK.*", "_Destroyed" );
+		Mapgm.MakeTestMapOnTriggerCalls( MapTestScript, "FLAG.*", "_Taken" );
+		Mapgm.MakeTestMapOnTriggerCalls( MapTestScript, "CAPPOINT.*", "_Captured" );
+		Mapgm.MakeTestMapOnTriggerCalls( MapTestScript, "CHECKPOINT.*", "_Captured" );
+
+		Util.AddToTable( MapTestScript, "" );
+
+		if ( Util.HaveTeam[ 1 ] )
+		{
+			Util.AddToTable( MapTestScript, "\t\tSetAvailableMapGoals( TEAM." +
+				Util.TeamNames[ 1 ][ 0 ] + ", false, \".*\" );" );
+		}
+
+		if ( Util.HaveTeam[ 2 ] )
+		{
+			Util.AddToTable( MapTestScript, "\t\tSetAvailableMapGoals( TEAM." +
+				Util.TeamNames[ 2 ][ 0 ] + ", false, \".*\" );" );
+		}
+
+		if ( Util.HaveTeam[ 3 ] )
+		{
+			Util.AddToTable( MapTestScript, "\t\tSetAvailableMapGoals( TEAM." +
+				Util.TeamNames[ 3 ][ 0 ] + ", false, \".*\" );" );
+		}
+
+		if ( Util.HaveTeam[ 4 ] )
+		{
+			Util.AddToTable( MapTestScript, "\t\tSetAvailableMapGoals( TEAM." +
+				Util.TeamNames[ 4 ][ 0 ] + ", false, \".*\" );" );
+		}
+
+		Util.AddToTable( MapTestScript, "" );
+		Util.AddToTable( MapTestScript, "\t\tSetGoalPriority( \".*\", 1.0 );" );
+
+		Util.AddToTable( MapTestScript, "" );
+		Util.AddToTable( MapTestScript, "\t\tif ( TestMap.DoObj )" );
+		Util.AddToTable( MapTestScript, "\t\t\t { Map.ObjectiveTests(); }" );
+		Util.AddToTable( MapTestScript, "" );
+		Util.AddToTable( MapTestScript, "\t\tif ( TestMap.DoSnipe )" );
+		Util.AddToTable( MapTestScript, "\t\t\t { Map.SnipeTests(); }" );
+
+		if ( ModName == "etmain" )
+		{
+			Util.AddToTable( MapTestScript, "" );
+			Util.AddToTable( MapTestScript, "\t\tif ( TestMap.DoMG42 )" );
+			Util.AddToTable( MapTestScript, "\t\t\t { Map.MobileMG42Tests(); }" );
+		}
+
+		if ( ModName == "Fortress Forever" ||
+				ModName == "Team Fortress" ||
+				ModName == "openfortress" )
+		{
+			Util.AddToTable( MapTestScript, "" );
+			Util.AddToTable( MapTestScript, "\t\tif ( TestMap.DoSentry )" );
+			Util.AddToTable( MapTestScript, "\t\t\t { Map.SentryTests(); }" );
+		}
+
+		Util.AddToTable( MapTestScript, "" );
+		Util.AddToTable( MapTestScript, "\t\tif ( TestMap.DoObj )" );
+		Util.AddToTable( MapTestScript, "\t\t\t { Map.LastObjectiveTest(); }" );
+
+		Util.AddToTable( MapTestScript, "\t}," );
+
+		Util.AddToTable( MapTestScript, "" );
+		Util.AddToTable( MapTestScript, "\tObjectiveTests = function()" );
+		Util.AddToTable( MapTestScript, "\t{" );
+		Mapgm.MakeRunTestCalls( "CLASS.ENGINEER", "CHECKPOINT.*", "Checkpoint_" );
+		Mapgm.MakeRunTestCalls( "CLASS.ENGINEER", "BUILD.*", "Build_" );
+		Mapgm.MakeRunTestCalls( "CLASS.ENGINEER", "PLANT.*", "Plant_" );
+		Mapgm.MakeRunTestCalls( "CLASS.DEMOMAN", "DETPACK.*", "Detpack_" );
+		Mapgm.MakeRunTestCalls( "CLASS.ENGINEER", "MOUNTMG42.*", "Mount_" );
+		Mapgm.MakeRunTestCalls( "CLASS.ENGINEER", "REPAIRMG42.*", "Repair_" );
+		Mapgm.MakeRunTestCalls( "CLASS.ENGINEER", "MOVER.*", "Mover_" );
+		Mapgm.MakeCTFRunTestCalls();
+		Util.AddToTable( MapTestScript, "\t}," );
+
+		Util.AddToTable( MapTestScript, "" );
+		Util.AddToTable( MapTestScript, "\tSnipeTests = function()" );
+		Util.AddToTable( MapTestScript, "\t{" );
+		Util.AddToTable( MapTestScript, "\t\tMap.OpenUpMap();" );
+		Mapgm.MakeRunTestCalls( Util.Sniper, "SNIPE.*", "Snipe_" );
+		Util.AddToTable( MapTestScript, "\t}," );
+
+		if ( ModName == "etmain" )
+		{
+			Util.AddToTable( MapTestScript, "" );
+			Util.AddToTable( MapTestScript, "\tMobileMG42Tests = function()" );
+			Util.AddToTable( MapTestScript, "\t{" );
+			Util.AddToTable( MapTestScript, "\t\tMap.OpenUpMap();" );
+			Mapgm.MakeRunTestCalls( "CLASS.SOLDIER", "MOBILEMG42.*", "Mobile_MG42_" );
+			Util.AddToTable( MapTestScript, "\t}," );
+		}
+
+		if ( ModName == "Fortress Forever" ||
+				ModName == "Team Fortress" ||
+				ModName == "openfortress" )
+		{
+			Util.AddToTable( MapTestScript, "" );
+			Util.AddToTable( MapTestScript, "\tSentryTests = function()" );
+			Util.AddToTable( MapTestScript, "\t{" );
+			Mapgm.MakeRunTestCalls( "CLASS.ENGINEER", "SENTRY.*", "Sentry_" );
+			Util.AddToTable( MapTestScript, "\t}," );
+		}
+
+		Util.AddToTable( MapTestScript, "" );
+		Util.AddToTable( MapTestScript, "\tLastObjectiveTest = function()" );
+		Util.AddToTable( MapTestScript, "\t{" );
+		Util.AddToTable( MapTestScript, "\t}," );
+
+		Util.AddToTable( MapTestScript, "" );
+		Util.AddToTable( MapTestScript, "\tOpenUpMap = function()" );
+		Util.AddToTable( MapTestScript, "\t{" );
+		Util.AddToTable( MapTestScript, "\t}," );
+
+		Util.AddToTable( MapTestScript, "};" );
+		Util.AddToTable( MapTestScript, "" );
+
+		Util.AddToTable( MapTestScript, "global OnBotJoin = function( bot )" );
+		Util.AddToTable( MapTestScript, "{" );
+		Util.AddToTable( MapTestScript, "\t\/\/~ bot.TargetBreakableDist = 300.0;" );
+		Util.AddToTable( MapTestScript, "\tteam = bot.GetTeam();" );
+		Util.AddToTable( MapTestScript, "\tclass = bot.GetClass();" );
+
+		if ( ModName == "etmain" )
+		{
+			Util.AddToTable( MapTestScript, "" );
+			Util.AddToTable( MapTestScript, "\tif ( class == CLASS.SOLDIER )" );
+			Util.AddToTable( MapTestScript, "\t\t{ bot.ChangePrimaryWeapon( WEAPON.MOBILE_MG42 ); }" );
+			Util.AddToTable( MapTestScript, "" );
+			Util.AddToTable( MapTestScript, "\tif ( class == CLASS.COVERTOPS )" );
+			Util.AddToTable( MapTestScript, "\t{" );
+			Util.AddToTable( MapTestScript, "\t\tif ( team == TEAM.ALLIES )" );
+			Util.AddToTable( MapTestScript, "\t\t\t{ bot.ChangePrimaryWeapon( WEAPON.GARAND ); }" );
+			Util.AddToTable( MapTestScript, "\t\telse if ( team == TEAM.AXIS )" );
+			Util.AddToTable( MapTestScript, "\t\t\t{ bot.ChangePrimaryWeapon( WEAPON.K43 ); }" );
+			Util.AddToTable( MapTestScript, "\t};" );
+		}
+
+		Util.AddToTable( MapTestScript, "};" );
+
+		testfile = File();
+		assert( testfile.Open( testName, "text", false ) );
+
+		foreach( index and record in MapTestScript )
+		{
+			if ( record == "" )
+			{
+				assert( testfile.Write( System.NewLine ) );
+				continue;
+			}
+
+			assert( testfile.Write( record, System.NewLine ) );
+		}
+
+		testfile.Close();
+	};
+
+	///////////////////////////////////////////////////////////////////////////////
+	// The function will create a list of map goals
+	Mapgm.MakeMapGoalList = function( _params )
+	{
+		Mapgm.DecideTeams( _params );
+		Util.ProcessMovers();
+		MapName = GetMapName();
+		goalsName = MapName + "_goals.txt";
+
+		Mapgm.MakeGoalTableComment( "Attack Goals", "ATTACK.*" );
+		Mapgm.MakeGoalTableComment( "Defend Goals", "DEFEND.*" );
+		Mapgm.MakeGoalTableComment( "Ammo Cabinet Goals", "AMMOCAB.*" );
+		Mapgm.MakeGoalTableComment( "Health Cabinet Goals", "HEALTHCAB.*" );
+		Mapgm.MakeGoalTableComment( "Call Artillery Goals", "CALLARTILLERY.*" );
+		Mapgm.MakeGoalTableComment( "Artillery Goals", "ARTILLERY.*" );
+		Mapgm.MakeGoalTableComment( "Checkpoint Goals", "CHECKPOINT.*" );
+		Mapgm.MakeGoalTableComment( "Flag Goals", "FLAG.*" );
+		Mapgm.MakeGoalTableComment( "Cappoint Goals", "CAPPOINT.*" );
+		Mapgm.MakeGoalTableComment( "Build Goals", "BUILD.*" );
+		Mapgm.MakeGoalTableComment( "Plant Goals", "PLANT.*" );
+		Mapgm.MakeGoalTableComment( "Mountable MG42 Goals", "MOUNTMG42.*" );
+		Mapgm.MakeGoalTableComment( "Repair MG42 Goals", "REPAIRMG42.*" );
+		Mapgm.MakeGoalTableComment( "Mobile MG42 Goals", "MOBILEMG42.*" );
+		Mapgm.MakeGoalTableComment( "Mobile Mortar Goals", "MOBILEMORTAR.*" );
+		Mapgm.MakeGoalTableComment( "Sniper Goals", "SNIPE.*" );
+		Mapgm.MakeGoalTableComment( "Mover Goals", "MOVER.*" );
+		Mapgm.MakeGoalTableComment( "Plant Mine Goals", "PLANTMINE.*" );
+		Mapgm.MakeGoalTableComment( "Sentry Goals", "SENTRY.*" );
+
+		goalsfile = File();
+		assert( goalsfile.Open( goalsName, "text", false ) );
+
+		foreach( index and record in MapGoals )
+		{
+			if ( record == "" )
+			{
+				assert( goalsfile.Write( System.NewLine ) );
+				continue;
+			}
+
+			assert( goalsfile.Write( record, System.NewLine ) );
+		}
+
+		goalsfile.Close();
+	};
+
+	///////////////////////////////////////////////////////////////////////////////
+	// The function will create a revision header and add it to the input table
+	Mapgm.MakeRevisionHeader = function( FileTable, filename )
+	{
+		playerName = GetEntityName( GetLocalEntity() );
+
+		headerstring = "//\tWho";
+		length = playerName.Length() - headerstring.Length();
+		// append spaces so tabs match up
+		for(i=1; i <=length; i += 1) { headerstring += " "; }
+		headerstring += "\tWhen\t\tWhat";
+
+		fileline = "//	" + filename;
+		Util.AddToTable( FileTable, "//==========================================================================================" );
+		Util.AddToTable( FileTable, "//" );
+		Util.AddToTable( FileTable, fileline );
+		Util.AddToTable( FileTable, "//" );
+		Util.AddToTable( FileTable, headerstring );
+		Util.AddToTable( FileTable, "//------------------------------------------------------------------------------------------" );
+		Util.AddToTable( FileTable, "//	" + playerName + "\t" + Util.TimeFormat("date") + "\tInitial Script");
+		Util.AddToTable( FileTable, "//" );
+		Util.AddToTable( FileTable, "//==========================================================================================" );
+		Util.AddToTable( FileTable, "//" );
+		Util.AddToTable( FileTable, "" );
+	};
+
+	///////////////////////////////////////////////////////////////////////////////
+	// The function will take an expression of goals and add dyno counters in the
+	// Map table in the script
+	Mapgm.AddDynoCounters = function( FileTable, GoalExp, Prefix )
+	{
+		ExpLength = GoalExp.Length() - 1;
+		GoalNameTable = Mapgm.GetGoalNameTable( GoalExp );
+
+		counter = 0;
+		foreach ( index and GoalName in GoalNameTable )
+		{
+			if ( Prefix == "Plant_")
+			{
+				DynoCounter = "\t" + GoalName.RightAt( ExpLength ) + "_Dyno = 0,";
+				Util.AddToTable( FileTable, DynoCounter );
+				counter += 1;
+			}
+		}
+		// only emit empty line if dyno counters were added
+		if ( counter > 0 )
+			{ Util.AddToTable( MapScript, "" ); }
+	};
+}

@@ -1,0 +1,21 @@
+EnableDebugWindow(true,1024,768);
+
+// Many things are handled via action listeners.
+// They are attached to other widgets and recieve callbacks
+// when actions are performed on those widgets.
+// One could use 1 listener for many different widgets if desired.
+listener = ActionListener();
+listener.OnAction = function(w,actionId)
+{
+	print("widget",w,"action",actionId);
+};
+
+// create a few simple widgets
+btn = Gui.AddPageButton("My Test Page");
+cnt = Gui.AddPageWindow("Test Window", btn);
+
+testBut = Button("Test Button");
+testBut.SetActionEventId("testbut");
+testBut.AddActionListener(listener);
+
+cnt.Add(testBut);

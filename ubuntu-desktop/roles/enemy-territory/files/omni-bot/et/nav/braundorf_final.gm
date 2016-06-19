@@ -1,0 +1,461 @@
+global Map =
+{
+	Ammo_Cabinet_south_ammocabinet = "AMMOCAB_south_ammocabinet",
+	Checkpoint_forward_spawn = "CHECKPOINT_forward_spawn",
+	Health_Cabinet_south_healthcabinet = "HEALTHCAB_south_healthcabinet",
+	Build_allied_cp_open = "BUILD_Command_Post",
+	BUILD_Side_Gate = "BUILD_Side_Gate",
+	Build_axis_cp_open = "BUILD_Command_Post",
+	Destroy_bunker_controls_script = "PLANT_Bunker_Controls",
+	Destroy_allied_cp_open = "PLANT_Command_Post",
+	Destroy_axis_cp_open = "PLANT_Command_Post",
+	Destroy_side_gate = "PLANT_Side_Gate",
+	Destroy_side_door_script = "PLANT_Side_Door",
+	Destroy_main_gate_script = "PLANT_Main_Gate",
+	Movers = { "MOVER_side_gate", "MOVER_side_gate_1" }, //construction materials
+
+	// Set Status' for conditionals
+	SideGateStatus = 1, //not built
+	SideDoorStatus = 0, //intact
+	MainGateStatus = 0, //intact
+	FlagStatus = 0, //0 nobody, 1 axis, 2 allies
+
+	// Dyno counters - used to determine defensive shifts
+	SideDoorDyno = 0,
+	MainGateDyno = 0,
+	ControlsDyno = 0,
+
+	DispenseHealthTime = 2,
+
+	allied_cp_open_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//allies should build cp before worrying about side gate
+		SetAvailableMapGoals( TEAM.ALLIES, true, "Map.Destroy_side_gate" );
+
+		//spawn some allies at the cp
+		Util.ChangeSpawn( TEAM.ALLIES, 4, 4 );
+
+		Util.MapDebugPrint( "allied_cp_open_Built" );
+	},
+
+	axis_cp_open_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "axis_cp_open_Built" );
+	},
+
+	side_gate_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.SideGateStatus = 0;
+
+		Server.MinClassCount[TEAM.ALLIES][CLASS.COVERTOPS] = 1;
+
+		Util.MapDebugPrint( "side_gate_Built" );
+	},
+
+	side_gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.SideGateStatus = 1;
+		Server.MinClassCount[TEAM.ALLIES][CLASS.COVERTOPS] = 0;
+
+		Util.MapDebugPrint( "side_gate_Destroyed" );
+	},
+
+	side_door_script_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//set status to destroyed
+		Map.SideDoorStatus = 1;
+
+		// Allied Goals
+
+		if ( Map.MainGateStatus == 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, Map.Destroy_bunker_controls_script );
+			SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_allied_cp_open );
+			SetAvailableMapGoals( TEAM.ALLIES, true, Map.Destroy_side_gate );
+		}
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Destroy_side_door_script );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Destroy_axis_cp_open );
+
+		// Axis Goals
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.BUILD_Side_Gate );
+
+		if ( Map.MainGateStatus < 1 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_axis_cp_open );
+		}
+
+		//shift to flex + inside gate
+		if ( Map.ControlsDyno < 1 )
+			{ SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Controls_Flex_.*" ); }
+
+		if ( Map.MainGateStatus < 1 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Inside_Gate_.*" );
+		}
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_FLAG_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_rFlag.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_rFlag.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Checkpoint_forward_spawn );
+
+		//some allies should start pushing through
+		SetAvailableMapGoals ( TEAM.ALLIES, true, "ATTACK_Controls_.*" );
+
+		Server.MinClassCount[TEAM.ALLIES][CLASS.COVERTOPS] = 1;
+
+		Util.MapDebugPrint( "side_door_script_Destroyed" );
+	},
+
+	main_gate_script_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//set status to destroyed
+		Map.MainGateStatus = 1;
+		Map.MainGateDyno = 0;
+
+		//running short on time, better focus on bunker controls
+		if (GetGameTimeLeft() < 90)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, Map.Destroy_bunker_controls_script );
+			SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_allied_cp_open );
+			SetAvailableMapGoals( TEAM.ALLIES, false, Map.Destroy_side_door_script );
+			SetAvailableMapGoals( TEAM.ALLIES, false, Map.Destroy_side_gate );
+		}
+		else
+		{
+			//make sure to concentrate on the side door
+			if ( Map.SideDoorStatus == 1 )
+			{
+				SetAvailableMapGoals( TEAM.ALLIES, true, Map.Destroy_bunker_controls_script );
+				SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_allied_cp_open );
+				SetAvailableMapGoals( TEAM.ALLIES, true, Map.Destroy_side_gate );
+			}
+		}
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Destroy_main_gate_script );
+
+		//shift axis defense
+		if (Map.ControlsDyno == 0)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Controls_Flex_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Controls_Base_.*" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Controls_Base_.*" );
+		}
+
+		//make sure the forward d groups are off
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_FLAG_.*" );
+
+		//turn off axis cp build
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_axis_cp_open );
+
+		//shift allies
+		SetAvailableMapGoals ( TEAM.ALLIES, true, "ATTACK_Controls_.*" );
+		SetAvailableMapGoals ( TEAM.ALLIES, false, "ATTACK_FLAG_.*" );
+
+		//allies shouldn't use these anymore
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Health_Cabinet_south_healthcabinet );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Ammo_Cabinet_south_ammocabinet );
+
+		Server.MinClassCount[TEAM.ALLIES][CLASS.COVERTOPS] = 1;
+
+		Util.MapDebugPrint( "main_gate_script_Destroyed" );
+
+		//wait a bit to turn these off
+		sleep(5);
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Inside_Gate_.*" );
+	},
+
+	bunker_controls_script_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "bunker_controls_script_Destroyed" );
+	},
+
+	allied_cp_open_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "allied_cp_open_Destroyed" );
+	},
+
+	axis_cp_open_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "axis_cp_open_Destroyed" );
+	},
+
+ 	Allies_Capture_Flag = function( trigger )
+ 	{
+ 		if ( TestMap )
+ 			{ return; }
+
+		Map.FlagStatus = 2;
+ 		Util.MapDebugPrint( "Allies_Capture_Flag" );
+ 	},
+
+ 	Axis_Capture_Flag = function( trigger )
+ 	{
+ 		if ( TestMap )
+ 			{ return; }
+
+		Map.FlagStatus = 1;
+ 		Util.MapDebugPrint( "Axis_Capture_Flag" );
+ 	},
+
+	Dyno_Plant_Main = function ( trigger )
+	{
+		Map.MainGateDyno += 1;
+
+		//prolly some cases where this is going to result in a poor decision
+		//but it errs on the side of caution...
+		if (Map.SideDoorStatus < 1 && Map.FlagStatus > 1)
+		{
+			while (Map.MainGateDyno != 0 && Map.MainGateStatus != 1)
+			{
+				if ( Util.AliveCount(TEAM.AXIS, CLASS.ENGINEER) < 1 )
+				{
+					//shift the defense
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Inside_Gate_.*" );
+					SetAvailableMapGoals( TEAM.AXIS, false, Map.Checkpoint_forward_spawn );
+					SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_FLAG_.*" );
+					SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_rFlag.*" );
+					SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_rFlag.*" );
+					break;
+				}
+				yield();
+			}
+		}
+
+		//stay focused on the flag area
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Health_Cabinet_south_healthcabinet );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Ammo_Cabinet_south_ammocabinet );
+	},
+
+	Dyno_Defuse_Main = function ( trigger )
+	{
+		Map.MainGateDyno -= 1;
+
+		if ( (Map.MainGateDyno < 1) && (Map.SideDoorStatus == 0) )
+		{
+			//make sure the defense shifts back if all dyno's defused
+			SetAvailableMapGoals( TEAM.AXIS, true, Map.Checkpoint_forward_spawn );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_FLAG_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_rFlag.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_rFlag.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Inside_Gate_.*" );
+
+			//allies can use cabinets again
+			SetAvailableMapGoals( TEAM.ALLIES, true, Map.Health_Cabinet_south_healthcabinet );
+			SetAvailableMapGoals( TEAM.ALLIES, true, Map.Ammo_Cabinet_south_ammocabinet );
+		}
+	},
+
+	Dyno_Plant_Controls = function ( trigger )
+	{
+		Map.ControlsDyno += 1;
+
+		//shift axis defense
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Controls_Base_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Controls_Flex_.*" );
+	},
+
+	Dyno_Defuse_Controls = function ( trigger )
+	{
+		Map.ControlsDyno -= 1;
+
+		if ( Map.ControlsDyno  < 1 )
+		{
+			//all dyno defused, back to the flex spots
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Controls_Flex_.*" );
+		}
+	},
+
+	Dyno_Plant_SideDoor = function ( trigger )
+	{
+		Map.SideDoorDyno += 1;
+
+	        //axis should forget about defusing side if main is destroyed or planted
+	        if ( Map.MainGateStatus > 0 || Map.MainGateDyno > 0 )
+	               { SetAvailableMapGoals( TEAM.AXIS, false, "Defuse_side_door.*"); }
+	},
+
+	Dyno_Defuse_SideDoor = function ( trigger )
+	{
+		Map.ControlsDyno -= 1;
+
+		if ( Map.SideDoorDyno < 1 )
+		{
+			//todo: add some defend goals so some axis go to assist defuse
+			//then turn em off here
+		}
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.allied_cp_open_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.axis_cp_open_Built );
+	OnTrigger( "The Axis have constructed the Side Gate!", Map.side_gate_Built );
+	OnTrigger( "The Allies have destroyed the Side Gate!", Map.side_gate_Destroyed );
+	OnTrigger( "The Allies have destroyed the Main Gate!", Map.main_gate_script_Destroyed );
+	OnTrigger( "The Axis have destroyed the Allied Command Post!", Map.allied_cp_open_Destroyed );
+	OnTrigger( "The Allies have destroyed the Axis Command Post!", Map.axis_cp_open_Destroyed );
+	OnTrigger( "The Allies have destroyed the Bunker Controls!", Map.bunker_controls_script_Destroyed );
+	OnTrigger( "The Allies have destroyed the Side Door!", Map.side_door_script_Destroyed );
+ 	OnTrigger( "The Allies have captured the Factory District!", Map.Allies_Capture_Flag );
+ 	OnTrigger( "The Axis have reclaimed the Factory District!", Map.Axis_Capture_Flag );
+	OnTrigger( "Planted at the Main Gate.", Map.Dyno_Plant_Main );
+	OnTrigger( "Defused at the Main Gate.", Map.Dyno_Defuse_Main );
+	OnTrigger( "Planted at the Bunker Controls.", Map.Dyno_Plant_Controls );
+	OnTrigger( "Defused at the Bunker Controls.", Map.Dyno_Defuse_Controls );
+	OnTrigger( "Planted at the Side Door.", Map.Dyno_Plant_SideDoor );
+	OnTrigger( "Defused at the Side Door.", Map.Dyno_Defuse_SideDoor );
+
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=15, MaxCampTime=30});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=15, MaxCampTime=30});
+	SetGoalPriority( Map.Destroy_main_gate_script, 1.5);
+
+	//only covert ops should destroy this (scripted class change to ensure cov ops)
+	SetGoalPriority( Map.Destroy_side_gate, 0.0, 0, CLASS.ENGINEER);
+	SetGoalPriority( "PLANT_Command_Post", 0.0, 0, CLASS.ENGINEER);
+
+	Util.DisableGoal( ".*", true ); // all but routes
+
+	// Allied Goals
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Destroy_main_gate_script );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Destroy_side_door_script );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Ammo_Cabinet_south_ammocabinet );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Health_Cabinet_south_healthcabinet );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Checkpoint_forward_spawn );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Flag_Attack_.*" );
+
+	// Axis Goals
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_Defense_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Checkpoint_forward_spawn );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_rFlag.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_rFlag.*" );
+
+	Util.SetMaxUsers( 1, "CAMP.*" );
+	Util.SetMaxUsers( 1, "ATTACK.*" );
+	Util.SetMaxUsers( 1, "DEFEND.*" );
+	Util.SetMaxUsers( 1, "CALLARTILLERY.*" );
+
+	// Default Status'
+	Map.SideGateStatus = 0; //intact
+	Map.MainGateStatus = 0; //intact
+	Map.FlagStatus = 0; //no team owns it by default
+
+	// Dyno counters
+	Map.SideDoorDyno = 0;
+	Map.MainGateDyno = 0;
+	Map.ControlsDyno = 0;
+
+	MapRoutes =
+	{
+		CHECKPOINT_forward_spawn =
+		{
+			ROUTE_AllySpawn =
+			{
+				ROUTE_lefthall = {},
+				ROUTE_middle = {},
+				ROUTE_right = {},
+			},
+		},
+		PLANT_Bunker_Controls =
+		{
+			ROUTE_FlagSpawn =
+			{
+				ROUTE_upperhill =
+				{
+					Weight = 2,
+					ROUTE_westhall = {},
+				},
+				ROUTE_midentrance =
+				{
+					ROUTE_westhall = { Weight = 2, },
+					ROUTE_lowermid = {},
+				},
+			},
+			ROUTE_CpSpawn =
+			{
+				ROUTE_easthallsplit =
+				{
+					ROUTE_east1 = {},
+					ROUTE_east2 =
+					{
+						ROUTE_lowermid = {},
+					},
+				},
+			},
+		},
+	};
+
+	//copy some routes
+	MapRoutes.PLANT_Main_Gate = MapRoutes.CHECKPOINT_forward_spawn;
+	MapRoutes.ATTACK_Controls_Attack_1 = MapRoutes.PLANT_Bunker_Controls;
+	MapRoutes.ATTACK_Controls_Attack_2 = MapRoutes.PLANT_Bunker_Controls;
+	MapRoutes.ATTACK_Controls_Attack_3 = MapRoutes.PLANT_Bunker_Controls;
+	MapRoutes.ATTACK_Controls_Attack_4 = MapRoutes.PLANT_Bunker_Controls;
+	MapRoutes.ATTACK_Controls_Attack_5 = MapRoutes.PLANT_Bunker_Controls;
+	MapRoutes.ATTACK_Controls_Attack_6 = MapRoutes.PLANT_Bunker_Controls;
+	MapRoutes.ATTACK_Controls_Attack_7 = MapRoutes.PLANT_Bunker_Controls;
+
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 40.0;
+	Util.IgnoreTargetGoalTable(bot, Map.Movers);
+};
+
+/*
+Attack / Defend Goal Naming conventions (Groups)
+
+Flag / Main Gate:
+DEFEND_Flag_Defense_#
+ATTACK_Flag_Attack_#
+
+Axis Inside Gate (only if they dont have time to defuse dyno)
+DEFEND_Inside_Gate_#
+
+Axis Semi Aggressive Controls Defense
+DEFEND_Controls_Flex_#
+
+Axis Conservative Controls Defense
+DEFEND_Controls_Base_#
+
+Allied Bunker Controls Offense
+ATTACK_Controls_Attack_#
+
+*/

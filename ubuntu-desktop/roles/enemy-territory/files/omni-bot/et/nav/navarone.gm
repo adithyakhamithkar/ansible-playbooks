@@ -1,0 +1,418 @@
+global Map =
+{
+
+	BarrierIsBuilt = false,
+	BombIsConstructed = false,
+	ShowMovers = false,
+	DefendingTeam = TEAM.AXIS,
+
+	Movers =
+	{
+		//keep the elevator
+		"MOVER_elevator",
+	},
+
+	town_barb_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_ramp" );
+		Wp.SetWaypointFlag("assault_ramp", "closed", false);
+		//Util.MapDebugPrint( "town_barb_Built" );
+	},
+
+	town_barb_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_ramp" );
+		Wp.SetWaypointFlag("assault_ramp", "closed", true);
+		//Util.MapDebugPrint( "town_barb_Destroyed" );
+	},
+
+	bridge_barb_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_bridge_upper" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "AIRSTRIKE_bridge.*" );
+		Map.BarrierIsBuilt = true;
+		//Util.MapDebugPrint( "bridge_barb_Built" );
+	},
+
+	bridge_barb_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_bridge_upper" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "AIRSTRIKE_bridge.*" );
+		Map.BarrierIsBuilt = false;
+		//Util.MapDebugPrint( "bridge_barb_Destroyed" );
+	},
+
+	bomb_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.BombIsConstructed = true;
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Gun_Bomb" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_elevator1" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Defuser" );
+		//Util.MapDebugPrint( "bomb_Built" );
+	},
+
+	bomb_defuse_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.BombIsConstructed = false;
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Gun_Bomb" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_elevator1" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Defuser" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_elevator2" );
+		//Util.MapDebugPrint( "bomb_defuse_Built" );
+	},
+
+	bridge_door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( !Map.BombIsConstructed )
+			{ SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Gun_Bomb" ); }
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_bridge_lower" );
+		//Util.MapDebugPrint( "bridge_door_Destroyed" );
+	},
+
+	bridge_door_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_bridge_lower" );
+		//Util.MapDebugPrint( "bridge_door_Built" );
+	},
+
+	Allies_Capture_Flag = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		SetAvailableMapGoals( TEAM.AXIS, false, "AIRSTRIKE_axis_start.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANTMINE_start.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_axis_phase1_13" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_axis_phase1_2" );
+	},
+
+	Axis_Capture_Flag = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_axis_start.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_start.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_axis_phase1_13" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_axis_phase1_2" );
+	},
+
+	trigger_up = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.BombIsConstructed )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_elevator1" );
+		}
+		SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_elevator2" );
+
+		Util.MapDebugPrint( "trigger_up", true );
+	},
+
+	trigger_mid = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.BombIsConstructed )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_elevator1" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_elevator2" );
+		}
+
+		Util.MapDebugPrint( "trigger_mid", true );
+	},
+
+	trigger_down = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.BombIsConstructed )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_elevator2" );
+		}
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_elevator1" );
+
+		Util.MapDebugPrint( "trigger_down", true );
+	},
+
+	Allies_Secure_Flag = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "AIRSTRIKE_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANTMINE_start.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_mg42_town" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Boat_Stairs" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_mg42_pillar" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_axis_phase2_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_phase2_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_axis_phase1.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_axis_phase2.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_phase2.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMORTAR_axis_phase2.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_axis_phase2.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_axis_phase2.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Boat_Stairs" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Post" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_allies_phase2_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_allies_phase2_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMORTAR_allies_phase2.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "AIRSTRIKE_allies_phase2.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CALLARTILLERY_allies_phase2.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "GRENADE_fortress_mg" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Gun_Bomb" );
+		//Util.MapDebugPrint( "Allies_Secure_Flag" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ ETUtil.AutoTestMap(); }
+
+	OnTrigger( "The Assault ramp has been constructed.", Map.town_barb_Built );
+	OnTrigger( "Axis have destroyed the Assault Ramp\r\n\r\n\t}\r\n\r\n\ttrigger remove\r\n\t{\r\n\t\tse", Map.town_barb_Destroyed );
+	OnTrigger( "Axis have destroyed the Assault Ramp", Map.town_barb_Destroyed );
+	OnTrigger( "The Bridge Door have been destroyed!", Map.bridge_door_Destroyed );
+	OnTrigger( "The Bridge Door have been built.", Map.bridge_door_Built );
+	OnTrigger( "The Bridge Tankbarrier have been built.", Map.bridge_barb_Built );
+	OnTrigger( "The Bridge Roadblock have been destroyed!", Map.bridge_barb_Destroyed );
+	OnTrigger( "The Dynamite is placed and armed in the Gun Cave.", Map.bomb_Built );
+	OnTrigger( "The Dynamite has been disarmed in the Gun Cave.", Map.bomb_defuse_Built );
+	OnTrigger( "The forward spawn is now permanently owned by Allies!", Map.Allies_Secure_Flag );
+	OnTrigger( "Allies capture the Forward Spawn!", Map.Allies_Capture_Flag );
+	OnTrigger( "Axis capture the Forward Spawn!", Map.Axis_Capture_Flag );
+	OnTrigger( "trigger_up activated", Map.trigger_up );
+	OnTrigger( "trigger_mid activated", Map.trigger_mid );
+	OnTrigger( "trigger_down activated", Map.trigger_down );
+
+	wall1 = OnTriggerRegion( AABB(855,1446,751,1305,3071,996), RegionTrigger.DisableBotPush );
+	iw1 = OnTriggerRegion( AABB(-1791.650,2234.431,523.495,-17.125,2701.616,754.234), RegionTrigger.IntrusionWarning );
+
+	// Max users per goal
+	Util.SetMaxUsersInProgress( 2, "MOUNTMG42_.*" );
+	Util.SetMaxUsersInUse( 1, "PLANT_.*" );
+	Util.SetMaxUsersInProgress( 2, "SWITCH_.*" );
+	Util.SetMaxUsersInUse( 1, "SWITCH_.*" );
+	Util.SetMaxUsers( 2, "CHECKPOINT_.*" );
+	Util.SetMaxUsers( 1, "PLANT_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "REPAIR.*" );
+	Util.SetMaxUsers( 1, "BUILD_Command_Post" );
+	Util.SetMaxUsers( 1, "PLANT_Command_Post" );
+	Util.SetMaxUsers( 1, "SMOKEBOMB_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+
+	Wp.SetWaypointFlag("assault_ramp", "closed", true);
+
+	SetGoalPriority( "GRENADE_bridge.*", 0.51 );
+	SetGoalPriority( "AIRSTRIKE_.*", 0.51 );
+	SetGoalPriority( "CHECKPOINT_roadbunker", 0.71 );
+	SetGoalPriority( "SWITCH_elevator1", 0.81, TEAM.ALLIES, 0 );
+	SetGoalPriority( "SWITCH_elevator2", 1.1, TEAM.AXIS, 0 );
+
+	Util.RemoveGoal( "PLANT_Gun_Bomb" );
+	Util.RemoveGoal( "PLANT_Defuser" );
+
+	SetAvailableMapGoals( TEAM.ALLIES, false, "AIRSTRIKE_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Command_Post" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Gun_Bomb" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "CALLARTILLERY_axis.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "GRENADE_fortress_mg" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_axis_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMORTAR_axis.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "PLANTMINE_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_allies_phase1_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42_171" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "REPAIRMG42_171" );
+
+	SetAvailableMapGoals( TEAM.AXIS, false, "AIRSTRIKE_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Defuser" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "GRENADE_fortress_mg" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_axis_phase2.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMORTAR_allies.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_171" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_mg42_pillar" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "PLANTMINE_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_171" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_phase1_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_start.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_axis_phase1_.*" );
+
+	/*** ROUTES ***/
+	MapRoutes =
+	{
+		CHECKPOINT_roadbunker =
+		{
+			ROUTE_allied_spawn =
+			{
+				ROUTE_leftrope = {},
+				ROUTE_rightrope = {},
+				ROUTE_ramp = {},
+			},
+			ROUTE_allied_spawn2 =
+			{
+				ROUTE_leftrope = {},
+				ROUTE_rightrope = {},
+				ROUTE_ramp = {},
+			},
+			ROUTE_axis_spawn =
+			{
+				ROUTE_gate = {},
+				ROUTE_roof = {},
+				ROUTE_tower = {},
+			},
+		},
+		ATTACK_allies_phase2_1 =
+		{
+			ROUTE_town_spawn =
+			{
+				ROUTE_bridge_lower =
+				{
+					ROUTE_town_right = {},
+					ROUTE_town_right2 = {},
+				},
+				ROUTE_bridge_upper =
+				{
+					ROUTE_town_left = {},
+					ROUTE_town_right = {},
+					ROUTE_town_right2 = {},
+				},
+			},
+		},
+		BUILD_Gun_Bomb =
+		{
+			ROUTE_allied_spawn =
+			{
+				ROUTE_leftrope =
+				{
+					ROUTE_airshaft = {},
+					ROUTE_ladder = {}
+				},
+				ROUTE_rightrope =
+				{
+					ROUTE_airshaft = {},
+					ROUTE_ladder = {}
+				},
+				ROUTE_ramp =
+				{
+					ROUTE_airshaft = {},
+					ROUTE_ladder = {}
+				}
+			},
+			ROUTE_allied_spawn2 =
+			{
+				ROUTE_leftrope =
+				{
+					ROUTE_airshaft = {},
+					ROUTE_ladder = {}
+				},
+				ROUTE_rightrope =
+				{
+					ROUTE_airshaft = {},
+					ROUTE_ladder = {}
+				},
+				ROUTE_ramp =
+				{
+					ROUTE_airshaft = {},
+					ROUTE_ladder = {}
+				}
+			},
+			ROUTE_town_spawn =
+			{
+				ROUTE_bridge_lower =
+				{
+					ROUTE_town_right =
+					{
+						ROUTE_airshaft = {},
+						ROUTE_ladder = {}
+					},
+					ROUTE_town_right2 = {},
+				},
+				ROUTE_bridge_upper =
+				{
+					ROUTE_town_left =
+					{
+						ROUTE_airshaft = {},
+						ROUTE_ladder = {}
+					},
+					ROUTE_town_right = {},
+					ROUTE_town_right2 = {},
+				},
+			},
+		},
+	};
+	MapRoutes.BUILD_Command_Post = MapRoutes.BUILD_Gun_Bomb;
+	MapRoutes.PLANT_Command_Post = MapRoutes.BUILD_Gun_Bomb;
+	MapRoutes.ATTACK_allies_phase1_5 = { ROUTE_allied_spawn = {} };
+	MapRoutes.ATTACK_allies_phase1_5.ROUTE_allied_spawn = MapRoutes.CHECKPOINT_roadbunker.ROUTE_allied_spawn;
+	MapRoutes.ATTACK_allies_phase1_6 = MapRoutes.ATTACK_allies_phase1_5;
+	MapRoutes.ATTACK_allies_phase1_7 = MapRoutes.ATTACK_allies_phase1_5;
+	MapRoutes.ATTACK_allies_phase1_8 = MapRoutes.ATTACK_allies_phase1_5;
+	MapRoutes.ATTACK_allies_phase1_9 = MapRoutes.ATTACK_allies_phase1_5;
+	MapRoutes.ATTACK_allies_phase2_2 = MapRoutes.ATTACK_allies_phase2_1;
+	MapRoutes.ATTACK_allies_phase2_3 = MapRoutes.ATTACK_allies_phase2_1;
+	MapRoutes.ATTACK_allies_phase2_4 = MapRoutes.ATTACK_allies_phase2_1;
+	MapRoutes.ATTACK_allies_phase2_5 = MapRoutes.ATTACK_allies_phase2_1;
+	MapRoutes.ATTACK_allies_phase2_6 = MapRoutes.ATTACK_allies_phase2_1;
+	MapRoutes.ATTACK_allies_phase2_9 = MapRoutes.ATTACK_allies_phase2_1;
+	MapRoutes.ATTACK_allies_phase2_10 = MapRoutes.ATTACK_allies_phase2_1;
+	MapRoutes.ATTACK_allies_phase2_11 = MapRoutes.ATTACK_allies_phase2_1;
+	Util.Routes(MapRoutes);
+
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_ramp" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_bridge_lower" );
+
+	Util.MapDebugPrint( "Omni-bot map script for Navarone loaded." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.MaxViewDistance = 3000.0;
+	bot.TargetBreakableDist = 90.0;
+};

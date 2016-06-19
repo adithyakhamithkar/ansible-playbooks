@@ -1,0 +1,101 @@
+// This script contains functionality to allow medic and field op bots to give themselves packs
+
+// These parameters are required
+this.Name = "SupplySelf";		// The name of the goal.
+this.Parent = "LowLevel";		// The name of the parent. This setting determines where in the state tree the goal will reside in.
+this.LimitToClass( CLASS.FIELDOPS, CLASS.MEDIC );
+this.LimitToNoTarget();
+
+this.AlwaysRecieveEvents = true;	// Recieve events even when not active. Normally events are only called when goal is active.
+
+this.Initialize = function()
+{
+	// Internal variables
+	this.AmmoInfo = {};
+	this.AmmoDesireThreshold = 0.5;
+	this.HealthThreshold = 50.0;
+	this.DelayBetweenCalls = 15.0;
+
+	Util.ScriptDebugPrint(this.Name, "initialized");
+};
+
+this.Enter = function()
+{
+	this.AddFinishCriteria(this.PackEnt,"deleted");
+};
+
+this.Exit = function()
+{
+	this.PackEnt = null;
+	this.ReleaseAimRequest();
+};
+
+this.GetPriority = function()
+{
+	while(1)
+	{
+		if ( this.Bot.GetClass() == CLASS.FIELDOPS )
+		{
+			this.Bot.GetMostDesiredAmmo(this.AmmoInfo);
+
+			if(this.AmmoInfo.Desire > this.AmmoDesireThreshold)
+			{
+				this.Supply = WEAPON.AMMO_PACK;
+				this.Priority = 1;
+			}
+			sleep(this.DelayBetweenCalls);
+		}
+		else
+		{
+			block(0);
+		}
+	}
+};
+
+this.Update = function()
+{
+	if ( !this.Bot.IsWeaponCharged(this.Supply) )
+	{
+		sleep(this.DelayBetweenCalls);
+		this.Finished();
+	}
+
+	this.AddWeaponRequest(Priority.High, this.Supply);
+	this.BlockForWeaponChange(this.Supply);
+
+	if ( this.Bot.GetVelocity().IsZero() )
+	{
+		feetpos = GroundPoint( GetEntPosition( this.Bot.GetGameEntity() ) );
+		this.AddAimRequest( Priority.High, "position", feetpos );
+	}
+
+	this.PacksThrown = 0;
+	while( this.PacksThrown < 2 && this.Bot.IsWeaponCharged(this.Supply) )
+	{
+		this.Bot.HoldButton(BTN.ATTACK1, 0.5);
+		sleep(0.5);
+	}
+
+	this.Finished();
+};
+
+this.Events[EVENT.FEEL_PAIN] = function(Inflictor, PreviousHealth, CurrentHealth)
+{
+	if(CurrentHealth < this.HealthThreshold && this.Bot.GetClass() == CLASS.MEDIC && !(GetCvar("g_medics") & 2))
+	{
+		this.Supply = WEAPON.MEDKIT;
+		this.Priority = 1;
+	}
+};
+
+this.Events[EVENT.WEAPON_FIRE] = function(weaponId, projectileEntity)
+{
+	if(weaponId == this.Supply )
+	{
+		if ( projectileEntity )
+		{
+			this.PacksThrown += 1;
+			this.PackEnt = projectileEntity;
+		}
+	}
+};

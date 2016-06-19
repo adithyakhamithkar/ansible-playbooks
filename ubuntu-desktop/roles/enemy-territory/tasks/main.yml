@@ -9,9 +9,16 @@
   apt: name={{item}} state=present
   with_items:
   - enemy-territory
+  - lib32stdc++6
 
 - name: Copy etpro binaries
   unarchive: src=etpro-3_2_6.zip dest=/usr/share/games/enemy-territory copy=yes
+
+- name: Copy silent binaries
+  unarchive: src=silent.zip dest=/usr/share/games/enemy-territory copy=yes
+
+#- name: Copy jaymod binaries
+#  unarchive: src=jaymod-2.0.3-linux.tar.gz dest=/usr/share/games/enemy-territory copy=yes
 
 #- name: Copy nitmod binaries
 #  unarchive: src=nitmod_2.3.1.zip dest=/usr/share/games/enemy-territory copy=yes
@@ -19,18 +26,20 @@
 #- name: Copy wolfzone binaries
 #  unarchive: src=http://www.wolfzone.eu/download/wolfzone-linux64-160207.zip dest=/usr/share/games/enemy-territory copy=no
 
-#- name: Copy silent binaries
-#  unarchive: src=silent.zip dest=/usr/share/games/enemy-territory copy=yes
+#- name: Copy omni-bot binaries
+#  unarchive: src=omni-bot.zip dest=/usr/share/games/enemy-territory copy=yes mode=0755
 
-#- name: Create SSL directory for omni-bot
-#  file: path=/usr/local/games/enemy-territory/omni-bot state=directory
+#- name: Create directory for omni-bot
+#  file: path=/usr/share/games/enemy-territory state=directory
 
 - name: Configure enemy-territory
   template: src={{item.src}} dest={{item.dest}}
   with_items:
     - { src: 'server.j2', dest: '/usr/share/games/enemy-territory/etmain/server.cfg' }
+    - { src: 'silent.j2', dest: '/usr/share/games/enemy-territory/etmain/silent.cfg' }
+#    - { src: 'jaymod.j2', dest: '/usr/share/games/enemy-territory/etmain/jaymod.cfg' }
 #    - { src: 'nitmod.j2', dest: '/usr/share/games/enemy-territory/etmain/nitmod.cfg' }
-#    - { src: 'silent.j2', dest: '/usr/share/games/enemy-territory/etmain/silent.cfg' }
+
 
 - name: Copy init.d script
   template: src={{item.src}} dest={{item.dest}} mode=0755
@@ -39,6 +48,7 @@
     - { src: 'etded-pro-obj.j2', dest: '/etc/init.d/etded-pro-obj' }
     - { src: 'etded-main-camp.j2', dest: '/etc/init.d/etded-main-camp' }
     - { src: 'etded-pro-camp.j2', dest: '/etc/init.d/etded-pro-camp' }
-#    - { src: 'etded-silent.j2', dest: '/etc/init.d/etded-silent' }
+    - { src: 'etded-silent.j2', dest: '/etc/init.d/etded-silent' }
+#    - { src: 'etded-jaymod.j2', dest: '/etc/init.d/etded-jaymod' }
 #    - { src: 'etded-wolfzone.j2', dest: '/etc/init.d/etded-wolfzone' }
 #    - { src: 'etded-nitmod.j2', dest: '/etc/init.d/etded-nitmod' }

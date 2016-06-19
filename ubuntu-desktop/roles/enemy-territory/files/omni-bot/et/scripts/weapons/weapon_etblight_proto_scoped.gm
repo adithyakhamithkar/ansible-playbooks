@@ -1,0 +1,29 @@
+if (GetModName()!="etblight") { return; }
+
+WEAPON.PROTO_SCOPE = 75;
+
+//////////////////////////////////////////////////////////////////////////
+// Overall weapon properties.
+this.Name = "MN Proto Scoped";
+this.WeaponId = WEAPON.PROTO_SCOPE;
+this.WeaponAliasId = WEAPON.PROTO;
+this.MinUseTime = 0.0;
+
+//////////////////////////////////////////////////////////////////////////
+// Set some weapon properties that affect some internal logic.
+this.PrimaryFire.WeaponType = "instant";
+this.PrimaryFire.CrouchToMoveWhenZoomed = true;
+this.PrimaryFire.RequiresAmmo = true;
+this.PrimaryFire.WaterProof = false;
+this.PrimaryFire.HasClip = true;
+this.PrimaryFire.IgnoreReload = true;
+
+this.PrimaryFire.DefaultDesirability = 0.7;
+this.PrimaryFire.SetDesirabilityRange(500, 4000, 0.8);
+
+// Use a 1-2 second delay between every 1 shot for stability.
+this.PrimaryFire.SetBurstRange(0, 10000, 1, 1.0, 2.0);
+
+this.PrimaryFire.LowAmmoThreshold = 0;
+this.PrimaryFire.LowAmmoPriority = 0.8;
+this.PrimaryFire.LowAmmoGetAmmoAmount = 4;

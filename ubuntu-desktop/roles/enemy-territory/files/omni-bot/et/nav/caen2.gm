@@ -1,0 +1,882 @@
+global Map =
+{
+	Ammo_Cabinet_north_ammocabinet = "AMMOCAB_north_ammocabinet",
+	Ammo_Cabinet_north_ammocabinet_1 = "AMMOCAB_north_ammocabinet_1",
+	Checkpoint_cityflag = "CHECKPOINT_cityflag",
+	Health_Cabinet_north_healthcabinet = "HEALTHCAB_north_healthcabinet",
+	Health_Cabinet_north_healthcabinet_1 = "HEALTHCAB_north_healthcabinet_1",
+	Build_gate = "BUILD_Gate",
+	Build_houseMG42 = "BUILD_House_MG42",
+	Build_tank_construct = "BUILD_Tank",
+	Build_allied_compost_built = "BUILD_Command_Post",
+	Build_axis_compost_built = "BUILD_Command_Post",
+	Build_bridge = "BUILD_Bridge",
+	Build_bridgeMG42 = "BUILD_Bridge_MG42",
+	Destroy_bridge = "PLANT_Bridge",
+	Destroy_bridgeMG42 = "PLANT_Bridge_MG42",
+	Destroy_gate = "PLANT_Gate",
+	Destroy_houseMG42 = "PLANT_House_MG42",
+	Destroy_barrier = "PLANT_Tank_Barrier",
+	Destroy_allied_compost_built = "PLANT_Command_Post",
+	Mount_bridgeMG42_model = "MOUNTMG42_Bridge_MG42",
+	Mount_houseMG42_model = "MOUNTMG42_House_MG42",
+	Repair_houseMG42_model = "REPAIRMG42_House_MG42",
+	Repair_bridgeMG42_model = "REPAIRMG42_Bridge_MG42",
+	Mover_tank = "MOVER_tank",
+	Flag_maps = "FLAG_maps",
+	Cappoint_708 = "CAPPOINT_708",
+
+	//set status' for conditionals
+	TankStatus = 0, //not built
+	BridgeStatus = 1, //intact
+	AllyCpStatus = 0,
+	AxisCpStatus = 0,
+	GateStatus = 1, //intact
+	DocStatus = 0, //home
+	FlagStatus = 0, //0 none, 1 axis, 2 allies
+	DefendingTeam = TEAM.ALLIES,
+
+	TankAtBridge = false,
+	TankOverBridge = false,
+	TankStolen = false,
+	TankAtBarrier = false,
+	TankPastBarrier = false,
+	WallIsBreached = false,
+
+	//dyno counter
+	BridgeDyno = 0,
+
+	//some customizeable options
+	//change to true if you want a more aggressive defense after tank is past barrier
+	AggressiveBreach = false,
+
+	bridgeMG42_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "bridgeMG42_Built" );
+	},
+
+	bridgeMG42_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "bridgeMG42_Destroyed" );
+	},
+
+	tank_construct_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.TankStatus = 1;
+
+		//build tank before worrying about cp
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_axis_compost_built );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Destroy_allied_compost_built );
+
+		Util.MapDebugPrint( "tank_construct_Built" );
+	},
+
+	bridge_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.BridgeStatus = 1;
+
+		//bridge built, focus back on tank
+		if ( Map.TankAtBridge )
+			{ SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_tank_construct ); }
+
+		Util.MapDebugPrint( "bridge_Built" );
+	},
+
+	bridge_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.BridgeStatus = 0;
+
+		Util.MapDebugPrint( "bridge_Destroyed" );
+	},
+
+	bridge_trigger =
+	{
+		TriggerOnEntity = GetGoal("MOVER_tank").GetEntity(),
+		OnEnter = function( ent )
+		{
+			Map.TankAtBridge = true;
+
+			//have the axis engies focus on constructing bridge
+			if ( Map.BridgeStatus < 1 )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_tank_construct );
+			}
+
+			//shift the defense
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_bridge_conserv.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_bridge_aggressive.*" );
+
+			//shift the offense
+			SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase3.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_bridge );
+			SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase2.*" );
+
+			Util.MapDebugPrint( "tank_at_bridge" );
+		},
+		OnExit = function( ent ) {},
+	},
+
+	Planted_Bridge = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.BridgeDyno += 1;
+
+		//focus on defusing
+		if ( Map.TankAtBridge )
+			{ SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_tank_construct ); }
+
+		Util.MapDebugPrint( "Planted_Bridge" );
+	},
+
+	Defused_Bridge = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.BridgeDyno -= 1;
+
+		//all dyno defused, make sure tank is built
+		if ( Map.BridgeDyno < 1 && Map.TankAtBridge )
+			{ SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_tank_construct ); }
+
+		Util.MapDebugPrint( "Defused_Bridge" );
+	},
+
+	allied_compost_built_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.AllyCpStatus = 1;
+
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Destroy_allied_compost_built );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Destroy_allied_compost_built );
+
+
+		Util.MapDebugPrint( "allied_compost_built_Built" );
+	},
+
+	allied_compost_built_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.AllyCpStatus = 0;
+
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_axis_compost_built);
+
+		if ( !Map.TankOverBridge )
+			{ SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_allied_compost_built); }
+
+		Util.MapDebugPrint( "allied_compost_built_Destroyed" );
+	},
+
+	axis_compost_built_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.AxisCpStatus = 1;
+
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Destroy_allied_compost_built );
+
+		if ( !Map.TankOverBridge )
+			{ SetAvailableMapGoals( TEAM.ALLIES, true, Map.Destroy_allied_compost_built ); }
+
+		Util.MapDebugPrint( "axis_compost_built_Built" );
+	},
+
+	axis_compost_built_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.AxisCpStatus = 0;
+
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_axis_compost_built);
+
+		if ( !Map.TankOverBridge )
+			{ SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_allied_compost_built); }
+
+		Util.MapDebugPrint( "axis_compost_built_Destroyed" );
+	},
+
+	houseMG42_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "houseMG42_Built" );
+	},
+
+	houseMG42_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "houseMG42_Destroyed" );
+	},
+
+	gate_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//close the route
+		Util.DisableGoal("ROUTE_gateroute");
+
+		Map.GateStatus = 1;
+
+		if ( Map.FlagStatus == 2 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_flag_aggressive.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_flag_conserv.*" );
+		}
+
+		Util.MapDebugPrint( "gate_Built" );
+	},
+
+	gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//open up the route
+		Util.EnableGoal("ROUTE_gateroute");
+
+		Map.GateStatus = 0;
+
+		//axis eng should focus on gate first
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_tank_construct );
+
+		//allies should be less aggressive at this point
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_flag_aggressive.*" );
+
+		if ( !Map.TankStolen )
+			{ SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_flag_conserv.*" ); }
+
+		Util.MapDebugPrint( "gate_Destroyed" );
+	},
+
+	Allies_Capture_Flag = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.FlagStatus = 2;
+
+		if ( Map.GateStatus > 0 && !Map.TankStolen )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_flag_aggressive.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_flag_conserv.*" );
+		}
+
+		if ( !Map.TankStolen )
+			{ SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase2.*" ); }
+
+		Util.MapDebugPrint( "Allies_Capture_Flag" );
+	},
+
+	Axis_Capture_Flag = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.FlagStatus = 1;
+
+		//first flag grab allies should dyno bridge
+		if ( !Map.TankOverBridge )
+			{ SetAvailableMapGoals( TEAM.ALLIES, true, Map.Destroy_bridge ); }
+
+		if ( !Map.TankStolen )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_flag_conserv.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_flag_aggressive.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_tank_construct );
+
+			//some axis should head towards bridge
+			if ( !Map.TankAtBridge )
+				{ SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase2.*" ); }
+		}
+
+		Util.MapDebugPrint( "Axis_Capture_Flag" );
+	},
+
+	Tank_Stolen = function ( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.TankStolen = true;
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mount_bridgeMG42_model );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_bridgeMG42 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Destroy_bridge ); //make sure
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_bridge_aggressive.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_gate );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_flag_conserv.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_flag_aggressive.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_allied_compost_built );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Destroy_allied_compost_built );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_houseMG42 );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Mount_houseMG42_model );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Repair_houseMG42_model );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Checkpoint_cityflag );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_bridge.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase2.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase1.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Destroy_gate );
+
+		Util.MapDebugPrint( "Tank_Stolen" );
+	},
+
+	tank_over_bridge = function ()
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.TankOverBridge = true;
+		Map.TankAtBridge = false;
+
+		//make sure some goals are deactivated at this point
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Destroy_bridge );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_bridge );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_allied_compost_built );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Destroy_allied_compost_built );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Checkpoint_cityflag );
+		//Util.DisableGoal( Map.Ammo_Cabinet_north_ammocabinet );
+		//Util.DisableGoal( Map.Health_Cabinet_north_healthcabinet );
+
+		//make sure the tank construct is active
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_tank_construct );
+
+		Util.MapDebugPrint( "tank_over_bridge" );
+	},
+
+	after_bridge_trigger =
+	{
+		TriggerOnEntity = GetGoal("MOVER_tank").GetEntity(),
+		OnEnter = function( ent )
+		{
+			Map.TankAtBarrier = true;
+
+			//partial shift for defense anticipating tank past barrier
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_breach.*" );
+
+			Util.MapDebugPrint( "tank_at_barrier" );
+		},
+		OnExit = function( ent )
+		{
+			Map.tank_past_barrier();
+		},
+	},
+
+	tank_past_barrier = function ( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.TankPastBarrier = true;
+		Map.TankAtBarrier = false;
+
+		//make sure the tank construct is active
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_tank_construct );
+
+		//full shift for defense
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_breach.*" );
+
+		if (!Map.AggressiveBreach )
+			{ SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_bridge_conserv.*" ); }
+
+		Util.MapDebugPrint( "tank_past_barrier" );
+	},
+
+	Wall_Breach = function ( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.WallIsBreached = true;
+		// everyone can reach it now, so remove the role
+		Util.ClearRoleForGoals( Map.Flag_maps, ROLE.INFILTRATOR );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Flag_maps );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_tank_construct );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNT_tank" );
+
+		//open up the doc defense
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_docs.*" );
+
+		docs_trigger = OnTriggerRegion( AABB(-343,5212,273,97,5509,399), RegionTrigger.IntrusionWarning );
+		Util.MapDebugPrint( "Wall_Breach" );
+	},
+
+	Documents_Taken = function ( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+
+		//shift the defense to the boat
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_deliver.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_docs.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_breach.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_bridge_conserv.*" );
+
+		//shift the offense to the boat (phase2 goals)
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase2.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase3.*" );
+
+		Util.MapDebugPrint( "Documents_Taken" );
+	},
+
+	Documents_Returned = function ( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.WallIsBreached )
+		{
+			//shift back to doc defense
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_docs.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_breach.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_deliver.*" );
+
+			//back to phase3
+			SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase2.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase3.*" );
+
+			if ( Map.AggressiveBreach )
+				{ SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_bridge_conserv.*" ); }
+		}
+
+		Util.MapDebugPrint( "Documents_Returned" );
+	},
+
+	tank_damaged = function ( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.SetPositionGoal( Map.Build_tank_construct, Map.Mover_tank );
+
+		Util.MapDebugPrint( "tank_damaged" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTriggerRegion( Vec3(125,2930,260), 100, Map.bridge_trigger );
+	OnTriggerRegion( Vec3(-345,4575,270), 100, Map.after_bridge_trigger );
+
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.axis_compost_built_Built );
+	OnTrigger( "Allied team has built the bridge mg42!", Map.bridgeMG42_Built );
+	OnTrigger( "The Tank has been repaired!", Map.tank_construct_Built );
+	OnTrigger( "The bridge has been repaired.", Map.bridge_Built );
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.allied_compost_built_Built );
+	OnTrigger( "Allied team has rebuilt the gate!", Map.gate_Built );
+	OnTrigger( "Allied team has built the house mg42!", Map.houseMG42_Built );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.allied_compost_built_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.axis_compost_built_Destroyed );
+	OnTrigger( "The bridge has been damaged.", Map.bridge_Destroyed );
+	OnTrigger( "Axis team has destroyed the house mg42!", Map.houseMG42_Destroyed );
+	OnTrigger( "Axis team has destroyed the gate!", Map.gate_Destroyed );
+	OnTrigger( "The Axis are moving the Tank!", Map.Tank_Stolen );
+	OnTrigger( "Axis team has destroyed the bridge mg42!", Map.bridgeMG42_Destroyed );
+	OnTrigger( "Allies reclaim the town!", Map.Allies_Capture_Flag );
+	OnTrigger( "Axis captured the town!", Map.Axis_Capture_Flag );
+	OnTrigger( "Axis team has broken into Battalion Headquarters!", Map.Wall_Breach );
+	OnTrigger( "Axis have stolen The Combat Maps!", Map.Documents_Taken );
+	OnTrigger( "Flag returned maps!", Map.Documents_Returned );
+	OnTrigger( "Planted at the Bridge.", Map.Planted_Bridge );
+	OnTrigger( "Defused at the Bridge.", Map.Defused_Bridge );
+	OnTrigger( "caen2_axis_tankbar_past", Map.tank_past_barrier );
+	OnTrigger( "caen2_axis_tank_bridge", Map.tank_over_bridge );
+	OnTrigger( "The Tank has been damaged!", Map.tank_damaged );
+
+	Util.SetMaxUsersInProgress( 1, "BUILD_.*" );
+	Util.SetMaxUsersInProgress( 1, "PLANT_.*" );
+	Util.SetMaxUsersInProgress( 3, Map.Build_tank_construct );
+	Util.SetMaxUsersInProgress( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsersInProgress( 1, "SNIPE_.*" );
+	Util.SetMaxUsersInProgress( 1, "MOBILEMG42_.*" );
+	Util.SetMaxUsersInProgress( 4, "FLAG_.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_docs.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_flag_aggressive.*" );
+	Util.SetMaxUsersInProgress( 4, Map.Checkpoint_cityflag );
+	Util.SetMaxUsersInProgress( 3, "MOUNT_tank" );
+	Util.SetGoalOffset( -10, 0, 125, "PLANT_bridge" );
+	Util.SetPositionGoal( Map.Build_tank_construct, Map.Mover_tank );
+
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=15, MaxCampTime=120} );
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=15, MaxCampTime=30} );
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=15, MaxCampTime=30} );
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=30, MaxCampTime=9999} );
+	SetGoalPriority( "DEFEND_docs.*", 0.6);
+	SetGoalPriority( "ATTACK_phase2.*", 0.6);
+	SetGoalPriority( Map.Flag_maps, 0.66 );
+	SetGoalPriority( Map.Cappoint_708, 0.9 );
+	SetGoalPriority( "MOUNTMG42_.*", 0.0, 0, CLASS.ENGINEER );
+
+	//clear all goals for both teams
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+
+	//enable some goals for both teams
+	Util.EnableGoal( Map.Checkpoint_cityflag );
+
+	// cs: they aren't very smart about using these
+	//Util.EnableGoal( Map.Ammo_Cabinet_north_ammocabinet );
+	//Util.EnableGoal( Map.Health_Cabinet_north_healthcabinet );
+	Util.EnableGoal( "ROUTE.*" );
+
+	//this route is toggled with gate status
+	Util.DisableGoal("ROUTE_gateroute");
+
+	//Allies Goals
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_gate );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_allied_compost_built );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_houseMG42 );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mount_houseMG42_model );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Repair_houseMG42_model );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_flag_aggressive.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_flag_conserv.*" );
+
+	//Axis Goals
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOUNT_tank" );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Destroy_gate );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase1.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Cappoint_708 );
+
+	// only disguised covert ops can reach it
+	Util.SetRoleForGoals( Map.Flag_maps, ROLE.INFILTRATOR );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Flag_maps );
+
+	MapRoutes =
+	{
+		CHECKPOINT_cityflag =
+		{
+			ROUTE_AxisSpawn =
+			{
+				ROUTE_rs_left =
+				{
+					Weight = 2,
+					ROUTE_rs_left2 = {},
+				},
+				ROUTE_rs_right =
+				{
+					ROUTE_fs_road2 = {},
+					ROUTE_gateroute = {},
+				},
+				ROUTE_rs_mid =
+				{
+					ROUTE_fs_road2 = {},
+					ROUTE_gateroute = {},
+				},
+			},
+		},
+		DEFEND_flag_aggressive_1 =
+		{
+			ROUTE_FlagSpawn =
+			{
+				ROUTE_houseroute = {},
+				ROUTE_fs_road =
+				{
+					Weight = 2,
+					ROUTE_fs_road2 = {},
+				},
+			},
+		},
+		ATTACK_phase2_1 =
+		{
+			ROUTE_FlagSpawn =
+			{
+				ROUTE_mainroad1 =
+				{
+					ROUTE_mainroad1_2 =
+					{
+						ROUTE_mainroad1_3 = {},
+						ROUTE_church = { ROUTE_church2 = {}, },
+					},
+				},
+				ROUTE_mainroad2 =
+				{
+					ROUTE_mainroad2_2 =
+					{
+						ROUTE_mainroad2_3 = {},
+						ROUTE_eastriver = {},
+					},
+				},
+			},
+			ROUTE_docgrab =
+			{
+				ROUTE_roof =
+				{
+					ROUTE_backalley2 =
+					{
+						ROUTE_pier = {},
+						ROUTE_eastriversteps =
+						{
+							Weight = 3,
+							ROUTE_eastriver =
+							{
+								ROUTE_mainroad1_3 =
+								{
+									ROUTE_westalley = {},
+									ROUTE_sw_bridge = {},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		ATTACK_phase3_1 =
+		{
+			ROUTE_FlagSpawn =
+			{
+				ROUTE_mainroad1 =
+				{
+					ROUTE_mainroad1_2 =
+					{
+						ROUTE_mainroad1_3 = {},
+						ROUTE_church =
+						{
+							ROUTE_church2 =
+							{
+								ROUTE_brokendoor = { Weight = 2 },
+								ROUTE_sw_bridge = {},
+							},
+						},
+					},
+				},
+				ROUTE_mainroad2 =
+				{
+					ROUTE_mainroad2_2 =
+					{
+						ROUTE_mainroad2_3 = {},
+						ROUTE_eastriver =
+						{
+							ROUTE_eastriversteps =
+							{
+								ROUTE_backalley =
+								{
+									ROUTE_backalley2 = {},
+									ROUTE_backalley3 = {},
+								},
+								ROUTE_ne_bridge = {},
+							},
+						},
+					},
+				},
+			},
+		},
+		FLAG_maps =
+		{
+			ROUTE_FlagSpawn =
+			{
+				ROUTE_mainroad1 =
+				{
+					ROUTE_mainroad1_2 =
+					{
+						ROUTE_mainroad1_3 = {},
+						ROUTE_church =
+						{
+							ROUTE_church2 =
+							{
+								ROUTE_brokendoor = { Weight = 2 },
+								ROUTE_sw_bridge = {},
+							},
+						},
+					},
+				},
+				ROUTE_mainroad2 =
+				{
+					ROUTE_mainroad2_2 =
+					{
+						ROUTE_mainroad2_3 = {},
+						ROUTE_eastriver =
+						{
+							ROUTE_eastriversteps =
+							{
+								ROUTE_backalley =
+								{
+									ROUTE_backalley2 = {},
+									ROUTE_backalley3 = {},
+									ROUTE_roof = {},
+								},
+								ROUTE_ne_bridge = {},
+							},
+						},
+					},
+				},
+			},
+		},
+		DEFEND_bridge_aggressive_1 =
+		{
+			ROUTE_AllySpawn =
+			{
+				ROUTE_bs_right = {},
+				ROUTE_bs_left = {},
+			},
+		},
+		DEFEND_bridge_conserv_1 =
+		{
+			ROUTE_AllySpawn =
+			{
+				ROUTE_bs_right = {},
+				ROUTE_bs_left =
+				{
+					ROUTE_backalley3 =
+					{
+						ROUTE_backalley = {},
+						ROUTE_backalley2 = {},
+					},
+					ROUTE_rubble = {},
+				},
+			},
+		},
+		CAPPOINT_708 =
+		{
+			ROUTE_docgrab =
+			{
+				ROUTE_roof =
+				{
+					ROUTE_backalley2 =
+					{
+						ROUTE_pier = {},
+						ROUTE_eastriversteps =
+						{
+							Weight = 3,
+							ROUTE_eastriver =
+							{
+								ROUTE_mainroad1_3 =
+								{
+									ROUTE_westalley = {},
+									ROUTE_sw_bridge = {},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		DEFEND_deliver_1 =
+		{
+			ROUTE_AllySpawn =
+			{
+				ROUTE_bs_right = { Weight = 2, },
+				ROUTE_bs_left = {},
+			},
+		},
+	};
+
+	//copy some routes
+	MapRoutes.ATTACK_phase1_1 = MapRoutes.CHECKPOINT_cityflag;
+	MapRoutes.ATTACK_phase1_2 = MapRoutes.CHECKPOINT_cityflag;
+	MapRoutes.ATTACK_phase1_3 = MapRoutes.CHECKPOINT_cityflag;
+	MapRoutes.ATTACK_phase1_4 = MapRoutes.CHECKPOINT_cityflag;
+	MapRoutes.ATTACK_phase1_5 = MapRoutes.CHECKPOINT_cityflag;
+	MapRoutes.ATTACK_phase1_6 = MapRoutes.CHECKPOINT_cityflag;
+	MapRoutes.ATTACK_phase1_7 = MapRoutes.CHECKPOINT_cityflag;
+	MapRoutes.ATTACK_phase1_8 = MapRoutes.CHECKPOINT_cityflag;
+	MapRoutes.DEFEND_flag_aggressive_2 = MapRoutes.DEFEND_flag_aggressive_1;
+	MapRoutes.DEFEND_flag_aggressive_3 = MapRoutes.DEFEND_flag_aggressive_1;
+	MapRoutes.DEFEND_flag_aggressive_4 = MapRoutes.DEFEND_flag_aggressive_1;
+	MapRoutes.DEFEND_flag_aggressive_5 = MapRoutes.DEFEND_flag_aggressive_1;
+	MapRoutes.DEFEND_flag_aggressive_6 = MapRoutes.DEFEND_flag_aggressive_1;
+	MapRoutes.DEFEND_flag_aggressive_7 = MapRoutes.DEFEND_flag_aggressive_1;
+	MapRoutes.DEFEND_flag_aggressive_8 = MapRoutes.DEFEND_flag_aggressive_1;
+	MapRoutes.ATTACK_phase2_2 = MapRoutes.ATTACK_phase2_1;
+	MapRoutes.ATTACK_phase2_3 = MapRoutes.ATTACK_phase2_1;
+	MapRoutes.ATTACK_phase2_4 = MapRoutes.ATTACK_phase2_1;
+	MapRoutes.ATTACK_phase2_5 = MapRoutes.ATTACK_phase2_1;
+	MapRoutes.ATTACK_phase2_6 = MapRoutes.ATTACK_phase2_1;
+	MapRoutes.ATTACK_phase2_7 = MapRoutes.ATTACK_phase2_1;
+	MapRoutes.ATTACK_phase2_8 = MapRoutes.ATTACK_phase2_1;
+	MapRoutes.ATTACK_phase3_2 = MapRoutes.ATTACK_phase3_1;
+	MapRoutes.ATTACK_phase3_3 = MapRoutes.ATTACK_phase3_1;
+	MapRoutes.ATTACK_phase3_4 = MapRoutes.ATTACK_phase3_1;
+	MapRoutes.ATTACK_phase3_5 = MapRoutes.ATTACK_phase3_1;
+	MapRoutes.ATTACK_phase3_6 = MapRoutes.ATTACK_phase3_1;
+	MapRoutes.ATTACK_phase3_7 = MapRoutes.ATTACK_phase3_1;
+	MapRoutes.ATTACK_phase3_8 = MapRoutes.ATTACK_phase3_1;
+	// MapRoutes.FLAG_maps = MapRoutes.ATTACK_phase3_1;
+	MapRoutes.DEFEND_bridge_aggressive_2 = MapRoutes.DEFEND_bridge_aggressive_1;
+	MapRoutes.DEFEND_bridge_aggressive_3 = MapRoutes.DEFEND_bridge_aggressive_1;
+	MapRoutes.DEFEND_bridge_aggressive_4 = MapRoutes.DEFEND_bridge_aggressive_1;
+	MapRoutes.DEFEND_bridge_aggressive_5 = MapRoutes.DEFEND_bridge_aggressive_1;
+	MapRoutes.DEFEND_bridge_aggressive_6 = MapRoutes.DEFEND_bridge_aggressive_1;
+	MapRoutes.DEFEND_bridge_aggressive_7 = MapRoutes.DEFEND_bridge_aggressive_1;
+	MapRoutes.DEFEND_bridge_aggressive_8 = MapRoutes.DEFEND_bridge_aggressive_1;
+	MapRoutes.DEFEND_bridge_conserv_2 = MapRoutes.DEFEND_bridge_conserv_1;
+	MapRoutes.DEFEND_bridge_conserv_3 = MapRoutes.DEFEND_bridge_conserv_1;
+	MapRoutes.DEFEND_bridge_conserv_4 = MapRoutes.DEFEND_bridge_conserv_1;
+	MapRoutes.DEFEND_bridge_conserv_5 = MapRoutes.DEFEND_bridge_conserv_1;
+	MapRoutes.DEFEND_bridge_conserv_6 = MapRoutes.DEFEND_bridge_conserv_1;
+	MapRoutes.DEFEND_bridge_conserv_7 = MapRoutes.DEFEND_bridge_conserv_1;
+	MapRoutes.DEFEND_bridge_conserv_8 = MapRoutes.DEFEND_bridge_conserv_1;
+	MapRoutes.DEFEND_deliver_2 = MapRoutes.DEFEND_deliver_1;
+	MapRoutes.DEFEND_deliver_3 = MapRoutes.DEFEND_deliver_1;
+	MapRoutes.DEFEND_deliver_4 = MapRoutes.DEFEND_deliver_1;
+	MapRoutes.DEFEND_deliver_5 = MapRoutes.DEFEND_deliver_1;
+	MapRoutes.DEFEND_deliver_6 = MapRoutes.DEFEND_deliver_1;
+	MapRoutes.DEFEND_deliver_7 = MapRoutes.DEFEND_deliver_1;
+	MapRoutes.DEFEND_deliver_8 = MapRoutes.DEFEND_deliver_1;
+
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.MaxViewDistance = 2500;
+};
+
+/*
+
+Attack / Defend naming conventions (Groups)
+
+Initial phase:
+DEFEND_flag_aggressive_# :allies will set up in aggressive spots initially
+DEFEND_flag_conserv_# :allies will shift back if gate is destroyed
+ATTACK_phase1_# :axis attack flag area
+
+Tank Stolen:
+DEFEND_bridge_aggressive_# :allies will set up on flag side of bridge
+DEFEND_bridge_conserv_# :allies will shift back a little once tank is at bridge
+ATTACK_phase2_# :axis attack bridge area (used later for deliver escort too)
+
+Tank Across Bridge:
+DEFEND_breach_# :allies will set up in positions by breach
+ATTACK_phase3_# :axis attack around breach area
+
+Breach Destroyed:
+DEFEND_docs_# :allies will set up to defend docs
+
+Docs Stolen:
+DEFEND_deliver_# :allies will set up around the boat
+
+*/

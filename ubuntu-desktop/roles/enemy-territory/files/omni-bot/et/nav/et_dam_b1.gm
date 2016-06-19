@@ -1,0 +1,631 @@
+global Map =
+{
+	Quiet = true,
+	Debug = false,
+	Checkpoint_dam_flag = "CHECKPOINT_dam_flag",
+	Plant_Dam_Stairwell_Door = "PLANT_Dam_Stairwell_Door",
+	Plant_Lower_Dam_Door = "PLANT_Lower_Dam_Door",
+	Plant_Main_Doors = "PLANT_Main_Doors",
+	Plant_Main_Water_Regulator = "PLANT_Main_Water_Regulator",
+	Plant_lower_front_door = "PLANT_lower_front_door",
+	Plant_upper_front_door = "PLANT_upper_front_door",
+	Mount_142 = "MOUNTMG42_142",
+	Mount_168 = "MOUNTMG42_168",
+	Repair_142 = "REPAIRMG42_142",
+	Repair_168 = "REPAIRMG42_168",
+	DontDispenseAmmo = true,
+
+	FlagStatus = 0,
+	LowerStatus = 0,
+	DamStatus = 0,
+	MainStatus = 0,
+	RegulatorDynos = 0,
+	LowerFront = false,
+	UpperFront = false,
+	LowerFrontDyno = 0,
+	UpperFrontDyno = 0,
+	DefenseShifted = false,
+
+	Navigation =
+	{
+		ladder =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 5);
+				sleep(5);
+			},
+		},
+		freefall =
+		{
+			navigate = function(_this)
+			{
+				botFacing = _this.Bot.GetFacing();
+				sleep(1);
+				_this.AddAimRequest(Priority.High, "facing", Vector3(botFacing.x * -1, botFacing.y * -1, 0));
+				sleep(2);
+				_this.ReleaseAimRequest();
+				yield();
+				_this.AddAimRequest(Priority.High, "position", Vector3(105.875,790.718,1690.125));
+				sleep(2);
+				_this.ReleaseAimRequest();
+			},
+		},
+	},
+
+	Defend =
+	{
+		MaxBots = 1,
+		Users = {},
+	},
+
+	Dam_Stairwell_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.DamStatus = 1;
+
+		Map.regulator_plant_check();
+		Util.EnableGoal("ROUTE_northstairwell");
+	},
+
+	Lower_Dam_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.LowerStatus = 1;
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_northsteps_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CAMP_rLowerDam_1" );
+		Map.regulator_plant_check();
+	},
+
+	Main_Doors_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.MainStatus = 1;
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Dam_Stairwell_Door" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Lower_Dam_Door" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_eng.*" );
+		Map.flag_check();
+		Util.EnableGoal("ROUTE_main");
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_dam_flag" );	// We cant ever reclaim...
+	},
+
+	Main_Doors_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_eng.*" );
+
+		if( Map.DefenseShifted ) {
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Main_Doors.*");
+		}
+	},
+
+	Lower_Dam_Door_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if( Map.DefenseShifted ) {
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Lower_Dam.*");
+		}
+	},
+
+	Dam_Stairwell_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if( Map.DefenseShifted ) {
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Dam_Stairwell.*");
+		}
+	},
+
+	Main_Doors_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+	},
+
+	Main_Water_Regulator_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+	},
+
+	lower_front_door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.LowerFront = true;
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_dam_flag" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_bYard.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_lowerfrontdoor" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_bPreflag_.*" );
+
+		if ( Map.UpperFrontDyno > 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Main_Doors" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_eng.*" );
+		}
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_rLT_Door.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "AIRSTRIKE_dooras");
+	},
+
+	upper_front_door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.UpperFront = true;
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_dam_flag" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_bYard.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_lowerfrontdoor" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_bPreflag_.*" );
+
+	/*	if( !Map.DefenseShifted ) {	//Martin - Going to use a dual defend goal now.
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rLowerDam.*" );
+		}	*/
+
+		if ( Map.LowerFrontDyno > 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Main_Doors" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_eng.*" );
+		}
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "AIRSTRIKE_dooras");
+	},
+
+	dam_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.FlagStatus = 1;
+
+		if (Map.MainStatus == 0)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rEastpreflag_.*" );	// We got it back
+		}
+	},
+
+	dam_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.FlagStatus = 2;
+
+		SetMapGoalProperties( "DEFEND_.*", {MinCampTime=30, MaxCampTime=45});
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_dam_flag" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_rEastpreflag_.*" );	// Get the flag
+                SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_rWestpreflag_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_rLT_Door.*" );
+                SetAvailableMapGoals( TEAM.AXIS, true, "CAMP_rLowerDam_1" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_bRoad_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_bRoad_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_bRadio_.*" );
+                SetAvailableMapGoals( TEAM.ALLIES, true, "GRENADE_SnipeWindow" );
+		Map.flag_check();
+
+		Util.SetMaxUsersInProgress( 2, "CHECKPOINT.*" );
+	},
+
+	Lower_Front_Door_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.LowerFrontDyno += 1;
+		if ( Map.UpperFront )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Main_Doors" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_eng.*" );
+		}
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_lower_front_door.*" );
+	},
+
+	Upper_Front_Door_Planted = function(trigger)
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.UpperFrontDyno += 1;
+		if ( Map.LowerFront )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Main_Doors" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_eng.*" );
+		}
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_upper_front_door.*" );
+	},
+
+	Main_Water_Regulator_Planted = function(trigger)
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.RegulatorDynos += 1;
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_regulator_.*" );
+	},
+
+	Main_Water_Regulator_Defused = function(trigger)
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.RegulatorDynos -= 1;
+	},
+
+	two_minute = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+	},
+
+	thirty_second = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.RegulatorDynos >= 1 ) { return; }
+		foreach ( id and bot in BotTable )
+		{
+			if (RandInt(0,10) < 2)
+			{
+				bot.SayVoice(VOICE.G_GOODGAME);
+			}
+			sleep(0.5);
+			if (bot.GetTeam() == TEAM.AXIS)
+			{
+				if (RandInt(0,10) < 3)
+				{
+					bot.SayVoice(VOICE.G_CHEER);
+				}
+				sleep(0.5);
+			}
+		}
+	},
+
+	// Will determine if main_gate and flag belong to allies and if so,
+	// axis will fallback to road
+	flag_check = function()	// Martin's own function
+	{
+		if ( TestMap )
+			{ return; }
+
+		if (Map.MainStatus == 1 && Map.FlagStatus == 2)
+		{
+			SetMapGoalProperties( "DEFEND_.*", {MinCampTime=30, MaxCampTime=45});
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_rWestpreflag_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_rEastpreflag_.*" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rRoad.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_rNorthroad_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_rRoad_.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_rRoad" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_rRoad" );
+			ETUtil.LimitToClass( "CHECKPOINT_dam_flag" , TEAM.AXIS, CLASS.LIEUTENANT );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42_bRoad" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "REPAIRMG42_bRoad" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_bRoad.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_bPreflag_.*" );
+		}
+	},
+
+	regulator_plant_check = function()
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint("checking if ok to plant regulator");
+
+		if (Map.LowerStatus > 0 && Map.DamStatus > 0)
+		{
+			Util.MapDebugPrint("Setting plant to true...");
+
+			SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_dam_flag" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_northsteps_.*" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_regulator_.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_bSouthsteps_.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_bRoad_.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Main_Water_Regulator" );
+                        SetAvailableMapGoals( TEAM.ALLIES, true, "GRENADE_Access_Duct" );
+		}
+
+		if (Map.LowerStatus > 0 || Map.DamStatus > 0 || Map.AccessDuctStatus)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_regulator_.*" );
+		}
+	},
+
+	LowerTrigger =
+	{
+		Name = "TriggerOne",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if ( TestMap || Map.DefenseShifted )
+				{ return; }
+
+			// just defend the regulator if a human is going to try and exploit this
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				Util.OneBotVSayTeam(TEAM.AXIS, VOICE.DEFEND_OBJECTIVE);
+				SetAvailableMapGoals(TEAM.AXIS, false, "DEFEND.*");
+				SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_dam_flag" );
+				SetAvailableMapGoals(TEAM.AXIS, true, "DEFEND_regulator_.*");
+				Map.DefenseShifted = true;
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "Allies breached the Upper Dam Stairwell!", Map.Dam_Stairwell_Door_Destroyed );
+	OnTrigger( "Allies breached the Lower Dam Tunnels!", Map.Lower_Dam_Door_Destroyed );
+	OnTrigger( "Allies destroyed the Main Dam Road Doors!", Map.Main_Doors_Destroyed );
+	OnTrigger( "Planted at the Main Doors.", Map.Main_Doors_Planted );
+	OnTrigger( "The Main Water Regulator has been destroyed!", Map.Main_Water_Regulator_Destroyed );
+	OnTrigger( "Allies breached the Service Halls!", Map.lower_front_door_Destroyed );
+	OnTrigger( "the upper front door Destroyed.", Map.upper_front_door_Destroyed );
+	OnTrigger( "Axis reclaim the Generator Controls Room!", Map.dam_flag_Axis_Captured );
+	OnTrigger( "Allies capture the Generator Controls Room!", Map.dam_flag_Allies_Captured );
+	OnTrigger( "Planted at the lower front door.", Map.Lower_Front_Door_Planted );
+	OnTrigger( "Planted at the upper front door.", Map.Upper_Front_Door_Planted );
+	OnTrigger( "Planted at the Lower Dam Door.", Map.Lower_Dam_Door_Planted );
+	OnTrigger( "Planted at the Dam Stairwell Door.", Map.Dam_Stairwell_Planted );
+	OnTrigger( "Planted at the Main Water Regulator.", Map.Main_Water_Regulator_Planted );
+	OnTrigger( "Defused at the Main Water Regulator.", Map.Main_Water_Regulator_Defused );
+
+	lower1 = OnTriggerRegion(AABB(-1213.000,-3240.000,1663.000,-1157.000,-3155.000,1737.000), Map.LowerTrigger);
+	lower2 = OnTriggerRegion(AABB(-1474.000,-240.000,1511.000,-1417.000,-135.000,1585.000), Map.LowerTrigger);
+	lower3 = OnTriggerRegion(AABB(-2052.000,-2484.000,2307.000,-1943.000,-2275.000,2381.000), Map.LowerTrigger);
+	lower4 = OnTriggerRegion(AABB(-1283.000,-925.000,1727.000,-1176.000,-775.000,1806.000), Map.LowerTrigger);
+
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=20, MaxCampTime=30});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=60, MaxCampTime=80});
+	SetMapGoalProperties( "PANZER_.*", {MinCampTime=30, MaxCampTime=60});
+	SetMapGoalProperties( "MOUNT.*", {MinCampTime=45, MaxCampTime=60});
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=45, MaxCampTime=60});
+        SetMapGoalProperties( "CAMP_.*", {MinCampTime=120, MaxCampTime=240});
+
+	ETUtil.SetPrimaryGoals(1.0);
+        ETUtil.LimitToClass( "GRENADE_SnipeWindow", TEAM.ALLIES, CLASS.COVERTOPS );
+	ETUtil.LimitToClass("MOUNT.*", 0, CLASS.FIELDOPS, CLASS.SOLDIER);
+	ETUtil.LimitToClass("DEFEND_rLT.*", TEAM.AXIS, CLASS.FIELDOPS);
+
+	Util.DisableGoal(".*", true); //all but routes
+	Util.DisableGoal("ROUTE_main");
+	Util.DisableGoal("ROUTE_northstairwell");
+
+	Util.SetMaxUsers( 1, "MOUNT.*" );
+	Util.SetMaxUsers( 1, "CAMP.*" );
+	Util.SetMaxUsers( 1, "ATTACK.*" );
+	Util.SetMaxUsers( 1, "DEFEND.*" );
+	Util.SetMaxUsers( 1, "GRENADE.*" );
+	Util.SetMaxUsers( 1, "AIRSTRIKE.*" );
+        Util.SetMaxUsers( 1, "PLANT_lower_front.*" );
+        Util.SetMaxUsers( 1, "PLANT_upper_front.*" );
+
+	Util.SetGoalOffset( 0, 10, 0, "PLANT_Main_Water_Regulator" );
+	Util.SetGoalOffset( 35, 0, 0, "PLANT_Dam_Stairwell_Door" );
+	Util.SetGoalOffset( 35, 0, 0, "PLANT_Lower_Dam_Door" );
+
+        Util.SetRoleForGoals( "CAMP_rLowerDam_.*", ROLE.DEFENDER );
+
+	//eng camp spots to wait for recharge
+	SetGoalPriority( "ATTACK_eng.*", 0.91, TEAM.ALLIES, CLASS.ENGINEER );
+	ETUtil.LimitToClass( "ATTACK_eng.*", TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_Main_Door", 0.93 );
+	SetGoalPriority( "ARTILLLERY.*", 1.0 );
+	SetGoalPriority( "DEFEND_regulator.*", 0.6 );
+	SetGoalPriority( "DEFEND_rEastpreflag.*", 0.56 );
+	SetGoalPriority("DEFEND_rLT.*", 0.7, TEAM.AXIS, CLASS.LIEUTENANT);
+        SetGoalPriority( "CAMP_rLowerDam_1.*", 0.85 );
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_upper_front_door" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_lower_front_door" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_bYard.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_lowerfrontdoor" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rWestpreflag_.*" );
+        SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rEastpreflag_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rLT_Door.*" );
+        SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_dooras");
+
+	MapRoutes =
+	{
+		CHECKPOINT_dam_flag =
+		{
+			ROUTE_bRearspawn =
+			{
+				ROUTE_lowerfrontdoor = {},
+				ROUTE_upperfrontdoor = {},
+			},
+			ROUTE_rRearspawn =
+			{
+				ROUTE_southroad =
+				{
+					ROUTE_generator = {},
+					ROUTE_westroute = {},
+				},
+			},
+		},
+		PLANT_Main_Doors =
+		{
+			ROUTE_forwardspawn = {},
+			ROUTE_bSpawn =
+			{
+				ROUTE_lowerfrontdoor = {},
+				ROUTE_upperfrontdoor = {},
+			},
+		},
+		SNIPE_bRadio_1 =
+		{
+			ROUTE_forwardspawn =
+			{
+				ROUTE_ducts = {},
+				ROUTE_westroute = {},
+			},
+		},
+		ATTACK_bRoad_1 =
+		{
+			ROUTE_forwardspawn =
+			{
+				ROUTE_westroute = {},
+				ROUTE_main = {Weight = 2,},
+				ROUTE_generator = {Weight = 2,},
+			},
+		},
+		ATTACK_regulator_1 =
+		{
+			ROUTE_forwardspawn =
+			{
+				ROUTE_westroute =
+				{
+					ROUTE_northstairwell = {Weight = 2,},
+					ROUTE_lower = {Weight = 2,},
+					ROUTE_southstairwell = {},
+				},
+				ROUTE_generator =
+				{
+					Weight = 3,
+					ROUTE_northstairwell = {Weight = 2,},
+					ROUTE_lower = {Weight = 2,},
+					ROUTE_southstairwell = {},
+				},
+				ROUTE_main =
+				{
+					Weight = 2,
+					ROUTE_northstairwell = {Weight = 2,},
+					ROUTE_lower = {Weight = 2,},
+					ROUTE_southstairwell = {},
+				},
+			},
+		},
+		PLANT_Main_Water_Regulator =
+		{
+			ROUTE_forwardspawn =
+			{
+				ROUTE_westroute =
+				{
+					ROUTE_northstairwell = {Weight = 2,},
+					ROUTE_lower = {Weight = 3,},
+					ROUTE_southstairwell = {},
+				},
+				ROUTE_generator =
+				{
+					Weight = 3,
+					ROUTE_northstairwell = {Weight = 2,},
+					ROUTE_lower = {Weight = 3,},
+					ROUTE_southstairwell = {},
+				},
+				ROUTE_main =
+				{
+					Weight = 2,
+					ROUTE_northstairwell = {Weight = 2,},
+					ROUTE_lower = {Weight = 3,},
+					ROUTE_southstairwell = {},
+				},
+			},
+		},
+		DEFEND_rRoadrear_1 =
+		{
+			ROUTE_rRearspawn =
+			{
+				ROUTE_southroad = {Weight = 3,},
+				ROUTE_southstairwell = {},
+			},
+		},
+		DEFEND_rRoadmid_1 =
+		{
+			ROUTE_rRearspawn =
+			{
+				ROUTE_southroad = {Weight = 2,},
+				ROUTE_southstairwell = {Weight = 2,},
+				ROUTE_northstairwell = {},
+			},
+		},
+		DEFEND_rRoadfront_1 =
+		{
+			ROUTE_rRearspawn =
+			{
+				ROUTE_southroad = {},
+				ROUTE_southstairwell = {Weight = 2,},
+				ROUTE_northstairwell = {Weight = 3,},
+			},
+		},
+	};
+	MapRoutes.CHECKPOINT_dam_flag.ROUTE_rRearspawn.ROUTE_southstairwell = MapRoutes.CHECKPOINT_dam_flag.ROUTE_rRearspawn.ROUTE_southroad;
+	MapRoutes.CHECKPOINT_dam_flag.ROUTE_bSpawn = MapRoutes.CHECKPOINT_dam_flag.ROUTE_bRearspawn;
+	MapRoutes.PLANT_Main_Doors.ROUTE_bRearspawn = MapRoutes.PLANT_Main_Doors.ROUTE_bSpawn;
+	MapRoutes.SNIPE_bRadio_2 = MapRoutes.SNIPE_bRadio_1;
+	MapRoutes.ATTACK_bRoad_2 = MapRoutes.ATTACK_bRoad_1;
+	MapRoutes.ATTACK_bRoad_3 = MapRoutes.ATTACK_bRoad_1;
+	MapRoutes.ATTACK_bRoad_4 = MapRoutes.ATTACK_bRoad_1;
+	MapRoutes.ATTACK_bRoad_5 = MapRoutes.ATTACK_bRoad_1;
+	MapRoutes.ATTACK_bRoad_6 = MapRoutes.ATTACK_bRoad_1;
+	MapRoutes.ATTACK_bRoad_7 = MapRoutes.ATTACK_bRoad_1;
+	MapRoutes.ATTACK_bRoad_8 = MapRoutes.ATTACK_bRoad_1;
+	MapRoutes.ATTACK_regulator_2 = MapRoutes.ATTACK_regulator_1;
+	MapRoutes.ATTACK_regulator_3 = MapRoutes.ATTACK_regulator_1;
+	MapRoutes.ATTACK_regulator_4 = MapRoutes.ATTACK_regulator_1;
+	MapRoutes.ATTACK_regulator_5 = MapRoutes.ATTACK_regulator_1;
+	MapRoutes.ATTACK_regulator_6 = MapRoutes.ATTACK_regulator_1;
+	MapRoutes.ATTACK_bSouthsteps_1 = MapRoutes.ATTACK_regulator_1;
+	MapRoutes.ATTACK_bSouthsteps_2 = MapRoutes.ATTACK_regulator_1;
+	MapRoutes.ATTACK_bSouthsteps_3 = MapRoutes.ATTACK_regulator_1;
+	MapRoutes.ATTACK_bSouthsteps_4 = MapRoutes.ATTACK_regulator_1;
+	MapRoutes.DEFEND_rRoadfront_2 = MapRoutes.DEFEND_rRoadfront_1;
+	MapRoutes.DEFEND_rRoadfront_3 = MapRoutes.DEFEND_rRoadfront_1;
+	MapRoutes.DEFEND_rRoadmid_2 = MapRoutes.DEFEND_rRoadmid_1;
+	MapRoutes.DEFEND_rRoadmid_3 = MapRoutes.DEFEND_rRoadmid_1;
+	MapRoutes.DEFEND_rRoadmid_4 = MapRoutes.DEFEND_rRoadmid_1;
+	MapRoutes.DEFEND_rRoadrear_2 = MapRoutes.DEFEND_rRoadrear_1;
+	MapRoutes.DEFEND_rRoadrear_3 = MapRoutes.DEFEND_rRoadrear_1;
+
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 100.0;
+
+	//default spawn
+	bot.ChangeSpawnPoint( 0 );
+
+	if ( bot.GetTeam() == TEAM.AXIS && bot.GetClass() == CLASS.FIELDOPS )
+	{
+		if ( tableCount(Map.Defend.Users) < Map.Defend.MaxBots )
+		{
+			Map.Defend.Users[ bot.GetGameId() ] = true;
+			bot.SetRoles(ROLE.DEFENDER);
+		}
+	}
+};

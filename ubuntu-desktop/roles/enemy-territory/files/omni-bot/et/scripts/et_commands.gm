@@ -1,0 +1,801 @@
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["aim_debug"] =
+{
+	Func = function( _params )
+	{
+		print( "Executing aim debugging script." );
+		ETUtil.DebugBotAim( _params[0] );
+	},
+
+	Help =
+	{
+		"Aim Debug, an aim debugging tool",
+		"Usage: /bot aim_debug",
+		"Note: adds two bots to the game and positions them on both",
+		"       sides of the player at the given range",
+		"       shooting is disabled and the AIM debug flag is set",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["aim_debug_reload"] =
+{
+	Func = function( _params )
+	{
+		foreach ( gameId and bot in BotTable )
+			{ bot.ReloadProfile(); }
+	},
+
+	Help =
+	{
+		"Aim Debug Reload, reloads each bots profile",
+		"Usage: /bot aim_debug_reload",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["cvp"] =
+{
+	Func = function( _params )
+	{
+		ETUtil.CheckVehiclePath( _params );
+	},
+
+	Help =
+	{
+		"Check Vehicle Path, test bots ability to repair the vehicle along its entire path",
+		"Usage: /bot cvp <goalname1> <goalname2> <optional seconds>",
+		"       goalname1 should be set to the construct goal of the vehicle",
+		"       goalname2 should be set to the mover goal of the vehicle",
+		"       seconds can be optionally set to adjust the interval between the vehicle being damaged",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["cvpo"] =
+{
+	Func = function( _params )
+	{
+		ETUtil.CheckVehiclePathOff();
+	},
+
+	Help =
+	{
+		"Check Vehicle Path Off, turns off Check Vehicle Path",
+		"Usage: /bot cvpo",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["bvp"] =
+{
+	Func = function( _params )
+	{
+		ETUtil.BuildVehiclePath( _params );
+	},
+
+	Help =
+	{
+		"Build Vehicle Path, assists the waypointer in creating the vehicle path",
+		"Usage: /bot bvp <goalname1> <goalname2> <optional seconds>",
+		"       goalname1 should be set to the construct goal of the vehicle",
+		"       goalname2 should be set to the mover goal of the vehicle",
+		"       seconds can be optionally set to adjust the interval between the vehicle being damaged",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["bvpo"] =
+{
+	Func = function( _params )
+	{
+		ETUtil.BuildVehiclePathOff();
+	},
+
+	Help =
+	{
+		"Build Vehicle Path Off, turns off Build Vehicle Path",
+		"Usage: /bot bvpo",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["warpto"] =
+{
+	Func = function( _params )
+	{
+		ETUtil.WarpTo( _params );
+	},
+
+	Help =
+	{
+		"Warp To, will teleport player to given goal or waypoint name if cheats are enabled",
+		"Usage: /bot warpto <goalname|wpname>",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["wt"] =
+{
+	Func = function( _params )
+	{
+		ETUtil.WarpTo( _params );
+	},
+
+	Help =
+	{
+		"Warp To, will teleport player to given goal or waypoint name if cheats are enabled",
+		"Usage: /bot wt <goalname|wpname>",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["wb"] =
+{
+	Func = function( _params )
+	{
+		ETUtil.WarpTestBot( _params );
+	},
+
+	Help =
+	{
+		"Warp Test Bot, will teleport testbot to given waypoint name if cheats are enabled",
+		"Usage: /bot wb <wpname>",
+	},
+};
+
+Commands["warpbot"] = Commands["wb"];
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["wab"] =
+{
+	Func = function( _params )
+	{
+		ETUtil.WarpAnyBot( _params );
+	},
+
+	Help =
+	{
+		"Warp any bot, will teleport a bot matching given name to the player",
+		"Usage: /bot wab",
+	},
+};
+
+Commands["warpanybot"] = Commands["wab"];
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["warptogoaloffset"] =
+{
+	Func = function( _params )
+	{
+		ETUtil.WarpToGoalOffset( _params );
+	},
+
+	Help =
+	{
+		"Warp To Goal Offset, will teleport player to given goal real world offset if cheats are enabled",
+		"Usage: /bot warptogoaloffset <goalname>",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["wtgo"] =
+{
+	Func = function( _params )
+	{
+		ETUtil.WarpToGoalOffset( _params );
+	},
+
+	Help =
+	{
+		"Warp To, will teleport player to given goal real world offset if cheats are enabled",
+		"Usage: /bot wtgo <goalname>",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["rollcall"] =
+{
+	Func = function( _params )
+	{
+		ETUtil.RollCall();
+	},
+
+	Help =
+	{
+		"Roll Call, lists each bots name, team, class, and entity",
+		"Usage: /bot rollcall",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["moveskill"] =
+{
+	Func = function(_params)
+	{
+		if ( !_params[0] )
+		{
+			ms = ConfigGet("CombatMovement","moveskill", ms);
+			print( "Combat Movement Difficulty is", ms );
+			return;
+		}
+
+		if ( _params[0] < 0 || _params[0] > 4 )
+		{
+			print( "^1ERROR: Invalid moveskill. Valid values are from 0 to 4 " );
+			return;
+		}
+
+		ConfigSet("CombatMovement","moveskill", _params[0] );
+
+		foreach ( id and bot in BotTable )
+		{
+			if ( _params[0] == 4 )
+			{
+				r = RandInt(0, 3);
+				bot.moveskill = r;
+				continue;
+			}
+
+			bot.moveskill = _params[0];
+		}
+
+		print( "Combat Movement difficulty set to ", _params[0] );
+	},
+
+	Help =
+	{
+		"Combat Difficulty, sets persistent combat movement difficulty",
+		"0 = off, 1 = easy, 2 = medium, 3 = hard, 4 = random",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["tracearty"] =
+{
+	Func = function( _params )
+	{
+		if ( _params[0] == "all" )
+		{
+			ETUtil.TraceAllArty();
+		}
+		else
+		{
+			ETUtil.TraceArty(_params[ 0 ]);
+		}
+	},
+
+	Help =
+	{
+		"Runs a trace to find arty targets from closest arty goal",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["draw_oids"] =
+{
+	Func = function( _params )
+	{
+		ETUtil.DrawObjectiveInfoDisplays();
+	},
+
+	Help =
+	{
+		"Draw Objective Info Displays, waypoint tool. draws the bounds of all OID's in the map",
+		"Usage: /bot draw_oids",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["draw_spawns"] =
+{
+	Func = function( _params )
+	{
+		ETUtil.DrawSpawns();
+	},
+
+	Help =
+	{
+		"Draw spawn points, waypoint tool. draws the bounds of all spawn points in the map",
+		"Usage: /bot draw_spawns",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["fgp"] =
+{
+	Func = function( _params )
+	{
+		wpTable = table();
+
+		goalTable = Util.GoalTable("CAMP.*\nDEFEND.*\nATTACK.*\nSNIPE.*\nROUTE.*\nMOBILE.*\nCAPPOINT.*\nPLANTMINE.*\n.*ART.*");
+
+		foreach ( id and goal in goalTable )
+		{
+			tag = goal.GetTagName();
+			type = goal.GetGoalType();
+			pos = goal.GetPosition();
+
+			if ( Wp.GetWaypointByName(tag, wpTable) )
+			{
+				foreach( flag and set in wpTable.flags )
+				{
+					if ( !flag.CompareNoCase(type) )
+					{
+						// tagname == wp name and goal type == wp flag. woot
+						// so it's a match. now check z coord for the fubar ones
+						if ( wpTable.position.z - pos.z > 54 )
+						{
+							goal.SetPosition(wpTable.position + Util.WaypointGoalOffset);
+							goal.RenderGoal = true;
+							print ( goal.GetName(), "needs checked. it was detected as being too low and moved" );
+						}
+					}
+				}
+			}
+
+			tableClear(wpTable);
+		}
+
+	},
+
+	Help =
+	{
+		" fix waypoint based goal positions that were incorectly set to ground position",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["fgs"] =
+{
+	Func = function( _params )
+	{
+		wpTable = table();
+
+		goalTable = Util.GoalTable("CAMP.*\nDEFEND.*\nATTACK.*\nSNIPE.*");
+
+		foreach ( id and goal in goalTable )
+		{
+			oldtag = goal.GetTagName();
+			type = goal.GetGoalType();
+			pos = goal.GetPosition();
+			tag = oldtag.ReplaceCharsInSet().TrimRight(); // replaces spaces with _
+
+			if ( Wp.GetWaypointByName(oldtag, wpTable) )
+			{
+				foreach( flag and set in wpTable.flags )
+				{
+					stanceChanged = false;
+					if ( !flag.CompareNoCase(type) )
+					{
+						foreach ( ptype and value in wpTable.property )
+						{
+							if ( ptype == "stance" )
+							{
+								goal.SetProperty("Stance", value);
+								stanceChanged = true;
+								goal.RenderGoal = true;
+								print(goal.GetName(), "stance changed to", value);
+							}
+						}
+					}
+
+					if ( _params[0] == 1 && set == 1 && (flag == "crouch" || flag == "prone" ) )
+					{
+						// can we remove the flag?
+						removeFlag = false;
+						offset = Vector3(0,0,200);
+						tr = TraceLine( wpTable.position, wpTable.position + offset, 0, TRACE.SHOT, 0, false );
+
+						if ( !tr.end )
+						{
+							dist = 200;
+						}
+						else
+						{
+							dist = DistanceBetween(wpTable.position, tr.end);
+						}
+
+						if ( dist > 70 )
+						{
+							removeFlag = true;
+						}
+						else if ( dist > 40 && flag == "prone" )
+						{
+							removeFlag = true;
+						}
+
+						if ( removeFlag )
+						{
+							Wp.SetWaypointFlag(oldtag, flag, false);
+
+							// set the property too so it works without a goals file
+							Wp.SetWaypointProperty(oldtag, "stance", flag);
+
+							print( "waypoint flag", flag, "removed from", tag );
+						}
+
+						// default to property setting
+						if ( !stanceChanged )
+						{
+							goal.SetProperty("Stance", flag);
+							stanceChanged = true;
+							goal.RenderGoal = true;
+							print(goal.GetName(), "stance changed to", flag);
+						}
+					}
+				}
+			}
+
+			tableClear(wpTable);
+		}
+
+		if ( _params[0] == 1) {
+			print("all stances fixed based on waypoint properties and waypoint flags");
+		}
+		else {
+			print("all stances fixed based on waypoint properties. note: use /bot fgs 1 to fix based on flags and properties");
+		}
+	},
+
+	Help =
+	{
+		" fix waypoint based goal stances. optionally use /bot fgs 1 to check for waypoint flags",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["stuckstart"] =
+{
+	Func = function( _params )
+	{
+		if ( !CheatsEnabled() ) {
+			print("^1cheats must be enabled to use this command");
+			print("type /devmap", GetMapName(), "in console");
+			return;
+		}
+
+		stuckagefile = GetMapName() + "_stuckages.gm";
+		assert( ExecScript( stuckagefile ), "Error opening " + stuckagefile + "!" );
+
+		// copy all non-dupes to a temp table
+		temp = {};
+		dupeCount = 0;
+		foreach ( id and pos in Stuckages ) {
+			dupe = false;
+			foreach ( tempId and tempPos in temp ) {
+				if ( DistanceBetween(pos, tempPos) < 150 ) {
+					dupe = true;
+				}
+			}
+			if (!dupe) {
+				temp[ tableCount(temp) ] = pos;
+			}
+			else {
+				dupeCount += 1;
+			}
+		}
+
+		print(format("^3omitted %d duplicates", dupeCount));
+
+		ind = 0;
+		total = tableCount(temp);
+		foreach ( id and pos in temp ) {
+			ind += 1;
+			EchoToScreen(2.0, "^1at stuckage pos "+ ind + " of " + total);
+			s = "setviewpos " + pos.x + " " + pos.y + " " + pos.z + " " + " 0";
+			ExecCommandOnClient(GetLocalEntity(), s);
+			block("nextstuck");
+		}
+
+
+		if ( ind == 0 ) {
+			print("no stuckage vectors defined for this map");
+		}
+		else {
+			print("finished iterating through stuckage vectors");
+		}
+	},
+
+	Help =
+	{
+		"start iterating through the stuckage table for the map",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["stucknext"] =
+{
+	Func = function( _params )
+	{
+		signal("nextstuck");
+	},
+
+	Help =
+	{
+		"used with stuckage checking. sends a signal to advance to the next stuckage vector",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["plantstart"] =
+{
+	Func = function()
+	{
+		if ( !CheatsEnabled() ) {
+			print("^1cheats must be enabled to use this command");
+			print("type /devmap", GetMapName(), "in console");
+			return;
+		}
+
+		positions = table();
+
+		// get a table of the plant goals in the map
+		goals = Util.GoalTable("PLANT_.*");
+
+		// store the waypoint position of the first waypoint within 200 units
+		// so we dont have to noclip out of the goal
+		wps = table();
+		Wp.GetAllWaypoints(wps);
+
+		i = 0;
+		foreach( id and goal in goals ) {
+			goalPos = goal.GetPosition();
+			dist = 10000;
+			pos = Vector3(0,0,0);
+			// find the closest waypoint
+			foreach ( id and way in wps ) {
+				evalDist = DistanceBetween(goalPos, way.position);
+				if ( evalDist < dist ) {
+					dist = evalDist;
+					pos = way.position;
+				}
+			}
+
+			positions[ goal.GetName() ] = pos;
+			i += 1;
+		}
+
+		// render the plant goals
+		ExecCommand("draw_goals on PLANT_.*");
+
+		// loop through and warp to the waypoints near plant goals
+		ind = 0;
+		total = tableCount(positions);
+		foreach ( id and waypos in positions ) {
+			ind += 1;
+			EchoToScreen(10.0, "^1at plant goal "+ ind + " of " + total + "\n^2" + id);
+			s = "setviewpos " + waypos.x + " " + waypos.y + " " + waypos.z + " " + " 0";
+			ExecCommandOnClient(GetLocalEntity(), s);
+			if (block("nextplant", "stopplant") == "stopplant") { break; }
+		}
+
+		if ( ind == 0 ) {
+			print("no plant goals in this map");
+		}
+		else {
+			print("finished iterating through plant goals");
+		}
+	},
+
+	Help =
+	{
+		"start iterating through the plant goals in the map. helper for adding cover spots",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["plantnext"] =
+{
+	Func = function( _params )
+	{
+		if (_params[0] && _params[0] == "stop") {
+			signal("stopplant");
+		}
+		else {
+			signal("nextplant");
+		}
+	},
+
+	Help =
+	{
+		"sends a signal to advance to the next plant goal position. waypoint tool for adding cover spots",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// guess i coulda made one command that took a query string. oh well, sue me
+Commands["campstart"] =
+{
+	Func = function( _params )
+	{
+		if ( !CheatsEnabled() ) {
+			print("^1cheats must be enabled to use this command");
+			print("type /devmap", GetMapName(), "in console");
+			return;
+		}
+
+		// get a table of the camp type goals in the map
+		goals = Util.GoalTable("CAMP.*\nDEFEND.*\nATTACK.*\nSNIPE.*");
+
+		foreach ( id and goal in goals )
+		{
+			goalPos = goal.GetPosition();
+			goalName = goal.GetName();
+			ExecCommand("draw_goals on " + goalName);
+			if ( goal.AimVectors ) {
+				EchoToScreen(3, "^3" + goalName + " has " + tableCount(goal.AimVectors) + " facings");
+			}
+			else {
+				EchoToScreen(3, "^1" + goalName + " has no facings!");
+			}
+			z = goalPos.z + 24.0; // up a bit to avoid clip
+			s = "setviewpos " + goalPos.x + " " + goalPos.y + " " + z + " " + " 0";
+			ExecCommandOnClient(GetLocalEntity(), s);
+			yield();yield();
+			ExecCommand("goal_edit");
+			if (block("nextcamp", "stopcamp") == "stopcamp") { break; }
+			ExecCommand("goal_finish");
+			ExecCommand("draw_goals off " + goalName);
+		}
+
+		print("finished iterating through camp goals");
+	},
+
+	Help =
+	{
+		"start iterating through the plant goals in the map. helper for adding facings",
+		"note: when warped, it will automatically select the goal",
+		"binding a key to /bot goal_setproperty facing 99 will make things fast!",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["campnext"] =
+{
+	Func = function( _params )
+	{
+		if (_params[0] && _params[0] == "stop") {
+			signal("stopcamp");
+		}
+		else {
+			signal("nextcamp");
+		}
+	},
+
+	Help =
+	{
+		"sends a signal to advance to the next camp goal position. waypoint tool for adding camp facings",
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["saveplayerpos"] =
+{
+	Func = function( _params )
+	{
+		pos = GetLocalPosition();
+		string = ToString( _params[0] ) + ": Vec3(" + ToInt(pos.x) + "," + ToInt(pos.y) + "," + ToInt(pos.z) + ")";
+		DrawDebugLine( pos - Vec3(0,0,6), pos + Vec3(0,0,6), COLOR.CYAN, 15 );
+
+		MapName = GetMapName();
+		gmName = MapName + "_positions.txt";
+		gmfile = File();
+		assert( gmfile.Open( gmName, "text", false, true ), "^1Error writing to file!" );
+		assert( gmfile.Write( string, System.NewLine ), "^1Error writing to file!" );
+		gmfile.Close();
+		print( "Current player position written to " + gmName + ". Drawing cyan debug line for 15 seconds." );
+	},
+
+	Help =
+	{
+		"Waypointing tool - writes player positions to a file in user folder",
+	},
+};
+
+Commands["spp"] = Commands["saveplayerpos"];
+
+///////////////////////////////////////////////////////////////////////////////
+
+Commands["saveusepoint"] =
+{
+	Func = function( _params )
+	{
+		if ( _params[0] )
+			{ regEx = _params[0]; }
+		else
+			{ regEx = ".*"; }
+		goal = Util.FindClosestGoal( 200, regEx );
+		if ( !goal )
+		{
+			print( "No goal found!" );
+			return;
+		}
+		goalname = goal.GetName();
+		print( "Using goal: " + goalname );
+		pos = GetLocalPosition();
+		string = "Util.AddUsePoint( \"" + goalname + "\", Vec3(" + ToInt(pos.x) + "," + ToInt(pos.y) + "," + ToInt(pos.z) + ") );";
+		DrawDebugLine( pos - Vec3(0,0,6), pos + Vec3(0,0,6), COLOR.CYAN, 15 );
+
+		MapName = GetMapName();
+		fileName = MapName + "_positions.txt";
+		file = File();
+		assert( file.Open( fileName, "text", false, true ), "^1Error writing to file!" );
+		assert( file.Write( string, System.NewLine ), "^1Error writing to file!" );
+		file.Close();
+		print( "Usepoint written to " + fileName + ". Drawing cyan debug line for 15 seconds." );
+	},
+
+	Help =
+	{
+		"Waypointing tool - stores player position as usepoint in a file in user folder",
+	},
+};
+
+Commands["sup"] = Commands["saveusepoint"];
+
+///////////////////////////////////////////////////////////////////////////////
+// NOTE: this is temp. to be deleted
+Commands["fixoffsets"] =
+{
+	Func = function( _params )
+	{
+		map = GetMapName();
+		s = map + "_goals.gm";
+		if (!ExecScript(s)) {
+			print("couldn't find ", s);
+			return;
+		}
+
+		foreach ( goalTable in _MG )
+		{
+			if ( !goalTable.Vehicle ) {
+				continue;
+			}
+
+			ETUtil.FixOffsets(_MG[ goalTable.Vehicle ].Position, _MG[ goalTable.Vehicle ].Name, goalTable);
+
+			ExecCommand("draw_goals on " + goalTable.Name);
+			ExecCommand("goal_edit");
+			block("nextoffsetgoal");
+			ExecCommand("draw_goals off " + goalTable.Name);
+		}
+
+		print("finished iterating through vehicle offsets");
+	},
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// NOTE: this is temp. to be deleted
+Commands["fixnext"] =
+{
+	Func = function( _params )
+	{
+		signal("nextoffsetgoal");
+	},
+};

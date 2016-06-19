@@ -1,0 +1,144 @@
+global printmem = function(before, after)
+{
+	print("sysGetMemoryUsage", 			sysGetMemoryUsage());
+	print("sysGetDesiredMemoryUsageHard", 	sysGetDesiredMemoryUsageHard());
+	print("sysGetDesiredMemoryUsageSoft", 	sysGetDesiredMemoryUsageSoft());
+	print("sysGetStatsGCNumFullCollects", 	sysGetStatsGCNumFullCollects());
+	print("sysGetStatsGCNumIncCollects", 	sysGetStatsGCNumIncCollects());
+};
+
+testVec3 = function()
+{
+	//print("Testing Vector3");
+
+	vec1 = Vector3(10, 20, 30);
+	vec2 = Vector3(10.5, 20.5, 30.5);
+	//print("vec1 " + vec1);
+	//print("vec1 ", vec1);
+	//print("vec1 ", vec2);
+
+	vec3 = vec1 + vec2;
+	//print("vec1 + vec2 ", vec3);
+
+	assert(vec3.x == 20.5);
+	assert(vec3.y == 40.5);
+	assert(vec3.z == 60.5);
+
+	vec4 = vec2 - vec1;
+	//print("vec1 - vec1 ", vec4);
+
+	assert(vec4.x == 0.5);
+	assert(vec4.y == 0.5);
+	assert(vec4.z == 0.5);
+
+	vec5 = vec1 * 2;
+	//print("vec1 * 2 ", vec5);
+
+	assert(vec5.x == 20);
+	assert(vec5.y == 40);
+	assert(vec5.z == 60);
+
+	vec6 = vec5 / 2;
+	//print("vec5 / 2 ", vec5);
+
+	assert(vec6.x == vec1.x);
+	assert(vec6.y == vec1.y);
+	assert(vec6.z == vec1.z);
+
+	assert(vec6 == vec1);
+
+	length = vec6.Length();
+	lengthSq = vec6.LengthSq();
+	//print("vec6 length ", length);
+	//print("vec6 lengthSq ", lengthSq);
+
+	//print("vec6 before normalize ", vec6);
+	fNorm = vec6.Normalize();
+	//print("vec6 after normalize ", vec6);
+	//print("vec6 normalize returned ", fNorm);
+
+	vec7 = vec5 - null;
+	vec8 = null - vec5;
+
+	//print("vec7 ", vec7);
+	//print("vec8 ", vec8);
+};
+
+testVec2 = function()
+{
+	//print("Testing Vector2");
+
+	vec1 = Vector2(10, 20);
+	vec2 = Vector2(10.5, 20.5);
+	//print("vec1 " + vec1);
+	//print("vec1 ", vec1);
+	//print("vec1 ", vec2);
+
+	vec3 = vec1 + vec2;
+	//print("vec1 + vec2 ", vec3);
+
+	assert(vec3.x == 20.5);
+	assert(vec3.y == 40.5);
+
+	vec4 = vec2 - vec1;
+	//print("vec1 - vec1 ", vec4);
+
+	assert(vec4.x == 0.5);
+	assert(vec4.y == 0.5);
+
+	vec5 = vec1 * 2;
+	//print("vec1 * 2 ", vec5);
+
+	assert(vec5.x == 20);
+	assert(vec5.y == 40);
+
+	vec6 = vec5 / 2;
+	//print("vec5 / 2 ", vec5);
+
+	assert(vec6.x == vec1.x);
+	assert(vec6.y == vec1.y);
+
+	assert(vec6 == vec1);
+
+	length = vec6.Length();
+	lengthSq = vec6.LengthSq();
+	//print("vec6 length ", length);
+	//print("vec6 lengthSq ", lengthSq);
+
+	//print("vec6 before normalize ", vec6);
+	fNorm = vec6.Normalize();
+	//print("vec6 after normalize ", vec6);
+	//print("vec6 normalize returned ", fNorm);
+
+	//print("unit_x ", Vector3.UNIT_X);
+	//print("unit_y ", Vector3.UNIT_Y);
+	//print("zero ", Vector3.ZERO);
+};
+
+print("--------------------");
+print("Testing Math Library");
+EnableScriptDebug(true);
+
+iterations = 10000;
+
+print("--------------------");
+print("Benchmark Vector3 & Vector2");
+t = Timer();
+before = sysGetMemoryUsage();
+for(i = 0; i < iterations; i+=1)
+{
+	testVec3();
+	testVec2();
+}
+elapsed = t.GetElapsedTime();
+after = sysGetMemoryUsage();
+print("Performed", iterations, "iterations in",elapsed,"seconds");
+print("Memory Difference", after-before);
+
+print("--------------------");
+print("Final Memory");
+printmem();
+
+EnableScriptDebug(false);
+print("--------------------");
+

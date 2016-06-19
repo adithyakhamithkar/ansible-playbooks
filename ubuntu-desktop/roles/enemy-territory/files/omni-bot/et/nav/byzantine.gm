@@ -1,0 +1,531 @@
+//==========================================================================================
+//
+//        byzantine.gm
+//
+//        Who           When                     What
+//------------------------------------------------------------------------------------------
+//        d00d          27 November  2012        Minor corrections: set Debug to 0 etc.
+//        d00d          28 September 2012        Minor corrections
+//        Insane        21 September 2010        Initial Script
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+
+	AlliesGold_Secured = 0,
+	AlliesTapes_Secured = 0,
+	AxisGold_Secured = 0,
+	AxisRadar_Secured = 0,
+	allied_gold_Stolen = false,
+	allied_radar_Stolen = false,
+	axis_gold_Stolen = false,
+	axis_radar_Stolen = false,
+
+	Allied_radar_transponder_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_axis_radar" );
+
+		Util.MapDebugPrint( "Allied_radar_transponder_Built" );
+	},
+
+	Axis_radio_intercept_unit_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "FLAG_allied_radar" );
+
+		Util.MapDebugPrint( "Axis_radio_intercept_unit_Built" );
+	},
+
+	Axis_safehouse_door_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_safehouse_door_Built" );
+	},
+
+	Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Built" );
+	},
+
+	Dock_MG_nest_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Dock_MG_nest_Built" );
+	},
+
+	Dock_Warehouse_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Dock_Warehouse_Built" );
+	},
+
+	North_Patio_MG_nest_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "North_Patio_MG_nest_Built" );
+	},
+
+	Allied_radar_transponder_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_radar_transponder_Destroyed" );
+	},
+
+	Allied_safe_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "FLAG_allied_gold" );
+		Util.MapDebugPrint( "Allied_safe_Destroyed" );
+	},
+
+	Axis_radio_intercept_unit_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "FLAG_axis_radar" );
+
+		Util.MapDebugPrint( "Axis_radio_intercept_unit_Destroyed" );
+	},
+
+	Axis_safehouse_door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Axis_radio_intercept_unit" );
+
+		Util.MapDebugPrint( "Axis_safehouse_door_Destroyed" );
+	},
+
+	Axis_vault_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_axis_gold" );
+
+		Util.MapDebugPrint( "Axis_vault_Destroyed" );
+	},
+
+	Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+
+		Util.MapDebugPrint( "Command_Post_Destroyed" );
+	},
+
+	Dock_MG_nest_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+
+		Util.MapDebugPrint( "Dock_MG_nest_Destroyed" );
+	},
+
+	Dock_Warehouse_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Allied_radar_transponder" );
+		Util.MapDebugPrint( "Dock_Warehouse_Destroyed" );
+	},
+
+	North_Patio_MG_nest_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+
+		Util.MapDebugPrint( "North_Patio_MG_nest_Destroyed" );
+	},
+
+	allied_gold_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.allied_gold_Stolen = true;
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_axis_truck.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_truck.*" );
+		Util.MapDebugPrint( "allied_gold_Taken" );
+	},
+
+	allied_radar_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.allied_radar_Stolen = true;
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_axis_truck.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_truck.*" );
+		Util.MapDebugPrint( "allied_radar_Taken" );
+	},
+
+	axis_gold_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.axis_gold_Stolen = true;
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_ally_truck.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_ally_truck.*" );
+		Util.MapDebugPrint( "axis_gold_Taken" );
+	},
+
+	axis_radar_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.axis_radar_Stolen = true;
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_ally_truck.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_ally_truck.*" );
+		Util.MapDebugPrint( "axis_radar_Taken" );
+	},
+
+	allied_gold_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.allied_gold_Stolen = false;
+		if ( !Map.allied_radar_Stolen )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_axis_truck.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_truck.*" );
+		}
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_ally_gold" );
+		Util.MapDebugPrint( "allied_gold_Returned" );
+	},
+
+	allied_radar_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.allied_radar_Stolen = false;
+		if ( !Map.allied_gold_Stolen )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_axis_truck.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_truck.*" );
+		}
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_ally_radar" );
+		Util.MapDebugPrint( "allied_radar_Returned" );
+	},
+
+	axis_gold_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.axis_gold_Stolen = false;
+		if ( !Map.allied_radar_Stolen )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ally_truck.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_ally_truck.*" );
+		}
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_gold" );
+		Util.MapDebugPrint( "axis_gold_Returned" );
+	},
+
+	axis_radar_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.axis_radar_Stolen = false;
+		if ( !Map.axis_gold_Stolen )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ally_truck.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_ally_truck.*" );
+		}
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_radar" );
+		Util.MapDebugPrint( "axis_radar_Returned" );
+	},
+
+	allied_gold_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.allied_gold_Stolen = false;
+		if ( !Map.allied_radar_Stolen )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_axis_truck.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_truck.*" );
+		}
+		Util.MapDebugPrint( "allied_gold_Secured" );
+	},
+
+	allied_radar_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.allied_radar_Stolen = false;
+		if ( !Map.allied_gold_Stolen )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_axis_truck.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_truck.*" );
+		}
+		Util.MapDebugPrint( "allied_radar_Secured" );
+	},
+
+	axis_gold_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.axis_gold_Stolen = false;
+		if ( !Map.axis_radar_Stolen )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ally_truck.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_ally_truck.*" );
+		}
+		Util.MapDebugPrint( "axis_gold_Secured" );
+	},
+
+	axis_radar_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.axis_radar_Stolen = false;
+		if ( !Map.axis_gold_Stolen )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ally_truck.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_ally_truck.*" );
+		}
+		Util.MapDebugPrint( "axis_radar_Secured" );
+	},
+
+	forward_spawn_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "forward_spawn_Axis_Captured" );
+	},
+
+	forward_spawn_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "forward_spawn_Allies_Captured" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// Register callback functions
+	OnTrigger( "The Allies have disassembled the radio cabinet", Map.Allied_radar_transponder_Built );
+	OnTrigger( "The Axis have disassembled the radar cabinet", Map.Axis_radio_intercept_unit_Built );
+	OnTrigger( "The Axis safehouse door has been constructed", Map.Axis_safehouse_door_Built );
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Command_Post_Built );
+	OnTrigger( "Allied team has built the dock MG nest!", Map.Dock_MG_nest_Built );
+	OnTrigger( "The Dock Warehouse door has been built", Map.Dock_Warehouse_Built );
+	OnTrigger( "Axis team has built the North Patio MG nest!", Map.North_Patio_MG_nest_Built );
+	OnTrigger( "MISSING_STRING", Map.Allied_radar_transponder_Destroyed );
+	OnTrigger( "Axis have opened the Allied gold safe", Map.Allied_safe_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Axis_radio_intercept_unit_Destroyed );
+	OnTrigger( "The Axis safehouse has been breached", Map.Axis_safehouse_door_Destroyed );
+	OnTrigger( "Allies have opened the Axis gold safe", Map.Axis_vault_Destroyed );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Command_Post_Destroyed );
+	OnTrigger( "Axis team has destroyed the dock MG nest!", Map.Dock_MG_nest_Destroyed );
+	OnTrigger( "The Axis have destroyed the Dock Warehouse door", Map.Dock_Warehouse_Destroyed );
+	OnTrigger( "Allied team has destroyed the North Patio MG nest!", Map.North_Patio_MG_nest_Destroyed );
+	OnTrigger( "Axis have stolen the Allied gold!", Map.allied_gold_Taken );
+	OnTrigger( "Axis have stolen the radar beacon!", Map.allied_radar_Taken );
+	OnTrigger( "Allies have stolen the Axis gold!", Map.axis_gold_Taken );
+	OnTrigger( "Allies have stolen the radio tapes!", Map.axis_radar_Taken );
+	OnTrigger( "Flag returned allied_gold!", Map.allied_gold_Returned );
+	OnTrigger( "Flag returned allied_radar!", Map.allied_radar_Returned );
+	OnTrigger( "Flag returned axis_gold!", Map.axis_gold_Returned );
+	OnTrigger( "Flag returned axis_radar!", Map.axis_radar_Returned );
+	OnTrigger( "The Allies have secured the Axis gold", Map.axis_gold_Secured );
+	OnTrigger( "The Allies have secured the radio codes", Map.axis_radar_Secured );
+	OnTrigger( "The Axis have secured the Allied gold", Map.allied_gold_Secured );
+	OnTrigger( "The Axis have secured the transponder module", Map.allied_radar_Secured );
+	OnTrigger( "Axis captures the Mosque Courtyard!", Map.forward_spawn_Axis_Captured );
+	OnTrigger( "Allies capture the Mosque Courtyard!", Map.forward_spawn_Allies_Captured );
+
+	Util.DisableGoal( ".*", true ); // all but routes
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_Allies" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Axis_safehouse_door" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Axis_vault" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Command_Post" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Dock_MG_nest" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "REPAIRMG42_Dock_MG_nest" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42_Dock_MG_nest" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Post" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_forward_spawn" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "HEALTHCAB_healthcabinet" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_supplycabinet" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_Axis" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Allied_safe" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "REPAIRMG42_North_Patio_MG_nest" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_North_Patio_MG_nest" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_North_Patio_MG_nest" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Dock_Warehouse" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_forward_spawn" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_healthcabinet" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_supplycabinet" );
+
+	// Max users per goal
+	Util.SetMaxUsers( 1, "PLANT_.*" );
+	Util.SetMaxUsers( 1, "BUILD_.*" );
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 8, "CHECKPOINT_forward_spawn" );
+
+	// Camp times
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=60} );
+
+	// Routes
+	MapRoutes =
+	{
+		FLAG_axis_radar =
+		{
+			ROUTE_allied_spawn =
+			{
+				ROUTE_backdoor =
+				{
+					ROUTE_checkpoint = {},
+					ROUTE_bazaar = {},
+					ROUTE_cistern2 = {},
+				},
+				ROUTE_checkpoint = {},
+				ROUTE_bazaar = {},
+				ROUTE_cistern2 = {},
+			},
+		},
+		CAPPOINT_Allies =
+		{
+			ROUTE_allied_objective1 =
+			{
+				ROUTE_checkpoint = {},
+				ROUTE_bazaar = {},
+				ROUTE_cistern = {},
+			},
+		},
+		CAPPOINT_Axis =
+		{
+			ROUTE_axis_objective1 =
+			{
+				ROUTE_checkpoint = {},
+				ROUTE_bazaar = {},
+				ROUTE_cistern2 = {},
+			},
+		},
+		PLANT_Allied_safe =
+		{
+			ROUTE_forward_spawn =
+			{
+				ROUTE_checkpoint_southwest = {},
+				ROUTE_checkpoint_southeast = {},
+			},
+			ROUTE_axis_spawn =
+			{
+				ROUTE_checkpoint = {},
+				ROUTE_bazaar = {},
+				ROUTE_cistern = {},
+			},
+		},
+		CHECKPOINT_forward_spawn =
+		{
+			ROUTE_axis_spawn =
+			{
+				ROUTE_sidedoor1 =
+				{
+					ROUTE_sidedoor3 =
+					{
+						ROUTE_checkpoint_northwest = {},
+						ROUTE_checkpoint_northeast = {},
+						ROUTE_rooftop = {},
+					},
+				},
+				ROUTE_sidedoor2 =
+				{
+					ROUTE_checkpoint_northwest = {},
+					ROUTE_checkpoint_northeast = {},
+					ROUTE_rooftop = {},
+				},
+				ROUTE_rooftop = {},
+				ROUTE_checkpoint_northwest = {},
+				ROUTE_checkpoint_northeast = {},
+			},
+			ROUTE_allied_spawn =
+			{
+				ROUTE_backdoor =
+				{
+					ROUTE_checkpoint_southeast = {},
+					ROUTE_checkpoint_northeast = {},
+					ROUTE_rooftop = {},
+				},
+				ROUTE_checkpoint_southeast = {},
+				ROUTE_checkpoint_northeast = {},
+			},
+		},
+	};
+	MapRoutes.CAPPOINT_Allies.ROUTE_allied_objective2 = MapRoutes.CAPPOINT_Allies.ROUTE_allied_objective1;
+	MapRoutes.CAPPOINT_Axis.ROUTE_axis_objective2 = MapRoutes.CAPPOINT_Axis.ROUTE_axis_objective1;
+	MapRoutes.PLANT_Allied_radar_transponder = MapRoutes.PLANT_Allied_safe;
+	MapRoutes.FLAG_allied_radar = MapRoutes.PLANT_Allied_safe;
+	MapRoutes.FLAG_allied_gold = MapRoutes.PLANT_Allied_safe;
+	MapRoutes.FLAG_axis_gold = MapRoutes.FLAG_axis_radar;
+	MapRoutes.PLANT_Axis_radio_intercept_unit = MapRoutes.FLAG_axis_radar;
+	MapRoutes.PLANT_Axis_safehouse_door = MapRoutes.FLAG_axis_radar;
+	MapRoutes.PLANT_Axis_vault = MapRoutes.FLAG_axis_radar;
+	Util.Routes(MapRoutes);
+
+	if ( Map.Debug > 1 )
+		{ Util.ShowActiveGoals(); }
+
+	print( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+};

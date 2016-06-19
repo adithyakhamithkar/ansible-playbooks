@@ -1,0 +1,1223 @@
+//==========================================================================================
+//
+//	Oil Raid Final - oilraid.gm
+//
+//	Who  		When			What
+//------------------------------------------------------------------------------------------
+//
+//	Mateos		23 May 2012		Further updates planned
+// 	^4Tardis	10 October 2010 	Updated Script - 0.8
+//	Mateos		21 December 2009	Based on incomplete .way file
+//						Added script for 0.71
+//
+//==========================================================================================
+
+global Map =
+{
+	Debug = 0, // please set to zero before distributing your script
+	ShowMovers = false,
+
+	Allied_Command_Post_Dyno = 0,
+	Assault_Ramp_Dyno = 0,
+	Axis_Command_Post_Dyno = 0,
+	Depot_Gate_Dyno = 0,
+	Detonator_Dyno = 0,
+	Tank_Barrier_Dyno = 0,
+	Tank_Destroyed = false,
+
+	Movers =
+	{
+		//Retain these movers
+		"MOVER_tank",
+		"MOVER_train",
+	},
+
+	TrainStartTrigger =
+	{
+		TriggerOnEntity = GetGoal("MOVER_train").GetEntity(),
+		OnEnter = function(ent)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "RIDE_TRAIN" );
+			Util.MapDebugPrint(GetEntName(ent) + " Train Start Entering");
+		},
+		OnExit = function(ent)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "RIDE_AXI_train" );
+			Util.MapDebugPrint(GetEntName(ent) + " Train Start Leaving");
+		}
+	},
+	TrainEndTrigger =
+	{
+		TriggerOnEntity = GetGoal("MOVER_train").GetEntity(),
+		OnEnter = function(ent)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "RIDE_TRAIN" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "RIDE_AXI_train" );
+			Util.MapDebugPrint(GetEntName(ent) + " Train End Entering");
+		},
+		OnExit = function(ent)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "RIDE_AXI_train" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "RIDE_TRAIN" );
+			Util.MapDebugPrint(GetEntName(ent) + " Train End Leaving");
+		}
+	},
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Allied_Command_Post" );
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Planted = function( trigger )
+	{
+		Map.Allied_Command_Post_Dyno += 1;
+
+		Util.MapDebugPrint( "Allied_Command_Post_Planted" );
+	},
+
+	Allied_Command_Post_Defused = function( trigger )
+	{
+		Map.Allied_Command_Post_Dyno -= 1;
+
+		Util.MapDebugPrint( "Allied_Command_Post_Defused" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Assault_Ramp_Built = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Assault_Ramp" );
+
+		Util.MapDebugPrint( "Assault_Ramp_Built" );
+	},
+
+	Assault_Ramp_Planted = function( trigger )
+	{
+		Map.Assault_Ramp_Dyno += 1;
+
+		Util.MapDebugPrint( "Assault_Ramp_Planted" );
+	},
+
+	Assault_Ramp_Defused = function( trigger )
+	{
+		Map.Assault_Ramp_Dyno -= 1;
+
+		Util.MapDebugPrint( "Assault_Ramp_Defused" );
+	},
+
+	Assault_Ramp_Destroyed = function( trigger )
+	{
+		Util.MapDebugPrint( "Assault_Ramp_Destroyed" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Axis_Command_Post" );
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Planted = function( trigger )
+	{
+		Map.Axis_Command_Post_Dyno += 1;
+
+		Util.MapDebugPrint( "Axis_Command_Post_Planted" );
+	},
+
+	Axis_Command_Post_Defused = function( trigger )
+	{
+		Map.Axis_Command_Post_Dyno -= 1;
+
+		Util.MapDebugPrint( "Axis_Command_Post_Defused" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	Tank_Built = function( trigger )
+	{
+		Util.MapDebugPrint( "Tank_Built" );
+	},
+
+	Tank_Destroyed = function( trigger )
+	{
+		Map.Tank_Destroyed = true;
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Tank" );
+
+		Util.MapDebugPrint( "Tank_Destroyed" );
+	},
+
+	Tank_Barrier_Built = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Tank_Barrier" );
+
+		Util.MapDebugPrint( "Tank_Barrier_Built" );
+	},
+
+	Tank_Barrier_Planted = function( trigger )
+	{
+		Map.Tank_Barrier_Dyno += 1;
+
+		Util.MapDebugPrint( "Tank_Barrier_Planted" );
+	},
+
+	Tank_Barrier_Defused = function( trigger )
+	{
+		Map.Tank_Barrier_Dyno -= 1;
+
+		Util.MapDebugPrint( "Tank_Barrier_Defused" );
+	},
+
+	Tank_Barrier_Destroyed = function( trigger )
+	{
+		if( Map.Tank_Destroyed == true )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Tank" );
+		}
+
+		Util.MapDebugPrint( "Tank_Barrier_Destroyed" );
+	},
+
+	Depot_Gate_Planted = function( trigger )
+	{
+		Map.Depot_Gate_Dyno += 1;
+
+		Util.MapDebugPrint( "Depot_Gate_Planted" );
+	},
+
+	Depot_Gate_Defused = function( trigger )
+	{
+		Map.Depot_Gate_Dyno -= 1;
+
+		Util.MapDebugPrint( "Depot_Gate_Defused" );
+	},
+
+	Depot_Gate_Destroyed = function( trigger )
+	{
+		Util.DisableGoal( "RIDE_.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_fuze" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_fuze");
+		SetAvailableMapGoals( TEAM.AXIS, false, "RIDE_AXI_train" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_fuzeredflag" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_FuzeDropoff" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "RIDE_TRAIN" );
+
+		Util.MapDebugPrint( "Depot_Gate_Destroyed" );
+	},
+
+	Detonator_Planted = function( trigger )
+	{
+		Map.Detonator_Dyno += 1;
+
+		Util.MapDebugPrint( "Detonator_Planted" );
+	},
+
+	Detonator_Defused = function( trigger )
+	{
+		Map.Detonator_Dyno -= 1;
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Detonator" );
+
+		Util.MapDebugPrint( "Detonator_Defused" );
+	},
+
+	Detonator_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Delta.*" );
+
+		Util.MapDebugPrint( "Detonator_Destroyed" );
+	},
+
+	Main_Gate_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Charlie.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Axis_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Alpha.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Allied_Command_Post" );
+
+		Util.DisableGoal( "REPAIRMG42_NorthMG42" );
+		Util.DisableGoal( "REPAIRMG42_SouthMG42" );
+
+		//SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_NorthMG42" );
+		//SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_SouthMG42" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "RIDE_TRAIN" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Delta.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Bravo.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Depot_Gate" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Assault_Ramp" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Allied_Command_Post" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNT_tank" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Tank" );
+
+		Util.DisableGoal ( "BUILD_Tank" );
+		Util.DisableGoal ( "MOUNT_tank" );
+
+		Util.MapDebugPrint( "Main_Gate_Destroyed" );
+	},
+
+	fuzeredflag_Taken = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "FLAG_fuzeredflag" );
+
+		Util.MapDebugPrint( "fuzeredflag_Taken" );
+	},
+
+	fuzeredflag_Returned = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_fuzeredflag" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_FuzeDropoff" );
+
+		Util.MapDebugPrint( "fuzeredflag_Returned" );
+	},
+
+	fuzeredflag_Secured = function( trigger )
+	{
+		// Make sure Allied Engineers detonate the explosive
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_FuzeDropoff" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "FLAG_fuzeredflag" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_FuzeDropoff" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Detonator" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_fuze" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_fuze");
+
+		Util.MapDebugPrint( "fuzeredflag_Secured" );
+	},
+
+	AlliesWin = function( trigger )
+	{
+		Util.MapDebugPrint( "AlliesWin" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	// *** TRIGGERS ***
+	OnTrigger( "Allied have constucted a command post", Map.Allied_Command_Post_Built );
+	OnTrigger( "Allies have constucted the ramp", Map.Assault_Ramp_Built );
+	OnTrigger( "Axis have constucted a command post", Map.Axis_Command_Post_Built );
+	OnTrigger( "The Tank has been repaired!", Map.Tank_Built );
+	OnTrigger( "The Tank Barrier has been constructed.", Map.Tank_Barrier_Built );
+	OnTrigger( "Planted at the Allied Command Post.", Map.Allied_Command_Post_Planted );
+	OnTrigger( "Planted at the Assault Ramp.", Map.Assault_Ramp_Planted );
+	OnTrigger( "Planted at the Axis Command Post.", Map.Axis_Command_Post_Planted );
+	OnTrigger( "Planted at the Depot Gate.", Map.Depot_Gate_Planted );
+	OnTrigger( "Planted at Tank Barrier.", Map.Tank_Barrier_Planted );
+	OnTrigger( "Defused at the Allied Command Post.", Map.Allied_Command_Post_Defused );
+	OnTrigger( "Defused at the Assault Ramp.", Map.Assault_Ramp_Defused );
+	OnTrigger( "Defused at the Axis Command Post.", Map.Axis_Command_Post_Defused );
+	OnTrigger( "Defused at the Depot Gate.", Map.Depot_Gate_Defused );
+	OnTrigger( "Defused at Tank Barrier.", Map.Tank_Barrier_Defused );
+	OnTrigger( "Axis have destroyed the Allied command post", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Axis have destroyed the ramp", Map.Assault_Ramp_Destroyed );
+	OnTrigger( "Allies have destroyed the Axis command post", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "Depot Gate destroyed", Map.Depot_Gate_Destroyed );
+	OnTrigger( "Allied team has destroyed the Main Gate!", Map.Main_Gate_Destroyed );
+	OnTrigger( "The Tank Barrier has been destroyed.", Map.Tank_Barrier_Destroyed );
+	OnTrigger( "The Tank has been damaged!", Map.Tank_Destroyed );
+	OnTrigger( "Allies have stolen the fuze!", Map.fuzeredflag_Taken );
+	OnTrigger( "Axis have returned the fuze!", Map.fuzeredflag_Returned );
+	OnTrigger( "Allies have layed the fuze!", Map.fuzeredflag_Secured );
+	OnTrigger( "Allied win!", Map.AlliesWin );
+
+	//Detonator triggers
+	OnTrigger( "Planted at the Detonator.", Map.Detonator_Planted );
+	OnTrigger( "Defused at the Detonator.", Map.Detonator_Defused );
+	OnTrigger( "Axis have destroyed the detonator!", Map.Detonator_Destroyed );
+
+	// *** CLEAR ALL GOALS FOR BOTH TEAMS ***
+	Util.DisableGoal( ".*", true );	// All but Routes
+
+	// *** AXIS GOALS ***
+	Util.DisableGoal( "REPAIRMG42_NorthMG42" );
+	Util.DisableGoal( "REPAIRMG42_SouthMG42" );
+	//SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_NorthMG42" );
+	//SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_SouthMG42" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Alpha.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Tank_Barrier" );
+
+	// *** ALLIED GOALS ***
+	SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNT_tank" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Tank" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Bravo.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Tank_Barrier" );
+	Util.AddUseWp("PLANT_Depot_Gate", "depotgate");
+	Util.AddUseWp("PLANT_Depot_Gate", "depotgate1");
+
+	// *** AXIS GOALS PRIORITY ***
+	SetGoalPriority( "DEFEND_.*", 0.4, TEAM.AXIS );
+	SetGoalPriority( "PLANT_Allied_Command_Post", 0.5, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "BUILD_Axis_Command_Post", 0.6, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_Assault_Ramp", 0.7, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "BUILD_Tank_Barrier", 1.0, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_Detonator", 2.0, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "MOUNTMG42_.*", 0.0, TEAM.AXIS, CLASS.MEDIC );
+	SetGoalPriority( "MOUNTMG42_.*", 0.0, TEAM.AXIS, CLASS.ENGINEER );
+
+	// *** ALLIED GOALS PRIORITY ***
+	SetGoalPriority( "ATTACK_.*", 0.4, TEAM.ALLIES );
+	SetGoalPriority( "MOUNTMG42_.*", 0.0, TEAM.ALLIES, CLASS.MEDIC );
+	SetGoalPriority( "MOUNTMG42_.*", 0.0, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "ATTACK_FuzeDropoff", 0.0, TEAM.ALLIES, CLASS.MEDIC );
+	SetGoalPriority( "ATTACK_FuzeDropoff", 0.0, TEAM.ALLIES, CLASS.COVERTOPS );
+	SetGoalPriority( "ATTACK_FuzeDropoff", 0.0, TEAM.ALLIES, CLASS.SOLDIER );
+	SetGoalPriority( "ATTACK_FuzeDropoff", 0.0, TEAM.ALLIES, CLASS.FIELDOPS );
+	SetGoalPriority( "ATTACK_FuzeDropoff", 1.0, TEAM.ALLIES, CLASS.ENGINEER );
+
+	SetGoalPriority( "PLANT_Axis_Command_Post", 0.5 );
+	SetGoalPriority( "PLANT_Depot_Gate", 0.6 );
+	SetGoalPriority( "BUILD_Assault_Ramp", 0.7 );
+	SetGoalPriority( "BUILD_Allied_Command_Post", 0.8 );
+
+	// *** GOALS PROPERTIES ***
+	Util.AddInvVehicle( "MOVER_train" );
+	Util.SetMaxUsersInProgress( 2, "BUILD.*" );
+	Util.SetMaxUsersInProgress( 1, "PLANT.*" );
+	Util.SetMaxUsersInProgress( 1, "ATTACK_.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_.*" );
+	Util.SetMaxUsersInProgress( 1, "MOBILEMG42_.*" );
+	Util.SetMaxUsersInProgress( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsersInProgress( 1, "REPAIRMG42_.*" );
+	Util.SetMaxUsersInProgress( 1, "RIDE_.*" );
+
+	SetMapGoalProperties( "DEFEND_.*", {mincamptime=60, maxcamptime=120} );
+	SetMapGoalProperties( "ATTACK_.*", {mincamptime=60, maxcamptime=120} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {mincamptime=60, maxcamptime=120} );
+
+	ts = OnTriggerRegion(AABB(1187.964,-264.241,249.125,1736.933,219.518,341.125), Map.TrainStartTrigger);
+	TrainEnd = OnTriggerRegion(AABB(5048.166,-227.690,249.125,5164.860,81.666,331.125), Map.TrainEndTrigger);
+
+	//Map Routes
+	MapRoutes =
+	{
+		PLANT_Tank_Barrier =
+		{
+			ROUTE_Tank_Spawn  =
+			{
+				ROUTE_Tank_route  =
+				{
+					ROUTE_Tank_route_1  =
+					{
+					},
+				},
+				ROUTE_des_route  =
+				{
+					ROUTE_des_route_1  =
+					{
+						ROUTE_des_route_2  =
+						{
+							ROUTE_des_route_3  =
+							{
+							},
+							ROUTE_deswall_route  =
+							{
+								ROUTE_deswall_route_1  =
+								{
+									ROUTE_deswall_route_2  =
+									{
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		PLANT_Depot_Gate =
+		{
+			ROUTE_outsidecity_spawn  =
+			{
+				ROUTE_outsidecity  =
+				{
+					ROUTE_cityA  =
+					{
+						ROUTE_cityA_1  =
+						{
+							ROUTE_cityA_2  =
+							{
+								ROUTE_cityA_3  =
+								{
+									ROUTE_cityA_4  =
+									{
+										ROUTE_cityA_5  =
+										{
+										},
+										ROUTE_arch  =
+										{
+											ROUTE_arch_1  =
+											{
+												ROUTE_arch_2  =
+												{
+													ROUTE_fuze_4  =
+													{
+														ROUTE_fuze_3  =
+														{
+															ROUTE_fuze_2  =
+															{
+															},
+														},
+													},
+												},
+											},
+										},
+										ROUTE_cityD_3  =
+										{
+											ROUTE_cityD_4  =
+											{
+												ROUTE_cityD_5  =
+												{
+													ROUTE_cityD_6  =
+													{
+														ROUTE_fuze_2  =
+														{
+														},
+														ROUTE_cityback_5  =
+														{
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					ROUTE_cityB  =
+					{
+						ROUTE_cityB_1  =
+						{
+							ROUTE_cityB_2  =
+							{
+								ROUTE_cityB_3  =
+								{
+									ROUTE_cityback_1  =
+									{
+										ROUTE_cityback_2  =
+										{
+											ROUTE_cityback_3  =
+											{
+												ROUTE_cityback_4  =
+												{
+													ROUTE_cityback_5  =
+													{
+													},
+												},
+											},
+										},
+									},
+									ROUTE_cityA_5  =
+									{
+										ROUTE_cityD_3  =
+										{
+											ROUTE_cityD_4  =
+											{
+												ROUTE_cityD_5  =
+												{
+													ROUTE_cityD_6  =
+													{
+														ROUTE_fuze_2  =
+														{
+														},
+														ROUTE_cityback_5  =
+														{
+														},
+													},
+												},
+											},
+											ROUTE_arch  =
+											{
+												ROUTE_arch_1  =
+												{
+													ROUTE_arch_2  =
+													{
+														ROUTE_fuze_4  =
+														{
+															ROUTE_fuze_3  =
+															{
+																ROUTE_fuze_2  =
+																{
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_cityspawn  =
+			{
+				ROUTE_cityA  =
+				{
+					ROUTE_cityA_1  =
+					{
+						ROUTE_cityA_2  =
+						{
+							ROUTE_cityA_3  =
+							{
+								ROUTE_cityA_4  =
+								{
+									ROUTE_cityA_5  =
+									{
+										ROUTE_cityB_3  =
+										{
+											ROUTE_cityback  =
+											{
+												ROUTE_cityback_1  =
+												{
+													ROUTE_cityback_2  =
+													{
+														ROUTE_cityback_3  =
+														{
+															ROUTE_cityback_4  =
+															{
+																ROUTE_cityback_5  =
+																{
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+										ROUTE_cityD_3  =
+										{
+											ROUTE_arch  =
+											{
+												ROUTE_arch_1  =
+												{
+													ROUTE_arch_2  =
+													{
+														ROUTE_fuze_4  =
+														{
+															ROUTE_fuze_3  =
+															{
+																ROUTE_fuze_2  =
+																{
+																},
+															},
+														},
+													},
+												},
+											},
+											ROUTE_cityD_4  =
+											{
+												ROUTE_cityD_5  =
+												{
+													ROUTE_cityD_6  =
+													{
+														ROUTE_fuze_2  =
+														{
+														},
+														ROUTE_cityback_5  =
+														{
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_cityspawn_1  =
+				{
+					ROUTE_cityspawn_2  =
+					{
+						ROUTE_cityD  =
+						{
+							ROUTE_cityD_1  =
+							{
+								ROUTE_cityD_2  =
+								{
+									ROUTE_cityD_3  =
+									{
+										ROUTE_cityD_4  =
+										{
+											ROUTE_cityD_5  =
+											{
+												ROUTE_cityD_6  =
+												{
+													ROUTE_fuze_2  =
+													{
+													},
+													ROUTE_cityback_5  =
+													{
+													},
+												},
+											},
+										},
+									},
+									ROUTE_arch  =
+									{
+										ROUTE_arch_1  =
+										{
+											ROUTE_arch_2  =
+											{
+												ROUTE_fuze_4  =
+												{
+													ROUTE_fuze_3  =
+													{
+														ROUTE_fuze_2  =
+														{
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						ROUTE_cityA_2  =
+						{
+							ROUTE_cityA_3  =
+							{
+								ROUTE_cityA_4  =
+								{
+									ROUTE_cityA_5  =
+									{
+										ROUTE_cityB_3  =
+										{
+											ROUTE_cityback  =
+											{
+												ROUTE_cityback_1  =
+												{
+													ROUTE_cityback_2  =
+													{
+														ROUTE_cityback_3  =
+														{
+															ROUTE_cityback_4  =
+															{
+																ROUTE_cityback_5  =
+																{
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+										ROUTE_cityD_3  =
+										{
+											ROUTE_cityD_4  =
+											{
+												ROUTE_cityD_5  =
+												{
+													ROUTE_cityD_6  =
+													{
+														ROUTE_fuze_2  =
+														{
+														},
+														ROUTE_cityback_5  =
+														{
+														},
+													},
+												},
+											},
+											ROUTE_arch  =
+											{
+												ROUTE_arch_1  =
+												{
+													ROUTE_arch_2  =
+													{
+														ROUTE_fuze_4  =
+														{
+															ROUTE_fuze_3  =
+															{
+																ROUTE_fuze_2  =
+																{
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					ROUTE_cityA_1  =
+					{
+						ROUTE_cityA_2  =
+						{
+							ROUTE_cityA_3  =
+							{
+								ROUTE_cityA_4  =
+								{
+									ROUTE_cityA_5  =
+									{
+										ROUTE_cityB_3  =
+										{
+											ROUTE_cityback  =
+											{
+												ROUTE_cityback_1  =
+												{
+													ROUTE_cityback_2  =
+													{
+														ROUTE_cityback_3  =
+														{
+															ROUTE_cityback_4  =
+															{
+																ROUTE_cityback_5  =
+																{
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+										ROUTE_cityD_3  =
+										{
+											ROUTE_cityD_4  =
+											{
+												ROUTE_cityD_5  =
+												{
+													ROUTE_cityD_6  =
+													{
+														ROUTE_fuze_2  =
+														{
+														},
+														ROUTE_cityback_5  =
+														{
+														},
+													},
+												},
+											},
+											ROUTE_arch  =
+											{
+												ROUTE_arch_1  =
+												{
+													ROUTE_arch_2  =
+													{
+														ROUTE_fuze_4  =
+														{
+															ROUTE_fuze_3  =
+															{
+																ROUTE_fuze_2  =
+																{
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_cityspawn_1  =
+			{
+				ROUTE_cityA_1  =
+				{
+					ROUTE_cityA_2  =
+					{
+						ROUTE_cityA_3  =
+						{
+							ROUTE_cityA_4  =
+							{
+								ROUTE_cityA_5  =
+								{
+								},
+								ROUTE_cityD_3  =
+								{
+									ROUTE_cityD_4  =
+									{
+										ROUTE_cityD_5  =
+										{
+											ROUTE_cityD_6  =
+											{
+												ROUTE_fuze_2  =
+												{
+												},
+												ROUTE_cityback_5  =
+												{
+												},
+											},
+										},
+									},
+									ROUTE_arch  =
+									{
+										ROUTE_arch_1  =
+										{
+											ROUTE_arch_2  =
+											{
+												ROUTE_fuze_4  =
+												{
+													ROUTE_fuze_3  =
+													{
+														ROUTE_fuze_2  =
+														{
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_cityspawn_2  =
+				{
+					ROUTE_cityD  =
+					{
+						ROUTE_cityD_1  =
+						{
+							ROUTE_cityD_2  =
+							{
+								ROUTE_cityD_3  =
+								{
+									ROUTE_cityD_4  =
+									{
+										ROUTE_cityD_5  =
+										{
+											ROUTE_cityD_6  =
+											{
+												ROUTE_fuze_2  =
+												{
+												},
+												ROUTE_cityback_5  =
+												{
+												},
+											},
+										},
+									},
+									ROUTE_arch  =
+									{
+										ROUTE_arch_1  =
+										{
+											ROUTE_arch_2  =
+											{
+												ROUTE_fuze_4  =
+												{
+													ROUTE_fuze_3  =
+													{
+														ROUTE_fuze_2  =
+														{
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					ROUTE_cityA_2  =
+					{
+						ROUTE_cityA_3  =
+						{
+							ROUTE_cityA_4  =
+							{
+								ROUTE_cityA_5  =
+								{
+									ROUTE_cityB_3  =
+									{
+										ROUTE_cityback  =
+										{
+											ROUTE_cityback_1  =
+											{
+												ROUTE_cityback_2  =
+												{
+													ROUTE_cityback_3  =
+													{
+														ROUTE_cityback_4  =
+														{
+															ROUTE_cityback_5  =
+															{
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+									ROUTE_cityD_3  =
+									{
+										ROUTE_cityD_4  =
+										{
+											ROUTE_cityD_5  =
+											{
+												ROUTE_cityD_6  =
+												{
+													ROUTE_fuze_2  =
+													{
+													},
+													ROUTE_cityback_5  =
+													{
+													},
+												},
+											},
+										},
+										ROUTE_arch  =
+										{
+											ROUTE_arch_1  =
+											{
+												ROUTE_arch_2  =
+												{
+													ROUTE_fuze_4  =
+													{
+														ROUTE_fuze_3  =
+														{
+															ROUTE_fuze_2  =
+															{
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_cityspawn_2  =
+			{
+				ROUTE_cityA_2  =
+				{
+					ROUTE_cityA_3  =
+					{
+						ROUTE_cityA_4  =
+						{
+							ROUTE_cityA_5  =
+							{
+								ROUTE_cityB_3  =
+								{
+									ROUTE_cityback  =
+									{
+										ROUTE_cityback_1  =
+										{
+											ROUTE_cityback_2  =
+											{
+												ROUTE_cityback_3  =
+												{
+													ROUTE_cityback_4  =
+													{
+														ROUTE_cityback_5  =
+														{
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+								ROUTE_cityD_3  =
+								{
+									ROUTE_cityD_4  =
+									{
+										ROUTE_cityD_5  =
+										{
+											ROUTE_cityD_6  =
+											{
+												ROUTE_fuze_2  =
+												{
+												},
+												ROUTE_cityback_5  =
+												{
+												},
+											},
+										},
+									},
+									ROUTE_arch  =
+									{
+										ROUTE_arch_1  =
+										{
+											ROUTE_arch_2  =
+											{
+												ROUTE_fuze_4  =
+												{
+													ROUTE_fuze_3  =
+													{
+														ROUTE_fuze_2  =
+														{
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_cityD  =
+				{
+					ROUTE_cityD_1  =
+					{
+						ROUTE_cityD_2  =
+						{
+							ROUTE_cityD_3  =
+							{
+								ROUTE_cityD_4  =
+								{
+									ROUTE_cityD_5  =
+									{
+										ROUTE_cityD_6  =
+										{
+											ROUTE_fuze_2  =
+											{
+											},
+											ROUTE_cityback_5  =
+											{
+											},
+										},
+									},
+								},
+								ROUTE_cityA_5  =
+								{
+									ROUTE_cityB_3  =
+									{
+										ROUTE_cityback  =
+										{
+											ROUTE_cityback_1  =
+											{
+												ROUTE_cityback_2  =
+												{
+													ROUTE_cityback_3  =
+													{
+														ROUTE_cityback_4  =
+														{
+															ROUTE_cityback_5  =
+															{
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+							ROUTE_arch  =
+							{
+								ROUTE_arch_1  =
+								{
+									ROUTE_arch_2  =
+									{
+										ROUTE_fuze_4  =
+										{
+											ROUTE_fuze_3  =
+											{
+												ROUTE_fuze_2  =
+												{
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		ATTACK_FuzeDropoff  =
+		{
+			ROUTE_fuze  =
+			{
+				ROUTE_fuze_1  =
+				{
+					ROUTE_fuze_2  =
+					{
+						ROUTE_fuze_3  =
+						{
+							ROUTE_fuze_4  =
+							{
+							},
+						},
+					},
+				},
+			},
+		},
+	};
+
+
+	MapRoutes.ATTACK_Bravo1 = MapRoutes.PLANT_Tank_Barrier;
+	MapRoutes.ATTACK_Bravo2 = MapRoutes.PLANT_Tank_Barrier;
+	MapRoutes.ATTACK_Bravo3 = MapRoutes.PLANT_Tank_Barrier;
+	MapRoutes.ATTACK_Bravo4 = MapRoutes.PLANT_Tank_Barrier;
+
+	MapRoutes.DEFEND_Alpha1 = MapRoutes.BUILD_Tank_Barrier;
+	MapRoutes.DEFEND_Alpha2 = MapRoutes.BUILD_Tank_Barrier;
+	MapRoutes.DEFEND_Alpha3 = MapRoutes.BUILD_Tank_Barrier;
+	MapRoutes.DEFEND_Alpha4 = MapRoutes.BUILD_Tank_Barrier;
+	MapRoutes.DEFEND_Alpha5 = MapRoutes.BUILD_Tank_Barrier;
+
+	MapRoutes.ATTACK_Delta1 = MapRoutes.PLANT_Depot_Gate;
+	MapRoutes.ATTACK_Delta2 = MapRoutes.PLANT_Depot_Gate;
+	MapRoutes.ATTACK_Delta3 = MapRoutes.PLANT_Depot_Gate;
+	MapRoutes.ATTACK_Delta4 = MapRoutes.PLANT_Depot_Gate;
+	MapRoutes.ATTACK_Delta5 = MapRoutes.PLANT_Depot_Gate;
+	MapRoutes.ATTACK_Delta6 = MapRoutes.PLANT_Depot_Gate;
+	MapRoutes.ATTACK_Delta7 = MapRoutes.PLANT_Depot_Gate;
+
+	MapRoutes.DEFEND_Charlie1 = MapRoutes.PLANT_Depot_Gate;
+	MapRoutes.DEFEND_Charlie2 = MapRoutes.PLANT_Depot_Gate;
+	MapRoutes.DEFEND_Charlie3 = MapRoutes.PLANT_Depot_Gate;
+	MapRoutes.DEFEND_Charlie4 = MapRoutes.PLANT_Depot_Gate;
+	MapRoutes.DEFEND_Charlie5 = MapRoutes.PLANT_Depot_Gate;
+	MapRoutes.DEFEND_Charlie6 = MapRoutes.PLANT_Depot_Gate;
+	MapRoutes.DEFEND_Charlie7 = MapRoutes.PLANT_Depot_Gate;
+	MapRoutes.DEFEND_Charlie8 = MapRoutes.PLANT_Depot_Gate;
+	MapRoutes.DEFEND_Charlie9 = MapRoutes.PLANT_Depot_Gate;
+	MapRoutes.DEFEND_Charlie10 = MapRoutes.PLANT_Depot_Gate;
+	MapRoutes.DEFEND_Charlie11 = MapRoutes.PLANT_Depot_Gate;
+
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 90.0;
+
+	foreach ( id and weap in
+	{
+		WEAPON.THOMPSON,WEAPON.MP40,WEAPON.SHOTGUN,
+		WEAPON.STEN,WEAPON.MP34,WEAPON.M97,WEAPON.M7,
+		WEAPON.STG44,WEAPON.FG42,WEAPON.GARAND,
+		WEAPON.K43,WEAPON.BAR
+	} )
+	{
+		w = bot.GetWeapon(weap);
+		w.PrimaryFire.SetTargetBias(CLASS.BREAKABLE, 1.2);
+	}
+
+	w = bot.GetWeapon(WEAPON.KNIFE);
+	w.PrimaryFire.SetDesirabilityRange(0, 48, 0.6);
+};

@@ -1,0 +1,1692 @@
+//==========================================================================================
+//
+//	op_tower.gm
+//
+//	Who  	When		What
+//------------------------------------------------------------------------------------------
+//	^4Tardis	12 October 2010	Initial Script
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0, // please set to zero before distributing your script
+	ShowMovers = false,
+
+	Assault_Ladder_Dyno = 0,
+	Assault_Ramp_Dyno = 0,
+	Axis_Command_Post_Dyno = 0,
+	Allied_Command_Post_Dyno = 0,
+	Tower_Gate_Dyno = 0,
+	Tunnel_Gate_Dyno = 0,
+	liftPos = "bottom", //lift at bottom
+	bigladderfacing = null,
+	underladderfacing = null,
+	Axis_Captured = false, //inactive flag
+	Allies_Captured = false, //inactive flag
+	OBJ_Taken = false, //OBJ Taken
+	Talk = true, //set Talk to false if you don't want the bots to cheer after winning game:
+
+	Movers =
+	{
+		"MOVER_lift",
+	},
+
+	Navigation =
+	{
+		sixsec =
+		{
+			navigate = function( _this )
+			{
+				_this.Bot.HoldButton( BTN.FORWARD, 6 );
+				_this.Bot.HoldButton( BTN.SPRINT, 6 );
+
+				if ( Map.Talk && MAP_TALK )
+				{
+					Util.BotChat(TEAM.ALLIES, "vsay", VOICE.G_CHEER, 1);
+				}
+				sleep( 6 );
+				Util.MapDebugPrint("Yee-Ha!");
+			},
+		},
+	},
+//lift switches
+	Switches =
+	{
+		liftdown =
+		{
+			Enabled = true,
+			Priority = 0, //always set to 0 when using path through
+			WaypointName = "liftdown",
+			LimitBots = 1,
+			PressOnce = true,
+			Timeout = 1500,
+			AimPosition = Vec3(16.556, 243.873, 2364.673),
+
+			Wait = function()
+			{
+				if (  Map.liftPos == "bottom")
+				{
+					sleep(1);
+					Map.Switches.liftdown.Enabled = true;
+					return true;
+
+				}
+				else if ( Map.liftPos == "top")
+				{
+					sleep(1);
+					Map.Switches.liftdown.Enabled = false;
+					//get bots to move away before splat
+				}
+			},
+		},
+		liftup =
+		{
+			Enabled = true,
+			Priority = 0, //always set to 0 when using path through
+			WaypointName = "liftup",
+			LimitBots = 1,
+			PressOnce = true,
+			Timeout = 1500,
+			AimPosition = Vec3(24.831, 243.875, 399.567),
+
+			Wait = function()
+			{
+				if ( Map.liftPos == "top" )
+				{
+					sleep(1);
+					Map.Switches.liftup.Enabled = true;
+					return true;
+
+				}
+				else if ( Map.liftPos == "bottom" )
+				{
+					sleep(1);
+					Map.Switches.liftup.Enabled = false;
+					//get bots to move away before splat
+				}
+			},
+		},
+		callup =
+		{
+			Enabled = true,
+			Priority = 0, //always set to 0 when using path through
+			WaypointName = "callup",
+			LimitBots = 1,
+			PressOnce = true,
+			Timeout = 1500,
+			AimPosition = Vec3(16.401, 243.875, 2364.595),
+
+			Wait = function()
+			{
+				if (  Map.liftPos == "bottom")
+				{
+
+					Map.Switches.callup.Enabled = true;
+					sleep(6);
+					return true;
+
+				}
+				else if ( Map.liftPos == "top")
+				{
+					sleep(1);
+					Map.Switches.callup.Enabled = false;
+				}
+			},
+		},
+		calldown =
+		{
+			Enabled = true,
+			Priority = 0, //always set to 0 when using path through
+			WaypointName = "calldown",
+			LimitBots = 1,
+			PressOnce = true,
+			Timeout = 1500,
+			AimPosition = Vec3(23.943, 243.875, 400.083),
+
+			Wait = function()
+			{
+				if ( Map.liftPos == "top" )
+				{
+
+					Map.Switches.calldown.Enabled = true;
+					sleep(6);
+					return true;
+
+				}
+				else if ( Map.liftPos == "bottom" )
+				{
+					sleep(1);
+					Map.Switches.calldown.Enabled = false;
+
+				}
+			},
+		},
+	},
+//lift switches end
+//lift
+	lift_goto = function(trigger)
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.liftPos = "moving";
+		Map.Switches.callup.Enabled = false;
+		Map.Switches.calldown.Enabled = false;
+		Map.Switches.liftdown.Enabled = false;
+		Map.Switches.liftup.Enabled = false;
+		Wp.SetWaypointFlag("bottom","closed",true);
+		Wp.SetWaypointFlag("bottom1","closed",true);
+		Wp.SetWaypointFlag("top","closed",true);
+		Wp.SetWaypointFlag("top1","closed",true);
+		sleep(6);
+
+		Util.MapDebugPrint("lift moving");
+
+		vel = ToVector(trigger.Action);
+
+		if (vel.z < 0) //lift at bottom
+		{
+			Map.liftPos = "bottom";
+			Map.Switches.liftdown.Enabled = true;
+			Map.Switches.callup.Enabled = true;
+			Map.Switches.liftup.Enabled = false;
+			Map.Switches.calldown.Enabled = false;
+			Wp.SetWaypointFlag("bottom","closed",false);
+			Wp.SetWaypointFlag("bottom1","closed",false);
+			Wp.SetWaypointFlag("top","closed",true);
+			Wp.SetWaypointFlag("top1","closed",true);
+
+			Util.MapDebugPrint("lift at bottom");
+		}
+		else if (vel.z > 0) //lift at top
+		{
+			Map.liftPos = "top";
+			Map.Switches.liftup.Enabled = true;
+			Map.Switches.calldown.Enabled = true;
+			Map.Switches.liftdown.Enabled = false;
+			Map.Switches.callup.Enabled = false;
+			Wp.SetWaypointFlag("bottom","closed",true);
+			Wp.SetWaypointFlag("bottom1","closed",true);
+			Wp.SetWaypointFlag("top","closed",false);
+			Wp.SetWaypointFlag("top1","closed",false);
+
+			Util.MapDebugPrint("lift at top");
+		}
+	},
+//lift end
+	KillZone =
+ 	{
+ 		Name = "KillZone1",
+ 		TriggerOnClass = CLASS.ANYPLAYER,
+ 		OnEnter = function(ent)
+ 		{
+ 			b = Util.IsBot(ent);
+ 			if (b)
+ 			{
+ 				sleep(1);
+ 				b.ExecCommand("kill");
+ 			}
+ 		},
+ 		OnExit = function(ent)
+ 		{
+
+ 		},
+ 	},
+	AxisDoorTrigger1 =
+	{
+        Name = "AxisDoorTrigger1",
+        TriggerOnClass = CLASS.ANYPLAYER,
+        OnEnter = function(ent)
+		{
+		if( GetEntTeam(ent) == TEAM.ALLIES || GetEntFlags(ent, ENTFLAG.DISGUISED) )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_tower.*" );
+
+				Util.MapDebugPrint(GetEntName(ent) + " ^8Has Entered Axis Door One!");
+			}
+		},
+		OnExit = function(ent)
+		{
+		if ( GetEntFlags(ent,ENTFLAG.CARRYINGGOAL) )
+			{
+				Util.DisableGoal( "CHECKPOINT_forward_flag" );
+				Util.DisableGoal( "BUILD_.*" );
+				Util.DisableGoal( "PLANT_.*" );
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_tower.*" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_dropoff.*" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_.*" );
+				SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_tower.*" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_dropoff.*" );
+				Map.Switches.callup.Enabled = false;
+				Map.Switches.calldown.Enabled = false;
+				Map.Switches.liftdown.Enabled = false;
+				Map.Switches.liftup.Enabled = false;
+
+				Util.MapDebugPrint(GetEntName(ent) + " ^3Has Exited Axis Door One With The Documents!");
+			}
+		},
+	},
+	AxisDoorTrigger2 =
+	{
+        Name = "AxisDoorTrigger2",
+        TriggerOnClass = CLASS.ANYPLAYER,
+        OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES || GetEntFlags(ent, ENTFLAG.DISGUISED) )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_tower.*" );
+
+				Util.MapDebugPrint(GetEntName(ent) + " ^8Has Entered Axis Door Two!");
+			}
+		},
+		OnExit = function(ent)
+		{
+			if ( GetEntFlags(ent,ENTFLAG.CARRYINGGOAL) )
+			{
+				Util.DisableGoal( "CHECKPOINT_forward_flag" );
+				Util.DisableGoal( "BUILD_.*" );
+				Util.DisableGoal( "PLANT_.*" );
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_tower.*" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_dropoff.*" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_.*" );
+				SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_tower.*" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_dropoff.*" );
+				Map.Switches.callup.Enabled = false;
+				Map.Switches.calldown.Enabled = false;
+				Map.Switches.liftdown.Enabled = false;
+				Map.Switches.liftup.Enabled = false;
+
+				Util.MapDebugPrint(GetEntName(ent) + " ^3Has Exited Axis Door Two With The Documents!");
+			}
+		},
+	},
+//OBJ - Going Though Gate
+	GateTrigger =
+	{
+        Name = "GateTrigger",
+        TriggerOnClass = CLASS.ANYPLAYER,
+        OnEnter = function(ent)
+		{
+			if ( GetEntFlags(ent,ENTFLAG.CARRYINGGOAL) )
+			{
+				Util.MapDebugPrint(GetEntName(ent) + " ^8Has Entered Gate With The Documents!");
+			}
+		},
+		OnExit = function(ent)
+		{
+			if ( GetEntFlags(ent,ENTFLAG.CARRYINGGOAL) )
+			{
+				Util.DisableGoal( "CHECKPOINT_forward_flag" );
+				Util.DisableGoal( "BUILD_.*" );
+				Util.DisableGoal( "PLANT_.*" );
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_tower.*" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_dropoff.*" );
+				SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_.*" );
+				SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_tower.*" );
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_dropoff.*" );
+				Map.Switches.callup.Enabled = false;
+				Map.Switches.calldown.Enabled = false;
+				Map.Switches.liftdown.Enabled = false;
+				Map.Switches.liftup.Enabled = false;
+
+				Util.MapDebugPrint(GetEntName(ent) + " ^3Has Exited Gate With The Documents!");
+			}
+		},
+	},
+	Assault_Ladder_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.OBJ_Taken == true )
+		{
+			Util.DisableGoal( "BUILD_Assault_Ladder" );
+			Util.DisableGoal( "PLANT_Assault_Ladder" );
+		}
+		else
+		{
+			Wp.SetWaypointFlag("LD1","closed",false);
+			Util.EnableGoal( "ROUTE_towerB" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Assault_Ladder" );
+		}
+		Util.MapDebugPrint( "Assault_Ladder_Built" );
+	},
+
+	Assault_Ladder_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Assault_Ladder_Dyno += 1;
+		Util.MapDebugPrint( "Assault_Ladder_Planted" );
+	},
+
+	Assault_Ladder_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Assault_Ladder_Dyno -= 1;
+		Util.MapDebugPrint( "Assault_Ladder_Defused" );
+	},
+
+	Assault_Ladder_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Assault_Ladder_Dyno = 0;
+
+		if ( Map.OBJ_Taken == true )
+		{
+			Util.DisableGoal( "BUILD_Assault_Ladder" );
+			Util.DisableGoal( "PLANT_Assault_Ladder" );
+		}
+		else
+		{
+			Wp.SetWaypointFlag("LD1","closed",true);
+			Util.DisableGoal( "ROUTE_towerB" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Assault_Ladder" );
+		}
+
+		Util.MapDebugPrint( "Assault_Ladder_Destroyed" );
+	},
+
+	Assault_Ramp_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		Util.EnableGoal( "ROUTE_ramp.*" );
+
+		Util.MapDebugPrint( "Assault_Ramp_Built" );
+	},
+
+	Assault_Ramp_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Assault_Ramp_Dyno += 1;
+		Util.MapDebugPrint( "Assault_Ramp_Planted" );
+	},
+
+	Assault_Ramp_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Assault_Ramp_Dyno -= 1;
+		Util.MapDebugPrint( "Assault_Ramp_Defused" );
+	},
+
+	Assault_Ramp_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Assault_Ramp_Dyno = 0;
+		Util.DisableGoal( "ROUTE_ramp.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Assault_Ramp" );
+
+		Util.MapDebugPrint( "Assault_Ramp_Destroyed" );
+	},
+
+	Tower_Gate_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tower_Gate_Dyno += 1;
+		Util.MapDebugPrint( "Tower_Gate_Planted" );
+	},
+
+	Tower_Gate_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tower_Gate_Dyno -= 1;
+		Util.MapDebugPrint( "Tower_Gate_Defused" );
+	},
+
+	Tower_Gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tower_Gate_Dyno = 0;
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_gate.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_tunnel.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_gate.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_tunnel.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_tower.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_tower.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_Radio" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_Technical_Manuals" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Assault_Ladder" );
+		Util.DisableGoal( "AMMOCAB_.*" );
+		Util.DisableGoal( "HEALTHCAB_.*" );
+		Util.EnableGoal( "ROUTE_lift.*" );
+		Util.EnableGoal( "ROUTE_tower.*" );
+
+		Util.MapDebugPrint( "Tower_Gate_Destroyed" );
+	},
+
+	Tunnel_Gate_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tunnel_Gate_Dyno += 1;
+		Util.MapDebugPrint( "Tunnel_Gate_Planted" );
+	},
+
+	Tunnel_Gate_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tunnel_Gate_Dyno -= 1;
+		Util.MapDebugPrint( "Tunnel_Gate_Defused" );
+	},
+
+	Tunnel_Gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Tunnel_Gate_Dyno = 0;
+		Wp.SetWaypointFlag("tunnel","closed",true);
+		Wp.SetWaypointFlag("tunnel1","closed",true);
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_gate.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_tunnel.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_gate.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_tunnel.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_tower.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_tower.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_Radio" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_Technical_Manuals" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Assault_Ladder" );
+		Util.DisableGoal( "AMMOCAB_.*" );
+		Util.DisableGoal( "HEALTHCAB_.*" );
+		Util.EnableGoal( "ROUTE_ladders.*" );
+		Util.MapDebugPrint( "Tunnel_Gate_Destroyed" );
+	},
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.Tower_Gate_Dyno == 0 || Map.Tower_Gate_Dyno == 0 || Map.OBJ_Taken == true )
+		{
+			Util.DisableGoal( "AMMOCAB_.*" );
+			Util.DisableGoal( "HEALTHCAB_.*" );
+			Util.DisableGoal( "BUILD_Neutral_Command_Post" );
+			Util.DisableGoal( "PLANT_Neutral_Command_Post" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Neutral_Command_Post" );
+		}
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Allied_Command_Post_Dyno += 1;
+
+		if ( Map.Tower_Gate_Dyno == 0 || Map.Tower_Gate_Dyno == 0 || Map.OBJ_Taken == true )
+		{
+			Util.DisableGoal( "AMMOCAB_.*" );
+			Util.DisableGoal( "HEALTHCAB_.*" );
+			Util.DisableGoal( "DEFUSE_Neutral_Command_Post" );
+		}
+		Util.MapDebugPrint( "Allied_Command_Post_Planted" );
+	},
+
+	Allied_Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Allied_Command_Post_Dyno -= 1;
+		Util.MapDebugPrint( "Allied_Command_Post_Defused" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.Tower_Gate_Dyno == 0 || Map.Tower_Gate_Dyno == 0 || Map.OBJ_Taken == true )
+		{
+			Util.DisableGoal( "AMMOCAB_.*" );
+			Util.DisableGoal( "HEALTHCAB_.*" );
+			Util.DisableGoal( "BUILD_Neutral_Command_Post" );
+			Util.DisableGoal( "PLANT_Neutral_Command_Post" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Neutral_Command_Post" );
+		}
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.Tower_Gate_Dyno == 0 || Map.Tower_Gate_Dyno == 0 || Map.OBJ_Taken == true )
+		{
+			Util.DisableGoal( "AMMOCAB_.*" );
+			Util.DisableGoal( "HEALTHCAB_.*" );
+			Util.DisableGoal( "BUILD_Neutral_Command_Post" );
+			Util.DisableGoal( "PLANT_Neutral_Command_Post" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Neutral_Command_Post" );
+		}
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Command_Post_Dyno += 1;
+
+		if ( Map.Tower_Gate_Dyno == 0 || Map.Tower_Gate_Dyno == 0 || Map.OBJ_Taken == true )
+		{
+			Util.DisableGoal( "AMMOCAB_.*" );
+			Util.DisableGoal( "HEALTHCAB_.*" );
+			Util.DisableGoal( "DEFUSE_Neutral_Command_Post" );
+		}
+		Util.MapDebugPrint( "Axis_Command_Post_Planted" );
+	},
+
+	Axis_Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Command_Post_Dyno -= 1;
+		Util.MapDebugPrint( "Axis_Command_Post_Defused" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.Tower_Gate_Dyno == 0 || Map.Tower_Gate_Dyno == 0 || Map.OBJ_Taken == true )
+		{
+			Util.DisableGoal( "AMMOCAB_.*" );
+			Util.DisableGoal( "HEALTHCAB_.*" );
+			Util.DisableGoal( "BUILD_Neutral_Command_Post" );
+			Util.DisableGoal( "PLANT_Neutral_Command_Post" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Neutral_Command_Post" );
+		}
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	Technical_Manuals_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		Map.OBJ_Taken = true;
+
+		Util.DisableGoal( "CHECKPOINT_forward_flag" );
+		Util.DisableGoal( "BUILD_Neutral_Command_Post" );
+		Util.DisableGoal( "PLANT_Neutral_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_tower.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_dropoff.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_tower.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_dropoff.*" );
+		SetGoalPriority( "ATTACK_.*", 0.5, TEAM.ALLIES, CLASS.ENGINEER, true );
+		SetGoalPriority( "DEFEND_.*", 0.5, TEAM.AXIS, CLASS.ENGINEER, true );
+		Util.DisableGoal( "AMMOCAB_.*" );
+		Util.DisableGoal( "HEALTHCAB_.*" );
+		Map.Switches.callup.Enabled = false;
+		Map.Switches.calldown.Enabled = false;
+		Map.Switches.liftdown.Enabled = false;
+		Map.Switches.liftup.Enabled = false;
+
+		Util.MapDebugPrint( "Technical_Manuals_Taken" );
+	},
+
+	Technical_Manuals_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		Map.OBJ_Taken = false;
+
+		Util.EnableGoal( "CHECKPOINT_forward_flag" );
+		Util.EnableGoal( "BUILD_Neutral_Command_Post" );
+		Util.EnableGoal( "PLANT_Neutral_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_tower.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_dropoff.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_tower.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_dropoff.*" );
+		SetGoalPriority( "ATTACK_.*", 0.0, TEAM.ALLIES, CLASS.ENGINEER, true );
+		SetGoalPriority( "DEFEND_.*", 0.0, TEAM.AXIS, CLASS.ENGINEER, true );
+		Map.Switches.callup.Enabled = true;
+		Map.Switches.calldown.Enabled = true;
+		Map.Switches.liftdown.Enabled = true;
+		Map.Switches.liftup.Enabled = true;
+
+
+		Util.MapDebugPrint( "Technical_Manuals_Returned" );
+	},
+
+	Technical_Manuals_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		//Game over
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "Technical_Manuals_Secured" );
+	},
+
+	forward_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		Map.Axis_Captured = true;
+		Map.Allies_Captured = false;
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_forward_flag" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_forward_flag" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_first_ammocabinet_2" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "HEALTHCAB_first_healthcabinet_2" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_first_ammocabinet_1" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_first_healthcabinet_1" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_first_ammocabinet_1" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "HEALTHCAB_first_healthcabinet_1" );
+
+		if ( Map.Tower_Gate_Dyno == 0 || Map.Tower_Gate_Dyno == 0 || Map.OBJ_Taken == true )
+		{
+			Util.DisableGoal( "AMMOCAB_.*" );
+			Util.DisableGoal( "HEALTHCAB_.*" );
+			Util.DisableGoal( "CHECKPOINT_forward_flag" );
+		}
+
+
+		Util.MapDebugPrint( "forward_flag_Axis_Captured" );
+	},
+
+	forward_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		Map.Allies_Captured = true;
+		Map.Axis_Captured = false;
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_forward_flag" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_forward_flag" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "AMMOCAB_first_ammocabinet_2" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "HEALTHCAB_first_healthcabinet_2" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_first_ammocabinet_1" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_first_healthcabinet_1" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_first_ammocabinet_1" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "HEALTHCAB_first_healthcabinet_1" );
+
+		if ( Map.Tower_Gate_Dyno == 0 || Map.Tower_Gate_Dyno == 0 || Map.OBJ_Taken == true )
+		{
+			Util.DisableGoal( "AMMOCAB_.*" );
+			Util.DisableGoal( "HEALTHCAB_.*" );
+			Util.DisableGoal( "CHECKPOINT_forward_flag" );
+		}
+
+		Util.MapDebugPrint( "forward_flag_Allies_Captured" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	kz = OnTriggerRegion(AABB(801.125,-3712.875,73.126,1118.875,-3503.125,271.644), Map.KillZone);
+	axisdoor1 = OnTriggerRegion(AABB(-866.862,1224.441,263.938,-735.127,1311.151,376.756), Map.AxisDoorTrigger1);
+        axisdoor2 = OnTriggerRegion(AABB(943.126,-1650.244,200.316,1024.875,-1564.047,336.761), Map.AxisDoorTrigger2);
+	gatetrigger = OnTriggerRegion(AABB(-1609.218,-200.227,200.709,-1426.184,148.554,416.645), Map.GateTrigger);
+	// Register callback functions
+	OnTrigger( "Allied Team have built the assault ladder!", Map.Assault_Ladder_Built );
+	OnTrigger( "Allied Team have built the assault ramp!", Map.Assault_Ramp_Built );
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+
+	OnTrigger( "Planted at the Allied Command Post!", Map.Allied_Command_Post_Planted );
+	OnTrigger( "Planted at the Axis Command Post!", Map.Axis_Command_Post_Planted );
+	OnTrigger( "Planted at the assault ladder!", Map.Assault_Ladder_Planted );
+	OnTrigger( "Planted at the assault ramp!", Map.Assault_Ramp_Planted );
+	OnTrigger( "Planted at the Tower Gate!", Map.Tower_Gate_Planted );
+	OnTrigger( "Planted at the Tunnel Gate!", Map.Tunnel_Gate_Planted );
+	OnTrigger( "Defused at the assault ladder!", Map.Assault_Ladder_Defused );
+	OnTrigger( "Defused at the assault ramp!", Map.Assault_Ramp_Defused );
+	OnTrigger( "Defused at the Tower Gate!", Map.Tower_Gate_Defused );
+	OnTrigger( "Defused at the Tunnel Gate!", Map.Tunnel_Gate_Defused );
+	OnTrigger( "Defused at the Allied Command Post!", Map.Allied_Command_Post_Defused );
+	OnTrigger( "Defused at the Axis Command Post!", Map.Axis_Command_Post_Defused );
+
+	OnTrigger( "Axis have destroyed the assault ladder!", Map.Assault_Ladder_Destroyed );
+	OnTrigger( "Axis have destroyed the assault ramp!", Map.Assault_Ramp_Destroyed );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "The Allies have destroyed the Tower Gate!", Map.Tower_Gate_Destroyed );
+	OnTrigger( "The Allies have destroyed the Tunnel Gate!", Map.Tunnel_Gate_Destroyed );
+	OnTrigger( "The Allies have taken the documents.", Map.Technical_Manuals_Taken );
+	OnTrigger( "The Axis have returned the documents.", Map.Technical_Manuals_Returned );
+	OnTrigger( "The Allies have delivered the documents.", Map.Technical_Manuals_Secured );
+	OnTrigger( "^1The Axis captured the Advanced Spawn flag!", Map.forward_flag_Axis_Captured );
+	OnTrigger( "^4The Allies captured the Advanced Spawn flag!", Map.forward_flag_Allies_Captured );
+	OnTrigger( "lift_goto", Map.lift_goto );
+
+	Util.SetGoalOffset( 0, 0, -50, "BUILD_Assault_Ramp" );
+//Prioritys
+	SetGoalPriority( "ATTACK_.*", 0.0, TEAM.ALLIES, CLASS.ENGINEER, true );
+	SetGoalPriority( "DEFEND_.*", 0.0, TEAM.ALLIES, CLASS.ENGINEER, true );
+	SetGoalPriority( "MOUNTMG42_.*", 0.0, TEAM.ALLIES, CLASS.MEDIC, true  );
+	SetGoalPriority( "MOUNTMG42_.*", 0.0, TEAM.ALLIES, CLASS.ENGINEER, true );
+	SetGoalPriority( "BUILD_Assault_Ramp", 0.91, TEAM.ALLIES, CLASS.ENGINEER, true );
+
+	SetGoalPriority( "MOUNTMG42_.*", 0.0, TEAM.AXIS, CLASS.MEDIC, true  );
+	SetGoalPriority( "MOUNTMG42_.*", 0.0, TEAM.AXIS, CLASS.ENGINEER, true );
+	SetGoalPriority( "ATTACK_.*", 0.0, TEAM.AXIS, CLASS.ENGINEER, true );
+	SetGoalPriority( "DEFEND_.*", 0.0, TEAM.AXIS, CLASS.ENGINEER, true );
+	SetGoalPriority( "CHECKPOINT_forward_flag", 0.0, 0, CLASS.ENGINEER, true  );
+
+	Util.DisableGoal( ".*", true ); // all but routes
+	Util.DisableGoal( "ROUTE_ladders.*" );
+	Util.DisableGoal( "ROUTE_tower.*" );
+	Util.DisableGoal( "ROUTE_lift.*"  );
+	Util.DisableGoal( "ROUTE_ramp.*" );
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_gate.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_tunnel.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_first_ammocabinet_2" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "HEALTHCAB_first_healthcabinet_2" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_forward_flag" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Neutral_Command_Post" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Assault_Ramp" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_.*" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_gate.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_tunnel.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_first_ammocabinet" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_first_healthcabinet" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_forward_flag" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Neutral_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_.*" );
+
+	Wp.SetWaypointFlag("tunnel","closed",false);
+	Wp.SetWaypointFlag("tunnel1","closed",false);
+	Wp.SetWaypointFlag("LD1","closed",true);
+	Wp.SetWaypointFlag("top","closed",true);
+	Wp.SetWaypointFlag("top1","closed",true);
+	Wp.SetWaypointFlag("bottom","closed",false);
+	Wp.SetWaypointFlag("bottom1","closed",false);
+//Add Use Wp
+	Util.AddUseWp("PLANT_Tower_Gate", "TowerGate");
+	Util.AddUseWp("PLANT_Tower_Gate", "TowerGate1");
+	Util.AddUseWp("PLANT_Assault_Ladder", "bigladder");
+	Util.AddUseWp("PLANT_Assault_Ladder", "bigladder1");
+	Util.AddUseWp("PLANT_Assault_Ramp", "ramp");
+// Max users per goal
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+
+// Camp times
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=60} );
+//Data
+	Util.UpdateSwitchData();
+//Routes
+	MapRoutes =
+	{
+		PLANT_Tunnel_Gate =
+		{
+			ROUTE_Spawn_Allies  =
+			{
+				ROUTE_ramp  =
+				{
+					ROUTE_ramp_1  =
+					{
+						ROUTE_ramp_2  =
+						{
+							ROUTE_ramp_3  =
+							{
+								ROUTE_ramp_4  =
+								{
+									ROUTE_tunnel  =
+									{
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_objrunpoint  =
+				{
+					ROUTE_objrun_7  =
+					{
+						ROUTE_objrun_6  =
+						{
+							ROUTE_objrun_5  =
+							{
+								ROUTE_objrun_4  =
+								{
+									ROUTE_objrun_3  =
+									{
+										ROUTE_gate  =
+										{
+											ROUTE_ramp_5  =
+											{
+												ROUTE_tunnel  =
+												{
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		PLANT_Tower_Gate =
+		{
+			ROUTE_Spawn_Allies  =
+			{
+				ROUTE_ramp  =
+				{
+					ROUTE_ramp_1  =
+					{
+						ROUTE_ramp_2  =
+						{
+							ROUTE_ramp_3  =
+							{
+								ROUTE_ramp_4  =
+								{
+									ROUTE_ramp_5  =
+									{
+										ROUTE_gate  =
+										{
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_objrunpoint  =
+				{
+					ROUTE_objrun_7  =
+					{
+						ROUTE_objrun_6  =
+						{
+							ROUTE_objrun_5  =
+							{
+								ROUTE_objrun_4  =
+								{
+									ROUTE_objrun_3  =
+									{
+										ROUTE_gate  =
+										{
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_Spawn_Flag  =
+			{
+				ROUTE_gateA  =
+				{
+					ROUTE_gateA_1  =
+					{
+						ROUTE_gateA_2  =
+						{
+							ROUTE_gate  =
+							{
+							},
+						},
+					},
+				},
+				ROUTE_gateB  =
+				{
+					ROUTE_gateB_1  =
+					{
+						ROUTE_gateB_2  =
+						{
+							ROUTE_gate  =
+							{
+							},
+						},
+					},
+				},
+				ROUTE_gateC  =
+				{
+					ROUTE_gateC_1  =
+					{
+						ROUTE_gateC_2  =
+						{
+							ROUTE_gate  =
+							{
+							},
+						},
+					},
+				},
+				ROUTE_gateD  =
+				{
+					ROUTE_gateD_1  =
+					{
+						ROUTE_gateD_2  =
+						{
+							ROUTE_gateD_3  =
+							{
+								ROUTE_gateD_4  =
+								{
+									ROUTE_gateD_5  =
+									{
+										ROUTE_gateD_6  =
+										{
+											ROUTE_gate  =
+											{
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		FLAG_Technical_Manuals =
+		{
+			ROUTE_Spawn_Allies  =
+			{
+				ROUTE_ramp  =
+				{
+					ROUTE_ramp_1  =
+					{
+						ROUTE_ramp_2  =
+						{
+							ROUTE_ramp_3  =
+							{
+								ROUTE_ramp_4  =
+								{
+									ROUTE_ramp_5  =
+									{
+										ROUTE_gate  =
+										{
+											ROUTE_tower  =
+											{
+												ROUTE_tower_1  =
+												{
+													ROUTE_tower_2  =
+													{
+														ROUTE_tower_3  =
+														{
+															ROUTE_towerB  =
+															{
+																ROUTE_towertop  =
+																{
+																},
+															},
+														},
+													},
+													ROUTE_towerA  =
+													{
+														ROUTE_towerA_1  =
+														{
+															ROUTE_towerB  =
+															{
+																ROUTE_towertop  =
+																{
+																},
+															},
+														},
+													},
+													ROUTE_lift  =
+													{
+														ROUTE_lift_1  =
+														{
+															ROUTE_towertop  =
+															{
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+									ROUTE_tunnel  =
+									{
+										ROUTE_ladders  =
+										{
+											ROUTE_ladders_1  =
+											{
+												ROUTE_ladders_2  =
+												{
+													ROUTE_ladders_3  =
+													{
+														ROUTE_ladders_4  =
+														{
+															ROUTE_ladders_5  =
+															{
+																ROUTE_ladders_6  =
+																{
+																	ROUTE_ladders_7  =
+																	{
+																		ROUTE_ladders_8  =
+																		{
+																			ROUTE_towertop  =
+																			{
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_Spawn_Flag  =
+			{
+				ROUTE_gateA  =
+				{
+					ROUTE_gateA_1  =
+					{
+						ROUTE_gateA_2  =
+						{
+							ROUTE_gate  =
+							{
+								ROUTE_ramp_5  =
+								{
+									ROUTE_tunnel  =
+									{
+										ROUTE_ladders  =
+										{
+											ROUTE_ladders_1  =
+											{
+												ROUTE_ladders_2  =
+												{
+													ROUTE_ladders_3  =
+													{
+														ROUTE_ladders_4  =
+														{
+															ROUTE_ladders_5  =
+															{
+																ROUTE_ladders_6  =
+																{
+																	ROUTE_ladders_7  =
+																	{
+																		ROUTE_ladders_8  =
+																		{
+																			ROUTE_towertop  =
+																			{
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+								ROUTE_tower  =
+								{
+									ROUTE_tower_1  =
+									{
+										ROUTE_tower_2  =
+										{
+											ROUTE_tower_3  =
+											{
+												ROUTE_towerB  =
+												{
+													ROUTE_towertop  =
+													{
+													},
+												},
+											},
+										},
+										ROUTE_lift  =
+										{
+											ROUTE_lift_1  =
+											{
+												ROUTE_towertop  =
+												{
+												},
+											},
+										},
+										ROUTE_towerA  =
+										{
+											ROUTE_towerA_1  =
+											{
+												ROUTE_towerB  =
+												{
+													ROUTE_towertop  =
+													{
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_gateB  =
+				{
+					ROUTE_gateB_1  =
+					{
+						ROUTE_gateB_2  =
+						{
+							ROUTE_gate  =
+							{
+								ROUTE_ramp_5  =
+								{
+									ROUTE_tunnel  =
+									{
+										ROUTE_ladders  =
+										{
+											ROUTE_ladders_1  =
+											{
+												ROUTE_ladders_2  =
+												{
+													ROUTE_ladders_3  =
+													{
+														ROUTE_ladders_4  =
+														{
+															ROUTE_ladders_5  =
+															{
+																ROUTE_ladders_6  =
+																{
+																	ROUTE_ladders_7  =
+																	{
+																		ROUTE_ladders_8  =
+																		{
+																			ROUTE_towertop  =
+																			{
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+								ROUTE_tower  =
+								{
+									ROUTE_tower_1  =
+									{
+										ROUTE_tower_2  =
+										{
+											ROUTE_tower_3  =
+											{
+												ROUTE_towerB  =
+												{
+													ROUTE_towertop  =
+													{
+													},
+												},
+											},
+										},
+										ROUTE_lift  =
+										{
+											ROUTE_lift_1  =
+											{
+												ROUTE_towertop  =
+												{
+												},
+											},
+										},
+										ROUTE_towerA  =
+										{
+											ROUTE_towerA_1  =
+											{
+												ROUTE_towerB  =
+												{
+													ROUTE_towertop  =
+													{
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_gateC  =
+				{
+					ROUTE_gateC_1  =
+					{
+						ROUTE_gateC_2  =
+						{
+							ROUTE_gate  =
+							{
+								ROUTE_ramp_5  =
+								{
+									ROUTE_tunnel  =
+									{
+										ROUTE_ladders  =
+										{
+											ROUTE_ladders_1  =
+											{
+												ROUTE_ladders_2  =
+												{
+													ROUTE_ladders_3  =
+													{
+														ROUTE_ladders_4  =
+														{
+															ROUTE_ladders_5  =
+															{
+																ROUTE_ladders_6  =
+																{
+																	ROUTE_ladders_7  =
+																	{
+																		ROUTE_ladders_8  =
+																		{
+																			ROUTE_towertop  =
+																			{
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+								ROUTE_tower  =
+								{
+									ROUTE_tower_1  =
+									{
+										ROUTE_tower_2  =
+										{
+											ROUTE_tower_3  =
+											{
+												ROUTE_towerB  =
+												{
+													ROUTE_towertop  =
+													{
+													},
+												},
+											},
+										},
+										ROUTE_lift  =
+										{
+											ROUTE_lift_1  =
+											{
+												ROUTE_towertop  =
+												{
+												},
+											},
+										},
+										ROUTE_towerA  =
+										{
+											ROUTE_towerA_1  =
+											{
+												ROUTE_towerB  =
+												{
+													ROUTE_towertop  =
+													{
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_gateD  =
+				{
+					ROUTE_gateD_1  =
+					{
+						ROUTE_gateD_2  =
+						{
+							ROUTE_gateD_3  =
+							{
+								ROUTE_gateD_4  =
+								{
+									ROUTE_gateD_5  =
+									{
+										ROUTE_gateD_6  =
+										{
+											ROUTE_gate  =
+											{
+												ROUTE_ramp_5  =
+												{
+													ROUTE_tunnel  =
+													{
+														ROUTE_ladders  =
+														{
+															ROUTE_ladders_1  =
+															{
+																ROUTE_ladders_2  =
+																{
+																	ROUTE_ladders_3  =
+																	{
+																		ROUTE_ladders_4  =
+																		{
+																			ROUTE_ladders_5  =
+																			{
+																				ROUTE_ladders_6  =
+																				{
+																					ROUTE_ladders_7  =
+																					{
+																						ROUTE_ladders_8  =
+																						{
+																							ROUTE_towertop  =
+																							{
+																							},
+																						},
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+												ROUTE_tower  =
+												{
+													ROUTE_tower_1  =
+													{
+														ROUTE_tower_2  =
+														{
+															ROUTE_tower_3  =
+															{
+																ROUTE_towerB  =
+																{
+																	ROUTE_towertop  =
+																	{
+																	},
+																},
+															},
+														},
+														ROUTE_lift  =
+														{
+															ROUTE_lift_1  =
+															{
+																ROUTE_towertop  =
+																{
+																},
+															},
+														},
+														ROUTE_towerA  =
+														{
+															ROUTE_towerA_1  =
+															{
+																ROUTE_towerB  =
+																{
+																	ROUTE_towertop  =
+																	{
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		CAPPOINT_Radio =
+		{
+			ROUTE_objrun  =
+			{
+				ROUTE_objrun_1  =
+				{
+					ROUTE_objrun_2  =
+					{
+						ROUTE_objrunsplit  =
+						{
+							ROUTE_objrun_3  =
+							{
+								ROUTE_objrun_4  =
+								{
+									ROUTE_objrun_5  =
+									{
+										ROUTE_objrun_6  =
+										{
+											ROUTE_objrun_7  =
+											{
+												ROUTE_objrunpoint  =
+												{
+												},
+											},
+										},
+										ROUTE_objrunB_6  =
+										{
+											ROUTE_objrunB_7  =
+											{
+												ROUTE_objrunB_8  =
+												{
+													ROUTE_objrunB_9  =
+													{
+														ROUTE_objrunB_10  =
+														{
+															ROUTE_objrunpoint  =
+															{
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+							ROUTE_objrunB  =
+							{
+								ROUTE_objrunB_1  =
+								{
+									ROUTE_objrunB_2  =
+									{
+										ROUTE_objrunB_3  =
+										{
+											ROUTE_objrunB_4  =
+											{
+												ROUTE_objrunB_5  =
+												{
+													ROUTE_objrunB_6  =
+													{
+														ROUTE_objrunB_7  =
+														{
+															ROUTE_objrunB_8  =
+															{
+																ROUTE_objrunB_9  =
+																{
+																	ROUTE_objrunB_10  =
+																	{
+																		ROUTE_objrunpoint  =
+																		{
+																		},
+																	},
+																},
+															},
+														},
+														ROUTE_objrun_5  =
+														{
+															ROUTE_objrun_6  =
+															{
+																ROUTE_objrun_7  =
+																{
+																	ROUTE_objrunpoint  =
+																	{
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	};
+
+	MapRoutes.ATTACK_dropoff = MapRoutes.CAPPOINT_Radio;
+	MapRoutes.ATTACK_dropoff_1 = MapRoutes.CAPPOINT_Radio;
+	MapRoutes.ATTACK_dropoff_2 = MapRoutes.CAPPOINT_Radio;
+	MapRoutes.ATTACK_dropoff_3 = MapRoutes.CAPPOINT_Radio;
+	MapRoutes.ATTACK_dropoff_4 = MapRoutes.CAPPOINT_Radio;
+	MapRoutes.ATTACK_dropoff_5 = MapRoutes.CAPPOINT_Radio;
+	MapRoutes.ATTACK_dropoff_6 = MapRoutes.CAPPOINT_Radio;
+	MapRoutes.ATTACK_dropoff_7 = MapRoutes.CAPPOINT_Radio;
+	MapRoutes.ATTACK_dropoff_8 = MapRoutes.CAPPOINT_Radio;
+
+	MapRoutes.DEFEND_dropoff = MapRoutes.CAPPOINT_Radio;
+	MapRoutes.DEFEND_dropoff_1 = MapRoutes.CAPPOINT_Radio;
+	MapRoutes.DEFEND_dropoff_2 = MapRoutes.CAPPOINT_Radio;
+	MapRoutes.DEFEND_dropoff_3 = MapRoutes.CAPPOINT_Radio;
+	MapRoutes.DEFEND_dropoff_4 = MapRoutes.CAPPOINT_Radio;
+	MapRoutes.DEFEND_dropoff_5 = MapRoutes.CAPPOINT_Radio;
+	MapRoutes.DEFEND_dropoff_6 = MapRoutes.CAPPOINT_Radio;
+	MapRoutes.DEFEND_dropoff_7 = MapRoutes.CAPPOINT_Radio;
+	MapRoutes.DEFEND_dropoff_8 = MapRoutes.CAPPOINT_Radio;
+
+	MapRoutes.ATTACK_gate = MapRoutes.PLANT_Tower_Gate;
+	MapRoutes.ATTACK_gate_1 = MapRoutes.PLANT_Tower_Gate;
+	MapRoutes.ATTACK_gate_2 = MapRoutes.PLANT_Tower_Gate;
+	MapRoutes.ATTACK_gate_3 = MapRoutes.PLANT_Tower_Gate;
+	MapRoutes.ATTACK_gate_4 = MapRoutes.PLANT_Tower_Gate;
+	MapRoutes.ATTACK_gate_5 = MapRoutes.PLANT_Tower_Gate;
+	MapRoutes.ATTACK_gate_6 = MapRoutes.PLANT_Tower_Gate;
+	MapRoutes.ATTACK_gate_7 = MapRoutes.PLANT_Tower_Gate;
+	MapRoutes.ATTACK_gate_8 = MapRoutes.PLANT_Tower_Gate;
+
+	MapRoutes.DEFEND_gate = MapRoutes.PLANT_Tower_Gate;
+	MapRoutes.DEFEND_gate_1 = MapRoutes.PLANT_Tower_Gate;
+	MapRoutes.DEFEND_gate_2 = MapRoutes.PLANT_Tower_Gate;
+	MapRoutes.DEFEND_gate_3 = MapRoutes.PLANT_Tower_Gate;
+	MapRoutes.DEFEND_gate_4 = MapRoutes.PLANT_Tower_Gate;
+	MapRoutes.DEFEND_gate_5 = MapRoutes.PLANT_Tower_Gate;
+	MapRoutes.DEFEND_gate_6 = MapRoutes.PLANT_Tower_Gate;
+	MapRoutes.DEFEND_gate_7 = MapRoutes.PLANT_Tower_Gate;
+	MapRoutes.DEFEND_gate_8 = MapRoutes.PLANT_Tower_Gate;
+
+	MapRoutes.ATTACK_tower = MapRoutes.FLAG_Technical_Manuals;
+	MapRoutes.ATTACK_tower_1 = MapRoutes.FLAG_Technical_Manuals;
+	MapRoutes.ATTACK_tower_2 = MapRoutes.FLAG_Technical_Manuals;
+	MapRoutes.ATTACK_tower_3 = MapRoutes.FLAG_Technical_Manuals;
+	MapRoutes.ATTACK_tower_4 = MapRoutes.FLAG_Technical_Manuals;
+	MapRoutes.ATTACK_tower_5 = MapRoutes.FLAG_Technical_Manuals;
+	MapRoutes.ATTACK_tower_6 = MapRoutes.FLAG_Technical_Manuals;
+	MapRoutes.ATTACK_tower_7 = MapRoutes.FLAG_Technical_Manuals;
+
+	MapRoutes.DEFEND_tower = MapRoutes.FLAG_Technical_Manuals;
+	MapRoutes.DEFEND_tower_1 = MapRoutes.FLAG_Technical_Manuals;
+	MapRoutes.DEFEND_tower_2 = MapRoutes.FLAG_Technical_Manuals;
+	MapRoutes.DEFEND_tower_3 = MapRoutes.FLAG_Technical_Manuals;
+	MapRoutes.DEFEND_tower_4 = MapRoutes.FLAG_Technical_Manuals;
+	MapRoutes.DEFEND_tower_5 = MapRoutes.FLAG_Technical_Manuals;
+
+	MapRoutes.ATTACK_tunnel = MapRoutes.PLANT_Tunnel_Gate;
+	MapRoutes.ATTACK_tunnel_1 = MapRoutes.PLANT_Tunnel_Gate;
+	MapRoutes.ATTACK_tunnel_2 = MapRoutes.PLANT_Tunnel_Gate;
+	MapRoutes.ATTACK_tunnel_3 = MapRoutes.PLANT_Tunnel_Gate;
+	MapRoutes.ATTACK_tunnel_4 = MapRoutes.PLANT_Tunnel_Gate;
+	MapRoutes.ATTACK_tunnel_5 = MapRoutes.PLANT_Tunnel_Gate;
+
+	MapRoutes.DEFEND_tunnel = MapRoutes.PLANT_Tunnel_Gate;
+	MapRoutes.DEFEND_tunnel_1 = MapRoutes.PLANT_Tunnel_Gate;
+	MapRoutes.DEFEND_tunnel_2 = MapRoutes.PLANT_Tunnel_Gate;
+	MapRoutes.DEFEND_tunnel_3 = MapRoutes.PLANT_Tunnel_Gate;
+	MapRoutes.DEFEND_tunnel_4 = MapRoutes.PLANT_Tunnel_Gate;
+	MapRoutes.DEFEND_tunnel_5 = MapRoutes.PLANT_Tunnel_Gate;
+
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	// Uncomment for shootable breakables
+	bot.TargetBreakableDist = 100.0;
+
+	// Only set MaxViewDistance on maps with limited sight (e.g. fog)
+	//~bot.MaxViewDistance = 2400;
+	team = bot.GetTeam();
+
+	// flag spawn
+	if ( team == TEAM.ALLIES ) {
+		if ( Map.Allies_Captured == true )
+		{
+			bot.ChangeSpawnPoint(3);
+		}
+		else if ( Map.Allies_Captured == false )
+		{
+			bot.ChangeSpawnPoint(2);
+		}
+	}
+	else if ( team == TEAM.AXIS ) {
+		if ( Map.Axis_Captured == true )
+		{
+			bot.ChangeSpawnPoint(3);
+		}
+		else if ( Map.Axis_Captured == false )
+		{
+			bot.ChangeSpawnPoint(1);
+		}
+	}
+};

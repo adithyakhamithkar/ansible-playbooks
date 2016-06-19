@@ -1,0 +1,2792 @@
+global _MG = 
+{
+	AMMOCAB_ammokast1 = 
+	{
+		CreateOnLoad = 0,
+		GoalType = "AMMOCAB",
+		GroupName = "",
+		MinRadius = 0,
+		Name = "AMMOCAB_ammokast1",
+		Orientation = Vec3(-1.571, -0.000, 0.000),
+		Position = Vec3(2169.000, 107.000, 192.000),
+		Radius = 0,
+		Range = 1250,
+		SerialNum = 228,
+		TagName = "ammokast1",
+		TeamAvailability = 6,
+		Version = 1,
+	},
+	AMMOCAB_ammokast3 = 
+	{
+		CreateOnLoad = 0,
+		GoalType = "AMMOCAB",
+		GroupName = "",
+		MinRadius = 0,
+		Name = "AMMOCAB_ammokast3",
+		Orientation = Vec3(-1.571, -0.000, 0.000),
+		Position = Vec3(-889.000, 1878.000, 188.500),
+		Radius = 0,
+		Range = 1250,
+		SerialNum = 234,
+		TagName = "ammokast3",
+		TeamAvailability = 6,
+		Version = 1,
+	},
+	AMMOCAB_ammokast4 = 
+	{
+		CreateOnLoad = 0,
+		GoalType = "AMMOCAB",
+		GroupName = "",
+		MinRadius = 0,
+		Name = "AMMOCAB_ammokast4",
+		Orientation = Vec3(-1.571, -0.000, 0.000),
+		Position = Vec3(1599.500, 3060.500, 197.500),
+		Radius = 0,
+		Range = 1250,
+		SerialNum = 240,
+		TagName = "ammokast4",
+		TeamAvailability = 6,
+		Version = 1,
+	},
+	AMMOCAB_ammokast5 = 
+	{
+		CreateOnLoad = 0,
+		GoalType = "AMMOCAB",
+		GroupName = "",
+		MinRadius = 0,
+		Name = "AMMOCAB_ammokast5",
+		Orientation = Vec3(-1.571, -0.000, 0.000),
+		Position = Vec3(-1982.500, 104.500, 189.000),
+		Radius = 0,
+		Range = 1250,
+		SerialNum = 242,
+		TagName = "ammokast5",
+		TeamAvailability = 6,
+		Version = 1,
+	},
+	HEALTHCAB_healthkast1 = 
+	{
+		CreateOnLoad = 0,
+		GoalType = "HEALTHCAB",
+		GroupName = "",
+		MinRadius = 0,
+		Name = "HEALTHCAB_healthkast1",
+		Orientation = Vec3(-1.571, -0.000, 0.000),
+		Position = Vec3(2169.000, 37.000, 192.000),
+		Radius = 0,
+		Range = 1250,
+		SerialNum = 230,
+		TagName = "healthkast1",
+		TeamAvailability = 6,
+		Version = 1,
+	},
+	HEALTHCAB_healthkast2 = 
+	{
+		CreateOnLoad = 0,
+		GoalType = "HEALTHCAB",
+		GroupName = "",
+		MinRadius = 0,
+		Name = "HEALTHCAB_healthkast2",
+		Orientation = Vec3(-1.571, -0.000, 0.000),
+		Position = Vec3(-1982.500, 39.500, 189.000),
+		Radius = 0,
+		Range = 1250,
+		SerialNum = 232,
+		TagName = "healthkast2",
+		TeamAvailability = 6,
+		Version = 1,
+	},
+	HEALTHCAB_healthkast3 = 
+	{
+		CreateOnLoad = 0,
+		GoalType = "HEALTHCAB",
+		GroupName = "",
+		MinRadius = 0,
+		Name = "HEALTHCAB_healthkast3",
+		Orientation = Vec3(-1.571, -0.000, 0.000),
+		Position = Vec3(-817.000, 1878.000, 188.500),
+		Radius = 0,
+		Range = 1250,
+		SerialNum = 236,
+		TagName = "healthkast3",
+		TeamAvailability = 6,
+		Version = 1,
+	},
+	HEALTHCAB_healthkast4 = 
+	{
+		CreateOnLoad = 0,
+		GoalType = "HEALTHCAB",
+		GroupName = "",
+		MinRadius = 0,
+		Name = "HEALTHCAB_healthkast4",
+		Orientation = Vec3(-1.571, -0.000, 0.000),
+		Position = Vec3(1512.000, 3060.500, 197.500),
+		Radius = 0,
+		Range = 1250,
+		SerialNum = 238,
+		TagName = "healthkast4",
+		TeamAvailability = 6,
+		Version = 1,
+	},
+	SNIPE_allied1 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.616, 0.787, 0.028),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied1",
+		Orientation = Vec3(-0.664, 0.028, -0.000),
+		Position = Vec3(-1642.157, -103.359, 145.125),
+		Radius = 35,
+		SerialNum = 36,
+		Stance = "prone",
+		TagName = "allied1",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied10 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.130, 0.991, 0.010),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied10",
+		Orientation = Vec3(0.130, 0.010, 0.000),
+		Position = Vec3(-842.799, -2789.505, 145.125),
+		Radius = 35,
+		SerialNum = 66,
+		Stance = "crouch",
+		TagName = "allied10",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied11 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.029, 1.000, 0.006),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied11",
+		Orientation = Vec3(0.029, 0.006, 0.000),
+		Position = Vec3(-414.043, -643.619, 145.125),
+		Radius = 35,
+		SerialNum = 68,
+		Stance = "prone",
+		TagName = "allied11",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied12 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.118, 0.993, 0.009),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied12",
+		Orientation = Vec3(-0.118, 0.009, -0.000),
+		Position = Vec3(-100.301, -697.250, 145.125),
+		Radius = 35,
+		SerialNum = 70,
+		Stance = "crouch",
+		TagName = "allied12",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied13 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.014, 1.000, 0.002),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied13",
+		Orientation = Vec3(-0.014, 0.002, -0.000),
+		Position = Vec3(426.844, -592.956, 145.125),
+		Radius = 35,
+		SerialNum = 72,
+		Stance = "prone",
+		TagName = "allied13",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied14 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.309, 0.951, 0.005),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied14",
+		Orientation = Vec3(-0.314, 0.005, -0.000),
+		Position = Vec3(811.462, -283.461, 145.125),
+		Radius = 35,
+		SerialNum = 74,
+		Stance = "crouch",
+		TagName = "allied14",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied15 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.150, 0.989, -0.006),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied15",
+		Orientation = Vec3(0.151, -0.006, 0.000),
+		Position = Vec3(1997.231, -252.394, 145.125),
+		Radius = 35,
+		SerialNum = 78,
+		Stance = "prone",
+		TagName = "allied15",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied16 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.509, 0.861, 0.008),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied16",
+		Orientation = Vec3(0.534, 0.008, 0.000),
+		Position = Vec3(1736.835, -660.046, 145.125),
+		Radius = 35,
+		SerialNum = 80,
+		Stance = "crouch",
+		TagName = "allied16",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied17 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.383, 0.924, 0.005),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied17",
+		Orientation = Vec3(0.393, 0.005, 0.000),
+		Position = Vec3(1610.533, -1319.172, 145.125),
+		Radius = 35,
+		SerialNum = 82,
+		Stance = "prone",
+		TagName = "allied17",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied18 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.578, 0.816, 0.012),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied18",
+		Orientation = Vec3(0.616, 0.012, 0.000),
+		Position = Vec3(1732.890, -966.772, 145.125),
+		Radius = 35,
+		SerialNum = 84,
+		Stance = "prone",
+		TagName = "allied18",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied19 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.007, 1.000, 0.010),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied19",
+		Orientation = Vec3(-0.007, 0.010, -0.000),
+		Position = Vec3(1267.647, -1466.422, 145.125),
+		Radius = 35,
+		SerialNum = 86,
+		Stance = "crouch",
+		TagName = "allied19",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied2 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.418, 0.908, 0.038),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied2",
+		Orientation = Vec3(-0.431, 0.038, -0.000),
+		Position = Vec3(-1545.708, -943.432, 145.125),
+		Radius = 35,
+		SerialNum = 50,
+		Stance = "prone",
+		TagName = "allied2",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied20 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.470, 0.883, 0.002),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied20",
+		Orientation = Vec3(0.490, 0.002, 0.000),
+		Position = Vec3(993.823, -1570.734, 145.125),
+		Radius = 35,
+		SerialNum = 88,
+		Stance = "prone",
+		TagName = "allied20",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied21 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.030, 1.000, -0.002),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied21",
+		Orientation = Vec3(-0.030, -0.002, -0.000),
+		Position = Vec3(433.599, -1392.545, 145.125),
+		Radius = 35,
+		SerialNum = 90,
+		Stance = "crouch",
+		TagName = "allied21",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied22 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.002, 1.000, 0.006),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied22",
+		Orientation = Vec3(0.002, 0.006, 0.000),
+		Position = Vec3(-4.423, -1359.021, 145.125),
+		Radius = 35,
+		SerialNum = 92,
+		Stance = "prone",
+		TagName = "allied22",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied23 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.376, 0.927, 0.011),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied23",
+		Orientation = Vec3(-0.386, 0.011, -0.000),
+		Position = Vec3(-245.769, -1462.745, 145.125),
+		Radius = 35,
+		SerialNum = 94,
+		Stance = "stand",
+		TagName = "allied23",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied24 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.209, 0.977, 0.030),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied24",
+		Orientation = Vec3(-0.211, 0.030, -0.000),
+		Position = Vec3(544.888, -1859.656, 145.125),
+		Radius = 35,
+		SerialNum = 96,
+		Stance = "stand",
+		TagName = "allied24",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied25 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.204, 0.979, -0.008),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied25",
+		Orientation = Vec3(-0.205, -0.008, -0.000),
+		Position = Vec3(306.195, -1228.732, 376.080),
+		Radius = 35,
+		SerialNum = 142,
+		Stance = "stand",
+		TagName = "allied25",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied26 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.199, 0.980, 0.023),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied26",
+		Orientation = Vec3(0.200, 0.023, 0.000),
+		Position = Vec3(100.747, -1228.755, 376.063),
+		Radius = 35,
+		SerialNum = 144,
+		Stance = "stand",
+		TagName = "allied26",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied27 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.119, 0.992, -0.026),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied27",
+		Orientation = Vec3(0.120, -0.026, 0.000),
+		Position = Vec3(1118.467, -1223.117, 364.571),
+		Radius = 35,
+		SerialNum = 146,
+		Stance = "prone",
+		TagName = "allied27",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied28 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.393, 0.919, -0.015),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied28",
+		Orientation = Vec3(0.404, -0.015, 0.000),
+		Position = Vec3(2062.444, -2290.287, 537.125),
+		Radius = 35,
+		SerialNum = 148,
+		Stance = "stand",
+		TagName = "allied28",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied29 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.125, 0.992, -0.028),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied29",
+		Orientation = Vec3(0.125, -0.028, 0.000),
+		Position = Vec3(1267.366, -2777.009, 520.125),
+		Radius = 35,
+		SerialNum = 150,
+		Stance = "prone",
+		TagName = "allied29",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied3 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.555, 0.832, 0.014),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied3",
+		Orientation = Vec3(-0.588, 0.014, -0.000),
+		Position = Vec3(-1748.932, -39.569, 145.125),
+		Radius = 35,
+		SerialNum = 52,
+		Stance = "crouch",
+		TagName = "allied3",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied30 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.424, 0.905, -0.028),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied30",
+		Orientation = Vec3(0.438, -0.028, 0.000),
+		Position = Vec3(1837.497, -2785.443, 520.125),
+		Radius = 35,
+		SerialNum = 152,
+		Stance = "stand",
+		TagName = "allied30",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied31 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.028, 1.000, 0.014),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied31",
+		Orientation = Vec3(0.028, 0.014, 0.000),
+		Position = Vec3(1345.370, -1747.632, 288.125),
+		Radius = 35,
+		SerialNum = 154,
+		Stance = "crouch",
+		TagName = "allied31",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied32 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.377, 0.925, -0.037),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied32",
+		Orientation = Vec3(0.387, -0.037, 0.000),
+		Position = Vec3(1702.998, -1227.920, 315.125),
+		Radius = 35,
+		SerialNum = 156,
+		Stance = "prone",
+		TagName = "allied32",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied33 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.513, 0.857, -0.043),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied33",
+		Orientation = Vec3(0.539, -0.043, 0.000),
+		Position = Vec3(1931.850, -813.484, 315.125),
+		Radius = 35,
+		SerialNum = 158,
+		Stance = "prone",
+		TagName = "allied33",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied34 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.498, 0.866, -0.033),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied34",
+		Orientation = Vec3(0.522, -0.033, 0.000),
+		Position = Vec3(1806.276, -864.540, 315.125),
+		Radius = 35,
+		SerialNum = 160,
+		Stance = "crouch",
+		TagName = "allied34",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied35 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.069, 0.998, 0.012),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied35",
+		Orientation = Vec3(-0.069, 0.012, -0.000),
+		Position = Vec3(-1308.333, -1696.545, 288.125),
+		Radius = 35,
+		SerialNum = 162,
+		Stance = "prone",
+		TagName = "allied35",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied36 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.368, 0.923, -0.110),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied36",
+		Orientation = Vec3(-0.379, -0.110, -0.000),
+		Position = Vec3(-1849.146, -1397.870, 873.145),
+		Radius = 35,
+		SerialNum = 164,
+		Stance = "crouch",
+		TagName = "allied36",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied37 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.500, 0.865, -0.023),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied37",
+		Orientation = Vec3(-0.524, -0.023, -0.000),
+		Position = Vec3(-2106.292, -1187.746, 537.125),
+		Radius = 35,
+		SerialNum = 166,
+		Stance = "stand",
+		TagName = "allied37",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied38 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.680, 0.729, -0.081),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied38",
+		Orientation = Vec3(-0.751, -0.081, -0.000),
+		Position = Vec3(-1906.376, 215.072, 544.125),
+		Radius = 35,
+		SerialNum = 168,
+		Stance = "crouch",
+		TagName = "allied38",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied39 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.328, 0.941, -0.085),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied39",
+		Orientation = Vec3(-0.336, -0.085, -0.000),
+		Position = Vec3(-1896.284, -475.146, 544.125),
+		Radius = 35,
+		SerialNum = 170,
+		Stance = "stand",
+		TagName = "allied39",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied4 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.582, 0.813, -0.003),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied4",
+		Orientation = Vec3(-0.622, -0.003, -0.000),
+		Position = Vec3(-1587.741, -555.891, 145.125),
+		Radius = 35,
+		SerialNum = 54,
+		Stance = "crouch",
+		TagName = "allied4",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied40 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.639, 0.765, -0.083),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied40",
+		Orientation = Vec3(-0.696, -0.083, -0.000),
+		Position = Vec3(-1942.019, -285.918, 544.125),
+		Radius = 35,
+		SerialNum = 172,
+		Stance = "stand",
+		TagName = "allied40",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied41 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.544, 0.838, -0.038),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied41",
+		Orientation = Vec3(-0.576, -0.038, -0.000),
+		Position = Vec3(-1607.980, 103.244, 305.125),
+		Radius = 35,
+		SerialNum = 174,
+		Stance = "prone",
+		TagName = "allied41",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied42 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.426, 0.903, -0.046),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied42",
+		Orientation = Vec3(-0.441, -0.046, -0.000),
+		Position = Vec3(-1596.194, -707.490, 364.682),
+		Radius = 35,
+		SerialNum = 176,
+		Stance = "prone",
+		TagName = "allied42",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied43 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.289, 0.951, -0.107),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied43",
+		Orientation = Vec3(-0.294, -0.107, -0.000),
+		Position = Vec3(-1648.414, -2736.798, 1080.125),
+		Radius = 35,
+		SerialNum = 204,
+		Stance = "crouch",
+		TagName = "allied43",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied44 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.175, 0.982, -0.075),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied44",
+		Orientation = Vec3(-0.177, -0.075, -0.000),
+		Position = Vec3(-1870.489, -2743.250, 1080.125),
+		Radius = 35,
+		SerialNum = 206,
+		Stance = "crouch",
+		TagName = "allied44",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied45 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.635, 0.772, -0.016),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied45",
+		Orientation = Vec3(-0.688, -0.016, -0.000),
+		Position = Vec3(-2062.432, -1881.131, 537.125),
+		Radius = 35,
+		SerialNum = 208,
+		Stance = "stand",
+		TagName = "allied45",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied46 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.333, 0.942, -0.037),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied46",
+		Orientation = Vec3(-0.340, -0.037, -0.000),
+		Position = Vec3(-1457.775, -2795.874, 517.125),
+		Radius = 35,
+		SerialNum = 210,
+		Stance = "stand",
+		TagName = "allied46",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied47 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.185, 0.982, -0.031),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied47",
+		Orientation = Vec3(-0.186, -0.031, -0.000),
+		Position = Vec3(-1587.461, -2702.125, 527.125),
+		Radius = 35,
+		SerialNum = 212,
+		Stance = "stand",
+		TagName = "allied47",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied48 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.312, 0.950, 0.024),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied48",
+		Orientation = Vec3(-0.317, 0.024, -0.000),
+		Position = Vec3(-1752.614, -2644.091, 517.125),
+		Radius = 35,
+		SerialNum = 214,
+		Stance = "stand",
+		TagName = "allied48",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied49 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.195, 0.977, -0.083),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied49",
+		Orientation = Vec3(0.197, -0.083, 0.000),
+		Position = Vec3(-448.460, -2876.902, 537.269),
+		Radius = 35,
+		SerialNum = 216,
+		Stance = "prone",
+		TagName = "allied49",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied5 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.474, 0.880, -0.005),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied5",
+		Orientation = Vec3(-0.494, -0.005, -0.000),
+		Position = Vec3(-1848.461, -1652.950, 145.125),
+		Radius = 35,
+		SerialNum = 56,
+		Stance = "prone",
+		TagName = "allied5",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied50 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.145, 0.988, -0.049),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied50",
+		Orientation = Vec3(-0.146, -0.049, -0.000),
+		Position = Vec3(469.390, -2898.146, 537.269),
+		Radius = 35,
+		SerialNum = 218,
+		Stance = "crouch",
+		TagName = "allied50",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied51 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.238, 0.970, -0.057),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied51",
+		Orientation = Vec3(-0.241, -0.057, -0.000),
+		Position = Vec3(228.968, -2916.851, 537.269),
+		Radius = 35,
+		SerialNum = 220,
+		Stance = "prone",
+		TagName = "allied51",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied52 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.265, 0.961, -0.084),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied52",
+		Orientation = Vec3(0.269, -0.084, 0.000),
+		Position = Vec3(-185.817, -2898.907, 537.269),
+		Radius = 35,
+		SerialNum = 222,
+		Stance = "crouch",
+		TagName = "allied52",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied53 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.261, 0.964, -0.041),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied53",
+		Orientation = Vec3(-0.264, -0.041, -0.000),
+		Position = Vec3(425.880, -2318.349, 379.270),
+		Radius = 35,
+		SerialNum = 224,
+		Stance = "prone",
+		TagName = "allied53",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied6 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.379, 0.925, 0.022),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied6",
+		Orientation = Vec3(-0.389, 0.022, -0.000),
+		Position = Vec3(-1625.172, -1428.497, 145.125),
+		Radius = 35,
+		SerialNum = 58,
+		Stance = "prone",
+		TagName = "allied6",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied7 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.121, 0.992, 0.034),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied7",
+		Orientation = Vec3(-0.121, 0.034, -0.000),
+		Position = Vec3(-1267.389, -1965.847, 145.125),
+		Radius = 35,
+		SerialNum = 60,
+		Stance = "prone",
+		TagName = "allied7",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied8 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.030, 0.999, 0.012),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied8",
+		Orientation = Vec3(-0.030, 0.012, -0.000),
+		Position = Vec3(-898.735, -1369.246, 145.125),
+		Radius = 35,
+		SerialNum = 62,
+		Stance = "crouch",
+		TagName = "allied8",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_allied9 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.049, 0.999, 0.021),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_allied9",
+		Orientation = Vec3(-0.049, 0.021, -0.000),
+		Position = Vec3(-1082.844, -2233.973, 145.125),
+		Radius = 35,
+		SerialNum = 64,
+		Stance = "prone",
+		TagName = "allied9",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis1 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.038, -0.999, 0.015),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis1",
+		Orientation = Vec3(-3.104, 0.015, -0.000),
+		Position = Vec3(-1077.623, 1822.105, 145.125),
+		Radius = 35,
+		SerialNum = 38,
+		Stance = "prone",
+		TagName = "axis1",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis10 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.284, -0.959, 0.007),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis10",
+		Orientation = Vec3(2.853, 0.007, -0.000),
+		Position = Vec3(1397.775, 638.410, 145.174),
+		Radius = 35,
+		SerialNum = 102,
+		Stance = "prone",
+		TagName = "axis10",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis11 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.267, -0.964, 0.014),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis11",
+		Orientation = Vec3(-2.871, 0.014, -0.000),
+		Position = Vec3(799.669, 441.290, 145.174),
+		Radius = 35,
+		SerialNum = 104,
+		Stance = "crouch",
+		TagName = "axis11",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis12 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.462, -0.887, 0.009),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis12",
+		Orientation = Vec3(2.661, 0.009, -0.000),
+		Position = Vec3(535.620, 399.947, 145.174),
+		Radius = 35,
+		SerialNum = 106,
+		Stance = "prone",
+		TagName = "axis12",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis13 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.202, -0.979, 0.019),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis13",
+		Orientation = Vec3(2.938, 0.019, -0.000),
+		Position = Vec3(276.554, 504.997, 145.174),
+		Radius = 35,
+		SerialNum = 108,
+		Stance = "crouch",
+		TagName = "axis13",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis14 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.008, -1.000, -0.007),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis14",
+		Orientation = Vec3(3.134, -0.007, -0.000),
+		Position = Vec3(-146.129, 541.152, 145.174),
+		Radius = 35,
+		SerialNum = 110,
+		Stance = "prone",
+		TagName = "axis14",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis15 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.321, -0.947, -0.001),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis15",
+		Orientation = Vec3(2.815, -0.001, -0.000),
+		Position = Vec3(-649.244, 308.546, 145.174),
+		Radius = 35,
+		SerialNum = 112,
+		Stance = "crouch",
+		TagName = "axis15",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis16 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.164, -0.986, -0.004),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis16",
+		Orientation = Vec3(-2.977, -0.004, -0.000),
+		Position = Vec3(-1638.555, 531.546, 145.174),
+		Radius = 35,
+		SerialNum = 114,
+		Stance = "stand",
+		TagName = "axis16",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis17 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.349, -0.937, 0.005),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis17",
+		Orientation = Vec3(-2.785, 0.005, -0.000),
+		Position = Vec3(-1750.235, 1021.955, 145.174),
+		Radius = 35,
+		SerialNum = 116,
+		Stance = "prone",
+		TagName = "axis17",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis18 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.375, -0.927, 0.006),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis18",
+		Orientation = Vec3(-2.757, 0.006, -0.000),
+		Position = Vec3(-1584.999, 1492.006, 145.174),
+		Radius = 35,
+		SerialNum = 118,
+		Stance = "stand",
+		TagName = "axis18",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis19 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.091, -0.996, 0.024),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis19",
+		Orientation = Vec3(-3.050, 0.024, -0.000),
+		Position = Vec3(-1333.477, 2282.927, 145.174),
+		Radius = 35,
+		SerialNum = 120,
+		Stance = "crouch",
+		TagName = "axis19",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis2 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.497, -0.868, 0.007),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis2",
+		Orientation = Vec3(-2.621, 0.007, -0.000),
+		Position = Vec3(-1529.889, 1201.723, 145.125),
+		Radius = 35,
+		SerialNum = 40,
+		Stance = "crouch",
+		TagName = "axis2",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis20 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.117, -0.993, 0.012),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis20",
+		Orientation = Vec3(-3.025, 0.012, -0.000),
+		Position = Vec3(-617.360, 1860.597, 145.174),
+		Radius = 35,
+		SerialNum = 122,
+		Stance = "crouch",
+		TagName = "axis20",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis21 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.017, -1.000, 0.007),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis21",
+		Orientation = Vec3(3.124, 0.007, -0.000),
+		Position = Vec3(-407.673, 2630.365, 145.174),
+		Radius = 35,
+		SerialNum = 124,
+		Stance = "stand",
+		TagName = "axis21",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis22 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.110, -0.994, 0.012),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis22",
+		Orientation = Vec3(3.031, 0.012, -0.000),
+		Position = Vec3(-152.865, 2580.976, 145.174),
+		Radius = 35,
+		SerialNum = 126,
+		Stance = "stand",
+		TagName = "axis22",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis23 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.208, -0.978, 0.005),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis23",
+		Orientation = Vec3(2.932, 0.005, -0.000),
+		Position = Vec3(334.052, 1596.426, 145.174),
+		Radius = 35,
+		SerialNum = 128,
+		Stance = "crouch",
+		TagName = "axis23",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis24 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.146, -0.989, -0.004),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis24",
+		Orientation = Vec3(-2.995, -0.004, -0.000),
+		Position = Vec3(674.327, 1499.540, 145.174),
+		Radius = 35,
+		SerialNum = 130,
+		Stance = "crouch",
+		TagName = "axis24",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis25 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.227, -0.974, 0.018),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis25",
+		Orientation = Vec3(2.913, 0.018, -0.000),
+		Position = Vec3(1548.854, 1735.018, 145.125),
+		Radius = 35,
+		SerialNum = 132,
+		Stance = "crouch",
+		TagName = "axis25",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis26 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.266, -0.964, 0.033),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis26",
+		Orientation = Vec3(2.873, 0.033, -0.000),
+		Position = Vec3(1851.074, 2241.743, 145.125),
+		Radius = 35,
+		SerialNum = 134,
+		Stance = "stand",
+		TagName = "axis26",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis27 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.143, -0.990, -0.005),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis27",
+		Orientation = Vec3(2.998, -0.005, -0.000),
+		Position = Vec3(1483.414, 2124.031, 145.125),
+		Radius = 35,
+		SerialNum = 136,
+		Stance = "prone",
+		TagName = "axis27",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis28 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.085, -0.996, -0.019),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis28",
+		Orientation = Vec3(3.056, -0.019, -0.000),
+		Position = Vec3(965.548, 1273.546, 366.708),
+		Radius = 35,
+		SerialNum = 138,
+		Stance = "stand",
+		TagName = "axis28",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis29 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.125, -0.992, -0.032),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis29",
+		Orientation = Vec3(3.016, -0.032, -0.000),
+		Position = Vec3(1146.023, 1262.245, 374.974),
+		Radius = 35,
+		SerialNum = 140,
+		Stance = "stand",
+		TagName = "axis29",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis3 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.106, -0.994, 0.010),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis3",
+		Orientation = Vec3(-3.035, 0.010, -0.000),
+		Position = Vec3(-1346.223, 1729.983, 145.125),
+		Radius = 35,
+		SerialNum = 42,
+		Stance = "prone",
+		TagName = "axis3",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis30 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.027, -0.999, -0.033),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis30",
+		Orientation = Vec3(3.114, -0.033, -0.000),
+		Position = Vec3(-318.117, 2722.730, 259.125),
+		Radius = 35,
+		SerialNum = 178,
+		Stance = "crouch",
+		TagName = "axis30",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis31 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.115, -0.993, -0.035),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis31",
+		Orientation = Vec3(-3.026, -0.035, -0.000),
+		Position = Vec3(-201.636, 2691.306, 259.125),
+		Radius = 35,
+		SerialNum = 180,
+		Stance = "prone",
+		TagName = "axis31",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis32 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.267, -0.962, -0.065),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis32",
+		Orientation = Vec3(-2.871, -0.065, -0.000),
+		Position = Vec3(353.881, 3165.422, 537.125),
+		Radius = 35,
+		SerialNum = 182,
+		Stance = "crouch",
+		TagName = "axis32",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis33 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.300, -0.953, -0.045),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis33",
+		Orientation = Vec3(2.837, -0.045, -0.000),
+		Position = Vec3(-41.115, 2837.677, 379.125),
+		Radius = 35,
+		SerialNum = 184,
+		Stance = "crouch",
+		TagName = "axis33",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis34 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.200, -0.978, -0.059),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis34",
+		Orientation = Vec3(2.939, -0.059, -0.000),
+		Position = Vec3(-293.060, 3183.931, 537.125),
+		Radius = 35,
+		SerialNum = 186,
+		Stance = "prone",
+		TagName = "axis34",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis35 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.112, -0.993, -0.038),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis35",
+		Orientation = Vec3(3.029, -0.038, -0.000),
+		Position = Vec3(-38.654, 3197.247, 537.125),
+		Radius = 35,
+		SerialNum = 188,
+		Stance = "crouch",
+		TagName = "axis35",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis36 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.409, -0.906, -0.111),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis36",
+		Orientation = Vec3(2.717, -0.111, -0.000),
+		Position = Vec3(1831.019, 1559.422, 874.864),
+		Radius = 35,
+		SerialNum = 190,
+		Stance = "stand",
+		TagName = "axis36",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis37 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.591, -0.805, -0.061),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis37",
+		Orientation = Vec3(2.509, -0.061, -0.000),
+		Position = Vec3(2063.285, 1230.464, 537.125),
+		Radius = 35,
+		SerialNum = 192,
+		Stance = "prone",
+		TagName = "axis37",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis38 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.030, -0.999, -0.044),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis38",
+		Orientation = Vec3(3.112, -0.044, -0.000),
+		Position = Vec3(-916.523, 1728.897, 373.034),
+		Radius = 35,
+		SerialNum = 194,
+		Stance = "stand",
+		TagName = "axis38",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis39 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.302, -0.950, -0.080),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis39",
+		Orientation = Vec3(-2.833, -0.081, -0.000),
+		Position = Vec3(-705.822, 1720.650, 379.066),
+		Radius = 35,
+		SerialNum = 196,
+		Stance = "stand",
+		TagName = "axis39",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis4 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.066, -0.998, -0.008),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis4",
+		Orientation = Vec3(3.075, -0.008, -0.000),
+		Position = Vec3(-87.416, 1912.052, 145.125),
+		Radius = 35,
+		SerialNum = 44,
+		Stance = "prone",
+		TagName = "axis4",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis40 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.201, -0.979, -0.015),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis40",
+		Orientation = Vec3(-2.939, -0.015, -0.000),
+		Position = Vec3(-1559.272, 1698.126, 288.125),
+		Radius = 35,
+		SerialNum = 198,
+		Stance = "stand",
+		TagName = "axis40",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis41 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.263, -0.963, -0.054),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis41",
+		Orientation = Vec3(-2.875, -0.054, -0.000),
+		Position = Vec3(-1584.047, 995.416, 364.644),
+		Radius = 35,
+		SerialNum = 200,
+		Stance = "prone",
+		TagName = "axis41",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis42 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.292, -0.955, -0.043),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis42",
+		Orientation = Vec3(-2.845, -0.043, -0.000),
+		Position = Vec3(-1619.899, 1119.497, 381.821),
+		Radius = 35,
+		SerialNum = 202,
+		Stance = "stand",
+		TagName = "axis42",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis5 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.189, -0.982, 0.002),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis5",
+		Orientation = Vec3(2.951, 0.002, -0.000),
+		Position = Vec3(1321.189, 1352.040, 145.125),
+		Radius = 35,
+		SerialNum = 46,
+		Stance = "crouch",
+		TagName = "axis5",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis6 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.040, -0.999, 0.015),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis6",
+		Orientation = Vec3(-3.102, 0.015, -0.000),
+		Position = Vec3(846.183, 1353.221, 145.125),
+		Radius = 35,
+		SerialNum = 48,
+		Stance = "stand",
+		TagName = "axis6",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis7 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.704, 0.710, 0.004),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis7",
+		Orientation = Vec3(0.781, 0.004, 0.000),
+		Position = Vec3(1526.260, 77.426, 145.125),
+		Radius = 35,
+		SerialNum = 76,
+		Stance = "prone",
+		TagName = "axis7",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis8 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(0.006, -1.000, -0.003),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis8",
+		Orientation = Vec3(-3.135, -0.003, -0.000),
+		Position = Vec3(1826.828, 599.251, 145.174),
+		Radius = 35,
+		SerialNum = 98,
+		Stance = "prone",
+		TagName = "axis8",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	SNIPE_axis9 = 
+	{
+		AimVectors = 
+		{
+			[0] = Vec3(-0.131, -0.991, 0.005),
+		},
+		CreateOnLoad = 1,
+		GoalType = "Snipe",
+		GroupName = "",
+		MaxCampTime = 50,
+		MinCampTime = 30,
+		MinRadius = 30,
+		Name = "SNIPE_axis9",
+		Orientation = Vec3(3.010, 0.005, -0.000),
+		Position = Vec3(1965.978, 1299.031, 145.174),
+		Radius = 35,
+		SerialNum = 100,
+		Stance = "prone",
+		TagName = "axis9",
+		TeamAvailability = 30,
+		Version = 1,
+		Weapons = 
+		{
+			[22] = 1,
+			[29] = 1,
+			[33] = 1,
+		},
+	},
+	Version = 1,
+};

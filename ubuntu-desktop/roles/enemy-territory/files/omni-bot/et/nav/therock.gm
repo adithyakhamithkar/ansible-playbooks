@@ -1,0 +1,1297 @@
+//==========================================================================================
+//
+//	therock.gm
+//
+//	Who             When			What
+//------------------------------------------------------------------------------------------
+//	MickyP		29 October 2010		Initial Script
+//
+//------------------------------------------------------------------------------------------
+//	Native12	6.11.2010		ReScript
+//			29.12.2010		Correction in spawn`s triggers
+//==========================================================================================
+//	therock.way
+//
+//	Who             When			What
+//------------------------------------------------------------------------------------------
+//	Native12	6.11.2010
+//
+//==========================================================================================
+//	therock_goals.gm
+//
+//	Who             When			What
+//------------------------------------------------------------------------------------------
+//	Native12	6.11.2010
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+
+	Breach_Wall_Dyno = 0,
+	Green_Mile_Dyno = 0,
+	Ladder_Dyno = 0,
+	Neutral_Command_Post_Dyno = 0,
+	sewerentrance_exploded = false,
+	Docs_taken = 0,
+	Breach_wall_destroyed = 0,
+	Door_opened = 0,
+	AlliedSpawn = 0,
+
+	Navigation =
+	{
+		//  	/bot waypoint_setproperty paththrough Navigation_PT:sewerentrance
+		sewerentrance =
+		{
+			gotowp = "sewer", // waypoint for the bot to go to before doing anything else
+			EvalFunc = function() // if this function returns false, navigation will not run
+			{
+				return !Map.sewerentrance_exploded;
+			},
+
+			navigate = function(_this)
+			{
+				if ( Map.sewerentrance_exploded )
+				{
+					yield();
+					return;
+				}
+
+				_this.AddWeaponRequest(Priority.High, WEAPON.KNIFE);
+				_this.AddAimRequest(Priority.High, "position", Vector3(0, 0, -5000));
+
+				while( !Map.sewerentrance_exploded )
+				{
+
+					_this.Bot.HoldButton(BTN.ATTACK1, 1);
+					_this.Bot.HoldButton(BTN.CROUCH, 1);
+					yield();
+				}
+
+				_this.ReleaseAimRequest();
+				_this.ReleaseWeaponRequest();
+				_this.Bot.ReleaseButton(BTN.ATTACK1, BTN.CROUCH);
+			},
+		},
+	},
+
+	Ladder_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Wp.SetWaypointFlag( "Ladder", "closed", false );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_BuildLadder" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_BuildLadder_1" );
+
+		Util.MapDebugPrint( "Ladder_Built" );
+	},
+
+	Neutral_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Neutral_Command_Post_Built" );
+	},
+
+	forwardspawn1_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.AlliedSpawn = 0;
+
+		Util.ChangeSpawn( TEAM.ALLIES, 2 );
+		Util.ChangeSpawn( TEAM.AXIS, 3 );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_forwardspawn_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_forwardspawn1_flag" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_forwardspawn1_flag" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_forwardspawn_.*" );
+
+		Util.MapDebugPrint( "forwardspawn1_flag_Axis_Captured" );
+	},
+
+	forwardspawn1_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.AlliedSpawn = 1;
+
+		Util.ChangeSpawn( TEAM.ALLIES, 3 );
+		Util.ChangeSpawn( TEAM.AXIS, 1 );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_forwardspawn_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_forwardspawn1_flag" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_forwardspawn1_flag" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_forwardspawn_.*" );
+
+		Util.MapDebugPrint( "forwardspawn1_flag_Allies_Captured" );
+	},
+
+	Spawn_taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( ETUtil.CountClass( TEAM.ALLIES, CLASS.COVERTOPS) < 2 )
+		{
+			ETUtil.ChangeClass( TEAM.ALLIES, CLASS.SOLDIER, CLASS.COVERTOPS, false, 1 );
+		}
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_forwardspawn_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_forwardspawn1_flag" );
+
+		if ( Map.Docs_taken == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_documents_.*" );
+		}
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_forwardspawn1_flag" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_forwardspawn_.*" );
+
+		Util.MapDebugPrint( "Spawn_taken" );
+	},
+
+	Breach_Wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Breach_Wall_Dyno = 0;
+		Map.Breach_wall_destroyed = 1;
+
+		DocStolenFrontGate = OnTriggerRegion(AABB(-967.500,-1251.499,444.000,-916.924,-850.000,518.000), Map.triggerDocFrontGate);
+		DocStolenBreachWall = OnTriggerRegion(AABB(-1533.217,-2087.177,444.250,-1376.323,-1777.536,518.250), Map.triggerDocBreachWall);
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Breach_Wall" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_allied_planted_wall_1" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_Beach" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_FlagBeach" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Breach_Wall.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "AIRSTRIKE_start" );
+
+		Util.MapDebugPrint( "Breach_Wall_Destroyed" );
+	},
+
+	Green_Mile_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Green_Mile_.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Green_Mile.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Ladder" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_GreenMile" );
+		sleep(0.5);
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Ladder" );
+		SetGoalPriority( "BUILD_Ladder", 0.9, TEAM.ALLIES, CLASS.ENGINEER );
+
+		Map.Green_Mile_Dyno = 0;
+
+		Util.MapDebugPrint( "Green_Mile_Destroyed" );
+	},
+
+	Ladder_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Wp.SetWaypointFlag( "Ladder", "closed", true );
+		Map.Ladder_Dyno = 0;
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_BuildLadder" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_BuildLadder_1" );
+
+		Util.MapDebugPrint( "Ladder_Destroyed" );
+	},
+
+	Neutral_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Neutral_Command_Post_Dyno = 0;
+
+		Util.MapDebugPrint( "Neutral_Command_Post_Destroyed" );
+	},
+
+	documenti_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Docs_taken = 1;
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_documents_.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_allied_documents_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SMOKEBOMB_documentssmoke" );
+
+		if ( Map.Breach_wall_destroyed == 1 or Map.Door_opened == 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_Boat" );
+		}
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_FlagBreachWall_.*" );
+		//SetAvailableMapGoals( TEAM.AXIS, true, "FLAG_.*" );
+		//SetAvailableMapGoals( TEAM.AXIS, true, "FLAGRETURN_.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_FlagBreachWall_.*" );
+		//SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_documenti_dropped" );
+		//SetAvailableMapGoals( TEAM.ALLIES, true, "FLAGRETURN_.*" );
+
+		if ( Map.Door_opened == 1 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_FlagMainGate_1" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_FlagMainGate_2" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_FlagMainGate_3" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_FlagMainGate_4" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_FlagMainGate_5" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_FlagMainGate_6" );
+		}
+
+		Util.MapDebugPrint( "documenti_Taken" );
+	},
+
+	triggerDocBreachWall =		//triger near the breach wall
+	{
+		Name = "TriggerDocBreachWall",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+				{
+					SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_FlagMainGate_.*" );
+					SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_FlagBreachWall_.*" );
+
+					SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_FlagMainGate_.*" );
+					SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_FlagBreachWall_.*" );
+
+					SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_FlagMole_.*" );
+					SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_FlagMole_5" );
+					SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_FlagMole_13" );
+
+					SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_FlagMole_.*" );
+
+					Util.ChangeSpawn( TEAM.ALLIES, 2 );
+
+					Util.MapDebugPrint("^mALLIES are going thru BreachWall with docs");
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+
+		},
+	},
+
+	triggerDocFrontGate =		//triger near the front gate
+	{
+		Name = "TriggerDocFrontGate",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+				{
+					SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_FlagMainGate_.*" );
+					SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_FlagBreachWall_.*" );
+
+					SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_FlagMainGate_.*" );
+					SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_FlagBreachWall_.*" );
+
+					SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_FlagMole_.*" );
+					SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_FlagMole_5" );
+					SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_FlagMole_13" );
+
+					SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_FlagMole_.*" );
+
+					Util.ChangeSpawn( TEAM.ALLIES, 2 );
+
+					Util.MapDebugPrint("^mALLIES are going thru MainGate with docs");
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+
+		},
+	},
+
+	documenti_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Docs_taken = 0;
+
+		if ( Map.AlliedSpawn == 1 )
+		{
+			Util.ChangeSpawn( TEAM.ALLIES, 3 );
+		}
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_FlagBreachWall_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_FlagMainGate_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_FlagMole_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "AIRSTRIKE_FlagMole_5" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "AIRSTRIKE_FlagMole_13" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_FlagBreachWall_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_FlagMainGate_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_FlagMole_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_Boat" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_documents_.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_allied_documents_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SMOKEBOMB_documentssmoke" );
+
+		Util.MapDebugPrint( "documenti_Returned" );
+	},
+
+	documenti_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "documenti_Secured" );
+	},
+
+	Door_Opening = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Door_opened = 1;
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_Door" );
+
+		Util.LimitToTeam(TEAM.AXIS, "SWITCH_Door");
+		SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_Door" );
+
+		if ( Map.Docs_taken == 1 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_FlagMainGate_1" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_FlagMainGate_2" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_FlagMainGate_3" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_FlagMainGate_4" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_FlagMainGate_5" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_FlagMainGate_6" );
+		}
+
+		Util.MapDebugPrint( "Door_Opening" );
+	},
+
+	Door_Closing = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Door_opened = 0;
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_Door" );
+
+		Util.LimitToTeam(TEAM.ALLIES, "SWITCH_Door");
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_Door" );
+
+		if ( Map.Docs_taken == 1 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_FlagMainGate_1" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_FlagMainGate_2" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_FlagMainGate_3" );
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_FlagMainGate_4" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_FlagMainGate_5" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_FlagMainGate_6" );
+		}
+
+		Util.MapDebugPrint( "Door_Closing" );
+	},
+
+	sewerentrance_destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.sewerentrance_exploded = true;
+
+		Util.MapDebugPrint( "sewerentrance_destroyed", true );
+	},
+
+	Axis_win = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_win" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// Register callback functions
+	OnTrigger( "Allied Team have built the ladder", Map.Ladder_Built );
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Neutral_Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Neutral_Command_Post_Built );
+	OnTrigger( "The Wall has been breached!", Map.Breach_Wall_Destroyed );
+	OnTrigger( "Side Entrance Breached", Map.Green_Mile_Destroyed );
+	OnTrigger( "Axis have destroyed the ladder", Map.Ladder_Destroyed );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Neutral_Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Neutral_Command_Post_Destroyed );
+	OnTrigger( "Allies have stolen the Supply Documents!", Map.documenti_Taken );
+	OnTrigger( "Supply Documents returned!", Map.documenti_Returned );
+	OnTrigger( "Allies team escaped with the Documents!", Map.documenti_Secured );
+	OnTrigger( "Axis capture the Forward Spawn!", Map.forwardspawn1_flag_Axis_Captured );
+	OnTrigger( "Allies Capture the Forward Spawn!", Map.forwardspawn1_flag_Allies_Captured );
+	OnTrigger( "Main Entrance Door Opening!", Map.Door_Opening );
+	OnTrigger( "Main Entrance Door Closing!", Map.Door_Closing );
+	OnTrigger( "GRENADE_sewerentrance Exploded.", Map.sewerentrance_destroyed );
+	OnTrigger( "Allied Team Take The Forward Spawn!", Map.Spawn_taken );
+	OnTrigger( "Timelimit hit.", Map.Axis_win );
+
+	if ( ETUtil.CountClass( TEAM.ALLIES, CLASS.COVERTOPS) < 2 )
+	{
+		ETUtil.ChangeClass( TEAM.ALLIES, CLASS.SOLDIER, CLASS.COVERTOPS, false, 1 );
+	}
+
+	//~Util.DisableGoal( ".*", true ); // all but routes
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "AIRSTRIKE_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SMOKEBOMB_documentssmoke" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_forwardspawn_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_documents_1" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_documents_2" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_documents_3" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_documents_4" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_start" );
+
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "AIRSTRIKE_.*" );
+
+	//SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Breach_Wall" );
+	//SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Green_Mile" );
+	//SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_forwardspawn1_flag" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_allied_planted_wall_1" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SMOKEBOMB_documentssmoke" );
+
+	SetGoalPriority( "PLANT_Breach_Wall", 0.95, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "CHECKPOINT_forwardspawn1_flag", 0.85, TEAM.ALLIES, 0 );
+	SetGoalPriority( "CHECKPOINT_forwardspawn1_flag", 0.65, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "BUILD_Ladder", 0.77, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "DEFEND_forwardspawn_.*", 0.83, TEAM.ALLIES, 0 );
+	SetGoalPriority( "DEFEND_allied_planted_wall_1*", 0.85, TEAM.ALLIES, 0 );
+	SetGoalPriority( "DEFEND_forwardspawn_.*", 0.55, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "SMOKEBOMB_documentssmoke", 0.88, TEAM.ALLIES, CLASS.COVERTOPS );
+	//SetGoalPriority( "DEFEND_FlagMainGate_.*", 0.82, TEAM.ALLIES, 0 );
+	//SetGoalPriority( "DEFEND_FlagBreachWall_.*", 0.82, TEAM.ALLIES, 0 );
+	//SetGoalPriority( "DEFEND_FlagMole_.*", 0.82, TEAM.ALLIES, 0 );
+	//SetGoalPriority( "FLAG_documenti_dropped", 1.02, TEAM.ALLIES, 0 );
+	//SetGoalPriority( "FLAGRETURN_documenti_dropped", 1.02, TEAM.ALLIES, 0 );
+	//SetGoalPriority( "ROUTE_.*", 1.0, TEAM.ALLIES, 0 );
+
+	SetGoalPriority( "BUILD_Neutral_Command_Post", 0.75, 0, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_Neutral_Command_Post", 0.45, 0, CLASS.ENGINEER );
+
+	SetGoalPriority( "PLANT_Ladder", 0.45, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "DEFEND_axis_documents_.*", 0.55, TEAM.AXIS, 0 );
+	//SetGoalPriority( "FLAG_documenti_dropped", 0.95, TEAM.AXIS, 0 );
+	//SetGoalPriority( "FLAGRETURN_documenti_dropped", 0.95, TEAM.AXIS, 0 );
+
+	Util.LimitToTeam(TEAM.ALLIES, "SWITCH_Door");
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_Door" );
+
+	Util.AddUseWp( "PLANT_Breach_Wall", "breachwall_1" );
+	Util.AddUseWp( "PLANT_Breach_Wall", "breachwall_2" );
+	Util.AddUseWp( "PLANT_Breach_Wall", "breachwall_3" );
+	Util.AddUseWp( "PLANT_Green_Mile_1", "green_mile" );
+	Util.AddUseWp( "PLANT_Green_Mile_1", "green_mile_1" );
+	Wp.SetWaypointFlag( "Ladder", "closed", true );
+
+	// Max users per goal
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "BUILD_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "SWITCH_Door" );
+	Util.SetMaxUsers( 1, "PLANT_Ladder" );
+	Util.SetMaxUsers( 3, "CHECKPOINT_.*" );
+	Util.SetMaxUsers( 3, "FLAG_.*" );
+	Util.SetMaxUsers( 2, "ATTACK_FlagMole_.*" );
+
+	// Camp times
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=60} );
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=180, MaxCampTime=240} );
+
+	WeaponTable.SetWeaponAvailability(CLASS.SOLDIER, { WEAPON.MP40, WEAPON.THOMPSON }, true);
+	WeaponTable.SetWeaponAvailability(CLASS.SOLDIER, WEAPON.PANZERFAUST, false);
+	WeaponTable.SetWeaponAvailability(CLASS.ENGINEER, { WEAPON.KAR98, WEAPON.CARBINE }, false);
+	
+	MapRoutes =
+	{
+		CHECKPOINT_forwardspawn1_flag =
+		{
+			ROUTE_AllyBeachSpawn =
+			{
+				ROUTE_SewerEntrance =
+				{
+					ROUTE_SewerEntranceExit =
+					{
+						ROUTE_Way_1 =
+						{
+							ROUTE_FrontDoor =
+							{
+
+							},
+							ROUTE_SideDoor =
+							{
+
+							},
+						},
+						ROUTE_Way_2 =
+						{
+							ROUTE_SideDoor =
+							{
+
+							},
+						},
+					},
+				},
+				ROUTE_Beach =
+				{
+					ROUTE_SideDoor =
+					{
+
+					},
+				},
+			},
+		},
+		FLAG_documenti =
+		{
+			ROUTE_AllyBeachSpawn =
+			{
+				ROUTE_SewerEntrance =
+				{
+					ROUTE_SewerEntranceExit =
+					{
+						ROUTE_Way3_1 =
+						{
+							ROUTE_Way3_2 =
+							{
+								ROUTE_Way3_3 =
+								{
+									ROUTE_Way3_4 =
+									{
+										ROUTE_Way3_5 =
+										{
+											ROUTE_Way3_6 =
+											{
+
+											},
+										},
+									},
+								},
+							},
+							ROUTE_Way4_1 =
+							{
+								ROUTE_Way3_3 =
+								{
+									ROUTE_Way3_4 =
+									{
+										ROUTE_Way3_5 =
+										{
+											ROUTE_Way3_6 =
+											{
+
+											},
+										},
+									},
+								},
+								ROUTE_Way4_2 =
+								{
+									ROUTE_Way4_3 =
+									{
+										ROUTE_Way4_4 =
+										{
+											ROUTE_Way3_6 =
+											{
+
+											},
+										},
+									},
+								},
+								ROUTE_Way5_1 =
+								{
+									ROUTE_Way5_2 =
+									{
+
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_AllySecondSpawn =
+			{
+				ROUTE_FrontDoor =
+				{
+					ROUTE_Way_1 =
+					{
+						ROUTE_Way3_1 =
+						{
+							ROUTE_Way3_2 =
+							{
+								ROUTE_Way3_3 =
+								{
+									ROUTE_Way3_4 =
+									{
+										ROUTE_Way3_5 =
+										{
+											ROUTE_Way3_6 =
+											{
+
+											},
+										},
+									},
+								},
+							},
+							ROUTE_Way4_1 =
+							{
+								ROUTE_Way3_3 =
+								{
+									ROUTE_Way3_4 =
+									{
+										ROUTE_Way3_5 =
+										{
+											ROUTE_Way3_6 =
+											{
+
+											},
+										},
+									},
+								},
+								ROUTE_Way4_2 =
+								{
+									ROUTE_Way4_3 =
+									{
+										ROUTE_Way4_4 =
+										{
+											ROUTE_Way3_6 =
+											{
+
+											},
+										},
+									},
+								},
+								ROUTE_Way5_1 =
+								{
+									ROUTE_Way5_2 =
+									{
+
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_SideDoor =
+				{
+					ROUTE_GreenMile =
+					{
+						ROUTE_Way6_1 =
+						{
+							ROUTE_Way6_2 =
+							{
+								ROUTE_Way6_3 =
+								{
+									ROUTE_Way3_4 =
+									{
+										ROUTE_Way3_5 =
+										{
+											ROUTE_Way3_6 =
+											{
+
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		SWITCH_Door =
+		{
+			ROUTE_AllySecondSpawn =
+			{
+				ROUTE_FrontDoor =
+				{
+					ROUTE_Way_1 =
+					{
+						ROUTE_Way3_1 =
+						{
+							ROUTE_Way4_1 =
+							{
+								ROUTE_Way5_1 =
+								{
+									ROUTE_BuildLadder =
+									{
+										ROUTE_BuildLadder_1 =
+										{
+
+										},
+									},
+								},
+								ROUTE_Way7_1 =
+								{
+									ROUTE_Way7_2 =
+									{
+										ROUTE_Way7_3 =
+										{
+											ROUTE_Way7_4 =
+											{
+												ROUTE_Way7_5 =
+												{
+													ROUTE_Way7_6 =
+													{
+														ROUTE_Way7_7 =
+														{
+
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		CAPPOINT_Boat =
+		{
+			ROUTE_FlagDocu =
+			{
+				ROUTE_FlagDocuWay_1 =
+				{
+					ROUTE_FlagDocuWay_2 =
+					{
+						Weight = 3,
+						ROUTE_FlagDocuWay_3 =
+						{
+							ROUTE_FlagDocuWay_4 =
+							{
+								ROUTE_Way5_2 =
+								{
+									ROUTE_BuildLadder =
+									{
+										ROUTE_BuildLadder_1 =
+										{
+											ROUTE_Way7_7 =
+											{
+												ROUTE_FrontGate_1 =
+												{
+													ROUTE_FrontStairs_1 =
+													{
+														ROUTE_Mole =
+														{
+
+														},
+													},
+												},
+											},
+										},
+									},
+									ROUTE_Way5_1 =
+									{
+										ROUTE_Way4_1 =
+										{
+											ROUTE_Way3_1 =
+											{
+												ROUTE_Way_1 =
+												{
+													Weight = 2,
+													ROUTE_FlagBeach =
+													{
+														ROUTE_Mole =
+														{
+
+														},
+													},
+													ROUTE_FlagBeach_1 =
+													{
+														ROUTE_FlagBeach_2 =
+														{
+															ROUTE_Mole =
+															{
+
+															},
+														},
+													},
+												},
+												ROUTE_Way_2 =
+												{
+													ROUTE_FlagBeach =
+													{
+														ROUTE_Mole =
+														{
+
+														},
+													},
+													ROUTE_FlagBeach_1 =
+													{
+														ROUTE_FlagBeach_2 =
+														{
+															ROUTE_Mole =
+															{
+
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+								ROUTE_Way3_6 =
+								{
+									Weight = 5,
+									ROUTE_Way3_5 =
+									{
+										ROUTE_Way3_4 =
+										{
+											ROUTE_Way6_3 =
+											{
+												ROUTE_Way6_2 =
+												{
+													ROUTE_Way6_1 =
+													{
+														ROUTE_GreenMile =
+														{
+															ROUTE_FlagBeach =
+															{
+																ROUTE_Mole =
+																{
+
+																},
+															},
+															ROUTE_FlagBeach_1 =
+															{
+																ROUTE_FlagBeach_2 =
+																{
+																	ROUTE_Mole =
+																	{
+
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+											ROUTE_Way3_3 =
+											{
+												Weight = 2,
+												ROUTE_Way3_2 =
+												{
+													ROUTE_Way3_1 =
+													{
+														ROUTE_Way_1 =
+														{
+															Weight = 2,
+															ROUTE_FlagBeach =
+															{
+																ROUTE_Mole =
+																{
+
+																},
+															},
+															ROUTE_FlagBeach_1 =
+															{
+																ROUTE_FlagBeach_2 =
+																{
+																	ROUTE_Mole =
+																	{
+
+																	},
+																},
+															},
+														},
+														ROUTE_Way_2 =
+														{
+															ROUTE_FlagBeach =
+															{
+																ROUTE_Mole =
+																{
+
+																},
+															},
+															ROUTE_FlagBeach_1 =
+															{
+																ROUTE_FlagBeach_2 =
+																{
+																	ROUTE_Mole =
+																	{
+
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+									ROUTE_Way4_4 =
+									{
+										ROUTE_Way4_3 =
+										{
+											ROUTE_Way4_2 =
+											{
+												ROUTE_Way4_1 =
+												{
+													ROUTE_Way3_1 =
+													{
+														ROUTE_Way_1 =
+														{
+															Weight = 2,
+															ROUTE_FlagBeach =
+															{
+																ROUTE_Mole =
+																{
+
+																},
+															},
+															ROUTE_FlagBeach_1 =
+															{
+																ROUTE_FlagBeach_2 =
+																{
+																	ROUTE_Mole =
+																	{
+
+																	},
+																},
+															},
+														},
+														ROUTE_Way_2 =
+														{
+															ROUTE_FlagBeach =
+															{
+																ROUTE_Mole =
+																{
+
+																},
+															},
+															ROUTE_FlagBeach_1 =
+															{
+																ROUTE_FlagBeach_2 =
+																{
+																	ROUTE_Mole =
+																	{
+
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					ROUTE_FlagDocuWay_12 =
+					{
+						ROUTE_Way5_2 =
+						{
+							ROUTE_BuildLadder =
+							{
+								ROUTE_BuildLadder_1 =
+								{
+									ROUTE_Way7_7 =
+									{
+										ROUTE_FrontGate_1 =
+										{
+											ROUTE_FrontStairs_1 =
+											{
+												ROUTE_Mole =
+												{
+
+												},
+											},
+										},
+									},
+								},
+							},
+							ROUTE_Way5_1 =
+							{
+								ROUTE_Way4_1 =
+								{
+									ROUTE_Way3_1 =
+									{
+										ROUTE_Way_1 =
+										{
+											Weight = 2,
+											ROUTE_FlagBeach =
+											{
+												ROUTE_Mole =
+												{
+
+												},
+											},
+											ROUTE_FlagBeach_1 =
+											{
+												ROUTE_FlagBeach_2 =
+												{
+													ROUTE_Mole =
+													{
+
+													},
+												},
+											},
+										},
+										ROUTE_Way_2 =
+										{
+											ROUTE_FlagBeach =
+											{
+												ROUTE_Mole =
+												{
+
+												},
+											},
+											ROUTE_FlagBeach_1 =
+											{
+												ROUTE_FlagBeach_2 =
+												{
+													ROUTE_Mole =
+													{
+
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						ROUTE_Way3_6 =
+						{
+							Weight = 5,
+							ROUTE_Way3_5 =
+							{
+								ROUTE_Way3_4 =
+								{
+									ROUTE_Way6_3 =
+									{
+										ROUTE_Way6_2 =
+										{
+											ROUTE_Way6_1 =
+											{
+												ROUTE_GreenMile =
+												{
+													ROUTE_FlagBeach =
+													{
+														ROUTE_Mole =
+														{
+
+														},
+													},
+													ROUTE_FlagBeach_1 =
+													{
+														ROUTE_FlagBeach_2 =
+														{
+															ROUTE_Mole =
+															{
+
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+									ROUTE_Way3_3 =
+									{
+										Weight = 2,
+										ROUTE_Way3_2 =
+										{
+											ROUTE_Way3_1 =
+											{
+												ROUTE_Way_1 =
+												{
+													Weight = 2,
+													ROUTE_FlagBeach =
+													{
+														ROUTE_Mole =
+														{
+
+														},
+													},
+													ROUTE_FlagBeach_1 =
+													{
+														ROUTE_FlagBeach_2 =
+														{
+															ROUTE_Mole =
+															{
+
+															},
+														},
+													},
+												},
+												ROUTE_Way_2 =
+												{
+													ROUTE_FlagBeach =
+													{
+														ROUTE_Mole =
+														{
+
+														},
+													},
+													ROUTE_FlagBeach_1 =
+													{
+														ROUTE_FlagBeach_2 =
+														{
+															ROUTE_Mole =
+															{
+
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+							ROUTE_Way4_4 =
+							{
+								ROUTE_Way4_3 =
+								{
+									ROUTE_Way4_2 =
+									{
+										ROUTE_Way4_1 =
+										{
+											ROUTE_Way3_1 =
+											{
+												ROUTE_Way_1 =
+												{
+													Weight = 2,
+													ROUTE_FlagBeach =
+													{
+														ROUTE_Mole =
+														{
+
+														},
+													},
+													ROUTE_FlagBeach_1 =
+													{
+														ROUTE_FlagBeach_2 =
+														{
+															ROUTE_Mole =
+															{
+
+															},
+														},
+													},
+												},
+												ROUTE_Way_2 =
+												{
+													ROUTE_FlagBeach =
+													{
+														ROUTE_Mole =
+														{
+
+														},
+													},
+													ROUTE_FlagBeach_1 =
+													{
+														ROUTE_FlagBeach_2 =
+														{
+															ROUTE_Mole =
+															{
+
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	};
+
+	MapRoutes.ATTACK_allied_documents_1 = MapRoutes.FLAG_documenti;
+	MapRoutes.ATTACK_allied_documents_2 = MapRoutes.FLAG_documenti;
+	MapRoutes.ATTACK_allied_documents_3 = MapRoutes.FLAG_documenti;
+
+	Util.Routes(MapRoutes);
+
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_Beach" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_GreenMile" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_BuildLadder" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_BuildLadder_1" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_FlagBeach" );
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	// Uncomment for shootable breakables
+	bot.TargetBreakableDist = 90.0;
+	// Only set MaxViewDistance on maps with limited sight (e.g. fog)
+	//~bot.MaxViewDistance = 2400;
+
+	if ( ETUtil.CountClass( TEAM.ALLIES, CLASS.COVERTOPS) < 2 )
+	{
+		ETUtil.ChangeClass( TEAM.ALLIES, CLASS.SOLDIER, CLASS.COVERTOPS, false, 1 );
+	}
+
+	if ( Map.AlliedSpawn == 0 )
+	{
+		Util.ChangeSpawn( TEAM.ALLIES, 2 );
+		Util.ChangeSpawn( TEAM.AXIS, 3 );
+	}
+	else
+	{
+		Util.ChangeSpawn( TEAM.ALLIES, 3 );
+		Util.ChangeSpawn( TEAM.AXIS, 1 );
+	}
+};

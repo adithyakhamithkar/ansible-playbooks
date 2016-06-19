@@ -1,0 +1,25 @@
+//waypoint & scripting by C3R14L.K1L4
+//version of 17:42 12-11-2008
+
+// NOV 26 2010
+// cs: removed class change scripting from OnBotJoin
+
+global Map =
+{
+	DeathMatch = 1,
+};
+global OnMapLoad = function()
+{
+	if ( TestMapOn ) {
+		Util.AutoTestMap();
+	}
+
+	SetMapGoalProperties( "SNIPE.*", {MinCampTime=3, MaxCampTime=6, Stance = "crouch"});
+	SetMapGoalProperties( "ATTACK.*", {MinCampTime=3, MaxCampTime=6, Stance = "crouch"});
+	SetMapGoalProperties( "DEFEND.*", {MinCampTime=20, MaxCampTime=40, Stance = "crouch"});
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 100;
+};

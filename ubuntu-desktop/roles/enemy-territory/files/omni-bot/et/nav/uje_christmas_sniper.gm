@@ -1,0 +1,193 @@
+// Map script by [UJE]Niek for map UJE_christmas_sniper_b5
+global Map =
+{
+	SnipeMap = true,
+
+	Navigation =
+	{
+		wait =
+		{
+			navigate = function(_this)
+			{
+				timeout = 6;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele1 =
+		{
+			navigate = function(_this)
+			{
+				timeout = 6;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele2 =
+		{
+			navigate = function(_this)
+			{
+				timeout = 6;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele3 =
+		{
+			navigate = function(_this)
+			{
+				Util.BotSay(_this.Bot,"Snowyyy");
+				timeout = 6;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele4 =
+		{
+			navigate = function(_this)
+			{
+				Util.BotSay(_this.Bot,"Let's sing a song :)");
+				timeout = 6;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele5 =
+		{
+			navigate = function(_this)
+			{
+				timeout = 6;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele6 =
+		{
+			navigate = function(_this)
+			{
+				timeout = 9;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele7 =
+		{
+			navigate = function(_this)
+			{
+				timeout = 4;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele8 =
+		{
+			navigate = function(_this)
+			{
+				timeout = 9;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele9 =
+		{
+			navigate = function(_this)
+			{
+				timeout = 4;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele10 =
+		{
+			navigate = function(_this)
+			{
+				timeout = 9;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele11 =
+		{
+			navigate = function(_this)
+			{
+				timeout = 9;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele12 =
+		{
+			navigate = function(_this)
+			{
+				timeout = 4;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele13 =
+		{
+			navigate = function(_this)
+			{
+				timeout = 4;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+	},
+};
+
+global OnMapLoad = function()
+{
+	SetMapGoalProperties("SNIPE.*", { MinCampTime=30, MaxCamptime=50,});
+
+	Util.LimitToTeam( TEAM.AXIS, "SNIPE_axis.*" );
+	Util.LimitToTeam( TEAM.ALLIES, "SNIPE_allied.*" );
+	Util.MapDebugPrint( "OnMapLoad", true );
+};
+
+global OnBotJoin = function( bot )
+{
+	Util.ChangeToSniperWeapons(bot);
+};

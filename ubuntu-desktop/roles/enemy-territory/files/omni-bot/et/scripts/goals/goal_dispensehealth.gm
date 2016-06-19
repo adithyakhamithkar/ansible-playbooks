@@ -1,0 +1,64 @@
+// This script contains functionality to allow medic bots to dispense health at spawn
+
+// These parameters are required
+this.Name = "DispenseHealth";	// The name of the goal.
+this.Parent = "LowLevel";		// The name of the parent. This setting determines where in the state tree the goal will reside in.
+
+// possible options
+this.LimitToClass(CLASS.MEDIC);
+this.LimitToNoTarget();
+this.LimitToNoEntityFlag(ENTFLAG.MOUNTED);
+
+this.Initialize = function()
+{
+	Util.ScriptDebugPrint(this.Name, "initialized");
+};
+
+// This callback is called when the bot spawns into the game. You may run this function as a thread,
+// however it should be kept in mind that the goal tracks the thread, and will kill the thread and re-run
+// this callback upon each spawn. If you need a persistant thread, you should spawn one yourself.
+// NOTE: This function won't be called if the bot doesn't match the allowed classes set up above.
+this.OnSpawn = function()
+{
+	if ( Map && Map.DispenseHealthTime )
+		{ sleep(Map.DispenseHealthTime); }
+	else
+		{ sleep(3); }
+
+	this.Priority = 1;
+};
+
+this.Enter = function()
+{
+	// This goal is going to be manipulating the bots aim, so create an aim request to do so.
+	this.AddAimRequest(Priority.High, "movedirection");
+	this.PacksThrown = 0;
+};
+
+this.Update = function()
+{
+	if ( Map && Map.DontDispenseHealth )
+		{ this.Finished(); }
+
+	this.AddWeaponRequest(Priority.High, WEAPON.MEDKIT);
+	this.BlockForWeaponChange(WEAPON.MEDKIT);
+
+	while(this.PacksThrown < 2 &&
+		this.Bot.GetCurrentWeapon() == WEAPON.MEDKIT &&
+		this.Bot.IsWeaponCharged(WEAPON.MEDKIT))
+	{
+		this.Bot.HoldButton(BTN.ATTACK1, 0.25);
+		sleep(0.5);
+	}
+
+	// This is needed in order to finish the goal. Without it, the goal will continue to have Update called on it.
+	this.Finished();
+};
+
+this.Events[EVENT.WEAPON_FIRE] = function(weaponId, projectileEntity)
+{
+	if(weaponId == WEAPON.MEDKIT)
+	{
+		this.PacksThrown += 1;
+	}
+};

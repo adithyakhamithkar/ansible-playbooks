@@ -1,0 +1,136 @@
+this.Name = "DEFUSE";
+this.Parent = "HighLevel";
+this.SkipGetPriorityWhenActive = false; // cs: let them abort for higher priority defuses
+
+//this.DebugAbortForHigherPriority = true;
+
+this.LimitToWeapon(WEAPON.PLIERS);
+
+this.Initialize = function()
+{
+	this.Bot.QueryGoalsTable = table();
+	this.TargetEntity = null;
+};
+
+this.GetPriority = function()
+{
+	// cs: GetPriority seems to be called the same frame as this.Finished(). need to wait a frame
+	//     so all the vars can be cleaned up. this.MapGoal is not null for example if goal is
+	//     aborted for a higher priority one; which causes evaluation for the new goal to happen twice
+	yield();
+
+	while(1)
+	{
+		count = this.QueryGoals(this.Bot.QueryGoalsTable, 0x1899efc7 /* DEFUSE */);
+		if ( count > 0 )
+		{
+			// always go for the closest one of the highest priority
+			dist = null;
+			evalDist = null;
+			closestGoal = null;
+			priority = 0;
+
+			foreach ( id and goal in this.Bot.QueryGoalsTable )
+			{
+				evalDist = this.Bot.DistanceTo(goal.GetEntity());
+				evalPriority = goal.GetGoalPriority(this.Bot);
+
+				if ( !dist || (evalDist < dist && evalPriority >= priority) ) {
+					dist = evalDist;
+					closestGoal = goal;
+					priority = evalPriority;
+				}
+			}
+
+			if ( closestGoal && closestGoal != this.MapGoal ) {
+				// cs: this is temp. goals of the same type are not natively being aborted even for higher priority goals
+				//     but i think that they should be.
+				if ( this.MapGoal ) {
+					//if (this.DebugAbortForHigherPriority) { this.Bot.Say("aborting defuse for higher priority"); }
+					tableClear(this.Bot.QueryGoalsTable);
+					this.Finished();
+				}
+
+				this.MapGoal = closestGoal;
+				this.Priority = priority;
+			}
+		}
+
+		tableClear(this.Bot.QueryGoalsTable);
+
+		sleep(2);
+	}
+};
+
+this.Enter = function()
+{
+	if(!this.MarkInProgress(this.MapGoal)) {
+		this.BlackboardDelay(5, this.MapGoal);
+		this.Finished();
+	}
+
+	this.TargetEntity = this.MapGoal.GetEntity();
+};
+
+this.Update = function()
+{
+	if ( this.RouteTo(this.MapGoal, 64.f) == EVENT.PATH_SUCCESS )
+	{
+		if(!this.MarkInUse(this.MapGoal)) {
+			this.BlackboardDelay(5, this.MapGoal);
+			this.Finished();
+		}
+
+		this.Bot.StuckPos = null;
+
+		pos = GetEntPosition(this.TargetEntity);
+		this.AddAimRequest(Priority.High, "position", pos);
+		this.AddWeaponRequest(Priority.High, WEAPON.PLIERS );
+		this.BlockForWeaponChange( WEAPON.PLIERS );
+
+		eyePos = this.Bot.GetEyePosition();
+		prone = false;
+		if ( eyePos.z - pos.z > 48 ) {
+			if (this.MapGoal.Stance == "prone"){
+				prone = true;
+				this.Bot.HoldButton(BTN.PRONE, 99);
+			}else{
+				this.Bot.HoldButton(BTN.CROUCH, 99);
+			}
+		}
+
+		while( this.TargetEntity && EntityIsValid(this.TargetEntity) ) { // goal deleted with entity
+			pos = GetEntPosition(this.TargetEntity);
+			if ( pos ) {
+				z = 12;
+				if(prone){ z = 0; }
+				this.AddAimRequest(Priority.High, "position", pos + Vector3(0,0,z));
+
+				if ( this.Bot.DistanceTo(pos) > 64 && !prone) {
+					this.Bot.MoveTowards(pos);
+				}
+
+				this.Bot.HoldButton(BTN.ATTACK1, 0.25);
+			}
+			else {
+				this.Finished();
+			}
+			yield();
+		}
+	}
+	else
+	{
+		this.BlackboardDelay(10, this.MapGoal);
+		Util.ScriptDebugPrint(this.MapGoal.GetName(), "pathfailed");
+	}
+
+	this.Finished();
+};
+
+this.Exit = function()
+{
+	this.TargetEntity = null;
+	this.Bot.ReleaseButton(BTN.CROUCH);
+	this.Bot.ReleaseButton(BTN.PRONE);
+	this.MapGoal = null;
+};

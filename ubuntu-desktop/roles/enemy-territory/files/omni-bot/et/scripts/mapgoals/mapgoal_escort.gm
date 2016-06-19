@@ -1,0 +1,287 @@
+this.GoalType = "ESCORT";
+this.Version = 1;
+this.DefaultPriority = 0.79;
+this.MinRadius = 30;
+this.RolePriorityBonus = 0.1;
+this.MaxUsers_InUse(2);
+this.MaxUsers_InProgress(2);
+
+//////////////////////////////////////////////////////////////////////////
+CheckForGoal = function(var)
+{
+	if(Util.GoalExists(var))
+	{
+		return true;
+	}
+
+	return "Goal not found";
+};
+
+this.Schema = Schema();
+this.Schema.Offsets = Validate.TableOf("vector3").Default({});
+this.Schema.Buttons = Validate.TableOf("int").CheckValue(BTN).Default({});
+
+// cs: can't do this when it relies on interface goals that are deferred.
+//this.Schema.Vehicle = Validate.Type("string").Default(" ").CheckCallback(CheckForGoal);
+
+//////////////////////////////////////////////////////////////////////////
+
+this.InitNewGoal = function()
+{
+	this.Schema.Check(this);
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.UpgradeVersion = function(Props)
+{
+	// version 0 is string,string key/values from the old waypoint format
+	if(Props.Version==0)
+	{
+		// Version 1 Schema, upgrade from waypoint format
+		this.Schema.Check(Props);
+		Props.Version = 1;
+	}
+	else if(Props.Version == this.Version)
+	{
+		this.Schema.Check(Props);
+		this.Vehicle = Props.Vehicle;
+		this.Offsets = Props.Offsets;
+		this.Buttons = Props.Buttons;
+
+		if(!this.Schema.Check(this))
+		{
+			this.DisableGoal(true);
+		}
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.Render = function(editMode)
+{
+	offset2 = Vector3(0,0,64);
+
+	if ( this.Vehicle )
+	{
+		vehGoal = GetGoal(this.Vehicle);
+		if ( vehGoal )
+		{
+			vehEnt = vehGoal.GetEntity();
+		}
+	}
+
+	while(this.RenderGoal == true)
+	{
+		goalName = this.GetName();
+		goalBasePos = this.GetPosition();
+		goalPos = goalBasePos + offset2;
+
+		if(this.ExtraDebugText==null)
+		{
+			this.ExtraDebugText = "";
+
+			if(this.Buttons)
+			{
+				foreach(id and btn in this.Buttons)
+				{
+					if(this.ExtraDebugText != "")
+					{
+						this.ExtraDebugText += ",";
+					}
+					else
+					{
+						this.ExtraDebugText += "Button: ";
+					}
+					this.ExtraDebugText += Util.ButtonName(btn);
+				}
+
+				if(this.ExtraDebugText != "")
+				{
+					this.ExtraDebugText += "\n";
+				}
+			}
+
+			if (this.Vehicle) {
+				this.ExtraDebugText += format("Vehicle: %s",this.Vehicle);
+			}
+		}
+
+		this.RenderDefault();
+
+		if(this.IsDisabled())
+		{
+			DrawLine(goalPos,goalBasePos,COLOR.RED,2);
+		}
+		else
+		{
+			DrawLine(goalPos,goalBasePos,COLOR.GREEN,2);
+		}
+
+		if ( this.Vehicle && this.Offsets )
+		{
+			if ( !vehGoal || !vehEnt )
+			{
+				vehGoal = GetGoal(this.Vehicle);
+				if ( vehGoal )
+				{
+					vehEnt = vehGoal.GetEntity();
+				}
+			}
+
+			if ( vehEnt && EntityIsValid(vehEnt) )
+			{
+				foreach ( id and offset in this.Offsets )
+				{
+					// if it's excluded, draw it red
+					if ( this.ExcludeIndexes && typeId(Util.GetTableKey(this.ExcludeIndexes, id)) != 0 ) {
+						clr = COLOR.RED;
+					}
+					else if ( this.StartIndex == id && typeId(this.StartIndex) != 0 ) {
+						clr = COLOR.GREEN;
+					}
+					else {
+						clr = COLOR.BLUE;
+					}
+
+					escortPos = GetEntityWorldSpace( vehEnt, offset );
+					//escortPos = GroundPoint(escortPos);
+					DrawLine(escortPos,escortPos+offset2,clr,2);
+					DrawText3d(escortPos+offset2,goalName + " offset " + ToString(id),COLOR.WHITE,2,textDrawRadius);
+				}
+			}
+		}
+
+		sleep(2);
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.SaveToTable = function(SaveTable)
+{
+	// save the goal specific properties
+	SaveTable.Vehicle = this.Vehicle;
+	SaveTable.Offsets = this.Offsets;
+	SaveTable.Buttons = this.Buttons;
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.Help = function()
+{
+	print(this.GoalType,"goal, version",this.Version);
+	print("Requires:");
+	print("		vehicle - The goal name of the vehicle to escort");
+	print("		offset - Position(s) the bot should escort from");
+	print("Optional:");
+	print("		button - button the bot should press while escorting, jump while in water for example");
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.SetProperty = function(property, value)
+{
+	switch(property)
+	{
+		case "vehicle":
+		{
+			if ( value.Find("MOVER") != -1 && GetGoal(value) )
+			{
+				this.Vehicle = value;
+			}
+			else
+			{
+				print(this.GoalType, ": wrong type or goal not found, expecting mover" );
+			}
+		}
+		case "offset":
+		{
+			if ( value == "clearall" || value == "clear" )
+			{
+				tableClear(this.Offsets);
+			}
+			else
+			{
+				bGood = false;
+				i = ToInt(value);
+				if (typeId(i) == 1)
+				{
+					if(this.Vehicle)
+					{
+						g = GetGoal(this.Vehicle);
+						if (g)
+						{
+							bGood = true;
+							pPos = GetEntPosition(GetLocalEntity());
+							offset = GetEntityLocalSpace(g.GetEntity(), pPos);
+
+							// make em add sequentially
+							n = tableCount(this.Offsets);
+							if ( i < 0 || i > n )
+							{
+								i = n;
+							}
+
+							this.Offsets[ i ] = offset;
+							print("Offest",i,"set to",offset);
+						}
+					}
+				}
+				else
+				{
+					print(this.GoalType, ": Invalid offset index, expecting int");
+				}
+
+				if (!bGood)
+				{
+					print(this.GoalType, ": Vehicle must be set first");
+				}
+			}
+		}
+		case "button":
+		{
+			if ( value == "clear" )
+			{
+				tableClear(this.Buttons);
+			}
+			else
+			{
+				button = Util.ButtonNameToId(value);
+				if ( button != -1 )
+				{
+					n = tableCount(this.Buttons);
+					this.Buttons[ n ] = button;
+					print("button set to " + value);
+				}
+				else
+				{
+					print(this.GoalType, ": Invalid Button Name" );
+					print( "Valid Button Names: ");
+					foreach ( name and Id in BTN )
+					{
+						print(name);
+					}
+				}
+			}
+		}
+		default:
+		{
+			print(this.GoalType, ": Invalid property:", property);
+		}
+	}
+
+	// null the debug text so it will be rebuilt
+	this.ExtraDebugText = null;
+};
+
+//////////////////////////////////////////////////////////////////////////
+global CreateGui = function(object, guidef)
+{
+};
+//////////////////////////////////////////////////////////////////////////
+this.HudDisplay = function(window)
+{
+	this.CreateGuiFromSchema(this.Schema);
+};
+

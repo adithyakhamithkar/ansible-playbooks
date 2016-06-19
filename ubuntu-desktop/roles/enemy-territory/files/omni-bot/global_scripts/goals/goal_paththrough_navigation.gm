@@ -1,0 +1,69 @@
+// This script is a generic paththrough goal that allows map scripts to define specific behaviors
+
+// These parameters are required
+this.Name = "Navigation_PT";		// The name of the goal.
+this.Parent = "LowLevel";		// PathThrough states must be low level or they will not be used.
+
+this.Initialize = function()
+{
+	if(!Map) {
+		global Map = table();
+	}
+
+	if(!Map.Navigation) {
+		Map.Navigation = table();
+	}
+
+	this.wpinfo = null;
+};
+
+this.OnPathThrough = function(data)
+{
+	navigation = Map.Navigation[data];
+	if(navigation)
+	{
+		if ( navigation.EvalFunc && navigation.EvalFunc(this) == false ) {
+			return false;
+		}
+
+		this.CurrentNavigation = data;
+		return true;
+	}
+	else
+	{
+		print("OnPathThrough no navigation table", data);
+	}
+
+	this.CurrentNavigation = null;
+	return false;  // script will not activate
+};
+
+this.Enter = function()
+{
+	this.navigation = Map.Navigation[this.CurrentNavigation];
+
+	if( this.navigation.gotowp ) {
+		this.wpinfo = Util.WpNameInfo(this.navigation.gotowp);
+	}
+};
+
+this.Exit = function()
+{
+	this.navigation = null;
+};
+
+this.Update = function()
+{
+	if ( this.wpinfo ) {
+		if ( this.Goto(this.wpinfo.position) == EVENT.PATH_FAILED ) {
+			yield();
+			this.Finished();
+		}
+	}
+	if ( this.navigation.navigate )
+		{ this.navigation.navigate(this); }
+
+    // Finish the state.
+	this.Finished();
+};
+

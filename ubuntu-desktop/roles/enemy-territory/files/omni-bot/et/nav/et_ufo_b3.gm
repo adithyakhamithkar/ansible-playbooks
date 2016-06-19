@@ -1,0 +1,592 @@
+global Map =
+{
+	Quiet = true,
+	FocusPrimary = false,
+
+	Build_allied_compost_built = "BUILD_Command_Post",
+	Build_axis_compost_built = "BUILD_Command_Post",
+	Destroy_allied_compost_built = "PLANT_Command_Post",
+	FLAG_UFO_Documents = "FLAG_allied_obj3",
+	Cappoint_transmitter = "CAPPOINT_transmitter",
+	Plant_allied_obj1 = "PLANT_Main_Gate",
+	Plant_allied_obj1a = "PLANT_South_Gate",
+	Mount_sentry_MG = "MOUNTMG42_sentry_MG",
+	Repair_sentry_MG = "REPAIRMG42_sentry_MG",
+	Snipe_phase1_blue_snipe1 = "SNIPE_phase1_blue_snipe1",
+	Snipe_phase1_red_snipe1 = "SNIPE_phase1_red_snipe1",
+	
+	//initially disabled so they airstrike faster
+	DispenseAmmoDisable = true,
+	DontDispenseAmmo  = true,
+	DispenseAmmoTime = 3,
+	MainStatus = true,
+	SouthStatus = true,
+	DocStatus = true,
+
+	Navigation =
+	{
+		window =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.PressButton(BTN.JUMP);
+				sleep(0.25);
+				_this.Bot.HoldButton(BTN.SPRINT, 3);
+				_this.Bot.HoldButton(BTN.CROUCH, 1);
+				sleep(3);
+			},
+		},	
+		boxes =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.PressButton(BTN.JUMP);
+				sleep(0.25);			
+			},
+		},		
+		rail =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.PressButton(BTN.JUMP);
+				sleep(0.25);					
+			},
+		},			
+	},
+	
+	axis_compost_built_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "axis_compost_built_Built" );
+	},	
+	
+	allied_compost_built_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "AIRSTRIKE.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_phase1.south.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_phase1.main.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_phase1.d.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_phase1.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Mount_sentry_MG );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Repair_sentry_MG );
+                SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_rSpawnkill.*" );
+
+		if ( Map.DocStatus )
+		{
+		  SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_ufo.*" );
+		  SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_docs.*" );  
+		}
+		SetAvailableMapGoals( TEAM.AXIS, true, "CAMP_rPanzRoof.*" );
+	},
+	
+	allied_compost_built_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+                SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_rSpawnkill.*" );
+                SetAvailableMapGoals( TEAM.AXIS, false, "CAMP_rPanzRoof.*" );
+                
+		Util.MapDebugPrint( "allied_compost_built_Destroyed" );
+	},
+
+	allied_compost_built_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Command_Post.*" );
+
+		Util.MapDebugPrint( "allied_compost_built_Planted" );
+	},
+
+	allied_obj1a_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.SouthStatus = false;
+
+                SetAvailableMapGoals( TEAM.ALLIES, false, "AIRSTRIKE.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.FLAG_UFO_Documents );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_doc_attack.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_phase1.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_phase1_blue.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_phase1_red.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Mount_sentry_MG );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Repair_sentry_MG );		
+
+		if ( Map.MainStatus && Map.DocStatus )
+		{ 
+		    SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_phase1.south.*" );
+		}
+
+		if ( !Map.DocStatus )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_trans.*" );
+		}
+		
+                if ( !Map.MainStatus )
+                {
+                      SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_allied_compost_built );
+                      SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_axis_compost_built ); 
+                      SetAvailableMapGoals( TEAM.ALLIES, true, Map.Destroy_allied_compost_built );                     
+                }		
+
+		if ( !Map.MainStatus && Map.DocStatus )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_ufo.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_docs.*" ); 
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_phase1.south.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_phase1.main.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_phase1.d.*" ); 
+		}
+	},
+
+	allied_obj1_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.MainStatus = false;
+		
+		Map.DontDispenseAmmo = false;
+		Util.EnableGoal("ROUTE_main_gate_defense");
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "AIRSTRIKE.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.FLAG_UFO_Documents );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_doc_attack.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_phase1.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_phase1_blue.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_phase1_red.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Mount_sentry_MG );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Repair_sentry_MG );
+                SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_bInitial.*" );
+		
+		if ( Map.SouthStatus && Map.DocStatus )
+		{ 
+		    SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_phase1.main.*" );
+		}
+        
+		if ( !Map.DocStatus )
+		{
+		    SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_trans.*" );
+		}    
+		
+                if ( !Map.SouthStatus )
+                {
+                      SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_allied_compost_built );
+                      SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_axis_compost_built ); 
+                      SetAvailableMapGoals( TEAM.ALLIES, true, Map.Destroy_allied_compost_built ); 
+                }		
+
+		if ( !Map.SouthStatus && Map.DocStatus )
+		{
+		    SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_ufo.*" );
+		    SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_docs.*" ); 
+		    SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_phase1.south.*" );
+		    SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_phase1.main.*" );
+		    SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_phase1.d.*" );                          
+		}
+	},
+
+	main_planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Util.DisableGoal("DEFUSE_Main_Gate.*");
+	},
+
+	main_defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+	},
+
+	south_planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Util.DisableGoal("DEFUSE_South_Gate.*");
+	},
+
+	south_defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+	},
+
+	The_UFO_Documents_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.DocStatus = false;
+		Map.DontDispenseAmmo = true;
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_trans.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_flex_trans.*" );
+                
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_ufo.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_docs.*" );
+        
+		//two humans can boost over fence
+		if ( !Map.SouthStatus || !Map.MainStatus )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_trans.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_phase1_blue.*" );
+		}
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_doc_attack.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_phase1.south.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_phase1.main.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_phase1.d.*" ); 
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.sentry_MG );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.FLAG_UFO_Documents );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAMP_bPanzSpawn1" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CAMP_rPanzRoof.*" );
+                
+                SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_rTrans.*" );           
+	},
+
+	docs_returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+            Map.DocStatus = true;
+                
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_trans.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_flex_trans.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_trans.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_ufo.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_docs.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_doc_attack.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.FLAG_UFO_Documents );
+			                
+            
+		if ( Map.SouthStatus && Map.MainStatus )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_phase1_blue.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_phase1_red.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_phase1.south.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_phase1.main.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_doc_attack.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_phase1.d.*" ); 
+			SetAvailableMapGoals( TEAM.AXIS, true, Map.sentry_MG );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_ufo.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_docs.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, Map.sentry_MG );
+			SetAvailableMapGoals( TEAM.ALLIES, false, Map.FLAG_UFO_Documents );            
+		}
+        	
+		if ( !Map.MainStatus )
+				{ Map.DontDispenseAmmo = false; }
+	
+		//clear the AS goals
+		SetAvailableMapGoals( TEAM.AXIS, false, "AIRSTRIKE.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAMP_bPanzSpawn.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CAMP_rPanzRoof.*" );
+	},
+	
+	transmitter_Captured = function ( trigger )
+	{
+		if ( TestMap )
+			{ return; }	
+	},
+
+	two_minute = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		//time is low, so start focusing on main obj
+		Map.FocusPrimary = true;
+
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.FLAG_UFO_Documents );
+	},
+
+	//thirty_second = function( trigger )
+	//{
+	//	
+	//},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ ETUtil.AutoTestMap(); }
+
+	OnTrigger( "axis_hq_compost_constructed", Map.axis_compost_built_Built );
+	OnTrigger( "allies_hq_compost_constructed", Map.allied_compost_built_Built );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.allied_compost_built_Destroyed );
+	OnTrigger( "Planted at the Command Post.", Map.allied_compost_built_Planted );
+	OnTrigger( "The Main Gate Destroyed.", Map.allied_obj1_Destroyed );
+	OnTrigger( "The South Gate Destroyed.", Map.allied_obj1a_Destroyed );
+	OnTrigger( "Allies have stolen The UFO Documents!", Map.The_UFO_Documents_Taken );
+	OnTrigger( "Flag returned allied_obj3!", Map.docs_returned );
+	OnTrigger( "Allies Transmitted the UFO Documents!", Map.transmitter_Captured );
+	OnTrigger( "Planted at The Main Gate.", Map.main_planted );
+	OnTrigger( "Defused at The Main Gate.", Map.main_defused );
+	OnTrigger( "Planted at The South Gate.", Map.south_planted );
+	OnTrigger( "Defused at The South Gate.", Map.south_defused );
+	OnTrigger( "two minute warning.", Map.two_minute );
+	//OnTrigger( "thirty second warning.", Map.thirty_second );
+
+	Util.SetMaxUsersInProgress( 8, Map.FLAG_UFO_Documents );
+	Util.SetMaxUsers( 1, "ATTACK.*" );
+	Util.SetMaxUsers( 1, "DEFEND.*" );
+        Util.SetMaxUsers( 1, "CAMP.*" );
+	Util.SetMaxUsers( 1, "MOUNT.*" );
+	Util.SetMaxUsers( 1, "REPAIR.*" );
+	
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=999, MaxCampTime=999});
+	SetMapGoalProperties( "CAMP_.*", {MinCampTime=45, MaxCampTime=90});
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=15, MaxCampTime=30});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=30, MaxCampTime=45});
+	SetMapGoalProperties( "MOUNT.*", {MinCampTime=30, MaxCampTime=45});
+	ETUtil.SetPrimaryGoals(1.0);
+	SetGoalPriority( "DEFEND_phase1.south.*", 0.6);
+	SetGoalPriority( "DEFEND_phase1.main.*", 0.6);
+	SetGoalPriority( "DEFEND_docs.*", 0.6);
+	SetGoalPriority( "DEFEND_trans.*", 0.6);
+        SetGoalPriority( "ARTILLERY_S.*", 1.0);
+        
+	ETUtil.LimitToClass( "PLANT_Command_Post", TEAM.ALLIES, CLASS.COVERTOPS);
+	ETUtil.LimitToClass( "PLANT_Command_Post", TEAM.AXIS, CLASS.COVERTOPS);        
+
+	Util.DisableGoal(".*", true);
+	Util.DisableGoal("ROUTE_main_gate_defense");
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_allied_obj1 );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_allied_obj1a );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Cappoint_transmitter );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_phase1_blue.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_phase1.*" );
+        SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_bInitial.*" );
+        SetAvailableMapGoals( TEAM.ALLIES, true, "AIRSTRIKE_bFence.*" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Mount_sentry_MG  );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Repair_sentry_MG  );
+	SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_phase1_red.*" );	
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_phase1.d.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_axis_compost_built );
+        SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_rFence.*" );
+		
+	MapRoutes =
+	{
+		PLANT_South_Gate = 
+		{
+			ROUTE_AlliesSpawn = { ROUTE_south_route = {}, },
+		},
+		PLANT_Main_Gate = 
+		{
+			ROUTE_AlliesSpawn = 
+			{ 
+				ROUTE_hill_route = {},
+				ROUTE_north_route = {}, 
+			},
+		},	
+		FLAG_allied_obj3 =
+		{
+			ROUTE_AlliesSpawn = 
+			{
+				ROUTE_hill_route =
+				{
+					ROUTE_main_gate = 
+					{
+						ROUTE_trans_route =
+						{
+							ROUTE_spawn_stairs =
+							{
+								  ROUTE_spawn_route = {},
+								  ROUTE_upper_ufo =
+								  {
+									Weight = 2,
+									ROUTE_upper_west = {},
+									ROUTE_upper_east = {},
+								  },
+							},
+						},
+						
+						ROUTE_north_alley =
+						{
+							ROUTE_garage =
+							{
+								ROUTE_duct =
+								{
+									ROUTE_roof = {},
+									ROUTE_duct_exit = {},                                                                       
+								},
+								
+								ROUTE_stairs = { Weight = 4, },
+							},
+						},
+					},    
+				},
+				ROUTE_south_route =
+				{
+					ROUTE_south_gate =
+					{
+						ROUTE_nw_corner = 
+						{
+							ROUTE_garage =
+							{
+								ROUTE_duct =
+								{
+									ROUTE_roof = {},
+									ROUTE_duct_exit = {},                                                                       
+								},
+								
+								ROUTE_stairs = { Weight = 4, },
+							},
+						},
+						ROUTE_mid_alley =
+						{
+							ROUTE_garage =
+							{
+								ROUTE_duct =
+								{
+									ROUTE_roof = {},
+									ROUTE_duct_exit = {},                                                                       
+								},
+								
+								ROUTE_stairs = { Weight = 4, },
+							},                                                        
+						},
+					},  
+				},      
+			}, 
+			ROUTE_CPSpawn =
+			{
+				ROUTE_nw_corner = 
+				{
+					ROUTE_garage =
+					{
+						ROUTE_duct =
+						{
+							ROUTE_roof = {},
+							ROUTE_duct_exit = {},                                                                       
+						},
+						
+						ROUTE_stairs = { Weight = 4, },
+					},
+				},
+				ROUTE_mid_alley =
+				{
+					ROUTE_garage =
+					{
+						ROUTE_duct =
+						{
+							ROUTE_roof = {},
+							ROUTE_duct_exit = {},                                                                       
+						},
+						
+						ROUTE_stairs = { Weight = 4, },
+					},                                                        
+				},
+				ROUTE_main_gate = 
+				{
+					Weight = 2,
+					ROUTE_trans_route =
+					{
+						ROUTE_spawn_stairs =
+						{
+							ROUTE_spawn_route = {},
+							ROUTE_upper_ufo =
+							{
+								Weight = 2,
+								ROUTE_upper_west = {},
+								ROUTE_upper_east = {},
+							},
+						},
+					},                                                               
+				},
+			},     
+		},
+		CAPPOINT_transmitter =
+		{
+			ROUTE_DocSteal =
+			{
+				ROUTE_nw_corner = 
+				{
+					ROUTE_main_gate = 
+					{
+						ROUTE_trans_stairs = {},
+						ROUTE_trans_ladder = {},      
+					},
+				},
+
+				ROUTE_trans_ladder = {},
+				ROUTE_north_alley =
+				{
+					ROUTE_trans_stairs = {},    
+				},                                 
+				
+				ROUTE_duct =
+				{
+					Weight = 2,
+					ROUTE_trans_ladder = {},
+					ROUTE_north_alley =
+					{
+							ROUTE_trans_stairs = {},
+							
+					},     
+				},
+			},
+		},
+		
+		MOUNTMG42_sentry_MG =
+		{
+			ROUTE_AxisSpawn = { ROUTE_main_gate_defense = {}, }  
+		},
+	};
+        
+	MapRoutes.FLAG_allied_obj3.CPSpawn2 = MapRoutes.FLAG_allied_obj3.CPSpawn;
+	MapRoutes.ATTACK_doc_attack1 = MapRoutes.FLAG_allied_obj3;
+	MapRoutes.ATTACK_doc_attack2 = MapRoutes.FLAG_allied_obj3;
+	MapRoutes.ATTACK_doc_attack3 = MapRoutes.FLAG_allied_obj3;
+	MapRoutes.ATTACK_doc_attack4 = MapRoutes.FLAG_allied_obj3;
+	MapRoutes.ATTACK_doc_attack5 = MapRoutes.FLAG_allied_obj3;
+	MapRoutes.ATTACK_doc_attack6 = MapRoutes.FLAG_allied_obj3;
+	MapRoutes.ATTACK_doc_attack7 = MapRoutes.FLAG_allied_obj3;
+	MapRoutes.DEFEND_phase1_main_d1 = MapRoutes.MOUNTMG42_sentry_MG;
+	MapRoutes.DEFEND_phase1_main_d2 = MapRoutes.MOUNTMG42_sentry_MG;
+	MapRoutes.DEFEND_phase1_main_d3 = MapRoutes.MOUNTMG42_sentry_MG;
+	MapRoutes.DEFEND_phase1_d1 = MapRoutes.MOUNTMG42_sentry_MG;
+	MapRoutes.DEFEND_phase1_d2 = MapRoutes.MOUNTMG42_sentry_MG;
+	MapRoutes.DEFEND_phase1_d5 = MapRoutes.MOUNTMG42_sentry_MG;	
+	
+	Util.Routes(MapRoutes);		
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 150.0;
+	
+	team = bot.GetTeam();
+	class = bot.GetClass();
+  	
+	if ( class == CLASS.COVERTOPS )
+	{	
+        	if ( team == TEAM.ALLIES )
+        	       { bot.ChangePrimaryWeapon( WEAPON.GARAND ); }
+        	else if ( team == TEAM.AXIS )
+        	       { bot.ChangePrimaryWeapon( WEAPON.K43 ); }
+	}	
+
+	//default spawn
+	bot.ChangeSpawnPoint( 0 );
+};
+
+
+
+

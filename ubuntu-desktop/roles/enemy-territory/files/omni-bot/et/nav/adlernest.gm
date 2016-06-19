@@ -1,0 +1,404 @@
+//======================================================================================================
+//
+//	adlernest.gm
+//
+//	Who			When		What
+//------------------------------------------------------------------------------------------------------
+//	jaskot			02/03/09	Converted old script to new format
+//	blindman		02/19/10	updated switches to new goal
+//	.MaNgO			06-Nov-2010	Made Paththrough for the Axis Door based on palota's PT
+//======================================================================================================
+//
+
+global Map =
+{
+	NavDoor = function(_this)
+	{
+		wpinfo = _this.navigation.wpinfo;
+		if(wpinfo==null)
+		{
+			wpinfo = Util.WpNameInfo(_this.CurrentNavigation);
+			_this.navigation.wpinfo = wpinfo;
+		}
+		pos = wpinfo.position;
+		vec = wpinfo.facing.Normalize();
+		pos1 = pos - vec * 60;
+		pos1 = Vector3(pos1.x, pos1.y, pos.z);
+		pos2 = pos + vec * 140;
+		pos2 = Vector3(pos2.x, pos2.y, pos.z);
+
+		for(i=0; i<4; i+=1)
+		{
+			if(_this.Goto(pos) == EVENT.PATH_FAILED )
+			{
+				return;
+			}
+			_this.AddAimRequest(Priority.High, "facing", wpinfo.facing);
+			tr = TraceLine(pos, pos2, null, TRACE.SOLID, 0, true);
+			if(tr.fraction == 1)
+			{
+				_this.Bot.MoveTowards(pos2);
+				sleep(0.8);
+				break;
+			}
+			sleep(0.1);
+			_this.Bot.PressButton(BTN.USE);
+			_this.Bot.MoveTowards(pos1);
+			//wait while door opens
+			sleep(1);
+		}
+	},
+
+	Navigation =
+	{
+		axis_door =
+		{
+			navigate = function(_this) { Map.NavDoor(_this); },
+
+		},
+	},
+
+	Ammo_Cabinet_hutammocab = "AMMOCAB_hutammocab",
+	Health_Cabinet_huthpcab = "HEALTHCAB_huthpcab",
+	Build_allied_radio_built = "BUILD_Allied_CP",
+	Destroy_allied_radio_built = "PLANT_Allied_CP",
+	Destroy_doorcontrols = "PLANT_Door_controls",
+	Mount_77 = "MOUNTMG42_77",
+	Repair_77 = "REPAIRMG42_77",
+	Flag_documents = "FLAG_documents",
+	Cappoint_399 = "CAPPOINT_399",
+
+	//Status' for conditionals
+	BlastDoorStatus = 0, //closed
+	DocStatus = 0, //home
+
+        DontDispenseAmmo = true,
+
+	allied_radio_built_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "allied_radio_built_Built" );
+	},
+
+	doorcontrols_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.DocStatus == 1 && Map.BlastDoorStatus == 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_blast.*" );
+		}
+
+		//shift the action
+		if ( Map.DocStatus == 0 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Doc_Defense_.*" );
+		}
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_allied_radio_built );
+                SetAvailableMapGoals( TEAM.AXIS, true, Map.Destroy_allied_radio_built );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Flag_documents );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Controls_Defense_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Controls_Attack_.*" );
+                SetAvailableMapGoals( TEAM.AXIS, false, "AIRSTRIKE_rControls.*" );
+		//SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_77" );
+
+                Server.MinClassCount[TEAM.AXIS][CLASS.ENGINEER] = 0;
+                Server.MinClassCount[TEAM.AXIS][CLASS.COVERTOPS] = 1;
+
+                Map.DontDispenseAmmo = false;
+
+		Util.MapDebugPrint( "doorcontrols_Destroyed" );
+	},
+
+	allied_radio_built_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "allied_radio_built_Destroyed" );
+	},
+
+	Documents_Stolen = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.DocStatus = 1;
+
+		//shift the action
+		if ( Map.BlastDoorStatus == 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_blast.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_blast.*" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_blast.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_blast.*" );
+		}
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Deliver_Defense_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Deliver_Attack_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Doc_Attack_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Doc_Defense_.*" );
+                SetAvailableMapGoals( TEAM.AXIS, false, Map.Destroy_allied_radio_built );
+
+		Util.MapDebugPrint( "Documents_Stolen" );
+	},
+
+	Documents_Returned = function ( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.DocStatus = 0;
+
+		//shift back to docs
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Doc_Defense_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Doc_Attack_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Deliver_Defense_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Deliver_Attack_.*" );
+                SetAvailableMapGoals( TEAM.AXIS, true, Map.Destroy_allied_radio_built );
+
+		Util.MapDebugPrint( "Documents_Returned" );
+	},
+
+	Documents_Transmitted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Documents_Transmitted" );
+	},
+
+	Blast_Doors_Open = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.BlastDoorStatus = 1;
+
+		if ( Map.DocStatus == 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_blast.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_blast.*" );
+		}
+
+		Util.MapDebugPrint( "Blast_Doors_Open", true );
+	},
+
+	Blast_Doors_Closed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.BlastDoorStatus = 0;
+
+		if ( Map.DocStatus == 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_blast.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_blast.*" );
+		}
+
+		Util.MapDebugPrint( "Blast_Doors_Closed", true );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.allied_radio_built_Built );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.allied_radio_built_Destroyed );
+	OnTrigger( "The Doors are opening!!", Map.doorcontrols_Destroyed );
+	OnTrigger( "Allies have stolen the documents!", Map.Documents_Stolen );
+	//OnTrigger( "Axis have returned the documents!", Map.Documents_Returned );
+	OnTrigger( "Flag returned documents!", Map.Documents_Returned );
+	OnTrigger( "Allied team has transmitted the documents!", Map.Documents_Transmitted );
+	OnTrigger( "Main blast door opening!", Map.Blast_Doors_Open );
+	OnTrigger( "Main blast door closing!", Map.Blast_Doors_Closed );
+
+        Util.DisableGoal(".*", true); // all but routes
+        Util.EnableGoal("CAPPOINT.*");
+	Util.EnableGoal("HEALTHCAB_.*");
+	Util.EnableGoal("AMMOCAB_.*");
+
+        ETUtil.SetPrimaryGoals(1.0);
+	ETUtil.LimitToClass( "PLANT_Allied_CP", TEAM.AXIS, CLASS.COVERTOPS);
+
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "CAMP.*" );
+	Util.SetMaxUsers( 1, "ATTACK.*" );
+	Util.SetMaxUsers( 1, "DEFEND.*" );
+	Util.SetMaxUsers( 1, "AIRSTRIKE.*" );
+	Util.SetMaxUsers( 1, "SWITCH_.*" );
+
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=15, MaxCampTime=30});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=15, MaxCampTime=30});
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Controls_Attack_.*" );
+        SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Door_controls" );
+	//SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42_77" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Controls_Defense_.*" );
+        SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_rControls.*" );
+
+	MapRoutes =
+	{
+		PLANT_Door_controls =
+		{
+			ROUTE_AllySpawn =
+			{
+				ROUTE_allyspawnright =
+				{
+					ROUTE_hatch = { Weight = 2, },
+				},
+				ROUTE_allyspawnleft =
+				{
+					ROUTE_midhill = {},
+					ROUTE_sidehill = {},
+				},
+			},
+		},
+		ATTACK_Controls_Attack_1 =
+		{
+			ROUTE_AllySpawn =
+			{
+				ROUTE_allyspawnright =
+				{
+					ROUTE_hatch = {},
+				},
+				ROUTE_allyspawnleft =
+				{
+					ROUTE_midhill = {},
+					ROUTE_sidehill = {},
+				},
+			},
+		},
+		DEFEND_Doc_Defense_1 =
+		{
+			ROUTE_AxisSpawn =
+			{
+				ROUTE_window =
+				{
+					Weight = 2,
+					ROUTE_docroom = {},
+				},
+				ROUTE_neardoor = { Weight = 2, },
+				ROUTE_fardoor = {},
+			},
+		},
+		CAPPOINT_399 =
+		{
+			ROUTE_docgrab =
+			{
+				ROUTE_docrunspawn =
+				{
+					ROUTE_blastdoor = {},
+				},
+				ROUTE_docruncp = {},
+			},
+		},
+		FLAG_documents =
+		{
+			ROUTE_CpSpawn =
+			{
+				ROUTE_bridge = { Weight = 2, },
+				ROUTE_door =
+				{
+					ROUTE_southstairs = {},
+					ROUTE_northstairs = {},
+				},
+			},
+			ROUTE_AllySpawn =
+			{
+				ROUTE_door =
+				{
+					Weight = 3,
+					ROUTE_bridge = {},
+					ROUTE_southstairs = {},
+					ROUTE_northstairs = {},
+				},
+				ROUTE_sidehill =
+				{
+					ROUTE_spawnroute =
+					{
+						ROUTE_window = {},
+					},
+				},
+			},
+		},
+		ATTACK_Deliver_Attack_1 =
+		{
+			ROUTE_CpSpawn =
+			{
+				ROUTE_docrunspawn = {},
+				ROUTE_door =
+				{
+					ROUTE_breach = {},
+				},
+			},
+			ROUTE_AllySpawn =
+			{
+				ROUTE_breach = {},
+				ROUTE_blastdoor = {},
+			},
+		},
+	};
+
+	//copy some routes
+	MapRoutes.ATTACK_Controls_Attack_2 = MapRoutes.ATTACK_Controls_Attack_1;
+	MapRoutes.ATTACK_Controls_Attack_3 = MapRoutes.ATTACK_Controls_Attack_1;
+	MapRoutes.ATTACK_Controls_Attack_4 = MapRoutes.ATTACK_Controls_Attack_1;
+	MapRoutes.ATTACK_Controls_Attack_5 = MapRoutes.ATTACK_Controls_Attack_1;
+	MapRoutes.ATTACK_Controls_Attack_6 = MapRoutes.ATTACK_Controls_Attack_1;
+	MapRoutes.ATTACK_Controls_Attack_7 = MapRoutes.ATTACK_Controls_Attack_1;
+	MapRoutes.DEFEND_Doc_Defense_2 = MapRoutes.DEFEND_Doc_Defense_1;
+	MapRoutes.DEFEND_Doc_Defense_3 = MapRoutes.DEFEND_Doc_Defense_1;
+	MapRoutes.DEFEND_Doc_Defense_4 = MapRoutes.DEFEND_Doc_Defense_1;
+	MapRoutes.DEFEND_Doc_Defense_5 = MapRoutes.DEFEND_Doc_Defense_1;
+	MapRoutes.DEFEND_Doc_Defense_6 = MapRoutes.DEFEND_Doc_Defense_1;
+	MapRoutes.DEFEND_Doc_Defense_7 = MapRoutes.DEFEND_Doc_Defense_1;
+	MapRoutes.ATTACK_Doc_Attack_1 = MapRoutes.FLAG_documents;
+	MapRoutes.ATTACK_Doc_Attack_2 = MapRoutes.FLAG_documents;
+	MapRoutes.ATTACK_Doc_Attack_3 = MapRoutes.FLAG_documents;
+	MapRoutes.ATTACK_Doc_Attack_4 = MapRoutes.FLAG_documents;
+	MapRoutes.ATTACK_Doc_Attack_5 = MapRoutes.FLAG_documents;
+	MapRoutes.ATTACK_Deliver_Attack_2 = MapRoutes.ATTACK_Deliver_Attack_1;
+	MapRoutes.ATTACK_Deliver_Attack_3 = MapRoutes.ATTACK_Deliver_Attack_1;
+	MapRoutes.ATTACK_Deliver_Attack_4 = MapRoutes.ATTACK_Deliver_Attack_1;
+	MapRoutes.ATTACK_Deliver_Attack_5 = MapRoutes.ATTACK_Deliver_Attack_1;
+	MapRoutes.ATTACK_Deliver_Attack_6 = MapRoutes.ATTACK_Deliver_Attack_1;
+	MapRoutes.ATTACK_Deliver_Attack_7 = MapRoutes.ATTACK_Deliver_Attack_1;
+
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 150.0;
+};
+
+/*
+Attack / Defend Goal Naming conventions (Groups)
+
+Controls
+DEFEND_Controls_Defense_#
+ATTACK_Controls_Attack_#
+
+Documents
+DEFEND_Doc_Defense_#
+ATTACK_Doc_Attack_#
+
+Deliver
+DEFEND_Deliver_Defense_#
+ATTACK_Deliver_Attack_#
+
+*/

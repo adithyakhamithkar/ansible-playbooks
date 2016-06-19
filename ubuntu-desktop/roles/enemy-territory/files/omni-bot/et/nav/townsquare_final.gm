@@ -1,0 +1,382 @@
+//Took C3R14L.K1L4's waypoints for townsquare_beta2 and edited them for townsquare_final.
+//The script is completely new.
+//Script done by :)BOK(: Naerling.
+global Map =
+{
+	Talk = true,
+
+	Ammo_Cabinet_south_ammocabinet = "AMMOCAB_south_ammocabinet",
+	Health_Cabinet_south_healthcabinet = "HEALTHCAB_south_healthcabinet",
+	Flag_allied_gold = "FLAG_allied_gold",
+	Cappoint_ALLIES_CAPPOINT = "CAPPOINT_ALLIES_CAPPOINT",
+	Build_Command_Post = "BUILD_Command_Post",
+	Build_Construction_MG = "BUILD_Construction_MG",
+	Plant_Command_Post = "PLANT_Command_Post",
+	Plant_Construction_MG = "PLANT_Construction_MG",
+	Plant_Palace_Door = "PLANT_Palace_Door",
+	Plant_Trap_Door = "PLANT_Trap_Door",
+	Mount_Construction_MG = "MOUNTMG42_Construction_MG",
+	Repair_Construction_MG = "REPAIRMG42_Construction_MG",
+
+	Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Built" );
+	},
+
+	Construction_MG_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Construction_MG_Built" );
+	},
+
+	Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Destroyed" );
+	},
+
+	Construction_MG_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Construction_MG_Destroyed" );
+	},
+
+	Trap_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//Allied goals
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Flag_allied_gold );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Cappoint_ALLIES_CAPPOINT );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_a_church_.*" );
+
+		//Axis goals
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_gold_1" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_gold_2" );
+
+		Util.MapDebugPrint( "Trap_Door_Destroyed" );
+	},
+
+	allied_gold_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//Allied goals
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_a_truck_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mount_Construction_MG );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_a_gold_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_a_palacedoors_.*" );
+
+		//Axis goals
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_truck_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_d_palacedoors_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_d_gold_.*" );
+
+		Util.MapDebugPrint( "allied_gold_Taken" );
+	},
+
+	allied_gold_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//Allied goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_a_truck_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Mount_Construction_MG );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_a_gold_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_a_palacedoors_.*" );
+
+		//Axis goals
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_d_truck_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_palacedoors_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_gold_.*" );
+
+		Util.MapDebugPrint( "allied_gold_Taken" );
+	},
+
+	ALLIES_CAPPOINT_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "ALLIES_CAPPOINT_Captured" );
+	},
+
+	Palace_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_NearCabinetsBack" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_NearChurchBack" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_Stairsback" );
+
+		//Allied goals
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Flag_allied_gold );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Cappoint_ALLIES_CAPPOINT );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_a_gold_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Mount_Construction_MG );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_a_church_.*" );
+
+		//Axis goals
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_gold_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_d_church_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_d_mg_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_d_doorpath_.*" );
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.ExecCommand("vsay_team FTAttack");
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.SayVoice(VOICE.REINFORCE_OFF);
+					}
+				}
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.DEFEND_OBJECTIVE);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTFallBack");
+					}
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "Palace_Door_Destroyed" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	//Some goal offsets
+	Util.SetGoalOffset( 0, 30, -30, "PLANT_Palace_Door" );
+	Util.SetGoalOffset( 0, 0, 20, "PLANT_Trap_Door" );
+	Util.SetGoalOffset( 0, 35, -20, "BUILD_Construction_MG" );
+
+	OnTrigger( "Allies have blown open the Palace Door!", Map.Palace_Door_Destroyed );
+	OnTrigger( "The Allies have stolen the Axis gold", Map.allied_gold_Taken );
+	OnTrigger( "Gold returned! Protect the gold", Map.allied_gold_Returned );
+	OnTrigger( "The Allies have secured the Axis gold", Map.ALLIES_CAPPOINT_Captured );
+	OnTrigger( "Allies have blown open the Trap Door!", Map.Trap_Door_Destroyed );
+
+	//Disable Goals
+	Util.DisableGoal( ".*", true ); //All but routes
+
+	//Allied goals
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Palace_Door );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Trap_Door );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Command_Post );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Command_Post );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Construction_MG );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mount_Construction_MG );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Repair_Construction_MG );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_a_palacedoors_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_a_church_.*" );
+
+	//Axis goals
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Construction_MG );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Command_Post );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Command_Post );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_palacedoors_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_church_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_doorpath_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_d_mg_.*" );
+
+	//Some goal properties
+	Util.SetMaxUsersInProgress( 3, "FLAG.*" );
+	Util.SetMaxUsersInProgress( 2, "BUILD.*" );
+	Util.SetMaxUsersInProgress( 2, "PLANT.*" );
+	Util.SetMaxUsersInProgress( 1, "REPAIR.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_.*" );
+	Util.SetMaxUsersInProgress( 1, "ATTACK_.*" );
+
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=60, MaxCampTime=120});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=120, MaxCampTime=120});
+
+	//Priority Main goals
+	SetGoalPriority( "BUILD_Command_Post", 0.7 );
+	SetGoalPriority( "PLANT_Command_Post", 0.7 );
+	SetGoalPriority( "ATTACK_a_gold_1", 0.55 );
+	SetGoalPriority( "ATTACK_a_gold_2", 0.55 );
+	SetGoalPriority( "ATTACK_a_gold_3", 0.55 );
+	SetGoalPriority( "DEFEND_d_mg_1", 0.55 );
+	SetGoalPriority( "DEFEND_d_doorpath_1", 0.55 );
+	SetGoalPriority( "DEFEND_d_palacedoors_1", 0.55 );
+	SetGoalPriority( "DEFEND_d_palacedoors_2", 0.55 );
+	SetGoalPriority( "DEFEND_d_church_1", 0.55 );
+	SetGoalPriority( "DEFEND_d_gold_1", 0.55 );
+	SetGoalPriority( "DEFEND_d_gold_2", 0.55 );
+
+	//Disable some routes
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_NearCabinetsBack" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_NearChurchBack" );
+
+	//Routes
+	MapRoutes =
+	{
+		PLANT_Palace_Door =
+		{
+			ROUTE_AlliedSpawn =
+			{
+				ROUTE_NearMG =
+				{
+					ROUTE_CP = {},
+				},
+				ROUTE_MG42 = {},
+				ROUTE_NearChurch =
+				{
+					ROUTE_Detour =
+					{
+						ROUTE_Detour2 = {},
+					},
+				},
+				ROUTE_DownAlley =
+				{
+					ROUTE_NearCabinets = {},
+				},
+				ROUTE_UpAlley =
+				{
+					ROUTE_NearCabinets = {},
+				},
+			},
+		},
+
+		PLANT_Trap_Door =
+		{
+			ROUTE_AlliedSpawn =
+			{
+				ROUTE_NearMG =
+				{
+					ROUTE_CP = {},
+				},
+				ROUTE_MG42 = {},
+				ROUTE_NearChurch =
+				{
+					ROUTE_ChurchBackDoor = {},
+				},
+			},
+		},
+
+		FLAG_allied_gold =
+		{
+			ROUTE_AlliedSpawn =
+			{
+				ROUTE_NearMG =
+				{
+					ROUTE_CP =
+					{
+						ROUTE_TrapDoor =
+						{
+							ROUTE_Waterway =
+							{
+								ROUTE_Stairs = {},
+							},
+						},
+					},
+				},
+				ROUTE_MG42 = {},
+				ROUTE_NearChurch =
+				{
+					ROUTE_Detour =
+					{
+						ROUTE_Detour2 = {},
+					},
+				},
+				ROUTE_DownAlley =
+				{
+					ROUTE_NearCabinets = {},
+				},
+				ROUTE_UpAlley =
+				{
+					ROUTE_NearCabinets = {},
+				},
+			},
+		},
+		ATTACK_a_palacedoors_1 =
+		{
+			ROUTE_AlliedSpawn =
+			{
+				ROUTE_MG42 = {},
+				ROUTE_DownAlley =
+				{
+					ROUTE_NearCabinets = {},
+				},
+				ROUTE_UpAlley =
+				{
+					ROUTE_NearCabinets = {},
+				},
+			},
+		},
+		CAPPOINT_ALLIES_CAPPOINT =
+		{
+			ROUTE_Gold =
+			{
+				ROUTE_Stairsback =
+				{
+					ROUTE_Waterway =
+					{
+						ROUTE_TrapDoor =
+						{
+							ROUTE_CP =
+							{
+								ROUTE_NearMG = {},
+							},
+						},
+					},
+				},
+				ROUTE_NearChurchBack = {},
+				ROUTE_NearCabinetsBack = {},
+			},
+		},
+	};
+
+	//Copy some routes
+	MapRoutes.ATTACK_a_palacedoors_2 = MapRoutes.ATTACK_a_palacedoors_1;
+	MapRoutes.ATTACK_a_palacedoors_3 = MapRoutes.ATTACK_a_palacedoors_1;
+	MapRoutes.ATTACK_a_palacedoors_4 = MapRoutes.ATTACK_a_palacedoors_1;
+	MapRoutes.ATTACK_a_palacedoors_5 = MapRoutes.ATTACK_a_palacedoors_1;
+	MapRoutes.ATTACK_a_palacedoors_6 = MapRoutes.ATTACK_a_palacedoors_1;
+	MapRoutes.ATTACK_a_gold_1 = MapRoutes.ATTACK_a_palacedoors_1;
+	MapRoutes.ATTACK_a_gold_2 = MapRoutes.ATTACK_a_palacedoors_1;
+	MapRoutes.ATTACK_a_gold_3 = MapRoutes.ATTACK_a_palacedoors_1;
+	MapRoutes.ATTACK_a_gold_4 = MapRoutes.ATTACK_a_palacedoors_1;
+
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "Script for Townsquare Final by ^0:)^1BOK^0(: ^1Naerling ^2was successfully loaded!" );
+};
+
+global OnBotJoin = function( bot )
+{
+	//~ bot.TargetBreakableDist = 300.0;
+};

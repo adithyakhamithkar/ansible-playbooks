@@ -1,0 +1,844 @@
+// cs: goal management needs checked and cleaned up
+global Map =
+{
+	Ammo_Cabinet_first_ammocabinet = "AMMOCAB_first_ammocabinet",
+	Ammo_Cabinet_first_ammocabinet_1 = "AMMOCAB_first_ammocabinet_1",
+	Ammo_Cabinet_first_ammocabinet_2 = "AMMOCAB_first_ammocabinet_2",
+	Ammo_Cabinet_first_ammocabinet_3 = "AMMOCAB_first_ammocabinet_3",
+	Health_Cabinet_first_healthcabinet = "HEALTHCAB_first_healthcabinet",
+	Health_Cabinet_first_healthcabinet_1 = "HEALTHCAB_first_healthcabinet_1",
+	Health_Cabinet_first_healthcabinet_2 = "HEALTHCAB_first_healthcabinet_2",
+	Build_Ship_Defence_MG = "BUILD_Ship_Defence_MG",
+	Build_Crystal_Defences = "BUILD_Crystal_Defences",
+	Build_Neutral_Command_Post = "BUILD_Neutral_Command_Post",
+	Plant_Ship_Defence_MG = "PLANT_Ship_Defence_MG",
+	Plant_Cracked_Wall = "PLANT_Cracked_Wall",
+	Plant_Crystal_Defences = "PLANT_Crystal_Defences",
+	Plant_Door = "PLANT_Door",
+	Plant_East_Energy_Crystal = "PLANT_East_Energy_Crystal",
+	Plant_Neutral_Command_Post = "PLANT_Neutral_Command_Post",
+	Plant_Power_Crystal = "PLANT_Power_Crystal",
+	Plant_West_Energy_Crystal = "PLANT_West_Energy_Crystal",
+	Mount_5 = "MOUNTMG42_919",
+	Mount_6 = "MOUNTMG42_924",
+	Mount_Ship_Defence_MG = "MOUNTMG42_Ship_Defence_MG",
+	Repair_5 = "REPAIRMG42_919",
+	Repair_6 = "REPAIRMG42_924",
+	Repair_Ship_Defence_MG = "REPAIRMG42_Ship_Defence_MG",
+
+	//~some extra conditional variables
+
+    Westcheck = 0, //~West crystal destroyed ? Portal is closed
+    Eastcheck = 0, //~East crystal destroyed ? Portal is closed
+
+
+	Allied_Construction_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.Westcheck == 1 && Map.Eastcheck == 1 ) {
+			SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Ship_Defence_MG" );
+			Util.MapDebugPrint( "Allies_just_in_time_made_it_when_portal_was_open" );
+		}
+		else {
+			SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42_Ship_Defence_MG" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "REPAIRMG42_Ship_Defence_MG" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Ship_Defence_MG" );
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Ship_Defence_MG" );
+		}
+		Util.MapDebugPrint( "Allied_Construction_Built" );
+	},
+
+	Allied_Construction_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.Westcheck == 1 && Map.Eastcheck == 1 ) {
+			SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_Ship_Defence_MG" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_Ship_Defence_MG" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Ship_Defence_MG" );
+
+			SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_Ship_Defence_MG" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_Ship_Defence_MG" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Ship_Defence_MG" );
+		}
+		else {
+			SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_Ship_Defence_MG" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_Ship_Defence_MG" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Ship_Defence_MG" );
+
+			SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Ship_Defence_MG" );
+		}
+
+		Util.MapDebugPrint( "Allied_Construction_Destroyed" );
+	},
+
+	East_Energy_Crystal_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Eastcheck = 1; //~East is destroyed. Portal is now open? or is west still there ?
+		if ( Map.Westcheck == 1 ) {
+			SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_East_Energy_Crystal" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_West_Energy_Crystal" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Cracked_Wall" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Door" );
+			Util.MapDebugPrint( "East_check_passed" );
+		}
+		else {
+			SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_East_Energy_Crystal" );
+			Util.MapDebugPrint( "East_check_failed" );
+		}
+
+		Util.MapDebugPrint( "East_Energy_Crystal_Destroyed" );
+	},
+
+	West_Energy_Crystal_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Westcheck = 1; //~West is destroyed. Portal is now open? or is east still there ?
+		if ( Map.Eastcheck == 1 ) {
+			SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_East_Energy_Crystal" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_West_Energy_Crystal" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Cracked_Wall" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Door" );
+			Util.MapDebugPrint( "West_check_passed" );
+		}
+		else {
+			SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_West_Energy_Crystal" );
+			Util.MapDebugPrint( "West_check_failed" );
+		}
+
+		Util.MapDebugPrint( "West_Energy_Crystal_Destroyed" );
+	},
+
+	//~WHOOO PART 2 OF THE MAP HAS STARTED NOW!
+
+	Cracked_Wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Cracked_Wall" );
+		Util.MapDebugPrint( "Cracked_Wall_Destroyed" );
+	},
+
+	Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Door" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_AXIS_CARTY_2_01" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_AXIS_ARTY_2_01" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_AXIS_ARTY_2_02" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_AXIS_ARTY_2_03" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_AXIS_PHASE2_01" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_AXIS_AT2_01" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_AXIS_AT2_02" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_AXIS_AT2_03" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_AXIS_AT2_04" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "AMMOCAB_first_ammocabinet" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "AMMOCAB_first_ammocabinet_3" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "HEALTHCAB_first_healthcabinet" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "HEALTHCAB_first_healthcabinet_2" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Crystal_Defences" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Neutral_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Power_Crystal" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_AXIS_AT3_01" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_AXIS_AT3_02" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_AXIS_AT3_03" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_AXIS_AT3_04" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_first_ammocabinet_1" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_first_ammocabinet_2" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_first_healthcabinet_1" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CALLARTILLERY_ALLIES_CARTY_2_01" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_ALLIES_ARTY_2_01" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_ALLIES_ARTY_2_02" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_ALLIES_ARTY_2_03" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_ALLIES_MMGSPOT_02" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ALLIES_DF2_01" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ALLIES_DF2_02" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ALLIES_DF2_03" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ALLIES_DF2_04" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "AMMOCAB_first_ammocabinet" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "AMMOCAB_first_ammocabinet_1" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "AMMOCAB_first_ammocabinet_3" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "HEALTHCAB_first_healthcabinet" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "HEALTHCAB_first_healthcabinet_1" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "HEALTHCAB_first_healthcabinet_2" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Crystal_Defences" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMG42_ALLIES_MMGSPOT_03" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_ALLIES_DF3_01" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_ALLIES_DF3_02" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_ALLIES_DF3_03" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_ALLIES_DF3_04" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_first_ammocabinet_2" );
+
+		Util.MapDebugPrint( "Door_Destroyed" );
+	},
+
+	//~WHOOO PART 3 OF THE MAP HAS STARTED NOW!
+
+	Neutral_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Neutral_Command_Post_Built" );
+	},
+
+	Neutral_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Neutral_Command_Post_Destroyed" );
+	},
+
+	Crystal_Defences_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Crystal_Defences" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Crystal_Defences" );
+
+		Util.MapDebugPrint( "Crystal_Defences_Built" );
+	},
+
+	Crystal_Defences_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Crystal_Defences" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Crystal_Defences" );
+		Util.MapDebugPrint( "Crystal_Defences_Destroyed" );
+	},
+
+	Power_Crystal_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Power_Crystal_Destroyed" );
+	},
+
+	Portal_Open = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_Ship_Defence_MG" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_Ship_Defence_MG" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_Ship_Defence_MG" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_Ship_Defence_MG" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Ship_Defence_MG" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CALLARTILLERY_ALLIES_CARTY_1_01" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_ALLIES_ARTY_1_01" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_ALLIES_ARTY_1_02" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_ALLIES_ARTY_1_03" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_ALLIES_MMGSPOT_01" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_ALLIES_PHASE1_01" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_ALLIES_PHASE1_02" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_ALLIES_PHASE1_03" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_ALLIES_PHASE1_04" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ALLIES_DF1_01" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ALLIES_DF1_02" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ALLIES_DF1_03" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ALLIES_DF1_04" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Ship_Defence_MG" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "AMMOCAB_first_ammocabinet_2" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "AMMOCAB_first_ammocabinet_3" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "AMMOCAB_first_ammocabinet" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "HEALTHCAB_first_healthcabinet" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "HEALTHCAB_first_healthcabinet_2" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_ALLIES_DF2_01" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_ALLIES_DF2_02" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_ALLIES_DF2_03" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_ALLIES_DF2_04" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMG42_ALLIES_MMGSPOT_02" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CALLARTILLERY_ALLIES_CARTY_2_01" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_ALLIES_ARTY_2_01" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_ALLIES_ARTY_2_02" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_ALLIES_ARTY_2_03" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_first_ammocabinet_1" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "HEALTHCAB_first_healthcabinet_1" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_Ship_Defence_MG" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_AXIS_CARTY_1_01" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_AXIS_ARTY_1_01" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_AXIS_ARTY_1_02" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_AXIS_ARTY_1_03" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_Ship_Defence_MG" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Ship_Defence_MG" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_AXIS_PHASE1_01" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_AXIS_PHASE1_02" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_AXIS_PHASE1_03" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_Ship_Defence_MG" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_Ship_Defence_MG" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Ship_Defence_MG" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_AXIS_AT1_01" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_AXIS_AT1_02" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_AXIS_AT1_03" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_AXIS_AT1_04" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "AMMOCAB_first_ammocabinet_2" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "AMMOCAB_first_ammocabinet_3" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "HEALTHCAB_first_healthcabinet_2" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_AXIS_PHASE2_01" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_AXIS_AT2_01" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_AXIS_AT2_02" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_AXIS_AT2_03" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_AXIS_AT2_04" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_AXIS_CARTY_2_01" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_AXIS_ARTY_2_01" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_AXIS_ARTY_2_02" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_AXIS_ARTY_2_03" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_first_ammocabinet" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_first_ammocabinet_1" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_first_healthcabinet" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_first_healthcabinet_1" );
+
+		Wp.SetWaypointFlag( "portal", "closed", false );
+
+		Util.MapDebugPrint( "Portal_open, moving_to_phase_2" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "^dAllied Team have built the Allied Defence MG!", Map.Allied_Construction_Built );
+	OnTrigger( "^dAllied Team have built the Power Crystal Defences!", Map.Crystal_Defences_Built );
+	OnTrigger( "^dAllied Command Post constructed. Charge speed increased!", Map.Neutral_Command_Post_Built );
+	OnTrigger( "^1Axis Command Post constructed. Charge speed increased!", Map.Neutral_Command_Post_Built );
+	OnTrigger( "^1Axis have destroyed the Allied Defence MG!", Map.Allied_Construction_Destroyed );
+	OnTrigger( "^1The Axis have destroyed the Cracked Wall!", Map.Cracked_Wall_Destroyed );
+	OnTrigger( "^1Axis have destroyed the Power Crystal Defences!", Map.Crystal_Defences_Destroyed );
+	OnTrigger( "^1The Axis have destroyed the Door!", Map.Door_Destroyed );
+	OnTrigger( "^1The Axis have destroyed The East Portal Crystal!", Map.East_Energy_Crystal_Destroyed );
+	OnTrigger( "^1Axis team has destroyed the Allied Command Post!", Map.Neutral_Command_Post_Destroyed );
+	OnTrigger( "^dAllied team has destroyed the Axis Command Post!", Map.Neutral_Command_Post_Destroyed );
+	OnTrigger( "^1The Axis blew up the Power Crystal!!", Map.Power_Crystal_Destroyed );
+	OnTrigger( "^1The Axis have destroyed The West Energy Crystal!", Map.West_Energy_Crystal_Destroyed );
+	OnTrigger( "prot_door", Map.Portal_Open );
+
+	//~SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_924" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_924" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_Ship_Defence_MG" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_Ship_Defence_MG" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Ship_Defence_MG" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Cracked_Wall" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Crystal_Defences" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Door" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Neutral_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Power_Crystal" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_919" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_919" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_ALLIES.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_ALLIES.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_ALLIES.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_ALLIES.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_ALLIES.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_ALLIES.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_AXIS.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "AMMOCAB_first_ammocabinet" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "AMMOCAB_first_ammocabinet_1" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "AMMOCAB_first_ammocabinet_2" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "AMMOCAB_first_ammocabinet_3" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "HEALTHCAB_first_healthcabinet" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "HEALTHCAB_first_healthcabinet_1" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "HEALTHCAB_first_healthcabinet_2" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_AXIS_PHASE2_01" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_AXIS_CARTY_2_01" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_AXIS_ARTY_2_01" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_AXIS_ARTY_2_02" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_AXIS_ARTY_2_03" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_AXIS_AT2_01" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_AXIS_AT2_02" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_AXIS_AT2_03" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_AXIS_AT2_04" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_AXIS_AT3_01" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_AXIS_AT3_02" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_AXIS_AT3_03" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_AXIS_AT3_04" );
+
+	//~SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_919" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_924" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_919" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_924" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Crystal_Defences" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_AXIS.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_AXIS.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "CALLARTILLERY_AXIS.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_AXIS.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AXIS.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "AMMOCAB_first_ammocabinet" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "AMMOCAB_first_ammocabinet_1" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "AMMOCAB_first_ammocabinet_2" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_first_ammocabinet_3" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "HEALTHCAB_first_healthcabinet" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "HEALTHCAB_first_healthcabinet_1" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_ALLIES_MMGSPOT_02" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_ALLIES_MMGSPOT_03" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ALLIES_DF2_01" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ALLIES_DF2_02" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ALLIES_DF2_03" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ALLIES_DF2_04" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ALLIES_DF3_01" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ALLIES_DF3_02" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ALLIES_DF3_03" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_ALLIES_DF3_04" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "CALLARTILLERY_ALLIES_CARTY_2_01" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_ALLIES_ARTY_2_01" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_ALLIES_ARTY_2_02" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_ALLIES_ARTY_2_03" );
+
+	Wp.SetWaypointFlag( "portal", "closed", true );
+
+	Util.SetMaxUsersInProgress( 1, "PLANT_East_Energy_Crystal" );
+	Util.SetMaxUsersInProgress( 1, "PLANT_West_Energy_Crystal" );
+	Util.SetMaxUsersInProgress( 1, "MOUNTMG42.*" );
+	Util.SetMaxUsersInProgress( 1, "REPAIRMG42.*" );
+	Util.SetMaxUsersInProgress( 1, "SNIPE.*" );
+
+	MapRoutes =
+	{
+		PLANT_East_Energy_Crystal =
+		{
+			ROUTE_AxisSpawn1  =
+			{
+				ROUTE_east_a  =
+				{
+					ROUTE_east_aa  =
+					{
+					},
+					ROUTE_east_ab  =
+					{
+					},
+				},
+				ROUTE_east_b  =
+				{
+				},
+			},
+			ROUTE_AxisSpawn1a  =
+			{
+				ROUTE_east_a  =
+				{
+					ROUTE_east_aa  =
+					{
+					},
+					ROUTE_east_ab  =
+					{
+					},
+				},
+				ROUTE_east_b  =
+				{
+				},
+			},
+			ROUTE_P1_get_east  =
+			{
+				ROUTE_P1_get_east_a  =
+				{
+					ROUTE_P1_get_east_aa  =
+					{
+					},
+					ROUTE_P1_get_east_ab  =
+					{
+					},
+				},
+				ROUTE_P1_get_east_b  =
+				{
+					ROUTE_P1_get_east_ba  =
+					{
+						ROUTE_P1_get_east_baa  =
+						{
+						},
+					},
+					ROUTE_P1_get_east_bc  =
+					{
+						ROUTE_P1_get_east_bca  =
+						{
+						},
+					},
+					ROUTE_P1_get_east_bb  =
+					{
+						ROUTE_P1_get_east_bba  =
+						{
+						},
+					},
+				},
+			},
+		},
+		PLANT_West_Energy_Crystal =
+		{
+			ROUTE_AxisSpawn1  =
+			{
+				ROUTE_west_a  =
+				{
+					ROUTE_west_aa  =
+					{
+					},
+					ROUTE_west_ab  =
+					{
+					},
+				},
+				ROUTE_west_b  =
+				{
+				},
+			},
+			ROUTE_AxisSpawn1a  =
+			{
+				ROUTE_west_a  =
+				{
+					ROUTE_west_aa  =
+					{
+					},
+					ROUTE_west_ab  =
+					{
+					},
+				},
+				ROUTE_west_b  =
+				{
+				},
+			},
+			ROUTE_P1_get_west  =
+			{
+				ROUTE_P1_get_west_a  =
+				{
+					ROUTE_P1_get_west_aa  =
+					{
+						ROUTE_P1_get_west_aaa  =
+						{
+						},
+						ROUTE_P1_get_west_aab  =
+						{
+						},
+					},
+					ROUTE_P1_get_west_ab  =
+					{
+						ROUTE_P1_get_west_aba  =
+						{
+						},
+					},
+				},
+				ROUTE_P1_get_west_b  =
+				{
+					ROUTE_P1_get_west_ba  =
+					{
+						ROUTE_P1_get_west_bab  =
+						{
+						},
+					},
+					ROUTE_P1_get_west_bb  =
+					{
+						ROUTE_P1_get_west_bba  =
+						{
+						},
+						ROUTE_P1_get_west_bbb  =
+						{
+						},
+					},
+				},
+			},
+		},
+		PLANT_Cracked_Wall =
+		{
+			ROUTE_P2_spawn_axis  =
+			{
+				ROUTE_P2_wall_a  =
+				{
+					ROUTE_P2_wall_aa  =
+					{
+						ROUTE_P2_wall_aaa  =
+						{
+						},
+						ROUTE_P2_wall_aab  =
+						{
+						},
+					},
+					ROUTE_P2_wall_ab  =
+					{
+					},
+				},
+				ROUTE_P2_wall_b  =
+				{
+					ROUTE_P2_wall_ba  =
+					{
+						ROUTE_P2_wall_baa  =
+						{
+							ROUTE_P2_wall_baaa  =
+							{
+							},
+							ROUTE_P2_wall_baab  =
+							{
+							},
+						},
+						ROUTE_P2_wall_bab  =
+						{
+						},
+					},
+					ROUTE_P2_wall_bb  =
+					{
+					},
+				},
+				ROUTE_P2_wall_c  =
+				{
+					ROUTE_P2_wall_ca  =
+					{
+						ROUTE_P2_wall_caa  =
+						{
+						},
+					},
+					ROUTE_P2_wall_cb  =
+					{
+						ROUTE_P2_wall_cba  =
+						{
+						},
+					},
+				},
+			},
+			ROUTE_P2_get_door_wall  =
+			{
+				ROUTE_P2_wall_a  =
+				{
+					ROUTE_P2_wall_aa  =
+					{
+						ROUTE_P2_wall_aaa  =
+						{
+						},
+						ROUTE_P2_wall_aab  =
+						{
+						},
+					},
+					ROUTE_P2_wall_ab  =
+					{
+					},
+				},
+				ROUTE_P2_wall_b  =
+				{
+					ROUTE_P2_wall_ba  =
+					{
+						ROUTE_P2_wall_baa  =
+						{
+							ROUTE_P2_wall_baaa  =
+							{
+							},
+							ROUTE_P2_wall_baab  =
+							{
+							},
+						},
+						ROUTE_P2_wall_bab  =
+						{
+						},
+					},
+					ROUTE_P2_wall_bb  =
+					{
+					},
+				},
+				ROUTE_P2_wall_c  =
+				{
+					ROUTE_P2_wall_ca  =
+					{
+						ROUTE_P2_wall_caa  =
+						{
+						},
+					},
+					ROUTE_P2_wall_cb  =
+					{
+						ROUTE_P2_wall_cba  =
+						{
+						},
+					},
+				},
+			},
+		},
+		PLANT_Door =
+		{
+			ROUTE_P2_spawn_axis  =
+			{
+				ROUTE_P2_door_a  =
+				{
+					ROUTE_P2_door_aa  =
+					{
+					},
+					ROUTE_P2_door_ab  =
+					{
+					},
+				},
+				ROUTE_P2_door_b  =
+				{
+					ROUTE_P2_door_ba  =
+					{
+						ROUTE_P2_door_baa  =
+						{
+						},
+					},
+					ROUTE_P2_door_bb  =
+					{
+						ROUTE_P2_door_bba  =
+						{
+						},
+					},
+				},
+				ROUTE_P2_door_c  =
+				{
+					ROUTE_P2_door_ca  =
+					{
+						ROUTE_P2_door_caa  =
+						{
+						},
+						ROUTE_P2_door_cab  =
+						{
+						},
+					},
+					ROUTE_P2_door_cb  =
+					{
+					},
+				},
+			},
+			ROUTE_P2_get_door_wall  =
+			{
+				ROUTE_P2_door_a  =
+				{
+					ROUTE_P2_door_aa  =
+					{
+						ROUTE_P2_door_ab  =
+						{
+						},
+					},
+				},
+				ROUTE_P2_door_b  =
+				{
+					ROUTE_P2_door_ba  =
+					{
+						ROUTE_P2_door_baa  =
+						{
+						},
+					},
+					ROUTE_P2_door_bb  =
+					{
+						ROUTE_P2_door_bba  =
+						{
+						},
+					},
+				},
+				ROUTE_P2_door_c  =
+				{
+					ROUTE_P2_door_ca  =
+					{
+						ROUTE_P2_door_caa  =
+						{
+						},
+						ROUTE_P2_door_cab  =
+						{
+						},
+					},
+					ROUTE_P2_door_cb  =
+					{
+					},
+				},
+			},
+		},
+		PLANT_Power_Crystal =
+		{
+			ROUTE_P3_spawn_axis  =
+			{
+				ROUTE_P3_fo_a  =
+				{
+					ROUTE_P3_fo_aa  =
+					{
+						ROUTE_P3_fo_aaa  =
+						{
+						},
+						ROUTE_P3_fo_aab  =
+						{
+							ROUTE_P3_fo_aaba  =
+							{
+								ROUTE_P3_fo_aabaa  =
+								{
+								},
+								ROUTE_P3_fo_aabab  =
+								{
+								},
+							},
+						},
+					},
+				},
+				ROUTE_P3_fo_b  =
+				{
+					ROUTE_P3_fo_ba  =
+					{
+						ROUTE_P3_fo_baa  =
+						{
+							ROUTE_P3_fo_baaa  =
+							{
+								ROUTE_P3_fo_baaaa  =
+								{
+								},
+								ROUTE_P3_fo_baaab  =
+								{
+								},
+							},
+						},
+						ROUTE_P3_fo_bab  =
+						{
+						},
+					},
+				},
+				ROUTE_P3_fo_c  =
+				{
+					ROUTE_P3_fo_ca  =
+					{
+					},
+					ROUTE_P3_fo_cb  =
+					{
+						ROUTE_P3_fo_cba  =
+						{
+						},
+						ROUTE_P3_fo_cbb  =
+						{
+							ROUTE_P3_fo_cbba  =
+							{
+								ROUTE_P3_fo_cbbaa  =
+								{
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	};
+
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 100.0;
+
+	team = bot.GetTeam();
+	class = bot.GetClass();
+
+	if ( class == CLASS.COVERTOPS )
+	{
+		if ( team == TEAM.ALLIES )
+			{ bot.ChangePrimaryWeapon( WEAPON.GARAND ); }
+		else if ( team == TEAM.AXIS )
+			{ bot.ChangePrimaryWeapon( WEAPON.K43 ); }
+	};
+};

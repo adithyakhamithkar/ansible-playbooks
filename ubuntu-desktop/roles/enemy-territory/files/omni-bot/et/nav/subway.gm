@@ -1,0 +1,702 @@
+/**************************************************************************
+* Omni-bot 0.8 script for Subway by d00d
+* Last changes: Mon, 30 August 2010
+*
+* To do: Better routing
+* To do: Improve waypoints along the path of the dynamite train
+**************************************************************************/
+
+global Map =
+{
+	Debug = false,
+	ShowMovers = false,
+	ActiveDyno = 1, // focus on dyno #1 initially
+	Phase = 1, // 2: generator built, 3: dyno1 secured, 4: dyno2 secured, 5: truck escort
+	// train positions: 0: East, 1: South, 2: North, 3: West, -1: moving
+	Train1Pos = -1,
+	Train2Pos = -1,
+
+	Ammo_Cabinet_city_ammo_cab = "AMMOCAB_city_ammo_cab",
+	Ammo_Cabinet_subammo = "AMMOCAB_subammo",
+	Health_Cabinet_city_health_cab = "HEALTHCAB_city_health_cab",
+	Health_Cabinet_subhealth = "HEALTHCAB_subhealth",
+	Checkpoint_mainstationflag = "CHECKPOINT_mainstationflag",
+	Mount_Corner_MG = "MOUNTMG42_118",
+	Mount_East_MG = "MOUNTMG42_730",
+	Mount_North_MG = "MOUNTMG42_351",
+	Repair_Corner_MG = "REPAIRMG42_118",
+	Repair_East_MG = "REPAIRMG42_730",
+	Repair_North_MG = "REPAIRMG42_351",
+
+	Navigation =
+	{
+		balustrade =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.PressButton(BTN.JUMP);
+				sleep(0.25);
+				_this.Bot.PressButton(BTN.JUMP);
+				sleep(0.25);
+				_this.Bot.PressButton(BTN.JUMP);
+				sleep(0.25);
+			},
+		},
+	},
+
+	Movers =
+	{
+		"MOVER_looptrain2",
+		"MOVER_tank",
+		"MOVER_train",
+		"MOVER_truck",
+	},
+
+	RideMovers =
+	{
+		botheast =
+		{
+			movergoal = "MOVER_train",
+			rideposition = Vector3(0, -130, 72),
+			startwp = "train1_2",
+			exitwp = null,
+			// set mover goal dynamically so the bots will take whichever train comes next
+			board = function(_this)
+			{
+				if ( Map.Train1Pos == 0 )
+				{
+					_this.mover.movergoal = "MOVER_train";
+					return true;
+				}
+				else if ( Map.Train2Pos == 0 )
+				{
+					_this.mover.movergoal = "MOVER_looptrain2";
+					return true;
+				}
+				return false;
+			},
+			// set exitwp dynamically
+			leave = function(_this)
+			{
+				if ( Map.Phase == 1 )
+				{
+					Map.RideMovers.botheast.exitwp = "train2_3";
+					if ( Map.Train1Pos == 1 && _this.mover.movergoal == "MOVER_train" )
+						{ return true; }
+					if ( Map.Train2Pos == 1 && _this.mover.movergoal == "MOVER_looptrain2" )
+						{ return true; }
+					return false;
+				}
+				else if ( Map.Phase == 2 )
+				{
+					Map.RideMovers.botheast.exitwp = "train3_1";
+					if ( Map.Train1Pos == 3 && _this.mover.movergoal == "MOVER_train" )
+						{ return true; }
+					if ( Map.Train2Pos == 3 && _this.mover.movergoal == "MOVER_looptrain2" )
+						{ return true; }
+					return false;
+				}
+				else if ( Map.Phase == 3 )
+				{
+					Map.RideMovers.botheast.exitwp = "train4_1";
+					if ( Map.Train1Pos == 2 && _this.mover.movergoal == "MOVER_train" )
+						{ return true; }
+					if ( Map.Train2Pos == 2 && _this.mover.movergoal == "MOVER_looptrain2" )
+						{ return true; }
+					return false;
+				}
+				else
+				{
+					Map.RideMovers.botheast.exitwp = "train2_3";
+					if ( Map.Train1Pos == 1 && _this.mover.movergoal == "MOVER_train" )
+						{ return true; }
+					if ( Map.Train2Pos == 1 && _this.mover.movergoal == "MOVER_looptrain2" )
+						{ return true; }
+					return false;
+				}
+			},
+		},
+
+		train1east =
+		{
+			movergoal = "MOVER_train",
+			rideposition = Vector3(0, -130, 72),
+			startwp = "train1_2",
+			exitwp = null,
+			board = function(_this)
+			{
+				if ( Map.Train1Pos == 0 )
+					{ return true; }
+				return false;
+			},
+
+			// train positions: 0: East, 1: South, 2: North, 3: West
+			leave = function(_this)
+			{
+				if ( Map.Train1Pos == 1 && Map.Phase == 1 )
+				{
+					Map.RideMovers.train1east.exitwp = "train2_3";
+					return true;
+				}
+				if ( Map.Train1Pos == 3 && Map.Phase == 2 )
+				{
+					Map.RideMovers.train1east.exitwp = "train3_1";
+					return true;
+				}
+				if ( Map.Train1Pos == 2 && Map.Phase == 3 )
+				{
+					Map.RideMovers.train1east.exitwp = "train4_1";
+					return true;
+				}
+				// in case something went wrong, leave at north station
+				else if ( Map.Train1Pos == 2 )
+				{
+					Map.RideMovers.train1east.exitwp = "train4_1";
+					return true;
+				}
+
+				return false;
+			},
+		},
+
+		train2east =
+		{
+			movergoal = "MOVER_looptrain2",
+			rideposition = Vector3(2, -130, 72),
+			stance = BTN.CROUCH,
+			startwp = "train2_east_ride",
+			exitwp = "train2_3",
+			board = function(_this)
+			{
+				if ( Map.Train2Pos == 0 )
+					{ return true; }
+				return false;
+			},
+
+			leave = function(_this)
+			{
+				if ( Map.Train2Pos == 1 )
+				{
+					return true;
+				}
+				return false;
+			},
+		},
+
+		train1south =
+		{
+			movergoal = "MOVER_train",
+			rideposition = Vector3(0, -130, 72),
+			startwp = "train2_2",
+			exitwp = null,
+			board = function(_this)
+			{
+				if ( Map.Train1Pos == 1 )
+					{ return true; }
+				return false;
+			},
+
+			// train positions: 0: East, 1: South, 2: North, 3: West
+			leave = function(_this)
+			{
+				if ( Map.Train1Pos == 3 && Map.Phase == 2 )
+				{
+					Map.RideMovers.train1south.exitwp = "train3_1";
+					return true;
+				}
+				if ( Map.Train1Pos == 2 && Map.Phase == 3 )
+				{
+					Map.RideMovers.train1south.exitwp = "train4_1";
+					return true;
+				}
+				// in case something went wrong, leave at east station
+				else if ( Map.Train1Pos == 0 )
+				{
+					Map.RideMovers.train1south.exitwp = "train1_1";
+					return true;
+				}
+
+				return false;
+			},
+		},
+	},
+
+	TrainSouth =
+	{
+		Name = "TrainSouth",
+		TriggerOnClass = CLASS.VEHICLE_NODAMAGE,
+		OnEnter = function(ent)
+		{
+			if( GetEntName(ent) == "train" )
+			{
+				Map.Train1Pos = 1;
+			}
+			else if( GetEntName(ent) == "looptrain2" )
+			{
+				Map.Train2Pos = 1;
+			}
+			Util.MapDebugPrint(GetEntName(ent) + " south", true);
+		},
+		OnExit = function(ent)
+		{
+			if( GetEntName(ent) == "train" )
+			{
+				Map.Train1Pos = -1;
+			}
+			else if( GetEntName(ent) == "looptrain2" )
+			{
+				Map.Train2Pos = -1;
+			}
+			Util.MapDebugPrint(GetEntName(ent) + " exits vec3 trigger", true);
+		},
+	},
+
+	TrainEast =
+	{
+		Name = "TrainEast",
+		TriggerOnClass = CLASS.VEHICLE_NODAMAGE,
+		OnEnter = function(ent)
+		{
+			if( GetEntName(ent) == "train" )
+			{
+				Map.Train1Pos = 0;
+			}
+			else if( GetEntName(ent) == "looptrain2" )
+			{
+				Map.Train2Pos = 0;
+			}
+			Util.MapDebugPrint(GetEntName(ent) + " east");
+		},
+		OnExit = function(ent)
+		{
+			if( GetEntName(ent) == "train" )
+			{
+				Map.Train1Pos = -1;
+			}
+			else if( GetEntName(ent) == "looptrain2" )
+			{
+				Map.Train2Pos = -1;
+			}
+			Util.MapDebugPrint(GetEntName(ent) + " exits vec3 trigger");
+		},
+	},
+
+	TrainNorth =
+	{
+		Name = "TrainNorth",
+		TriggerOnClass = CLASS.VEHICLE_NODAMAGE,
+		OnEnter = function(ent)
+		{
+			if( GetEntName(ent) == "train" )
+			{
+				Map.Train1Pos = 2;
+			}
+			else if( GetEntName(ent) == "looptrain2" )
+			{
+				Map.Train2Pos = 2;
+			}
+			//Util.MapDebugPrint(GetEntName(ent) + " north");
+		},
+		OnExit = function(ent)
+		{
+			if( GetEntName(ent) == "train" )
+			{
+				Map.Train1Pos = -1;
+			}
+			else if( GetEntName(ent) == "looptrain2" )
+			{
+				Map.Train2Pos = -1;
+			}
+			//Util.MapDebugPrint(GetEntName(ent) + " leaves north station");
+		},
+	},
+
+	TrainWest =
+	{
+		Name = "TrainWest",
+		TriggerOnClass = CLASS.VEHICLE_NODAMAGE,
+		OnEnter = function(ent)
+		{
+			if( GetEntName(ent) == "train" )
+			{
+				Map.Train1Pos = 3;
+			}
+			else if( GetEntName(ent) == "looptrain2" )
+			{
+				Map.Train2Pos = 3;
+			}
+			//Util.MapDebugPrint(GetEntName(ent) + " west");
+		},
+		OnExit = function(ent)
+		{
+			if( GetEntName(ent) == "train" )
+			{
+				Map.Train1Pos = -1;
+			}
+			else if( GetEntName(ent) == "looptrain2" )
+			{
+				Map.Train2Pos = -1;
+			}
+			//Util.MapDebugPrint(GetEntName(ent) + " leaves west station");
+		},
+	},
+
+	South_Spawn_Lost = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "South_Spawn_Lost" );
+	},
+
+	South_Spawn_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "South_Spawn_Captured" );
+	},
+
+	Chamber_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Chamber_Built" );
+	},
+
+	Generator_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if (Map.Phase == 1)
+		{
+			Map.Phase = 2;
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_phase1.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_phase2.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase1.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase2.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Post" );
+		}
+		Util.MapDebugPrint( "Generator_Built" );
+	},
+
+	Generator_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if (Map.Phase == 2)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_phase1.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase1.*" );
+		}
+		Util.MapDebugPrint( "Generator_Destroyed" );
+	},
+
+	Generator_Repaired = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if (Map.Phase == 2)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_phase1.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase1.*" );
+		}
+		Util.MapDebugPrint( "Generator_Repaired" );
+	},
+
+	Truck_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Truck_Built" );
+	},
+
+	Truck_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.SetPositionGoal( "BUILD_Truck", "MOVER_truck" );
+		Util.MapDebugPrint( "Truck_Destroyed" );
+	},
+
+	dyno_w2ta1_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "dyno_w2ta1_Taken" );
+	},
+
+	dyno_w2ta2_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "dyno_w2ta2_Taken" );
+	},
+
+	Dyno1_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if (Map.Phase < 3)
+		{
+			Map.Phase = 3;
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_phase3.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase3.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase1.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase2.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_phase1.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_phase2.*" );
+		}
+		Map.ActiveDyno = 2; // focus on dyno #2 from now on
+		Util.MapDebugPrint( "Dyno1_Secured" );
+	},
+
+	Dyno2_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if (Map.Phase < 4)
+		{
+			Map.Phase = 4;
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_phase4.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase4.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase1.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase2.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase3.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_phase1.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_phase2.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_phase3.*" );
+		}
+		SetAvailableMapGoals( TEAM.ALLIES, true, "TRIPMINE_south_station_spawn" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_mainstationflag" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "TRIPMINE_south_station_spawn" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_mainstationflag" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Repair_East_MG );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Mount_East_MG );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Repair_East_MG );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mount_East_MG );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Truck" );
+
+		SetGoalPriority( "CHECKPOINT_mainstationflag", 0.8, TEAM.AXIS );
+
+		Map.ActiveDyno = 0;
+		Util.MapDebugPrint( "Dyno2_Secured" );
+	},
+
+	TruckEscortOn = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if (Map.Phase < 5)
+		{
+			Map.Phase = 5;
+			SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase5.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_phase5.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_phase5.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase4.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase1.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase2.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase3.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_phase5.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_phase1.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_phase2.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_phase3.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_phase4.*" );
+		}
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Generator" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_generator_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Generator" );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Repair_Corner_MG );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Mount_Corner_MG );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Repair_Corner_MG );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mount_Corner_MG );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "RIDE_dynamite_train" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_truck" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Chamber" );
+
+		myEnt = GetGoal("MOVER_truck").GetEntity();
+		Util.OnTriggerPosition( myEnt, "corner_trigger", 150.0, Map.truck_at_corner );
+
+		Util.MapDebugPrint( "TruckEscortOn" );
+	},
+
+	truck_at_corner = function()
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_phase.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_phase.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_phase.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_phase6.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_phase6.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase6.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_phase6.*" );
+
+		Util.MapDebugPrint( "truck_at_corner" );
+	},
+
+	TrainRideOn = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "RIDE_dynamite_train" );
+		Util.MapDebugPrint( "TrainRideOn" );
+	},
+
+	DynoToTrain = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if (Map.ActiveDyno == 1)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_dyno_w2ta1" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_cap1" );
+		}
+
+		else if (Map.ActiveDyno == 2)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_cap1" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_cap2" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_dyno_w2ta2" );
+		}
+
+		Util.MapDebugPrint( "DynoToTrain" );
+	},
+
+	DynoLoaded = function( trigger)
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+		Util.MapDebugPrint("DynoLoaded");
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// Trigger regions
+	te = OnTriggerRegion( Vector3(1087,710,500), 150, Map.TrainEast );
+	ts = OnTriggerRegion( Vector3(-2953,-3232,500), 120, Map.TrainSouth );
+	tn = OnTriggerRegion( Vector3(-2860,4700,500), 150, Map.TrainNorth );
+	tw = OnTriggerRegion( Vector3(-6847,770,500), 150, Map.TrainWest );
+
+	OnTrigger( "subway_allies_south_lost", Map.South_Spawn_Lost );
+	OnTrigger( "subway_allies_south_captured", Map.South_Spawn_Captured );
+	OnTrigger( "subway_allies_contructed_chamber", Map.Chamber_Built );
+	OnTrigger( "allies_hq_truck_damaged_axis", Map.Truck_Destroyed );
+	OnTrigger( "The Truck has been repaired!", Map.Truck_Built );
+	OnTrigger( "subway_axis_dynamite1_taken", Map.dyno_w2ta1_Taken );
+	OnTrigger( "subway_allies_dyno2_taken", Map.dyno_w2ta2_Taken );
+	OnTrigger( "subway_allies_generator_constructed", Map.Generator_Built );
+	OnTrigger( "The generator has been repaired , the train is powered now!", Map.Generator_Repaired );
+	OnTrigger( "The generator has been damaged, and power cut!", Map.Generator_Destroyed );
+	OnTrigger( "subway_allies_dyno_to_train", Map.DynoToTrain );
+	OnTrigger( "subway_allies_dyno1_secured", Map.Dyno1_Secured );
+	OnTrigger( "subway_allies_dyno2_secured", Map.Dyno2_Secured );
+	OnTrigger( "subway_allies_escort_train", Map.TrainRideOn );
+	OnTrigger( "Allied team have reached the southern station with the dynamite!", Map.TruckEscortOn );
+	OnTrigger( "Dynamite loaded into chamber, initialising detonation seqence!", Map.DynoLoaded );
+
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_phase.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Chamber" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Command_Post" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Truck" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_mainstationflag" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_truck" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "FLAG_dyno_w2ta.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_phase.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "RIDE_dynamite_train" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_phase.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_phase1.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_generator_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Generator" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mount_North_MG );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Repair_North_MG );
+
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_generator_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "FLAG_dyno_w2ta.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_phase.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "RIDE_dynamite_train" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_phase.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase1.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Mount_North_MG );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Repair_North_MG );
+
+	SetGoalPriority( "PLANT_Command_Post", 0.5, 0, CLASS.ENGINEER );
+	SetGoalPriority( "BUILD_Command_Post", 0.7, 0, CLASS.ENGINEER );
+	SetGoalPriority( "CHECKPOINT_mainstationflag", 0.6, TEAM.AXIS );
+	SetGoalPriority( "CHECKPOINT_mainstationflag", 0.9, TEAM.ALLIES );
+
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=90} );
+
+	Util.SetMaxUsers( 1, "PLANT_.*" );
+	Util.SetMaxUsers( 1, "BUILD_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "REPAIRMG42_.*" );
+	Util.SetMaxUsers( 2, "BUILD_Generator" );
+	Util.SetMaxUsers( 2, "BUILD_Truck" );
+	Util.SetMaxUsersInProgress( 2, "CHECKPOINT.*" );
+
+	Util.SetGoalPosition( -4200, -2550, 50, "PLANT_Generator" );
+	Util.RemoveGoal( "PLANT_Dynamite_Train" );
+	Util.RemoveGoal( "PLANT_Train_C01" );
+	Util.RemoveGoal( "PLANT_Train_C02" );
+	Util.RemoveGoal( "BUILD_Train_C01" );
+	Util.RemoveGoal( "BUILD_Train_C02" );
+	Util.RemoveGoal( "BUILD_Dynamite_Train" );
+
+	Util.AddInvVehicle( "MOVER_tank" );
+
+	// *** ROUTES ***
+	Maproutes =
+	{
+		BUILD_Generator =
+		{
+			ROUTE_allied_spawn =
+			{
+				// ROUTE_train2_east_start = {},
+				// ROUTE_train1_1 = {},
+				ROUTE_tunnel1 = {},
+			},
+		},
+	};
+	Util.Routes(Maproutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for Subway loaded." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.MaxViewDistance = 3000.0;
+	//~ bot.TargetBreakableDist = 90.0;
+};

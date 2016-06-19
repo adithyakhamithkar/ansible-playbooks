@@ -1,0 +1,97 @@
+// Map script by [UJE]Niek
+global Map =
+{
+	SnipeMap = true,
+
+	Navigation =
+	{
+		wait =
+		{
+			navigate = function(_this)
+			{
+				timeout = 6;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele1 =
+		{
+			navigate = function(_this)
+			{
+				Util.BotSay(_this.Bot,"^7Oil !");
+				timeout = 6;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele2 =
+		{
+			navigate = function(_this)
+			{
+				timeout = 7;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele3 =
+		{
+			navigate = function(_this)
+			{
+				timeout = 6;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele4 =
+		{
+			navigate = function(_this)
+			{
+				Util.BotSay(_this.Bot,"^1Grrr :)");
+				timeout = 4;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+		ele5 =
+		{
+			navigate = function(_this)
+			{
+				timeout = 9;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+			},
+		},
+	},
+};
+
+global OnMapLoad = function()
+{
+	SetMapGoalProperties("SNIPE.*", { MinCampTime=30, MaxCamptime=50,});
+
+	Util.LimitToTeam( TEAM.AXIS, "SNIPE_axis.*" );
+	Util.LimitToTeam( TEAM.ALLIES, "SNIPE_allied.*" );
+	Util.MapDebugPrint( "OnMapLoad", true );
+};
+
+global OnBotJoin = function( bot )
+{
+	Util.ChangeToSniperWeapons(bot);
+};

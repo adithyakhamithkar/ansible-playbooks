@@ -1,0 +1,252 @@
+global Map =
+{
+	DefendingTeam = TEAM.AXIS,
+	ac1 = 0,
+	ac2 = 0,
+
+	Ammo_Cabinet_south_ammocabinet = "AMMOCAB_south_ammocabinet",
+	Ammo_Cabinet_south_ammocabinet_1 = "AMMOCAB_south_ammocabinet_1",
+	Health_Cabinet_south_healthcabinet = "HEALTHCAB_south_healthcabinet",
+	Health_Cabinet_south_healthcabinet_1 = "HEALTHCAB_south_healthcabinet_1",
+	Checkpoint_forwardbunker_flag = "CHECKPOINT_forwardbunker_flag",
+	Flag_allied_gold = "FLAG_allied_gold",
+	Cappoint_423 = "CAPPOINT_423",
+	Build_Command_Post = "BUILD_Command_Post",
+	Build_Gold_Barrier = "BUILD_Gold_Barrier",
+	Plant_Command_Post = "PLANT_Command_Post",
+	Plant_Gold_Barrier = "PLANT_Gold_Barrier",
+	Plant_Tunnel_Barrier = "PLANT_Tunnel_Barrier",
+	Mount_439 = "MOUNTMG42_439",
+	Repair_439 = "REPAIRMG42_439",
+	Mobile_MG42_454 = "MOBILEMG42_454",
+	Mobile_MG42_cappoint13 = "MOBILEMG42_cappoint13",
+	Mobile_MG42_cappoint14 = "MOBILEMG42_cappoint14",
+	Mobile_MG42_cappoint15 = "MOBILEMG42_cappoint15",
+	Mobile_MG42_cappoint16 = "MOBILEMG42_cappoint16",
+	Mobile_MG42_cappoint17 = "MOBILEMG42_cappoint17",
+	Snipe_cappoint1 = "SNIPE_cappoint1",
+	Snipe_cappoint17 = "SNIPE_cappoint17",
+	Snipe_cappoint2 = "SNIPE_cappoint2",
+	Snipe_cappoint3 = "SNIPE_cappoint3",
+
+	Gold_Barrier_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Gold_Barrier_Built" );
+	},
+
+	Gold_Barrier_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ac1 = OnTriggerRegion( AABB(2663.134,-1204.375,-11.845,2827.950,-1045.392,216.779), RegionTrigger.AllClear );
+		Map.ac2 = OnTriggerRegion( AABB(2631.797,-132.671,-16.197,2825.169,0.982,190.828), RegionTrigger.AllClear );
+		Util.MapDebugPrint( "Gold_Barrier_Destroyed" );
+	},
+
+	Tunnel_Barrier_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_underground" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_439" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_439" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_439" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_439" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_cappoint.*" );
+		Util.MapDebugPrint( "Tunnel_Barrier_Destroyed" );
+	},
+
+	allied_gold_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		DeleteTriggerRegion( Map.ac1 );
+		DeleteTriggerRegion( Map.ac2 );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_allies_relic.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_cappoint.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Gold_Barrier" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMG42_cappoint.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_cappoint.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42_439" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Gold_Barrier" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_439" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_relic.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_axis_relic.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_cappoint.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_cappoint.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_cappoint.*" );
+
+		Util.MapDebugPrint( "allied_gold_Taken" );
+	},
+
+	allied_gold_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ac1 = OnTriggerRegion( AABB(2663.134,-1204.375,-11.845,2827.950,-1045.392,216.779), RegionTrigger.AllClear );
+		Map.ac2 = OnTriggerRegion( AABB(2631.797,-132.671,-16.197,2825.169,0.982,190.828), RegionTrigger.AllClear );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_allies_relic.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_cappoint.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_cappoint.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_439" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Gold_Barrier" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Gold_Barrier" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_439" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_relic.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_cappoint.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_axis_relic.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_cappoint.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_cappoint.*" );
+
+		Util.MapDebugPrint( "allied_gold_Returned" );
+	},
+
+	forwardbunker_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "forwardbunker_flag_Axis_Captured" );
+	},
+
+	forwardbunker_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "forwardbunker_flag_Allies_Captured" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "MISSING_STRING", Map.Gold_Barrier_Built );
+	OnTrigger( "MISSING_STRING", Map.Gold_Barrier_Destroyed );
+	OnTrigger( "Allies have breached the Tunnel Barrier", Map.Tunnel_Barrier_Destroyed );
+	OnTrigger( "Allies have stolen the Allied gold!", Map.allied_gold_Taken );
+	OnTrigger( "Flag returned allied_gold!", Map.allied_gold_Returned );
+	OnTrigger( "MISSING_STRING", Map.forwardbunker_flag_Axis_Captured );
+	OnTrigger( "MISSING_STRING", Map.forwardbunker_flag_Allies_Captured );
+
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_cappoint.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_relic.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_cappoint11" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_cappoint9" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_cappoint1" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_cappoint2" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_cappoint3" );
+
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_cappoint.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_axis_relic.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_allies_relic.*" );
+
+	// Set Map Goal Properties
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=0, MaxCampTime=15} );
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=5, MaxCampTime=35} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=60} );
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=10, MaxCampTime=60} );
+	SetMapGoalProperties( "MOUNT_.*", {MinCampTime=10, MaxCampTime=120} );
+
+	Util.SetMaxUsersInProgress( 4, "ATTACK_allies_relic.*" );
+	Util.SetMaxUsersInProgress( 2, Map.Flag_allied_gold );
+	Util.SetMaxUsersInProgress( 2, "MOUNTMG42_.*" );
+	Util.SetMaxUsersInProgress( 2, "CHECKPOINT_.*" );
+	Util.SetMaxUsersInProgress( 1, "REPAIRMG42_.*" );
+	Util.SetMaxUsersInProgress( 1, "PLANT_.*" );
+	Util.SetMaxUsersInProgress( 3, "PLANT_Gold_Barrier" );
+	Util.SetMaxUsers( 1, "BUILD_Command_Post" );
+	SetGoalPriority( "BUILD_Command_Post", 0.8 );
+	SetGoalPriority( "DEFEND_axis_relic.*", 0.6 );
+	SetGoalPriority( "CHECKPOINT_forwardbunker_flag", 0.65 );
+	SetGoalPriority( "PLANT_Gold_Barrier", 0.85 );
+	SetGoalPriority( "PLANT_Tunnel_Barrier", 0.9 );
+	SetGoalPriority( "BUILD_Gold_Barrier", 0.95 );
+
+	// region triggers
+	iw1 = OnTriggerRegion( AABB(2633.344,-160.659,8.460,2834.688,-20.915,145.261), RegionTrigger.IntrusionWarning );
+	iw2 = OnTriggerRegion( AABB(2595.836,-1257.690,-27.310,2831.202,-1064.640,202.445), RegionTrigger.IntrusionWarning );
+	iw3 = OnTriggerRegion( AABB(2597.685,-1000.137,-20.610,2858.448,-769.517,202.445), RegionTrigger.IntrusionWarning );
+	iw4 = OnTriggerRegion( AABB(2025.196,-659.325,112.778,2224.297,-440.665,346.311), RegionTrigger.IntrusionWarning );
+	iw5 = OnTriggerRegion( AABB(2323.203,-693.425,43.421,2502.215,-464.811,307.177), RegionTrigger.IntrusionWarning );
+
+	// *** ROUTES ***
+	Maproutes =
+	{
+		ATTACK_allies_relic1 =
+		{
+			ROUTE_allied_second_spawn =
+			{
+				ROUTE_stairs_left = {},
+				ROUTE_stairs_right = { ROUTE_axis_relic4 = {} },
+				ROUTE_underground = { ROUTE_crates = {} },
+			},
+			ROUTE_allied_third_spawn =
+			{
+				ROUTE_stairs_right = { ROUTE_axis_relic4 = {} },
+				ROUTE_jump = { ROUTE_axis_relic4 = {} },
+			},
+		},
+
+		DEFEND_axis_relic1 =
+		{
+			ROUTE_axis_spawn =
+			{
+				ROUTE_stairs_left = {},
+				ROUTE_stairs_right = { ROUTE_axis_relic4 = {} },
+				ROUTE_jump = {},
+				ROUTE_spawn_exit_right =
+				{
+					ROUTE_stairs_left = {},
+					ROUTE_stairs_right = { ROUTE_axis_relic4 = {} },
+				},
+			},
+		},
+
+		CAPPOINT_423 =
+		{
+			ROUTE_objective =
+			{
+				ROUTE_stairs_left = {},
+				ROUTE_cap1 = { ROUTE_jump = {} },
+				ROUTE_cap2 = {},
+				ROUTE_axis_relic4 = { ROUTE_stairs_right = {} },
+			}
+		}
+	};
+	Maproutes.ATTACK_allies_relic2 = Maproutes.ATTACK_allies_relic1;
+	Maproutes.ATTACK_allies_relic3 = Maproutes.ATTACK_allies_relic1;
+	Maproutes.ATTACK_allies_relic4 = Maproutes.ATTACK_allies_relic1;
+	Maproutes.PLANT_Gold_Barrier = Maproutes.ATTACK_allies_relic1;
+	Maproutes.DEFEND_axis_relic2 = Maproutes.DEFEND_axis_relic1;
+	Maproutes.DEFEND_axis_relic3 = Maproutes.DEFEND_axis_relic1;
+	Maproutes.DEFEND_axis_relic4 = Maproutes.DEFEND_axis_relic1;
+	Maproutes.DEFEND_axis_relic5 = Maproutes.DEFEND_axis_relic1;
+	Maproutes.DEFEND_axis_relic6 = Maproutes.DEFEND_axis_relic1;
+	Maproutes.DEFEND_axis_relic7 = Maproutes.DEFEND_axis_relic1;
+	Maproutes.DEFEND_axis_relic8 = Maproutes.DEFEND_axis_relic1;
+	Maproutes.DEFEND_axis_relic9 = Maproutes.DEFEND_axis_relic1;
+	Maproutes.DEFEND_axis_relic10 = Maproutes.DEFEND_axis_relic1;
+	Util.Routes(Maproutes);
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_underground" );
+
+	Util.MapDebugPrint( "Omni-bot map script for ge_temple executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+};

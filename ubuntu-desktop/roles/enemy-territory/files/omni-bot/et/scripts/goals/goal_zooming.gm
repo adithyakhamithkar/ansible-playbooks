@@ -1,0 +1,32 @@
+// This script increases a bots max view while zooming
+
+// These parameters are required
+this.Name = "Zooming";
+this.Parent = "LowLevel";
+this.AutoAdd = true;
+
+this.LimitToEntityFlag(ENTFLAG.ZOOMING);
+
+this.Initialize = function()
+{
+	this.Bot.ViewDistInitialized = false;
+};
+
+this.GetPriority = function()
+{
+	if ( !this.Bot.ViewDistInitialized ) {
+		this.Bot.OldMaxView = this.Bot.MaxViewDistance;
+		zoomDist = 2 * this.Bot.OldMaxView;
+		this.Bot.ZoomViewDistance = Clamp(zoomDist, 8000, 15000);
+		this.Bot.ViewDistInitialized = true;		
+	}
+
+	this.Bot.MaxViewDistance = this.Bot.ZoomViewDistance;
+	this.Priority = 0.1; // so exit can be called
+	block(0);
+};
+
+this.Exit = function()
+{
+	this.Bot.MaxViewDistance = this.Bot.OldMaxView;
+};

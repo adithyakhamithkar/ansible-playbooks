@@ -1,0 +1,80 @@
+// This script contains functionality to allow bots to toss airstrikes from given waypoints
+
+// These parameters are required
+this.Name = "AIRSTRIKE";		// The name of the goal.
+this.Parent = "HighLevel";		// The name of the parent. This setting determines where in the state tree the goal will reside in.
+this.SkipGetPriorityWhenActive = true;
+
+// These parameters are optional
+this.LimitToWeapon( WEAPON.SMOKE_MARKER );
+
+this.Initialize = function()
+{
+	this.Bot.QueryGoalsTable = table();
+};
+
+this.Enter = function()
+{
+	this.AddFinishCriteria(this.Bot.GetGameEntity(),"not weaponcharged", WEAPON.SMOKE_MARKER);
+
+	if(!this.MarkInProgress(this.MapGoal)) {
+		this.BlackboardDelay(5, this.MapGoal);
+		this.Finished();
+	}
+};
+
+this.GetPriority = function()
+{
+	while(1)
+	{
+		if(this.Bot.IsWeaponCharged(WEAPON.SMOKE_MARKER, 0))
+		{
+			count = this.QueryGoals(this.Bot.QueryGoalsTable,0xc8998d3d /* AIRSTRIKE */);
+			if ( count > 0 )
+			{
+				foreach ( id and goal in this.Bot.QueryGoalsTable )
+				{
+					this.MapGoal = goal;
+					this.Priority = goal.GetGoalPriority(this.Bot);
+					break;
+				}
+			}
+
+			tableClear(this.Bot.QueryGoalsTable);
+		}
+
+		sleep(2);
+	}
+};
+
+this.Update = function()
+{
+	if ( this.RouteTo(this.MapGoal) == EVENT.PATH_SUCCESS )
+	{
+		if(!this.MarkInUse(this.MapGoal)) {
+			this.BlackboardDelay(5, this.MapGoal);
+			this.Finished();
+		}
+
+		if ( this.MapGoal.Stance == "crouch" )
+		{
+			this.Bot.HoldButton(BTN.CROUCH, 1.1);
+		}
+
+		this.AddAimRequest(Priority.High, "facing", Util.GetRandomTableValue(this.MapGoal.AimVectors));
+
+		this.AddWeaponRequest(Priority.High, WEAPON.SMOKE_MARKER );
+		this.BlockForWeaponChange( WEAPON.SMOKE_MARKER );
+		this.Bot.HoldButton(BTN.ATTACK1, 0.5 );
+		sleep(1);
+		this.BlackboardDelay(5, this.MapGoal);
+	}
+	else
+	{
+		this.BlackboardDelay(10, this.MapGoal);
+		Util.ScriptDebugPrint(this.MapGoal.GetName(), "pathfailed");
+	}
+
+	this.Finished();
+};
+

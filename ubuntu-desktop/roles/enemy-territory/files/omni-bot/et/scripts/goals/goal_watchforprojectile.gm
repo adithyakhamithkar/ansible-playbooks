@@ -1,0 +1,133 @@
+this.Name = "WatchForProjectile";
+this.Parent = "HighLevel";
+this.AlwaysRecieveEvents = true;
+this.AutoAdd = true;
+this.Debug = false;
+
+this.LimitToNoEntityFlag(ENTFLAG.INWATER, ENTFLAG.UNDERWATER);
+
+this.AvoidOffsets = { 0, 1, -1, 2, -2, 4, -4, 8, -8 };
+this.AvoidRadius = {};
+this.Initialize = function()
+{
+	watchParams = {
+		Radius = 400,
+		Category = CAT.PROJECTILE,
+		RequireLOS = TRACE.VISIBLE,
+	};
+	this.WatchForEntityCategory(watchParams);
+
+	if ( tableCount(this.AvoidRadius) == 0 ) {
+		this.AvoidRadius[ CLASS.SMOKEMARKER ] = 470;
+		this.AvoidRadius[ CLASS.GRENADE ] = 320;
+	}
+
+	Util.ScriptDebugPrint(this.Name, "initialized");
+};
+
+this.Enter = function()
+{
+	if ( this.Bot.AvoidEnt ) {
+		this.AddFinishCriteria(this.Bot.AvoidEnt, "deleted");
+	}
+	else {
+		this.Finished();
+	}
+};
+
+this.Exit = function()
+{
+	this.Bot.ReleaseButton(BTN.CROUCH, BTN.SPRINT);
+	this.Bot.AvoidEnt = null;
+};
+
+this.Update = function()
+{
+	botId = this.Bot.GetGameId();
+	radius = this.AvoidRadius[ this.AvoidEntClass ];
+	found = false;
+
+	for(;;)
+	{
+		// get entity position
+		avoidPos = GetEntPosition(this.Bot.AvoidEnt);
+		eyePos = this.Bot.GetEyePosition();
+		if (!avoidPos || !eyePos){
+			this.Finished();
+		}
+
+		// calculate 2D distance
+		face = eyePos - avoidPos;
+		face = Vec3(face.x, face.y, 0);
+
+		if (face.Length() > radius && found)
+		{
+			//crouch and wait
+			this.Bot.MoveTowards(this.Bot.GetPosition());
+			this.AddAimRequest(Priority.Low, "position", avoidPos);
+			this.Bot.HoldButton(BTN.CROUCH, 10);
+			sleep(0.4);
+		}
+		else
+		{
+			face = face.Normalize();
+			side = CrossProduct(face, Vec3(0,0,1));
+			found = false;
+
+			foreach(offset in this.AvoidOffsets)
+			{
+				// yield at the top in case of script errors
+				yield();
+
+				end = eyePos + face * radius + side * offset * 64;
+
+				tr = TraceLine( eyePos, end, 0, TRACE.SHOT, botId, false );
+				if (tr.fraction < 1){
+					end = tr.end;
+				}
+
+				if ( this.Debug ) {
+					DrawDebugLine( eyePos, end, COLOR.GREEN, 5 );
+				}
+
+				if ( DistanceBetween(avoidPos, end) > radius ) {
+					found = true;
+					break;
+				}
+			}
+
+			if (!found){
+				// failed
+				break;
+			}
+
+			// sprint to safe spot
+			this.Bot.ReleaseButton(BTN.CROUCH);
+			this.Bot.HoldButton(BTN.SPRINT, 10);
+			this.ReleaseAimRequest();
+			this.Goto(end, 64.0);
+		}
+	}
+
+	this.Finished();
+};
+
+this.Events[EVENT.ENT_ENTER_RADIUS] = function(ent)
+{
+	if ( ent ) {
+		entClass = GetEntClass(ent);
+
+		// cs: ignore arty for now. the problem is that repeated spam of arty can have an entire team
+		// locked down in avoid mode. especially noticeable on poorly routed maps
+		if ( entClass == CLASS.SMOKEMARKER || /*entClass == CLASS.ARTY ||*/ entClass == CLASS.GRENADE ) {
+			if ( this.Bot && GetEntOwner(ent) != this.Bot.GetGameEntity() ) {
+				if ( GetCvar("g_friendlyfire") < 1 && this.Bot.IsAllied(ent) ) {
+					return;
+				}
+				this.AvoidEntClass = entClass;
+				this.Bot.AvoidEnt = ent;
+				this.Priority = 0.95;
+			}
+		}
+	}
+};

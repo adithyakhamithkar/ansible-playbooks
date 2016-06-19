@@ -1,0 +1,332 @@
+//==========================================================================================
+//
+//	steelplant2.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	palota	14 May 2011	Initial Script
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+	objTaken = false,
+	elevatorMoving = false,
+	elevator2Moving = false,
+
+	Roles =
+	{
+		AXIS =
+		{
+			DEFENDER2 =
+			{
+				numbots = 2,
+			},
+		},
+	},
+
+	Navigation =
+	{
+		elevator3w =
+		{
+			navigate = function(_this)
+			{
+				if (Map.elevatorMoving)
+				{
+					_this.Goto(Vector3(-473.653, 2680.753, 88.125));
+					while (Map.elevatorMoving)
+					{
+						sleep(0.5);
+					}
+				}
+				_this.Goto(Vector3(-383.009, 2517.160, 107.127));
+				for (i=0; i<150 && _this.Bot.GetPosition().z < 930; i+=1)
+				{
+					yield();
+				}
+			},
+		},
+		elevator3e =
+		{
+			navigate = function(_this)
+			{
+				if (Map.elevator2Moving)
+				{
+					_this.Goto(Vector3(482.665, 2745.979, 88.125));
+					while (Map.elevator2Moving)
+					{
+						sleep(0.5);
+					}
+				}
+				_this.Goto(Vector3(383.009, 2517.156, 106.127));
+				for (i=0; i<150 && _this.Bot.GetPosition().z < 930; i+=1)
+				{
+					yield();
+				}
+			},
+		},
+		elevator1 =
+		{
+			navigate = function(_this)
+			{
+				bot = _this.Bot;
+				for (i=0; i<5 && bot.GetPosition().z < 412; i+=1)
+				{
+					_this.Goto(Vector3(-1.395, 25.792, 408.125));
+					sleep(3+i);
+					_this.Goto(Vector3(2.813, 222.425, 416.125));
+				}
+				_this.AddAimRequest(Priority.High, "facing", Vector3(-0.041, -0.000, -0.999));
+				sleep(0.3);
+				for (i=0; i<7 && bot.GetPosition().z < 450; i+=1)
+				{
+					bot.PressButton(BTN.USE);
+					sleep(0.5);
+				}
+				_this.ReleaseAimRequest();
+				sleep(0.5);
+			},
+		},
+		elevator2 =
+		{
+			navigate = function(_this)
+			{
+				bot = _this.Bot;
+				for (i=0; i<5 && bot.GetPosition().z < 732; i+=1)
+				{
+					_this.Goto(Vector3(-1.425, 855.793, 728.125));
+					sleep(3+i);
+					_this.Goto(Vector3(-1.095, 1086.555, 736.125));
+				}
+				_this.AddAimRequest(Priority.High, "facing", Vector3(-0.041, -0.000, -0.999));
+				sleep(0.3);
+				for (i=0; i<7 && bot.GetPosition().z < 770; i+=1)
+				{
+					bot.PressButton(BTN.USE);
+					sleep(0.5);
+				}
+				_this.ReleaseAimRequest();
+				sleep(0.5);
+			},
+		},
+		fan =
+		{
+			navigate = function(_this)
+			{
+				for (i=0; i<10 && _this.Bot.GetPosition().y < -400; i+=1)
+				{
+					sleep(1);
+				}
+				sleep(3);
+				pos = _this.Bot.GetPosition();
+				if (pos.z < 500 && pos.y < -120)
+				{
+					_this.Goto(Vector3(-5.546, -377.589, 145.059));
+				}
+			},
+		},
+	},
+
+	Defence_Sentry_Built = function( trigger )
+	{
+		Util.DisableGoal("ROUTE_entrance");
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_obj_gun.*" );
+		Util.MapDebugPrint( "Defence_Sentry_Built" );
+	},
+
+	Defence_Sentry_Destroyed = function( trigger )
+	{
+		Util.EnableGoal("ROUTE_entrance");
+		if (!Map.objTaken){
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_obj_gun.*" );
+		}
+		Util.SetMaxUsers( 2, "BUILD_Defence_Sentry" );
+		Util.MapDebugPrint( "Defence_Sentry_Destroyed" );
+	},
+
+	Fan_Built = function( trigger )
+	{
+		Util.EnableGoal("ROUTE_fan");
+		Wp.SetWaypointFlag("fan", "closed", false);
+		Util.MapDebugPrint( "Fan_Built" );
+	},
+
+	Fan_Destroyed = function( trigger )
+	{
+		Util.DisableGoal("ROUTE_fan");
+		Wp.SetWaypointFlag("fan", "closed", true);
+		Util.MapDebugPrint( "Fan_Destroyed" );
+	},
+
+	Well_Grate_Destroyed = function( trigger )
+	{
+		Util.EnableGoal("ROUTE_tunnel_west");
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "TRIPMINE_x.*" );
+		SetGoalPriority( "DEFEND_grate.*", 0.5);
+		Util.SetRoleForGoals("DEFEND_grate.*", ROLE.DEFENDER2);
+		Util.MapDebugPrint( "Well_Grate_Destroyed" );
+	},
+
+	prototype_Taken = function( trigger )
+	{
+		Map.objTaken = true;
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_obj.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_cap.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_cap.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_l.*" );
+		Util.MapDebugPrint( "prototype_Taken" );
+	},
+
+	prototype_Returned = function( trigger )
+	{
+		Map.objTaken = false;
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_obj.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_cap.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_cap.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_l.*" );
+		Util.MapDebugPrint( "prototype_Returned" );
+	},
+
+	prototype_Secured = function( trigger )
+	{
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "prototype_Secured" );
+	},
+
+	elevator_goto = function( trigger )
+	{
+		if (ToVector(trigger.Action).z < 0)
+		{
+			sleep(3);
+			Map.elevatorMoving = false;
+			Util.MapDebugPrint( "elevator down" );
+		}else{
+			sleep(0.5);
+			Map.elevatorMoving = true;
+		}
+	},
+
+	elevator2_goto = function( trigger )
+	{
+		if (ToVector(trigger.Action).z < 0)
+		{
+			sleep(3);
+			Map.elevator2Moving = false;
+			Util.MapDebugPrint( "elevator2 down" );
+		}else{
+			sleep(0.5);
+			Map.elevator2Moving = true;
+		}
+	},
+};
+
+global OnMapLoad = function()
+{
+	OnTrigger( "The Defence Sentry has been built!", Map.Defence_Sentry_Built );
+	OnTrigger( "The Defence Sentry have been destroyed!", Map.Defence_Sentry_Destroyed );
+	OnTrigger( "Allies have repaired the fan.", Map.Fan_Built );
+	OnTrigger( "Axis destroyed the fan!", Map.Fan_Destroyed );
+	OnTrigger( "The Well Grate has been destroyed!", Map.Well_Grate_Destroyed );
+	OnTrigger( "Allies has stolen the Prototype!", Map.prototype_Taken );
+	OnTrigger( "Flag returned prototype!", Map.prototype_Returned );
+	OnTrigger( "Allied team escaped with the Prototype!", Map.prototype_Secured );
+	OnTrigger( "elevator_goto", Map.elevator_goto );
+	OnTrigger( "elevator2_goto", Map.elevator2_goto );
+
+	Wp.SetWaypointFlag("fan", "closed", true);
+
+	Util.DisableGoal("ROUTE_fan");
+	Util.DisableGoal("ROUTE_tunnel_west");
+
+	Util.DisableGoal("ATTACK_.*");
+	Util.DisableGoal("DEFEND_.*");
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_obj.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_grate.*" );
+	Util.LimitToTeam( TEAM.AXIS, "GRENADE_fan");
+	Util.LimitToTeam( TEAM.ALLIES, "GRENADE_sentry");
+	Util.LimitToTeam( TEAM.AXIS, ".*_x.*");
+	SetAvailableMapGoals( TEAM.AXIS, false, "TRIPMINE_x.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Command_Post" );
+
+	Util.ClearRoleForGoals("DEFEND_grate.*", ROLE.DEFENDER2);
+	Util.SetRoleForGoals("GRENADE_fan", ROLE.DEFENDER2);
+	Util.SetRoleForGoals("DEFEND_x.*", ROLE.DEFENDER2);
+
+	SetGoalPriority( "FLAG_prototype", 0.7, TEAM.ALLIES);
+	SetGoalPriority( "GRENADE_.*", 0.75);
+	SetGoalPriority( "DEFEND_grate.*", 0.51);
+	SetGoalPriority( "DEFEND_x.*", 0.52);
+	SetGoalPriority( "ATTACK_cap.*", 0.76);
+	SetGoalPriority( "PLANT_Well_Grate", 0.82);
+	SetGoalPriority( "BUILD_Defence_Sentry", 0.91);
+
+	// Max users per goal
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "CALLARTILLERY.*" );
+	Util.SetMaxUsers( 1, "BUILD_Defence_Sentry" );
+	Util.SetMaxUsers( 1, "BUILD_Command_Post" );
+
+	// Camp times
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=10, MaxCampTime=40} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=30, MaxCampTime=120} );
+
+	MapRoutes =
+	{
+		FLAG_prototype = {
+			ROUTE_allied_spawn = {
+				ROUTE_fan = {
+					ROUTE_up_east = {},
+					ROUTE_up_west = {},
+				},
+				ROUTE_south_down = { Weight=20,
+					ROUTE_south_down_east = {
+						ROUTE_entrance = {
+							ROUTE_up_east = {},
+							ROUTE_up_west = {},
+							ROUTE_down_east = { Weight=2 },
+							ROUTE_down_west = { Weight=2 },
+							ROUTE_tunnel_east = { Weight=2 },
+						},
+						ROUTE_tunnel_west = {},
+					},
+					ROUTE_south_down_west = {
+						ROUTE_entrance = {},
+						ROUTE_tunnel_west = { Weight=2 },
+					},
+				},
+				ROUTE_south_west = {
+					ROUTE_entrance = {},
+					ROUTE_tunnel_west = { Weight=2 },
+				},
+				ROUTE_south_east = {
+					Weight=0.5,
+					ROUTE_entrance = {},
+					ROUTE_tunnel_west = {},
+				},
+			}
+		},
+		CAPPOINT_escape = {
+			ROUTE_prototype = {
+				ROUTE_up_east = {},
+				ROUTE_up_west = {},
+				ROUTE_down_east = {},
+				ROUTE_tunnel_west = { Weight = 3 },
+			}
+		},
+		DEFEND_x3 = {
+			ROUTE_axis_spawn1 = {
+				ROUTE_axis_door = {}
+			},
+		}
+	};
+	MapRoutes.DEFEND_x1 = MapRoutes.DEFEND_x3;
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};

@@ -1,0 +1,470 @@
+global Server =
+{
+	// README!  The values here represent default settings. Changing them will have no effect unless no omni-bot.cfg
+	// file exists. It is recommended that all changes to these settings are made in the omni-bot.cfg file located in the games
+	// user directory. ex: ~/omni-bot/et/usr/omni-bot.cfg
+	MinBots = -1,
+	MaxBots = -1,
+	BalanceTeams = false,
+	SaveConfigChanges = true,
+	CountSpectators =  false,
+	SleepBots = false,
+	ClassCount = {},
+	MinClassCount = {},
+	BotTeam = -1,
+	HumanTeam = -1,
+	BotsPerHuman = 3,
+	InitialDelayTime = 2.1,
+	CountedPlayers = 0,
+
+	Team =
+	{
+	},
+};
+
+// Read from persistent config
+Server.MinBots = ConfigGet("ServerManager","MinBots", Server.MinBots);
+Server.MaxBots = ConfigGet("ServerManager","MaxBots", Server.MaxBots);
+Server.BalanceTeams = ConfigGet("ServerManager","BalanceTeams", Server.BalanceTeams);
+Server.SaveConfigChanges = ConfigGet("ServerManager","SaveConfigChanges", Server.SaveConfigChanges);
+Server.CountSpectators = ConfigGet("ServerManager","CountSpectators", Server.CountSpectators);
+Server.SleepBots = ConfigGet("ServerManager","SleepBots", Server.SleepBots);
+Server.InitialDelayTime = ConfigGet("ServerManager","InitialDelayTime", Server.InitialDelayTime);
+Server.BotTeam = ConfigGet("Versus","BotTeam", Server.BotTeam);
+Server.HumanTeam = ConfigGet("Versus","HumanTeam", Server.HumanTeam);
+Server.BotsPerHuman = ConfigGet("Versus","BotsPerHuman", Server.BotsPerHuman);
+
+
+////////////////////////////////////////////////////////////
+
+Commands["minbots"] =
+{
+	Func	= function( _params )
+	{
+		if(typeId( _params[0] ) == 0) {
+			print("MinBots currently set to",Server.MinBots);
+			return;
+		}
+
+		n = ToInt( _params[0], -1 );
+		Server.MinBots = Round( Clamp(n, -1, Server.MaxPlayers) );
+
+		if(Server.MinBots > Server.MaxBots) {
+			Server.MinBots = Server.MaxBots;
+			print("Clamped MinBots to MaxBots");
+		}
+
+		if(Server.MinBots > Server.MaxPlayers) {
+			Server.MinBots = Server.MaxPlayers;
+			print("Clamped MinBots to MaxPlayers");
+		}
+
+		if(Server.MinBots == Server.MaxPlayers) {
+			print("Warning, no slots left for new clients with MinBots same as MaxPlayers");
+		}
+
+		if(Server.SaveConfigChanges) {
+			ConfigSet("ServerManager","MinBots", Server.MinBots);
+		}
+		print("Changed MinBots to", Server.MinBots);
+	},
+	Help =
+	{
+		"MinBots - sets the MinBots",
+		"Usage: /bot minbots 10",
+	},
+	RunImmediate = true,
+};
+
+Commands["maxbots"] =
+{
+	Func	= function( _params )
+	{
+		if(typeId( _params[0] ) == 0) {
+			print("MaxBots currently set to",Server.MaxBots);
+			return;
+		}
+
+		n = ToInt( _params[0], -1 );
+		Server.MaxBots = Round( Clamp(n, -1, Server.MaxPlayers) );
+
+		if(Server.MaxBots < Server.MinBots) {
+			Server.MaxBots = Server.MinBots;
+			print("Clamped MaxBots to MinBots");
+		}
+
+		if(Server.MaxBots > Server.MaxPlayers) {
+			Server.MaxBots = Server.MaxPlayers;
+			print("Clamped MinBots to MaxPlayers");
+		}
+
+		if(Server.SaveConfigChanges) {
+			ConfigSet("ServerManager","MaxBots", Server.MaxBots);
+		}
+		print("Changed MaxBots to", Server.MaxBots);
+	},
+	Help =
+	{
+		"MaxBots - sets the MaxBots",
+		"Usage: /bot MaxBots 20",
+	},
+	RunImmediate = true,
+};
+
+Commands["balanceteams"] =
+{
+	Func	= function(_params)
+	{
+		if ( typeId( _params[0] ) == 0 ) {
+			print( "balanceteams is ", ConfigGet("ServerManager","BalanceTeams", Server.BalanceTeams) );
+			return;
+		}
+
+		b = ToBool( _params[0] );
+
+		Server.BalanceTeams = b;
+
+		if(Server.SaveConfigChanges) {
+			ConfigSet("ServerManager","BalanceTeams", Server.BalanceTeams);
+		}
+
+		if(Server.BalanceTeams) {
+			print("balanceteams enabled");
+		}
+		else {
+			print("balanceteams disabled");
+		}
+	},
+	Help =
+	{
+		"balanceteams - sets bot balance teams on/off",
+		"Usage: /bot balanceteams 1",
+	},
+	RunImmediate = true,
+};
+
+Commands["initialdelaytime"] =
+{
+	Func = function(_params)
+	{
+		type = typeId(_params[0]);
+		if ( type != 1 && type != 2 ) {
+			print( "InitialDelayTime is ", ConfigGet("ServerManager","InitialDelayTime", Server.InitialDelayTime) );
+			return;
+		}
+
+		Server.InitialDelayTime = _params[0];
+		print("Server.InitialDelayTime set to " + _params[0]);
+
+		if(Server.SaveConfigChanges) {
+			ConfigSet("ServerManager","InitialDelayTime", Server.InitialDelayTime);
+		}
+	},
+	Help =
+	{
+		"initial - sets delay time for server manager to execute on map changes",
+		"Usage: /bot delaytime 1",
+	},
+	RunImmediate = true,
+};
+Commands["idt"] = Commands["initialdelaytime"];
+
+////////////////////////////////////////////////////////////
+global KickABotOnHeavyTeam = function()
+{
+	heavyteam = 0;
+	heavyteamcount = 0;
+	foreach ( team and tbl in Server.Team ) {
+		if(tbl.NumPlayers > heavyteamcount && tbl.NumBots > 0) {
+			heavyteamcount = tbl.NumPlayers;
+			heavyteam = team;
+		}
+	}
+
+	if(heavyteam != 0) {
+		print("Kicking bot from team", heavyteam);
+		KickBotFromTeam(heavyteam);
+	}
+};
+////////////////////////////////////////////////////////////
+global BalanceTeams = function()
+{
+	heavyteam = 0;
+	heavyteamcount = 0;
+
+	lightteam = 0;
+	lightteamcount = 100;
+	foreach ( team and tbl in Server.Team ) {
+		if(team==0) {
+			continue;
+		}
+
+		if(tbl.NumPlayers > heavyteamcount) {
+			heavyteamcount = tbl.NumPlayers;
+			heavyteam = team;
+		}
+
+		if(tbl.NumPlayers < lightteamcount) {
+			lightteamcount = tbl.NumPlayers;
+			lightteam = team;
+		}
+	}
+
+	teamdiff = Abs(heavyteamcount-lightteamcount);
+	if((heavyteam==lightteam) || (heavyteam == 0) || (lightteam == 0) || (teamdiff< 2)) {
+		return;
+	}
+
+	print("Moving bot from team", heavyteam, "to team", lightteam);
+	MoveBotToAnotherTeam(heavyteam, lightteam);
+};
+////////////////////////////////////////////////////////////
+
+global DelayManagePlayers = true;
+global ManagePlayers = function( playerinfo )
+{
+	if (DelayManagePlayers) {
+		sleep(Server.InitialDelayTime);
+		global DelayManagePlayers = GetGameState() == "Intermission";
+		return;
+	}
+
+	CheckSleep();
+
+	if(Server.BalanceTeams && Server.BotTeam < 0) {
+		BalanceTeams();
+	}
+
+	// By default we don't count spectators towards the 'NumPlayers'. This means that spectators can occupy a slot and
+	// a bot will not be kicked until that player joins a team. For this reason it is a good idea to have several joinable slots
+	// open in the server, and not just 1, to prevent someone that stays in spectator from blocking any further joining players.
+	if ( Server.CountSpectators ) {
+		Server.CountedPlayers = Server.NumPlayers;
+	}
+	else {
+		Server.CountedPlayers = Server.NumPlayersNoSpec;
+	}
+
+	if ( Server.BotTeam < 1 || Server.HumanTeam < 1 || Server.BotTeam == Server.HumanTeam || Server.BotsPerHuman < 1 ) {
+		MinAndMaxBots(Server.CountedPlayers);
+	}
+	else {
+		AdjustForBotTeam(Server.CountedPlayers);
+	}
+};
+
+global MinAndMaxBots = function(NumPlayers)
+{
+	// clamp values
+	if(Server.MaxBots > Server.MaxPlayers) {
+		Server.MaxBots = Server.MaxPlayers;
+	}
+
+	if(Server.MinBots > Server.MaxBots) {
+		Server.MinBots = Server.MaxBots;
+	}
+
+	// minbots
+	if(Server.MinBots > 0 && Server.NumBots < Server.MinBots && NumPlayers < Server.MaxPlayers) {
+		if(OnBotAutoJoin) {
+			// OnBotAutoJoin should give us a table of bot info to use
+			t = OnBotAutoJoin();
+			// cs: passing an empty table may not give expected results
+			if(tableCount(t) != 0) {
+				AddBot(t);
+			}
+			else {
+				AddBot();
+			}
+			return;
+		}
+		else {
+			AddBot();
+			return;
+		}
+	}
+
+	// maxbots
+	if(NumPlayers < Server.MaxBots)
+	{
+		// add bots up to maxbots if possible
+		if(Server.MaxBots > 0 && Server.NumBots < Server.MaxBots && NumPlayers < Server.MaxPlayers) {
+			if(OnBotAutoJoin) {
+				// OnBotAutoJoin should give us a table of bot info to use
+				t = OnBotAutoJoin();
+				// cs: passing an empty table may not give expected results
+				if(tableCount(t) != 0) {
+					AddBot(t);
+				}
+				else {
+					AddBot();
+				}
+				return;
+			}
+			else {
+				AddBot();
+				return;
+			}
+		}
+	}
+	else if(Server.MaxBots > 0 && NumPlayers > Server.MaxBots && Server.NumBots > Server.MinBots) {
+		KickABotOnHeavyTeam();
+	}
+};
+
+global CheckSleep = function()
+{
+	if ( !Server.SleepBots ) {
+		return;
+	}
+
+	// if only bots, put them to bed
+	if ( Server.NumPlayers == Server.NumBots ) {
+		foreach( id and bot in BotTable ) {
+			bot.Enable(false);
+		}
+	}
+	else {
+		foreach( id and bot in BotTable ) {
+			bot.Enable(true);
+		}
+	}
+};
+
+// -------------- BotTeam functions -------------- //
+/*
+	// syntax
+	bot botwar <botTeam> <humanTeam> <botsPerHuman>
+	bot botteam <team>
+	bot humanteam <team>
+	bot botsperhuman <num>
+
+	// usage
+	bot botwar 2 1 3 	// set bots to be on allies with a 3 to 1 ratio compared to humans on the axis team
+	bot botsperhuman 4 	// increase the ratio of bots to 4
+	bot botwar -1		// disable it
+*/
+
+global AdjustForBotTeam = function(NumPlayers)
+{
+	desiredBots = Server.Team[ Server.HumanTeam ].NumHumans * Server.BotsPerHuman;
+
+	// move any bots on human team to the bot team. or kick them
+	foreach ( id and team in Server.Team )
+	{
+		if ( id == Server.HumanTeam && Server.Team[ id ].NumBots > 0 )
+		{
+			if ( NumPlayers > Server.MaxBots || Server.Team[ Server.BotTeam ].NumBots == desiredBots )
+			{
+				KickBotFromTeam(id);
+			}
+			else
+			{
+				MoveBotToAnotherTeam(Server.HumanTeam, Server.BotTeam);
+			}
+		}
+	}
+
+	yield();
+
+	if ( Server.Team[ Server.BotTeam ].NumBots > Server.MaxBots ||  Server.Team[ Server.BotTeam ].NumBots > desiredBots )
+	{
+		KickBotFromTeam(Server.BotTeam);
+	}
+	else if ( Server.Team[ Server.BotTeam ].NumBots < desiredBots && NumPlayers < Server.MaxBots )
+	{
+		AddBot(Server.BotTeam);
+	}
+};
+
+global SetBotTeam = function(botTeam)
+{
+	n = ToInt( botTeam );
+	Server.BotTeam = n;
+	ConfigSet("Versus","BotTeam", n);
+};
+
+global SetHumanTeam = function(humanTeam)
+{
+	n = ToInt( humanTeam );
+	Server.HumanTeam = n;
+	ConfigSet("Versus","HumanTeam", n);
+};
+
+global SetBotsPerHuman = function(botsPerHuman)
+{
+	n = ToInt( botsPerHuman );
+	Server.BotsPerHuman = n;
+	ConfigSet("Versus","BotsPerHuman", n);
+};
+
+// -------------- BotTeam commands -------------- //
+
+Commands["botwar"] =
+{
+	Func	= function(_params)
+	{
+		if ( _params[0] && _params[1] && _params[2] )
+		{
+			SetBotTeam(_params[0]);
+			SetHumanTeam(_params[1]);
+			SetBotsPerHuman(_params[2]);
+		}
+		else if ( _params[0] && _params[0] == -1 )
+		{
+			// disable it
+			SetBotTeam(-1);
+		}
+	},
+	Help =
+	{
+		"Enable or disable bots vs human teams",
+		"    bot botwar 2 1 3 - set bots to be on allies with a 3 to 1 ratio compared to humans on the axis team",
+		"    bot botwar -1 - disable it",
+	},
+};
+
+Commands["botteam"] =
+{
+	Func	= function(_params)
+	{
+		if ( _params[0] )
+		{
+			SetBotTeam(_params[0]);
+		}
+	},
+	Help =
+	{
+		"set the team the bots should be on in a humans vs bots game",
+	},
+};
+
+Commands["humanteam"] =
+{
+	Func	= function(_params)
+	{
+		if ( _params[0] )
+		{
+			SetBotTeam(_params[0]);
+		}
+	},
+	Help =
+	{
+		"set the team the humans should be on in a humans vs bots game",
+	},
+};
+
+Commands["botsperhuman"] =
+{
+	Func	= function(_params)
+	{
+		if ( _params[0] )
+		{
+			SetBotsPerHuman(_params[0]);
+		}
+	},
+	Help =
+	{
+		"set the team the ratio of bots per humans in a humans vs bots game",
+	},
+};

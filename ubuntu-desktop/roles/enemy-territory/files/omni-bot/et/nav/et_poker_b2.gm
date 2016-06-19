@@ -1,0 +1,512 @@
+//==========================================================================================
+//
+//	et_poker_b2.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	palota	05 May 2012	Initial Script
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+
+	Roles =
+	{
+		AXIS =
+		{
+			DEFENDER =
+			{
+				numbots = 1,
+				crucialClass = CLASS.FIELDOPS,
+			},
+			DEFENDER2 =
+			{
+				numbots = 2,
+			},
+		},
+		ALLIES =
+		{
+			DEFENDER =
+			{
+				numbots = 1,
+				crucialClass = CLASS.FIELDOPS,
+			},
+			DEFENDER2 =
+			{
+				numbots = 2,
+			},
+		}
+	},
+
+	DestroyBreakable = function(_this, position, facing)
+	{
+		name = "breakable_" + _this.CurrentNavigation;
+		Map[name] = true;
+		ent = TraceLine( position, position + 200*facing, 0, TRACE.SHOT, _this.Bot.GetGameId(), false ).entity;
+		if(ent)
+		{
+			id = GetGameIdFromEntity(ent);
+			Util.MapDebugPrint("destroying breakable " + id, true);
+			_this.Bot.HoldButton(BTN.FORWARD, 6);
+			_this.AddAimRequest(Priority.High, "facing", facing);
+			_this.AddWeaponRequest(Priority.High, WEAPON.KNIFE);
+			_this.BlockForWeaponChange(WEAPON.KNIFE);
+			for(j=0; j<30; j+=1) {
+				if (!EntityIsValid(id)){ return; }
+				_this.Bot.HoldButton(BTN.ATTACK1, 0.5);
+				if(facing.z < -0.7){ _this.Bot.HoldButton(BTN.CROUCH, 0.4); }
+				sleep(0.5);
+			}
+			Map[name] = null;
+		}
+		sleep(2.5);
+	},
+
+	//ammo and health boxes
+	NavBox = function(_this, x,y,z)
+	{
+		for(i=0; i<3 && _this.Bot.GetHighLevelGoalName() == "UseCabinet"; i+=1){
+			_this.AddAimRequest(Priority.High, "position", Vector3(x,y,z));
+			sleep(0.3);
+			_this.Bot.PressButton(BTN.USE);
+			sleep(0.3);
+			_this.ReleaseAimRequest();
+			sleep(2);
+		}
+		sleep(1);
+	},
+
+	Navigation =
+	{
+		//doors
+		door_w = { navigate = function(_this){
+			_this.AddAimRequest(Priority.High, "facing", Vector3(1,0,0));
+			sleep(1);
+		}},
+		door_e = { navigate = function(_this){
+			_this.AddAimRequest(Priority.High, "facing", Vector3(-1,0,0));
+			sleep(1);
+		}},
+
+		//breakables
+		x_hole = {
+			EvalFunc = function(t){ 
+				return !Map.breakable_x_hole;
+			},
+			navigate = function(t){ 
+				Map.DestroyBreakable(t, Vec3(1.525, 2153.875, -256.125), Vec3(0.019, 0.561, 0.828));
+			}
+		},
+		l_hole = { 
+			EvalFunc = function(t){ 
+				return !Map.breakable_l_hole;
+			},
+			navigate = function(t){
+				Map.DestroyBreakable(t, Vec3(1.321, -2153.875, -256.125), Vec3(-0.008, -0.525, 0.851));
+			}
+		},
+		x_low_ladder = { 
+			EvalFunc = function(t){ 
+				return !Map.breakable_x_low_ladder;
+			},
+			navigate = function(t){
+				Map.DestroyBreakable(t, Vec3(438.249, 1001.875, -565.658), Vec3(-0.023, 0.320, 0.947));
+			}
+		},
+		l_low_ladder = { 
+			EvalFunc = function(t){ 
+				return !Map.breakable_l_low_ladder;
+			},
+			navigate = function(t){
+				Map.DestroyBreakable(t, Vec3(435.646, -1001.871, -561.887), Vec3(0.024, -0.453, 0.891));
+			}
+		},
+
+		//ammo and health boxes
+		health1x = {navigate=function(t){
+			Map.NavBox(t, 1578.875, 100.787, -464.657);
+		}},
+		ammo1x = {navigate=function(t){
+			Map.NavBox(t, 1578.875, 32.541, -461.795);
+		}},
+		health2x = {navigate=function(t){
+			Map.NavBox(t, 29.089, 2209.125, -182.477);
+		}},
+		ammo2x = {navigate=function(t){
+			Map.NavBox(t, -24.466, 2209.870, -182.875);
+		}},
+		health3x = {navigate=function(t){
+			Map.NavBox(t, 10.065, 2894.033, -466.875);
+		}},
+		ammo3x = {navigate=function(t){
+			Map.NavBox(t, -56.552, 2893.125, -465.662);
+		}},
+		health1l = {navigate=function(t){
+			Map.NavBox(t, -55.477, -2913.125, -465.153);
+		}},
+		ammo1l = {navigate=function(t){
+			Map.NavBox(t, 25.145, -2913.125, -459.723);
+		}},
+		health2l = {navigate=function(t){
+			Map.NavBox(t, -28.488, -2213.125, -175.655);
+		}},
+		ammo2l = {navigate=function(t){
+			Map.NavBox(t, 28.200, -2213.125, -176.106);
+		}},
+		health3l = {navigate=function(t){
+			Map.NavBox(t, 1578.875, -236.125, -459.993);
+		}},
+		ammo3l = {navigate=function(t){
+			Map.NavBox(t, 1578.875, -304.828, -458.106);
+		}},
+	},
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, ".*box3_allied" );
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, ".*box3_allied" );
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*box1_axis" );
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*box1_axis" );
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	Axis_Castle_Built = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_x_castle" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_x_deck" );
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*MG42_rightfence_axis.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*box2_axis" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_x_castle.*" );
+		Util.MapDebugPrint( "Axis_Castle_Built" );
+	},
+
+	Allies_Castle_Built = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_l_castle" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_l_deck" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, ".*MG42_rightfence_allies.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, ".*box2_allied" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_l_castle.*" );
+		Util.MapDebugPrint( "Allies_Castle_Built" );
+	},
+
+	Axis_Deck_Secured = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_x_deck" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "FLAG_axiscardmaterials" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_card.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_l_center.*" );
+		Util.MapDebugPrint( "Axis_Deck_Secured" );
+	},
+
+	Allies_Deck_Secured = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_x_center.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_l_deck" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_alliescardmaterials" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_card.*" );
+		Util.MapDebugPrint( "Allies_Deck_Secured" );
+	},
+
+	Axis_Card1 = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_card1" );
+		Util.MapDebugPrint( "Axis_Card1" );
+	},
+	Axis_Card2 = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_card2" );
+		Util.MapDebugPrint( "Axis_Card2" );
+	},
+	Axis_Card3 = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_card3" );
+		Util.MapDebugPrint( "Axis_Card3" );
+	},
+	Axis_Card4 = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_card4" );
+		Util.MapDebugPrint( "Axis_Card4" );
+	},
+	Axis_Card5 = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_card5" );
+		Util.MapDebugPrint( "Axis_Card5" );
+	},
+
+	Allies_Card1 = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_card1" );
+		Util.MapDebugPrint( "Allies_Card1" );
+	},
+	Allies_Card2 = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_card2" );
+		Util.MapDebugPrint( "Allies_Card2" );
+	},
+	Allies_Card3 = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_card3" );
+		Util.MapDebugPrint( "Allies_Card3" );
+	},
+	Allies_Card4 = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_card4" );
+		Util.MapDebugPrint( "Allies_Card4" );
+	},
+	Allies_Card5 = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_card5" );
+		Util.MapDebugPrint( "Allies_Card5" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	// Register callback functions
+	OnTrigger( "^fAllied Command Post constructed. ^3Charge speed ^2increased! ^fAmmo a"/*nd Health box3 ^2activated*/, Map.Allied_Command_Post_Built );
+	OnTrigger( "^1Axis team ^3has destroyed the ^fAllied Team Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "^1Axis Command Post ^3constructed. Charge speed ^2increased! ^1Ammo and"/* Health box ^2activated!*/, Map.Axis_Command_Post_Built );
+	OnTrigger( "^fAllied team ^3has destroyed the ^1Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "^1The Axis have finish to built the Castle Cards.", Map.Axis_Castle_Built );
+	OnTrigger( "^1The Axis have Secured the Blue Card Deck on the table.", Map.Axis_Deck_Secured );
+	OnTrigger( "^fThe Allies have finish to built the Castle Cards.", Map.Allies_Castle_Built );
+	OnTrigger( "^fThe Allies have Secured the Blue Card Deck on the table.", Map.Allies_Deck_Secured );
+	OnTrigger( "^1The Axis have secured a 5th cards in river.", Map.Axis_Card1 );
+	OnTrigger( "^1The Axis have secured a 5th cards in turn.", Map.Axis_Card2 );
+	OnTrigger( "^1The Axis have secured a 5th cards in Flop3.", Map.Axis_Card3 );
+	OnTrigger( "^1The Axis have secured a 5th cards in Flop2.", Map.Axis_Card4 );
+	OnTrigger( "^1The Axis have secured a 5th cards in Flop1.", Map.Axis_Card5 );
+	OnTrigger( "^FThe Allies have secured a 5th cards in river.", Map.Allies_Card1 );
+	OnTrigger( "^fThe Allies have secured a 5th cards in turn.", Map.Allies_Card2 );
+	OnTrigger( "^fThe Allies have secured a 5th cards in Flop3.", Map.Allies_Card3 );
+	OnTrigger( "^fThe Allies have secured a 5th cards in Flop2.", Map.Allies_Card4 );
+	OnTrigger( "^fThe Allies have secured a 5th cards in Flop1.", Map.Allies_Card5 );
+
+	OnTriggerRegion(AABB(-1147.815,-3264.417,-54.875,1309.950,3443.227,47.572),RegionTrigger.DisableCombatMovement);//top
+	OnTriggerRegion(AABB(767.005,-2626.149,-522.725,1045.087,2682.335,-356.622),RegionTrigger.DisableCombatMovement);//east
+	OnTriggerRegion(AABB(-767.005,-2626.149,-522.725,-1045.087,2682.335,-356.622),RegionTrigger.DisableCombatMovement);//west
+	OnTriggerRegion(AABB(530.957,850.763,-182.875,1099.908,1516.464,-51.667),RegionTrigger.DisableCombatMovement);//allied deck
+	OnTriggerRegion(AABB(544.058,-1564.783,-182.875,1099.908,-954.093,-55.258),RegionTrigger.DisableCombatMovement);//axis deck
+
+	Util.DisableGoal( ".*", true );
+	Util.EnableGoal(".*_Command_Post");
+
+	foreach(g in { "FLAG_Reds_CardDecks_Materials_axis", "CAPPOINT_x_castle", ".*box3_axis",
+		"MOBILEMG42_x.*", "DEFEND_x.*" }){
+		SetAvailableMapGoals( TEAM.AXIS, true, g );
+	}
+	foreach(g in { "FLAG_Blues_CardDecks_Materials_allies", "CAPPOINT_l_castle", ".*box1_allied",
+		"MOBILEMG42_l.*", "DEFEND_l.*" }){
+		SetAvailableMapGoals( TEAM.ALLIES, true, g );
+	}
+
+	Util.SetRoleForGoals( "MOUNTMG42.*", ROLE.DEFENDER );
+	Util.SetRoleForGoals( "DEFEND.*", ROLE.DEFENDER|ROLE.DEFENDER2 );
+
+	SetGoalPriority( "FLAG.*", 0.6, 0, 0, true );
+	SetGoalPriority( "DEFEND.*", 0.65 );
+
+	// Max users per goal
+	Util.SetMaxUsers( 1, "PLANT_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+
+	// Camp times
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=25} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=15, MaxCampTime=35} );
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=10, MaxCampTime=35} );
+
+	MapRoutes =
+	{
+		FLAG_Reds_CardDecks_Materials_axis = {
+			ROUTE_axis_spawn = {
+				ROUTE_axis_door_e = {
+					ROUTE_center_door_e = {},
+					ROUTE_low_x = { Weight=2, ROUTE_low_x2 = {}},
+				},
+				ROUTE_axis_door_w = {
+					ROUTE_center_door_w = {},
+					ROUTE_low_x = {},
+				},
+			},
+		},
+		FLAG_Blues_CardDecks_Materials_allies = {
+			ROUTE_allied_spawn = {
+				ROUTE_allied_door_e = {
+					ROUTE_center_door_e = {},
+					ROUTE_low_l = { Weight=2, ROUTE_low_l2 = {}},
+				},
+				ROUTE_allied_door_w = {
+					ROUTE_center_door_w = {},
+					ROUTE_low_l = {},
+				},
+			},
+		},
+		CAPPOINT_x_castle = {
+			ROUTE_x_card = {
+				ROUTE_center_door_e = {
+					ROUTE_x_hole = {},
+					ROUTE_l_cp = { ROUTE_c_edge_e = {}},
+				},
+				ROUTE_center_door_w = {
+					ROUTE_x_hole = { Weight=3 },
+					ROUTE_x_jump1 = { ROUTE_x_edge1 = {}},
+					ROUTE_x_jump2 = { ROUTE_x_edge2 = {}},
+					ROUTE_x_jump3 = { ROUTE_c_edge3 = {}},
+				},
+			}
+		},
+		CAPPOINT_l_castle = {
+			ROUTE_l_card = {
+				ROUTE_center_door_e = {
+					ROUTE_l_hole = {},
+					ROUTE_l_cp = { ROUTE_c_edge_e = {}},
+				},
+				ROUTE_center_door_w = {
+					ROUTE_l_hole = { Weight=3 },
+					ROUTE_l_jump1 = { ROUTE_l_edge1 = {}},
+					ROUTE_l_jump2 = { ROUTE_l_edge2 = {}},
+					ROUTE_l_jump3 = { ROUTE_c_edge3 = {}},
+				},
+			}
+		},
+		CAPPOINT_x_deck = {
+			ROUTE_x_card = {
+				ROUTE_center_door_e = { Weight=2,
+					ROUTE_x_cp = {},
+					ROUTE_l_cp = {},
+				},
+				ROUTE_center_door_w = {
+					ROUTE_x_jump3 = {},
+					ROUTE_l_jump3 = {},
+					ROUTE_l_jump2 = {},
+				},
+			}
+		},
+		CAPPOINT_l_deck = {
+			ROUTE_l_card = {
+				ROUTE_center_door_e = { Weight=2,
+					ROUTE_x_cp = {},
+					ROUTE_l_cp = {},
+				},
+				ROUTE_center_door_w = {
+					ROUTE_x_jump3 = {},
+					ROUTE_l_jump3 = {},
+					ROUTE_x_jump2 = {},
+				},
+			}
+		},
+		FLAG_axiscardmaterials = {
+			ROUTE_axis_spawn_top = {
+				ROUTE_x_castle1 = {},
+				ROUTE_x_castle2 = { Weight=0.5 },
+				ROUTE_x_castle3 = { Weight=0.5 },
+				ROUTE_x_castle4 = {},
+				ROUTE_x_hole = { Weight=2,
+					ROUTE_x_cp = {},
+					ROUTE_x_jump3 = {},
+				},
+			},
+		},
+		FLAG_alliescardmaterials = {
+			ROUTE_allied_spawn_top = {
+				ROUTE_l_castle1 = {},
+				ROUTE_l_castle2 = { Weight=0.5 },
+				ROUTE_l_castle3 = { Weight=0.5 },
+				ROUTE_l_castle4 = {},
+				ROUTE_l_hole = { Weight=2,
+					ROUTE_l_cp = {},
+					ROUTE_l_jump3 = {},
+				},
+			},
+		},
+		CAPPOINT_card1 = {
+			ROUTE_deck_l = {
+				ROUTE_card1_e = {},
+				ROUTE_card1_w = {},
+			},
+			ROUTE_deck_x = {
+				ROUTE_card1_e = {},
+				ROUTE_card1_w = {},
+			},
+		},
+		CAPPOINT_card2 = {
+			ROUTE_deck_l = {
+				ROUTE_card2_e = {},
+				ROUTE_card2_w = {},
+			},
+			ROUTE_deck_x = {
+				ROUTE_card2_e = {},
+				ROUTE_card2_w = {},
+			},
+		},
+		CAPPOINT_card3 = {
+			ROUTE_deck_l = {
+				ROUTE_card3_e = {},
+				ROUTE_card3_w = {},
+			},
+			ROUTE_deck_x = {
+				ROUTE_card3_e = {},
+				ROUTE_card3_w = {},
+			},
+		},
+		CAPPOINT_card4 = {
+			ROUTE_deck_l = {
+				ROUTE_card4_e = {},
+				ROUTE_card4_w = {},
+			},
+			ROUTE_deck_x = {
+				ROUTE_card4_e = {},
+				ROUTE_card4_w = {},
+			},
+		},
+		CAPPOINT_card5 = {
+			ROUTE_deck_l = {
+				ROUTE_card5_e = {},
+				ROUTE_card5_w = {},
+			},
+			ROUTE_deck_x = {
+				ROUTE_card5_e = {},
+				ROUTE_card5_w = {},
+			},
+		},
+		PLANT_Command_Post = {
+			ROUTE_axis_spawn_top = {
+				ROUTE_x_hole = {},
+			},
+			ROUTE_allied_spawn_top = {
+				ROUTE_l_hole = {},
+			},
+		},
+	};
+	MapRoutes.BUILD_Command_Post = MapRoutes.PLANT_Command_Post;
+	MapRoutes["DEFEND_x_center.*"] = MapRoutes.FLAG_Reds_CardDecks_Materials_axis;
+	MapRoutes["DEFEND_l_center.*"] = MapRoutes.FLAG_Blues_CardDecks_Materials_allies;
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 250.0;
+};

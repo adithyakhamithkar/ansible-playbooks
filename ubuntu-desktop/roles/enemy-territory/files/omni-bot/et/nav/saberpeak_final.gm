@@ -1,0 +1,406 @@
+//==========================================================================================
+//
+//	saberpeak_final.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	palota	22 September 2010	Initial Script
+//	palota	22 October 2010	MOUNT_ship aim mode, BUILD_allies_assault_boat StartIndex and paththrough
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug=0,
+	ShowMovers = false,
+	Movers = { "MOVER_ship" },
+
+	sideWallDestroyed = false,
+	sidePathAccessible = false,
+	commandPostAllied = false,
+	mainEntranceDestroyed = false,
+	shipDamaged = false,
+	Submarine_Dyno = 0,
+
+	Navigation =
+	{
+		ladder_north ={
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.High, "facing", Vector3(0,-1,0.5));
+				sleep(0.5);
+				_this.Bot.HoldButton(BTN.BACKWARD, 3);
+				sleep(3);
+			}
+		},
+		ladder_south ={
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.High, "facing", Vector3(0,1,0.5));
+				sleep(0.5);
+				_this.Bot.HoldButton(BTN.BACKWARD, 3);
+				sleep(3);
+			}
+		},
+	},
+
+	SetSpawn1 = function(bot)
+	{
+		if (Map.sidePathAccessible)
+		{
+			bot.MaxViewDistance = 5200;
+		}else{
+			bot.MaxViewDistance = 6600;
+		}
+		if (bot.GetTeam()==TEAM.AXIS)
+		{
+			if (Map.mainEntranceDestroyed && RandInt(0,1)>0)
+			{
+				bot.ChangeSpawnPoint(3);
+			}else{
+				bot.ChangeSpawnPoint(0);
+			}
+		}
+	},
+
+	SetSpawn = function()
+	{
+		foreach(bot in BotTable)
+		{
+			Map.SetSpawn1(bot);
+		}
+	},
+
+	Spawn_Changed = function(trigger)
+	{
+		b = Map.commandPostAllied || Map.sidePathAccessible || Map.sideWallDestroyed;
+		SetAvailableMapGoals( TEAM.AXIS, b, ".*MG42_tower.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, b, ".*MG42_bunker_north" );
+		SetAvailableMapGoals( TEAM.ALLIES, b, "GRENADE_tower_mg.*" );
+		b=!b;
+		SetAvailableMapGoals( TEAM.AXIS, b, ".*MG42_bunker_south" );
+		SetAvailableMapGoals( TEAM.AXIS, b, ".*MG42_bunker_center" );
+		SetAvailableMapGoals( TEAM.AXIS, b, "SNIPE_bunker.*" );
+		SetAvailableMapGoals( TEAM.AXIS, b, "CALLARTILLERY_bunker.*" );
+		SetAvailableMapGoals( TEAM.AXIS, b, "ARTILLERY_D_beach.*" );
+		SetAvailableMapGoals( TEAM.AXIS, b, "DEFEND_beach.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, b, "SNIPE_allied.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, b, "MOBILEMORTAR_allied" );
+	},
+
+	Boat_Damaged = function(trigger)
+	{
+		Map.shipDamaged = true;
+		Util.MapDebugPrint("Boat_Damaged");
+	},
+
+	Boat_Repaired = function(trigger)
+	{
+		Map.shipDamaged = false;
+		Util.MapDebugPrint("Boat_Repaired");
+	},
+
+	Get_Ammo = function(trigger)
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_ship" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_Ammo_Dropoff_2" );
+		ETUtil.SetStartIndex("BUILD_allies_assault_boat", 0);
+		Util.MapDebugPrint("Get_Ammo");
+	},
+
+	Ammo_Loaded = function(trigger)
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_ammo.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_ammo.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMORTAR_beach" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_sidewall.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_ship" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Side_Wall" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_entrance.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_sidewall.*" );
+		ETUtil.SetAimModeForMount("MOUNT_ship", Vector3(-3480, -330, 930));
+		ETUtil.SetStartIndex("BUILD_allies_assault_boat", 3);
+		ETUtil.SetExcludeIndexes("BUILD_allies_assault_boat", {0,1});
+		Util.MapDebugPrint("Ammo_Loaded");
+	},
+
+	Side_Path = function(trigger)
+	{
+		Map.sidePathAccessible = true;
+		Map.Spawn_Changed();
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_D_sidepath" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_entrance" );
+		if(!Map.sideWallDestroyed){
+			Util.SetMaxUsersInProgress( 1, "BUILD_allies_assault_boat" );
+		}
+		Util.SetMaxUsersInProgress( 1, "PLANT_Neutral_Command_Post" );
+		Util.EnableGoal("ROUTE_sidepath");
+		ETUtil.SetAimModeForMount("MOUNT_ship", Vector3(130, 3056, 800));
+		ETUtil.SetStartIndex("BUILD_allies_assault_boat", 2);
+		Util.MapDebugPrint("Side_Path");
+	},
+
+	Submarine_Accessible = function()
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Neutral_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*village.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_allied.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_submarine.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "TRIPMINE_submarine.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Submarine" );
+		SetAvailableMapGoals( TEAM.AXIS, !Map.sideWallDestroyed || !Map.mainEntranceDestroyed, "DEFEND_sidewall.*" );
+	},
+
+	Side_Wall_Destroyed = function(trigger)
+	{
+		Util.EnableGoal("ROUTE_sidewall");
+		Map.sideWallDestroyed = true;
+		Map.Spawn_Changed();
+		Map.Submarine_Accessible();
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_sidewall.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMG42_allied_village.*" );
+		Util.SetMaxUsersInProgress( 3, "BUILD_allies_assault_boat" );
+		Util.MapDebugPrint("Side_Wall_Destroyed");
+	},
+
+	Main_Entrance_Destroyed = function(trigger)
+	{
+		Map.mainEntranceDestroyed = true;
+		Util.EnableGoal("ROUTE_entrance");
+		Map.Submarine_Accessible();
+		SetGoalPriority("DEFEND_sidewall.*", 0.5, TEAM.AXIS);
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_village.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_entrance.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_ship" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_allies_assault_boat" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_submarine.*" );
+		Util.SetMaxUsersInProgress( 1, "MOUNT_ship" );
+		Map.SetSpawn();
+		ETUtil.SetExcludeIndexes("BUILD_allies_assault_boat", null);
+		ETUtil.SetStartIndex("BUILD_allies_assault_boat", 0);
+		Util.SetGoalRange("GRENADE_tower_mg_east", 800);
+		Util.SetGoalRange("GRENADE_tower_mg_west", 700);
+		Util.MapDebugPrint("Main_Entrance_Destroyed");
+	},
+
+	Allied_Command_Post_Built = function(trigger)
+	{
+		Map.commandPostAllied = true;
+		Map.Spawn_Changed();
+		Util.MapDebugPrint("Allied_Command_Post_Built");
+	},
+
+	Command_Post_Destroyed = function(trigger)
+	{
+		Map.commandPostAllied = false;
+		Map.Spawn_Changed();
+		Util.MapDebugPrint("Command_Post_Destroyed");
+	},
+
+	Submarine_Planted = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_submarine.*" );
+		Map.Submarine_Dyno += 1;
+		Util.MapDebugPrint( "Submarine_Planted" );
+	},
+
+	Submarine_Defused = function( trigger )
+	{
+		Map.Submarine_Dyno -= 1;
+		if ( Map.Submarine_Dyno < 1  ){
+			SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_submarine.*" );
+		}
+		Util.MapDebugPrint( "Submarine_Defused" );
+	},
+
+	Submarine_Destroyed = function( trigger )
+	{
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "Submarine_Destroyed" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	OnTrigger( "The boat has been damaged", Map.Boat_Damaged );
+	OnTrigger( "The boat has been repaired", Map.Boat_Repaired );
+	OnTrigger( "saberpeak_allies_get_ammo", Map.Get_Ammo );
+	OnTrigger( "Allies have have loaded the ammo onto the boat", Map.Ammo_Loaded );
+	OnTrigger( "Allies have breached the side wall", Map.Side_Wall_Destroyed );
+	OnTrigger( "Allies have destroyed the main entrance", Map.Main_Entrance_Destroyed );
+	OnTrigger( "Allies have gained access to the side path", Map.Side_Path );
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Command_Post_Destroyed );
+	OnTrigger( "Planted at the Submarine.", Map.Submarine_Planted );
+	OnTrigger( "Defused at the Submarine.", Map.Submarine_Defused );
+	OnTrigger( "The Submarine has been destroyed!", Map.Submarine_Destroyed );
+
+	Util.DisableGoal(".*", true);
+	Util.DisableGoal("ROUTE_sidewall");
+	Util.DisableGoal("ROUTE_sidepath");
+	Util.DisableGoal("ROUTE_entrance");
+	Util.EnableGoal("AMMO.*");
+	Util.EnableGoal("HEALTH.*");
+	Util.EnableGoal("BUILD_Neutral_Command_Post");
+	Util.EnableGoal("PLANT_Neutral_Command_Post");
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_ammo.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_sidewall.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_ammo.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMORTAR_beach" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_allies_assault_boat" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_ship" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNT_ship" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_ammo.*" );
+
+	SetGoalPriority("ATTACK_submarine.*", 0.97, TEAM.AXIS);
+	SetGoalPriority("PLANTMINE_sidewall.*", 0.78, TEAM.AXIS);
+	SetGoalPriority("PLANTMINE_village.*", 0.79, TEAM.AXIS);
+	SetGoalPriority("DEFEND_sidewall.*", 0.51, TEAM.AXIS);
+	SetGoalPriority("DEFEND_beach.*", 0.52, TEAM.AXIS);
+	SetGoalPriority("DEFEND_ammo.*", 0.53, TEAM.AXIS);
+	SetGoalPriority("MOUNTMG42_tower_east", 0.6, TEAM.AXIS);
+	SetGoalPriority("SNIPE_village.*", 0.82, TEAM.AXIS);
+	SetGoalPriority("FLAG.*", 0.55, TEAM.AXIS, 0, true);
+	SetGoalPriority("FLAG.*", 0.55, TEAM.ALLIES);
+	SetGoalPriority("ESCORT_ship", 0.58, TEAM.ALLIES);
+	SetGoalPriority("SNIPE_allied.*", 0.82, TEAM.ALLIES);
+	SetGoalPriority("GRENADE_tower_mg.*", 0.6, TEAM.ALLIES);
+	SetGoalPriority("PLANT_Neutral_Command_Post", 0.51, 0, CLASS.ENGINEER);
+	SetGoalPriority("REPAIRMG42_.*", 0.88, TEAM.AXIS);
+
+	Map.Spawn_Changed();
+
+	// Max users per goal
+	Util.SetMaxUsersInProgress( 3, "ATTACK_.*" );
+	Util.SetMaxUsersInProgress( 1, "BUILD_Neutral_Command_Post" );
+	Util.SetMaxUsers( 2, "ESCORT_ship" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "REPAIRMG42_.*" );
+
+	// Camp times
+	SetMapGoalProperties( "DEFEND_.*", {mincamptime=40, maxcamptime=90} );
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=200, MaxCampTime=500} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=20, MaxCampTime=200} );
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=60, MaxCampTime=120} );
+
+	Util.SetGoalOffset(-30, 30, -20, "MOUNTMG42_bunker_south");
+	Util.SetGoalOffset(-30, 0, -20, "MOUNTMG42_bunker_center");
+	Util.SetGoalOffset(-20, -20, -20, "MOUNTMG42_bunker_north");
+	Util.SetGoalOffset(0, 30, -30, "MOUNTMG42_tower_west");
+	Util.SetGoalOffset(0, 30, -30, "MOUNTMG42_tower_east");
+
+	Util.AddUseWp("PLANT_Side_Wall", "sidewall1");
+	Util.AddUseWp("PLANT_Submarine", "submarine1");
+	Util.AddUseWp("PLANT_Submarine", "submarine2");
+	Util.AddUseWp("PLANT_Submarine", "submarine3");
+	Util.AddUseWp("PLANT_Submarine", "submarine4");
+
+	ETUtil.SetAimModeForMount("MOUNT_ship", "velocity");
+	ETUtil.SetStartIndex("BUILD_allies_assault_boat", 2);
+
+	GetGoal("BUILD_allies_assault_boat").PaththroughFunction = function(_this)
+	{
+		bot = _this.Bot;
+		if (bot.GetPosition().z < 500){
+			ent = GetGoal("MOVER_ship").GetEntity();
+			k = 1;
+			if (bot.DistanceTo(GetEntityWorldSpace(ent, Vector3(-210,-390,-170))) < bot.DistanceTo(GetEntityWorldSpace(ent, Vector3(210,-390,-170))))
+			{
+				k = -1;
+			}
+			//climb up the ship ladder
+			v = GetEntFacing(ent);
+			_this.AddAimRequest(Priority.High, "facing", Vector3(-v.y * k, v.x * k, 3));
+			sleep(0.3);
+			bot.HoldButton(BTN.FORWARD, 4);
+			pos = GetEntityWorldSpace(ent, Vector3(0,-370,-70));
+			for(i=0; i<=40 && bot.DistanceTo(pos) > 100; i+=1)
+			{
+				sleep(0.1);
+			}
+			bot.ReleaseButton(BTN.FORWARD);
+		}
+	};
+
+	Util.SetGoalRange("GRENADE_tower_mg_east", 0);
+	Util.SetGoalRange("GRENADE_tower_mg_west", 0);
+
+	MapRoutes =
+	{
+		FLAG_ammoBox1 = {
+			ROUTE_allied_spawn = {
+				ROUTE_allied1 = {},
+				ROUTE_allied2 = {},
+			}
+		},
+		PLANT_Side_Wall = {
+			ROUTE_allied_spawn = {
+				ROUTE_ammo = {},
+				ROUTE_beach = {},
+			},
+			ROUTE_bunker_spawn = {
+				ROUTE_sidewall_north = {},
+				ROUTE_sidewall_south = {},
+			},
+		},
+		PLANT_Submarine = {
+			ROUTE_bunker_spawn = {
+				ROUTE_sidewall = { Weight=2,
+					ROUTE_submarine_north = {},
+					ROUTE_submarine_bridge = { Weight=2 },
+				},
+				ROUTE_entrance = {
+					ROUTE_submarine_north = {},
+					ROUTE_stairs_east = { ROUTE_submarine_bridge = {} },
+				},
+			}
+		},
+		DEFEND_sidewall1 = {
+			ROUTE_axis_spawn = {
+				ROUTE_axis_door = {},
+				ROUTE_axis_stairs = { Weight=2 },
+			}
+		},
+		MOUNTMG42_tower_east = {
+			ROUTE_axis_spawn = {
+				ROUTE_stairs_east = {},
+			},
+			ROUTE_axis_spawn2 = {
+				ROUTE_stairs_east = {},
+			},
+		},
+		MOUNTMG42_tower_west = {
+			ROUTE_axis_spawn = {
+				ROUTE_stairs_west = {},
+			},
+			ROUTE_axis_spawn2 = {
+				ROUTE_stairs_west = {},
+			},
+		},
+	};
+	MapRoutes.FLAG_ammoBox2 = MapRoutes.FLAG_ammoBox1;
+	MapRoutes.FLAG_ammoBox3 = MapRoutes.FLAG_ammoBox1;
+	MapRoutes.ATTACK_sidewall1 = MapRoutes.PLANT_Side_Wall;
+	MapRoutes.ATTACK_sidewall2 = MapRoutes.ATTACK_sidewall1;
+	MapRoutes.ATTACK_sidewall3 = MapRoutes.ATTACK_sidewall1;
+	MapRoutes.ATTACK_sidewall4 = MapRoutes.ATTACK_sidewall1;
+	MapRoutes.DEFEND_sidewall2 = MapRoutes.DEFEND_sidewall1;
+	MapRoutes.DEFEND_sidewall3 = MapRoutes.DEFEND_sidewall1;
+	MapRoutes.DEFEND_sidewall5 = MapRoutes.DEFEND_sidewall1;
+	MapRoutes.ATTACK_submarine1 = MapRoutes.PLANT_Submarine;
+	MapRoutes.ATTACK_submarine2 = MapRoutes.ATTACK_submarine1;
+	MapRoutes.ATTACK_submarine3 = MapRoutes.ATTACK_submarine1;
+	MapRoutes.ATTACK_submarine4 = MapRoutes.ATTACK_submarine1;
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	Map.SetSpawn1(bot);
+};

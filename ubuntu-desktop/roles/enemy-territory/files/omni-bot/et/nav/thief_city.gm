@@ -1,0 +1,414 @@
+// Set Map.Talk below or the global variable MAP_TALK to false if you don't want the bots to use voice chats.
+
+global Map =
+{
+	Talk = true,
+	Ammo_Cabinet_south_ammocabinet = "AMMOCAB_south_ammocabinet",
+	Ammo_Cabinet_south_ammocabinet_1 = "AMMOCAB_south_ammocabinet_1",
+	Health_Cabinet_south_healthcabinet = "HEALTHCAB_south_healthcabinet",
+	Health_Cabinet_south_healthcabinet_1 = "HEALTHCAB_south_healthcabinet_1",
+	Flag_allied_gold = "FLAG_allied_gold",
+	Cappoint_348 = "CAPPOINT_348",
+	Build_Neutral_Command_Post = "BUILD_Neutral_Command_Post",
+	Plant_Neutral_Command_Post = "PLANT_Neutral_Command_Post",
+	Build_Safe_Barrier = "BUILD_Safe_Barrier",
+	Plant_Safe_Barrier = "PLANT_Safe_Barrier",
+	Plant_Safe_Door = "PLANT_Safe_Door",
+	Mount_460 = "MOUNTMG42_460",
+	Mount_462 = "MOUNTMG42_462", // north facing MG
+	Repair_460 = "REPAIRMG42_460",
+	Repair_462 = "REPAIRMG42_462",
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_cp.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_cp.*" );
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_cp.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_cp.*" );
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_cp.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_cp.*" );
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_cp.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_cp.*" );
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	West_Wall_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if (Map.Talk && MAP_TALK)
+		{
+			wppos = Util.GetWpNamePosition( "ww1" );
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.ALLIES && bot.GetClass() != CLASS.ENGINEER && bot.DistanceTo(wppos) < 800 )
+				{
+					ran = RandRange(0,10);
+					if( ran < 4 && !bot.GetNearestAlly(CAT.PLAYER,CLASS.ENGINEER))
+					{
+						sleep(ran);
+						bot.SayVoice(VOICE.NEED_ENGINEER);
+						break;
+					}
+					else if( ran > 6 )
+					{
+						sleep(1);
+						bot.SayVoice(VOICE.DISARM_DYNAMITE);
+						break;
+					}
+				}
+			}
+		}
+		Util.MapDebugPrint( "West_Wall_Planted" );
+	},
+
+	West_Wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_gold.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMG42_gold.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_gold.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_gold.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_westwall" );
+		Util.MapDebugPrint( "West_Wall_Destroyed" );
+	},
+
+	North_Wall_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if (Map.Talk && MAP_TALK)
+		{
+			wppos = Util.GetWpNamePosition( "nw1" );
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.ALLIES && bot.GetClass() != CLASS.ENGINEER && bot.DistanceTo(wppos) < 800 )
+				{
+					ran = RandRange(0,10);
+					if( ran < 4 && !bot.GetNearestAlly(CAT.PLAYER,CLASS.ENGINEER))
+					{
+						sleep(ran);
+						bot.SayVoice(VOICE.NEED_ENGINEER);
+						break;
+					}
+					else if( ran > 6 )
+					{
+						sleep(1);
+						bot.SayVoice(VOICE.DISARM_DYNAMITE);
+					}
+				}
+			}
+		}
+		Util.MapDebugPrint( "North_Wall_Planted" );
+	},
+
+	North_Wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_north_wall.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_gold.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMG42_gold.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_gold.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_gold.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_northwall" );
+
+		if (Map.Talk && MAP_TALK)
+		{
+			rand = ETUtil.CountTeam(TEAM.ALLIES) * 2;
+			rand2 = ETUtil.CountTeam(TEAM.AXIS) * 2;
+
+			gametime = GetGameTimeLeft();
+			foreach ( gameId and bot in BotTable )
+			{
+				if (bot.GetTeam() == TEAM.ALLIES && RandInt(0,rand) < 2 && gametime>35)
+				{
+					sleep(RandRange(1,2));
+					bot.SayVoice(VOICE.DEFEND_OBJECTIVE);
+				}
+				else if (bot.GetTeam() == TEAM.ALLIES && RandInt(0,rand) < 2 && gametime>35)
+				{
+					sleep(RandRange(0.5,1.5));
+					bot.SayVoice(VOICE.REINFORCE_DEF);
+				}
+				if (bot.GetTeam() == TEAM.AXIS && RandInt(0,rand2) < 2 && gametime>40)
+				{
+					sleep(RandRange(1,2.8));
+					bot.SayVoice(VOICE.REINFORCE_OFF);
+				}
+				else if (bot.GetTeam() == TEAM.AXIS && RandInt(1,rand2) < 2 && gametime>120)
+				{
+					sleep(1.5);
+					bot.SayVoice(VOICE.DESTROY_PRIMARY);
+				}
+				else if (bot.GetTeam() == TEAM.AXIS && RandInt(1,rand2) < 2 && gametime>120)
+				{
+					sleep(0.7);
+					bot.ExecCommand("vsay_team FTAttack");
+				}
+			}
+		}
+		Util.MapDebugPrint( "North_Wall_Destroyed" );
+	},
+
+	Safe_Barrier_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if (Map.Talk && MAP_TALK)
+		{
+			rand = ETUtil.CountTeam(TEAM.AXIS) * 2;
+			gametime = GetGameTimeLeft();
+			foreach ( gameId and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.AXIS && bot.GetClass() != CLASS.COVERTOPS && RandInt(0,rand) < 2 && gametime>35 )
+				{
+					sleep(RandRange(0.7,2));
+					bot.SayVoice(VOICE.CLEAR_PATH);
+					break;
+				}
+				else if ( bot.GetTeam() == TEAM.AXIS && bot.GetClass() != CLASS.ENGINEER && RandInt(0,rand) < 2 && gametime>35 )
+				{
+					sleep(RandRange(0.5,1.5));
+					bot.SayVoice(VOICE.DESTROY_CONST);
+					break;
+				}
+			}
+		}
+		Util.MapDebugPrint( "Safe_Barrier_Built" );
+	},
+
+	Safe_Barrier_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Safe_Barrier_Destroyed" );
+	},
+
+	Safe_Door_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Safe_Door_Planted" );
+	},
+
+	Safe_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if (Map.Talk && MAP_TALK)
+		{
+			rand = ETUtil.CountTeam(TEAM.ALLIES) * 2;
+			rand2 = ETUtil.CountTeam(TEAM.AXIS) * 2;
+
+			gametime = GetGameTimeLeft();
+			foreach ( gameId and bot in BotTable )
+			{
+				if (bot.GetTeam() == TEAM.ALLIES && RandInt(0,rand) < 2 && gametime>35)
+				{
+					sleep(RandRange(1,2));
+					bot.SayVoice(VOICE.DEFEND_OBJECTIVE);
+				}
+				else if (bot.GetTeam() == TEAM.ALLIES && RandInt(0,rand) < 2 && gametime>35)
+				{
+					sleep(RandRange(0.5,1.5));
+					bot.ExecCommand("vsay_team FTFallBack");
+				}
+				if (bot.GetTeam() == TEAM.AXIS && RandInt(0,rand2) < 2 && gametime>40)
+				{
+					sleep(RandRange(1,2.8));
+					bot.SayVoice(VOICE.REINFORCE_OFF);
+				}
+				else if (bot.GetTeam() == TEAM.AXIS && RandInt(1,rand2) < 2 && gametime>120)
+				{
+					sleep(1.5);
+					bot.SayVoice(VOICE.G_CHEER);
+				}
+				else if (bot.GetTeam() == TEAM.AXIS && RandInt(1,rand2) < 2 && gametime>120)
+				{
+					sleep(0.7);
+					bot.ExecCommand("vsay_team FTAttack");
+				}
+				break;
+			}
+		}
+		Util.MapDebugPrint( "Safe_Door_Destroyed" );
+	},
+
+	allied_gold_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_cp.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_gold.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_gold.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_gold.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_cap.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_cap.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_cap.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_gold.*" );
+		Util.MapDebugPrint( "allied_gold_Taken" );
+	},
+
+	allied_gold_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_gold.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMG42_gold.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_gold.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_cap.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_cap.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_cap.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_gold.*" );
+		Util.MapDebugPrint( "allied_gold_Returned" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	/*** TRIGGERS ***/
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "Planted at North Wall.", Map.North_Wall_Planted );
+	OnTrigger( "The axis team has destroyed the North Wall!", Map.North_Wall_Destroyed );
+	OnTrigger( "Planted at West Wall.", Map.West_Wall_Planted );
+	OnTrigger( "The axis team has destroyed the West Wall!", Map.West_Wall_Destroyed );
+	OnTrigger( "Allied team have built the safe barrier!", Map.Safe_Barrier_Built );
+	OnTrigger( "Axis team have destroyed the safe barrier!", Map.Safe_Barrier_Destroyed );
+	OnTrigger( "Planted at Safe Door.", Map.Safe_Door_Planted );
+	OnTrigger( "The axis team has destroyed the object!", Map.Safe_Door_Destroyed );
+	OnTrigger( "Axis have stolen the Allied gold!", Map.allied_gold_Taken );
+	OnTrigger( "Allies have returned the Allied gold!", Map.allied_gold_Returned );
+
+	Util.SetGoalPosition( 1690, -1875, 50, Map.Plant_Safe_Barrier );
+	Util.SetMaxUsersInProgress( 1, ".*" );
+	Util.SetMaxUsersInProgress( 2, "ATTACK_gold.*" );
+	Util.SetMaxUsersInProgress( 5, "FLAG_allied_gold" );
+
+	/*** CAMP TIME ***/
+	SetMapGoalProperties( "ATTACK_.*", {maxcamptime=15} );
+	SetMapGoalProperties( "DEFEND_.*", {maxcamptime=35} );
+	SetMapGoalProperties( "SNIPE_.*", {maxcamptime=70} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {maxcamptime=100} );
+	SetMapGoalProperties( "MOUNT_.*", {maxcamptime=100} );
+
+	/*** PRIORITY ***/
+	SetGoalPriority( Map.Plant_Neutral_Command_Post, 0.7 );
+	SetGoalPriority( Map.Build_Neutral_Command_Post, 0.8 );
+	SetGoalPriority( "DEFUSE_Neutral_Command_Post.*", 0.7, TEAM.AXIS, CLASS.ENGINEER, true );
+	SetGoalPriority( "SNIPE_.*", 0.7, TEAM.AXIS, CLASS.COVERTOPS, true );
+	SetGoalPriority( "SNIPE_.*", 0.7, TEAM.ALLIES, CLASS.COVERTOPS, true );
+
+	/*** INITIAL AVAILABILITY OF MAP GOALS ***/
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_axis.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_cap.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_gold.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_.*" );
+
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_cap.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_gold.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Repair_460 );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Repair_462 );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Mount_460 );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Mount_462 ); //north facing MG
+
+	/*** ROUTES ***/
+	Maproutes =
+	{
+		CAPPOINT_348 =
+		{
+			ROUTE_steal_gold =
+			{
+				ROUTE_northwall =
+				{
+					ROUTE_direct = {},
+				},
+				ROUTE_westwall =
+				{
+					ROUTE_direct = {},
+				},
+				ROUTE_stairs = {},
+			},
+		},
+		FLAG_allied_gold =
+		{
+			ROUTE_axis_spawn =
+			{
+				ROUTE_northwall = {},
+				ROUTE_westwall = {},
+			},
+		},
+	};
+	Maproutes.PLANT_Safe_Barrier = Maproutes.FLAG_allied_gold;
+	Maproutes.PLANT_Safe_Door = Maproutes.FLAG_allied_gold;
+	Maproutes.ATTACK_cap2 = Maproutes.CAPPOINT_348;
+	Maproutes.ATTACK_cap3 = Maproutes.CAPPOINT_348;
+	Maproutes.ATTACK_cap4 = Maproutes.CAPPOINT_348;
+	Util.Routes(Maproutes);
+
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_westwall" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_northwall" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_westwall" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_northwall" );
+
+	Util.MapDebugPrint( "Omni-bot script for thief_city loaded." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 90.0;
+};

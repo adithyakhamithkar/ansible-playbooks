@@ -1,0 +1,180 @@
+// ET Omni-Bot sample config file-visit www.omni-bot.de for more documentation.
+
+// ****************************************************************************
+// ****           This file is for reference only! DO NOT USE!             ****
+// ****                   USE 'omni-bot.cfg' INSTEAD !!!                   ****
+// ****************************************************************************
+
+// ****************************************************************************
+[Debug]
+
+// DumpFileEnable:
+DumpFileEnable                 = false
+
+// DumpFileDialog:
+DumpFileDialog                 = false
+
+// ****************************************************************************
+[Script]
+
+// Debug:
+Debug                          = false
+
+// EnableRemoteDebugger:
+EnableRemoteDebugger           = false
+
+// LiveUpdate:
+LiveUpdate                     = false
+
+// ****************************************************************************
+[Debug Render]
+
+// EnableInterProcess:
+EnableInterProcess             = true
+
+// ****************************************************************************
+[Downloader]
+
+// Server: Specifies the server to download omni-bot files
+Server                         = 
+
+// Script:
+Script                         = 
+
+// DownloadMissingNav:
+DownloadMissingNav             = false
+
+// ****************************************************************************
+[ServerManager]
+
+// MaxBots: Sets the maximum amount of bots. (-1=disabled)
+MaxBots                        = -1
+
+// MinBots: Sets the minimum amount of bots. (-1=disabled)
+MinBots                        = -1
+
+// BalanceTeams: Control of bots to even up teams.
+BalanceTeams                   = 0
+
+// SaveConfigChanges:
+// All listed entries of the config file could be also set 
+// via rcon. Example: '/rcon bot MaxBots 10' 
+// If SaveConfigChanges is set 1 the the rcon bot command
+// value will be stored in the omni-bot.cfg. (0/1)
+SaveConfigChanges              = 1
+
+// CountSpectators: (0/1)
+// see MaxBots
+CountSpectators                = 0
+
+// SleepBots: Option to save cpu power if no human is connected.
+// It's recommended to use the value of 1 for dedicated servers. (0/1)
+SleepBots                      = 0
+
+// ****************************************************************************
+[Difficulty]
+// Sets the difficulty of the of the bots.
+
+
+// CurrentDifficulty: Sets the difficulty of the bots.
+// (0=poorest,1=very poor,2=poor,3=easy frag,4=standard,5=professional,6=uber)
+CurrentDifficulty              = 4
+
+// AdjustAim: Sets adjust aim. (0/1)
+AdjustAim                      = 1
+
+// ****************************************************************************
+[CombatMovement]
+
+// moveskill: Sets the combat movement skill of the bots.
+// (0=off, 1=easy, 2=medium, 3=hard, 4=random)
+moveskill                      = 3
+
+// ****************************************************************************
+[HeavyWeapons]
+// Limits heavy weapons on the server. Bots won't use the specified weapon
+// until player count is reached in the team.
+
+// MinPlayersForMortar: Limits the bot usage of the mortar. (-1=disabled)
+MinPlayersForMortar            = -1
+
+// MinPlayersForMobileMG: Limits the bot usage of the MG. (-1=disabled)
+// See omnibot_flags
+MinPlayersForMobileMG          = -1
+
+// ****************************************************************************
+[Log]
+
+// LogInfo: Sets info logging. (true/false)
+LogInfo                        = false
+
+// LogWarnings: Sets warning logging. (true/false)
+LogWarnings                    = false
+
+// LogErrors: Sets error logging. (true/false)
+LogErrors                      = false
+
+// LogCriticalErrors: Sets critical error logging. (true/false)
+LogCriticalErrors              = false
+
+// ****************************************************************************
+[Debug Window]
+// Debug window is only used for the windows client of the omnibot ET mod.
+// (There is no linux and other mod support.)
+
+// ShowConsole: (true/false)
+ShowConsole                    = false
+
+// ShowGoals: (true/false)
+ShowGoals                      = false
+
+// ShowProfiler: (true/false)
+ShowProfiler                   = false
+
+// ShowMap: (true/false)
+ShowMap                        = false
+
+// ShowStateTree: (true/false)
+ShowStateTree                  = false
+
+// ShowLog: (true/false)
+ShowLog                        = false
+
+// ShowScript: (true/false)
+ShowScript                     = false
+
+// ShowHud: (true/false)
+ShowHud                        = false
+
+// ShowNav: (true/false)
+ShowNav                        = false
+
+// ****************************************************************************
+[XP]
+
+// Reset: Option to reset Xp for bots automatically (0/1)
+Reset                          = -1
+
+// Max: Value of bot xp reset
+Max                            = 10000
+
+// ****************************************************************************
+[FireTeam]
+
+// enabled: Control of fire team goal (0/1)
+enabled                        = 0
+
+// ****************************************************************************
+[Versus]
+// Make these vars your own to create bot vs. human games. See BalanceTeams
+
+// BotTeam: Specifies the bot team. (-1=off/1=axis/2=allies)
+BotTeam                        = -1
+
+// HumanTeam: Specifies the human team. (1=axis,2=allies)
+HumanTeam                      = 1
+
+// BotsPerHuman: Sets the relation bot-human. For every human connect to server
+// defined count of bots will be added to the game.
+BotsPerHuman                   = 3
+

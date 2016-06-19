@@ -1,0 +1,1876 @@
+//==========================================================================================
+//	baserace_b3c.gm
+//
+//	Who  	When		What
+//------------------------------------------------------------------------------------------
+//	^4Tardis	04 November 2010	Copy Script - 0.8 (Bace Race)
+//------------------------------------------------------------------------------------------
+
+// cs: todo: replace trigger regions for cappoints with the new cappoint triggers (if possible)
+global Map =
+{
+	Quiet = true,
+	Debug = 0,
+
+	// Set the Bot Strategy for the map based on the 10 point systems found at
+	// http://battlefield.planetwolfenstein.gamespy.com/baseraceguide/baseconfigurations.htm
+	// optionally, you can define your own by adding to the table
+	// 1 - Random ( randomly choose from all available )
+	// 2 - PCR - from PatheticCockroach @ omni-bot.de forum
+	// 3 - The Best Attack is the Best Defense
+	// 4 - Ultimate Steals
+	// 5 - the best base configuration ever
+	// 6 - rapid invasions
+	// 7 - Rocket Insanity!
+	// 8 - defense strategy
+	// 9 - Away From Home Configuration
+	AlliedBotStrategy = 1,
+	AxisBotStrategy = 1,
+
+	BaseStrats =
+	{
+		// valid keywords
+		// armory
+		// assault
+		// engineering
+		// gatebunker
+		// forwardwall
+		// leftwall
+		// ops
+		// med
+		// rightwall
+		// spawn
+
+		// do not use
+		{
+			// reserved
+		},
+
+		// do not use - list of keywords
+		{
+			// reserved
+		},
+
+		// 2 - PCR - from PatheticCockroach
+		{
+			Name = "PCR",
+
+			spawn = 14, // first do all 4 spawn
+			engineering = 10, // second do these 4
+			med = 6, // med and assault next
+			assault = 6,
+			armory = 4, //after med and assault at lvl 2, also work on armory & ops
+			ops = 4,
+		},
+
+		// 3 - The Best Attack is the Best Defense
+		{
+			Name = "The Best Attack is the Best Defense",
+
+			spawn = 4,
+			med = 2,
+			armory = 2,
+			ops = 2,
+		},
+
+		// 4 - Ultimate Steals
+		{
+			Name = "Ultimate Steals",
+
+			med = 4,
+			engineering = 4,
+			spawn = 2,
+		},
+
+		// 5 - the best base configuration ever
+		{
+			Name = "the best base configuration ever ",
+
+			engineering = 4,
+			spawn = 4,
+			med = 2,
+		},
+
+		// 6 - rapid invasions
+		{
+			Name = "rapid invasions",
+
+			engineering = 4,
+			spawn = 2,
+			ops = 4,
+		},
+
+		// 7 - Rocket Insanity!
+		{
+			Name = "Rocket Insanity!",
+
+			armory = 4,
+			med = 2,
+			assault = 2,
+			gatebunker = 2,
+		},
+
+		// 8 - defense strategy
+		{
+			Name = "defense strategy",
+
+			engineering = 2,
+			spawn = 2,
+			rightwall = 2,
+			forwardwall = 2,
+			leftwall = 2,
+		},
+
+		// 9 - Away From Home Configuration
+		{
+			Name = "Away From Home Configuration",
+
+			engineering = 4,
+			spawn = 2,
+			assault = 2,
+			gatebunker = 2,
+		},
+	},
+
+	Ammo_Cabinet_ammobox1_allied_giveammo = "AMMOCAB_ammobox1_allied_giveammo",
+	Ammo_Cabinet_ammobox1_axis_giveammo = "AMMOCAB_ammobox1_axis_giveammo",
+	Ammo_Cabinet_ammobox2_allied_giveammo = "AMMOCAB_ammobox2_allied_giveammo",
+	Ammo_Cabinet_ammobox2_axis_giveammo = "AMMOCAB_ammobox2_axis_giveammo",
+	Ammo_Cabinet_ammobox3_allied_giveammo = "AMMOCAB_ammobox3_allied_giveammo",
+	Ammo_Cabinet_ammobox3_axis_giveammo = "AMMOCAB_ammobox3_axis_giveammo",
+	Ammo_Cabinet_armory_allied_ammostand = "AMMOCAB_armory_allied_ammostand",
+	Ammo_Cabinet_armory_axis_ammostand = "AMMOCAB_armory_axis_ammostand",
+	Health_Cabinet_healthbox1_allied_giveammo = "HEALTHCAB_healthbox1_allied_giveammo",
+	Health_Cabinet_healthbox1_axis_giveammo = "HEALTHCAB_healthbox1_axis_giveammo",
+	Health_Cabinet_healthbox2_allied_giveammo = "HEALTHCAB_healthbox2_allied_giveammo",
+	Health_Cabinet_healthbox2_axis_giveammo = "HEALTHCAB_healthbox2_axis_giveammo",
+	Health_Cabinet_healthbox3_allied_giveammo = "HEALTHCAB_healthbox3_allied_giveammo",
+	Health_Cabinet_healthbox3_axis_giveammo = "HEALTHCAB_healthbox3_axis_giveammo",
+	Health_Cabinet_medical_allied_healthstand = "HEALTHCAB_medical_allied_healthstand",
+	Health_Cabinet_medical_axis_healthstand = "HEALTHCAB_medical_axis_healthstand",
+	Flag_Construction_Materials = "FLAG_Construction_Materials",
+	Flag_Construction_Materials_1 = "FLAG_Construction_Materials_1",
+	Flag_Construction_Materials_2 = "FLAG_Construction_Materials_2",
+	Flag_Construction_Materials_3 = "FLAG_Construction_Materials_3",
+	Flag_Construction_Materials_4 = "FLAG_Construction_Materials_4",
+	Flag_Construction_Materials_5 = "FLAG_Construction_Materials_5",
+	Flag_Construction_Materials_6 = "FLAG_Construction_Materials_6",
+	Flag_Construction_Materials_7 = "FLAG_Construction_Materials_7",
+	Cappoint_blue_pad_armory = "CAPPOINT_blue_pad_armory",
+	Cappoint_blue_pad_assault = "CAPPOINT_blue_pad_assault",
+	Cappoint_blue_pad_engineering = "CAPPOINT_blue_pad_engineering",
+	Cappoint_blue_pad_forwardwall = "CAPPOINT_blue_pad_forwardwall",
+	Cappoint_blue_pad_gatebunker = "CAPPOINT_blue_pad_gatebunker",
+	Cappoint_blue_pad_leftwall = "CAPPOINT_blue_pad_leftwall",
+	Cappoint_blue_pad_med = "CAPPOINT_blue_pad_med",
+	Cappoint_blue_pad_ops = "CAPPOINT_blue_pad_ops",
+	Cappoint_blue_pad_rightwall = "CAPPOINT_blue_pad_rightwall",
+	Cappoint_blue_pad_spawn = "CAPPOINT_blue_pad_spawn",
+	Cappoint_red_pad_armory = "CAPPOINT_red_pad_armory",
+	Cappoint_red_pad_assault = "CAPPOINT_red_pad_assault",
+	Cappoint_red_pad_engineering = "CAPPOINT_red_pad_engineering",
+	Cappoint_red_pad_forwardwall = "CAPPOINT_red_pad_forwardwall",
+	Cappoint_red_pad_gatebunker = "CAPPOINT_red_pad_gatebunker",
+	Cappoint_red_pad_leftwall = "CAPPOINT_red_pad_leftwall",
+	Cappoint_red_pad_med = "CAPPOINT_red_pad_med",
+	Cappoint_red_pad_ops = "CAPPOINT_red_pad_ops",
+	Cappoint_red_pad_rightwall = "CAPPOINT_red_pad_rightwall",
+	Cappoint_red_pad_spawn = "CAPPOINT_red_pad_spawn",
+	Build_Allied_Outpost = "BUILD_Allied_Outpost",
+	Build_Axis_Outpost = "BUILD_Axis_Outpost",
+	Build_Gate_Rocketgun = "BUILD_Gate_Rocketgun",
+	Build_Gate_Rocketgun_1 = "BUILD_Gate_Rocketgun_1",
+	Build_Tower_Rocketgun = "BUILD_Tower_Rocketgun",
+	Build_Tower_Rocketgun_1 = "BUILD_Tower_Rocketgun_1",
+	Plant_Allied_Outpost = "PLANT_Allied_Outpost",
+	Plant_Allied_Underbase_Door = "PLANT_Allied_Underbase_Door",
+	Plant_Allied_Underbase_Wall = "PLANT_Allied_Underbase_Wall",
+	Plant_Axis_Outpost = "PLANT_Axis_Outpost",
+	Plant_Axis_Underbase_Door = "PLANT_Axis_Underbase_Door",
+	Plant_Axis_Underbase_Wall = "PLANT_Axis_Underbase_Wall",
+	Explode_Gate_Rocketgun = "EXPLODE_Gate_Rocketgun",
+	Explode_Gate_Rocketgun_1 = "EXPLODE_Gate_Rocketgun_1",
+	Explode_Tower_Rocketgun = "EXPLODE_Tower_Rocketgun",
+	Explode_Tower_Rocketgun_1 = "EXPLODE_Tower_Rocketgun_1",
+	Mount_assaultmg_allied_gun = "MOUNTMG42_assaultmg_allied_gun",
+	Mount_assaultmg_axis_gun = "MOUNTMG42_assaultmg_axis_gun",
+	Mount_asstower_allied_supermg = "MOUNTMG42_asstower_allied_supermg",
+	Mount_asstower_allied_ubermg = "MOUNTMG42_asstower_allied_ubermg",
+	Mount_asstower_allied_ubermg_1 = "MOUNTMG42_asstower_allied_ubermg_1",
+	Mount_asstower_allied_woodenmg = "MOUNTMG42_asstower_allied_woodenmg",
+	Mount_asstower_axis_supermg = "MOUNTMG42_asstower_axis_supermg",
+	Mount_asstower_axis_ubermg = "MOUNTMG42_asstower_axis_ubermg",
+	Mount_asstower_axis_ubermg_1 = "MOUNTMG42_asstower_axis_ubermg_1",
+	Mount_asstower_axis_woodenmg = "MOUNTMG42_asstower_axis_woodenmg",
+	Mount_gate_allied_mg = "MOUNTMG42_gate_allied_mg",
+	Mount_gate_allied_ubermg = "MOUNTMG42_gate_allied_ubermg",
+	Mount_gate_axis_mg = "MOUNTMG42_gate_axis_mg",
+	Mount_gate_axis_ubermg = "MOUNTMG42_gate_axis_ubermg",
+	Repair_assaultmg_allied_gun = "REPAIRMG42_assaultmg_allied_gun",
+	Repair_assaultmg_axis_gun = "REPAIRMG42_assaultmg_axis_gun",
+	Repair_asstower_allied_supermg = "REPAIRMG42_asstower_allied_supermg",
+	Repair_asstower_allied_ubermg = "REPAIRMG42_asstower_allied_ubermg",
+	Repair_asstower_allied_ubermg_1 = "REPAIRMG42_asstower_allied_ubermg_1",
+	Repair_asstower_allied_woodenmg = "REPAIRMG42_asstower_allied_woodenmg",
+	Repair_asstower_axis_supermg = "REPAIRMG42_asstower_axis_supermg",
+	Repair_asstower_axis_ubermg = "REPAIRMG42_asstower_axis_ubermg",
+	Repair_asstower_axis_ubermg_1 = "REPAIRMG42_asstower_axis_ubermg_1",
+	Repair_asstower_axis_woodenmg = "REPAIRMG42_asstower_axis_woodenmg",
+	Repair_gate_allied_mg = "REPAIRMG42_gate_allied_mg",
+	Repair_gate_allied_ubermg = "REPAIRMG42_gate_allied_ubermg",
+	Repair_gate_axis_mg = "REPAIRMG42_gate_axis_mg",
+	Repair_gate_axis_ubermg = "REPAIRMG42_gate_axis_ubermg",
+
+	InitStrat = function(team, strat)
+	{
+		tc = tableCount(Map.BaseStrats);
+
+		// randomly pick a strat if set to 1 or invalid
+		if ( strat <= 1 || strat > tc )
+		{
+			strat = RandInt( 2, tc - 1 );
+		}
+
+		if ( team == TEAM.ALLIES )
+		{
+			// store in case of random so bots can announce correct strat
+			Map.AlliedBotStrategy = strat;
+
+			if ( Map.BaseStrats[ strat ].armory )
+			{
+				SetGoalPriority("CAPPOINT_blue_pad_armory", 1.0
+					+ (Map.BaseStrats[ strat ].armory * .05), TEAM.ALLIES);
+			}
+
+			if ( Map.BaseStrats[ strat ].assault  )
+			{
+				SetGoalPriority("CAPPOINT_blue_pad_assault", 1.0
+					+ (Map.BaseStrats[ strat ].assault * .05), TEAM.ALLIES);
+			}
+
+			if ( Map.BaseStrats[ strat ].engineering )
+			{
+				SetGoalPriority("CAPPOINT_blue_pad_engineering", 1.0
+					+ (Map.BaseStrats[ strat ].engineering * .05), TEAM.ALLIES);
+			}
+
+			if ( Map.BaseStrats[ strat ].forwardwall  )
+			{
+				SetGoalPriority("CAPPOINT_blue_pad_forwardwall", 1.0
+					+ (Map.BaseStrats[ strat ].forwardwall * .05), TEAM.ALLIES);
+			}
+
+			if ( Map.BaseStrats[ strat ].gatebunker )
+			{
+				SetGoalPriority("CAPPOINT_blue_pad_gatebunker", 1.0
+					+ (Map.BaseStrats[ strat ].gatebunker * .05), TEAM.ALLIES);
+			}
+
+			if ( Map.BaseStrats[ strat ].leftwall )
+			{
+				SetGoalPriority("CAPPOINT_blue_pad_leftwall", 1.0
+					+ (Map.BaseStrats[ strat ].leftwall * .05), TEAM.ALLIES);
+			}
+
+			if ( Map.BaseStrats[ strat ].med )
+			{
+				SetGoalPriority("CAPPOINT_blue_pad_med", 1.0
+					+ (Map.BaseStrats[ strat ].med * .05), TEAM.ALLIES);
+			}
+
+			if ( Map.BaseStrats[ strat ].ops )
+			{
+				SetGoalPriority("CAPPOINT_blue_pad_ops", 1.0
+					+ (Map.BaseStrats[ strat ].ops * .05), TEAM.ALLIES);
+			}
+
+			if ( Map.BaseStrats[ strat ].rightwall )
+			{
+				SetGoalPriority("CAPPOINT_blue_pad_rightwall", 1.0
+					+ (Map.BaseStrats[ strat ].rightwall * .05), TEAM.ALLIES);
+			}
+
+			if ( Map.BaseStrats[ strat ].spawn )
+			{
+				SetGoalPriority("CAPPOINT_blue_pad_spawn", 1.0
+					+ (Map.BaseStrats[ strat ].spawn * .05), TEAM.ALLIES);
+			}
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_blue.*" );
+		}
+		else // TEAM.AXIS
+		{
+			// store in case of random so bots can announce correct strat
+			Map.AxisBotStrategy = strat;
+
+			if ( Map.BaseStrats[ strat ].armory )
+			{
+				SetGoalPriority("CAPPOINT_red_pad_armory", 1.0
+					+ (Map.BaseStrats[ strat ].armory * .05), TEAM.AXIS);
+			}
+
+			if ( Map.BaseStrats[ strat ].assault  )
+			{
+				SetGoalPriority("CAPPOINT_red_pad_assault", 1.0
+					+ (Map.BaseStrats[ strat ].assault * .05), TEAM.AXIS);
+			}
+
+			if ( Map.BaseStrats[ strat ].engineering )
+			{
+				SetGoalPriority("CAPPOINT_red_pad_engineering", 1.0
+					+ (Map.BaseStrats[ strat ].engineering * .05), TEAM.AXIS);
+			}
+
+			if ( Map.BaseStrats[ strat ].forwardwall  )
+			{
+				SetGoalPriority("CAPPOINT_red_pad_forwardwall", 1.0
+					+ (Map.BaseStrats[ strat ].forwardwall * .05), TEAM.AXIS);
+			}
+
+			if ( Map.BaseStrats[ strat ].gatebunker )
+			{
+				SetGoalPriority("CAPPOINT_red_pad_gatebunker", 1.0
+					+ (Map.BaseStrats[ strat ].gatebunker * .05), TEAM.AXIS);
+			}
+
+			if ( Map.BaseStrats[ strat ].leftwall )
+			{
+				SetGoalPriority("CAPPOINT_red_pad_leftwall", 1.0
+					+ (Map.BaseStrats[ strat ].leftwall * .05), TEAM.AXIS);
+			}
+
+			if ( Map.BaseStrats[ strat ].med )
+			{
+				SetGoalPriority("CAPPOINT_red_pad_med", 1.0
+					+ (Map.BaseStrats[ strat ].med * .05), TEAM.AXIS);
+			}
+
+			if ( Map.BaseStrats[ strat ].ops )
+			{
+				SetGoalPriority("CAPPOINT_red_pad_ops", 1.0
+					+ (Map.BaseStrats[ strat ].ops * .05), TEAM.AXIS);
+			}
+
+			if ( Map.BaseStrats[ strat ].rightwall )
+			{
+				SetGoalPriority("CAPPOINT_red_pad_rightwall", 1.0
+					+ (Map.BaseStrats[ strat ].rightwall * .05), TEAM.AXIS);
+			}
+
+			if ( Map.BaseStrats[ strat ].spawn )
+			{
+				SetGoalPriority("CAPPOINT_red_pad_spawn", 1.0
+					+ (Map.BaseStrats[ strat ].spawn * .05), TEAM.AXIS);
+			}
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_red.*" );
+		}
+	},
+
+	ProcessStrat = function( team, goalname )
+	{
+		g = GetGoal(goalname);
+		p = g.GetGoalPriority(team,1);
+
+		if ( p > 1.0 )
+		{
+			SetGoalPriority( goalname, p - .05, team );
+		}
+	},
+
+	Defend =
+	{
+		Priority = 0.86,
+		MaxBots = 4, // maximum number of bots to use the scripted camps
+		AxisSpawnPt = 0, // axis defenders will choose this spawn point
+		AlliesSpawnPt = 0, // allied defenders will choose this spawn point
+
+		// table of goals to set ROLE.DEFENDER on
+		Axis = { "CAMP_rDefense1", "CAMP_rDefense2", "CAMP_rDefense3", "CAMP_rDefense4", "CAMP_rDefense5", },
+		Allies = { "CAMP_bDefense1", "CAMP_bDefense2", "CAMP_bDefense3", "CAMP_bDefense4", "CAMP_bDefense5", },
+	},
+
+	Navigation =
+	{
+		ladders =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 3);
+				sleep(3);
+			},
+		},
+	},
+
+	Allied_Outpost_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint("Allied_Outpost_Destroyed");
+	},
+
+	Allied_Underbase_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_r_cover_door" );
+		Util.EnableGoal( "ROUTE_b_w_underbase" );
+
+		Util.MapDebugPrint("Allied_Underbase_Door_Destroyed");
+	},
+
+	Allied_Underbase_Wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_r_cover_wall" );
+		Util.EnableGoal( "ROUTE_b_e_underbase" );
+
+		Util.MapDebugPrint("Allied_Underbase_Wall_Destroyed");
+	},
+
+	Axis_Door_Planted = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_b_cover_door" );
+		Util.MapDebugPrint("Axis_Door_Planted");
+	},
+
+	Axis_Wall_Planted = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_b_cover_wall" );
+		Util.MapDebugPrint("Axis_Wall_Planted");
+	},
+
+	Axis_Door_Defused = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_b_cover_door" );
+		Util.MapDebugPrint("Axis_Door_Defused");
+	},
+
+	Axis_Wall_Defused = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_b_cover_wall" );
+		Util.MapDebugPrint("Axis_Wall_Defused");
+	},
+
+	Allied_Door_Planted = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_r_cover_door" );
+		Util.MapDebugPrint("Allied_Door_Planted");
+	},
+
+	Allied_Wall_Planted = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_r_cover_wall" );
+		Util.MapDebugPrint("Allied_Wall_Planted");
+	},
+
+	Allied_Door_Defused = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_r_cover_door" );
+		Util.MapDebugPrint("Allied_Door_Defused");
+	},
+
+	Allied_Wall_Defused = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_r_cover_wall" );
+		Util.MapDebugPrint("Allied_Wall_Defused");
+	},
+
+	Axis_Outpost_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint("Axis_Outpost_Destroyed");
+	},
+
+	Axis_Underbase_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.EnableGoal( "ROUTE_r_e_underbase" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_b_cover_door" );
+
+		Util.MapDebugPrint("Axis_Underbase_Door_Destroyed");
+	},
+
+	Axis_Underbase_Wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_b_cover_wall" );
+		Util.EnableGoal( "ROUTE_r_w_underbase" );
+
+		Util.MapDebugPrint("Axis_Underbase_Wall_Destroyed");
+	},
+
+	Axis_Med_L1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_med" );
+		Util.MapDebugPrint("Axis_Med_L1");
+	},
+
+	Axis_Med_L2  = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_medical_axis_healthstand" );
+
+		Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_med" );
+		Util.MapDebugPrint("Axis_Med_L2");
+	},
+
+	Axis_Med_L3 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_med" );
+		Util.MapDebugPrint("Axis_Med_L3");
+	},
+
+	Axis_Med_L4  = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.RemoveGoal("CAPPOINT_red_pad_med");
+
+		Util.MapDebugPrint("Axis_Med_L4");
+	},
+
+	Axis_Ops_L1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_ops" );
+		Util.MapDebugPrint("Axis_Ops_L1");
+	},
+
+	Axis_Ops_L2  = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_ops" );
+		Util.MapDebugPrint("Axis_Ops_L2");
+	},
+
+	Axis_Ops_L3 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_ops" );
+		Util.MapDebugPrint("Axis_Ops_L3");
+	},
+
+	Axis_Ops_L4  = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.RemoveGoal("CAPPOINT_red_pad_ops");
+
+		// open up the team doors
+		Wp.SetWaypointFlag( "bRightdoor", "allies", false );
+		Wp.SetWaypointFlag( "bLeftdoor", "allies", false );
+
+		Util.MapDebugPrint("Axis_Ops_L4");
+	},
+
+	Axis_Armory_L1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_armory" );
+		Util.MapDebugPrint("Axis_Armory_L1");
+	},
+
+	Axis_Armory_L2= function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_armory_axis_ammostand" );
+
+		Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_armory" );
+		Util.MapDebugPrint("Axis_Armory_L2");
+	},
+
+	Axis_Armory_L3 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_armory" );
+		Util.MapDebugPrint("Axis_Armory_L3");
+	},
+
+	Axis_Armory_L4 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.RemoveGoal("CAPPOINT_red_pad_armory");
+
+		Util.MapDebugPrint("Axis_Armory_L4");
+	},
+
+	Axis_Eng_L1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_engineering" );
+		Util.MapDebugPrint("Axis_Eng_L1");
+	},
+
+	Axis_Eng_L2= function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_engineering" );
+		Util.MapDebugPrint("Axis_Eng_L2");
+	},
+
+	Axis_Eng_L3 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_engineering" );
+		Util.MapDebugPrint("Axis_Eng_L3");
+	},
+
+	Axis_Eng_L4 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.RemoveGoal("CAPPOINT_red_pad_engineering");
+
+		Util.MapDebugPrint("Axis_Eng_L4");
+	},
+
+	Axis_Spawn_L1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_spawn" );
+		Util.MapDebugPrint("Axis_Spawn_L1");
+	},
+
+	Axis_Spawn_L2  = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_spawn" );
+		Util.MapDebugPrint("Axis_Spawn_L2");
+	},
+
+	Axis_Spawn_L3 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_spawn" );
+		Util.MapDebugPrint("Axis_Spawn_L3");
+	},
+
+	Axis_Spawn_L4  = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.RemoveGoal("CAPPOINT_red_pad_spawn");
+
+		Util.MapDebugPrint("Axis_Spawn_L4");
+	},
+
+	Allies_Med_L1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_med" );
+		Util.MapDebugPrint("Allies_Med_L1");
+	},
+
+	Allies_Med_L2  = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "HEALTHCAB_medical_allied_healthstand" );
+
+		Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_med" );
+		Util.MapDebugPrint("Allies_Med_L2");
+	},
+
+	Allies_Med_L3 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_med" );
+		Util.MapDebugPrint("Allies_Med_L3");
+	},
+
+	Allies_Med_L4  = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.RemoveGoal("CAPPOINT_blue_pad_med");
+
+		Util.MapDebugPrint("Allies_Med_L4");
+	},
+
+	Allies_Ops_L1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_ops" );
+		Util.MapDebugPrint("Allies_Ops_L1");
+	},
+
+	Allies_Ops_L2  = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_ops" );
+		Util.MapDebugPrint("Allies_Ops_L2");
+	},
+
+	Allies_Ops_L3 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_ops" );
+		Util.MapDebugPrint("Allies_Ops_L3");
+	},
+
+	Allies_Ops_L4  = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.RemoveGoal("CAPPOINT_blue_pad_ops");
+
+		// open up the team doors
+		Wp.SetWaypointFlag( "rRightdoor", "axis", false );
+		Wp.SetWaypointFlag( "rLeftdoor", "axis", false );
+
+		Util.MapDebugPrint("Allies_Ops_L4");
+	},
+
+	Allies_Armory_L1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_armory" );
+		Util.MapDebugPrint("Allies_Armory_L1");
+	},
+
+	Allies_Armory_L2= function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_armory_allied_ammostand" );
+
+		Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_armory" );
+		Util.MapDebugPrint("Allies_Armory_L2");
+	},
+
+	Allies_Armory_L3 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_armory" );
+		Util.MapDebugPrint("Allies_Armory_L3");
+	},
+
+	Allies_Armory_L4 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.RemoveGoal("CAPPOINT_blue_pad_armory");
+
+		Util.MapDebugPrint("Allies_Armory_L4");
+	},
+
+	Allies_Eng_L1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_engineering" );
+		Util.MapDebugPrint("Allies_Eng_L1");
+	},
+
+	Allies_Eng_L2= function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_engineering" );
+		Util.MapDebugPrint("Allies_Eng_L2");
+	},
+
+	Allies_Eng_L3 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_engineering" );
+		Util.MapDebugPrint("Allies_Eng_L3");
+	},
+
+	Allies_Eng_L4 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.RemoveGoal("CAPPOINT_blue_pad_engineering");
+
+		Util.MapDebugPrint("Allies_Eng_L4");
+	},
+
+	Allies_Spawn_L1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_spawn" );
+		Util.MapDebugPrint("Allies_Spawn_L1");
+	},
+
+	Allies_Spawn_L2  = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_spawn" );
+		Util.MapDebugPrint("Allies_Spawn_L2");
+	},
+
+	Allies_Spawn_L3 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_spawn" );
+		Util.MapDebugPrint("Allies_Spawn_L3");
+	},
+
+	Allies_Spawn_L4  = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.RemoveGoal("CAPPOINT_blue_pad_spawn");
+
+		Util.MapDebugPrint("Allies_Spawn_L4");
+	},
+
+	Red_Leftwall_Count = 0,
+	Red_Leftwall =
+	{
+		Name = "Red_Leftwall",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.AXIS )
+			{
+				if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+				{
+					Map.Red_Leftwall_Count += 1;
+
+					if ( Map.Red_Leftwall_Count == 1 )
+					{
+						Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_leftwall" );
+						Util.MapDebugPrint("^1Axis built left chain fence");
+					}
+					else if ( Map.Red_Leftwall_Count == 2 )
+					{
+						Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_leftwall" );
+						Util.MapDebugPrint("^1Axis built left barbed fence");
+					}
+					else if ( Map.Red_Leftwall_Count == 3 )
+					{
+						Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_leftwall" );
+						Util.MapDebugPrint("^1Axis built left wall");
+					}
+					else if ( Map.Red_Leftwall_Count >= 4 )
+					{
+						Util.DisableGoal("CAPPOINT_red_pad_leftwall");
+
+						if ( Map.Red_Leftwall_Count == 4 )
+							{ Util.MapDebugPrint("^1Axis built left fortified wall"); }
+					}
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	Red_Rightwall_Count = 0,
+	Red_Rightwall =
+	{
+		Name = "Red_Rightwall",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.AXIS )
+			{
+				if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+				{
+					Map.Red_Rightwall_Count += 1;
+
+					if ( Map.Red_Rightwall_Count == 1 )
+					{
+						Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_rightwall" );
+						Util.MapDebugPrint("^1Axis built right chain fence");
+					}
+					else if ( Map.Red_Rightwall_Count == 2 )
+					{
+						Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_rightwall" );
+						Util.MapDebugPrint("^1Axis built right barbed fence");
+					}
+					else if ( Map.Red_Rightwall_Count == 3 )
+					{
+						Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_rightwall" );
+						Util.MapDebugPrint("^1Axis built right wall");
+					}
+					else if ( Map.Red_Rightwall_Count >= 4 )
+					{
+						Util.DisableGoal("CAPPOINT_red_pad_rightwall");
+
+						if ( Map.Red_Rightwall_Count == 4 )
+							{ Util.MapDebugPrint("^1Axis built right fortified wall"); }
+					}
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	Red_Forwardwall_Count = 0,
+	Red_Forwardwall =
+	{
+		Name = "Red_Forwardwall",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.AXIS )
+			{
+				if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+				{
+					Map.Red_Forwardwall_Count += 1;
+
+					if ( Map.Red_Forwardwall_Count == 1 )
+					{
+						Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_forwardwall" );
+						Util.MapDebugPrint("^1Axis built forward chain fence");
+					}
+					else if ( Map.Red_Forwardwall_Count == 2 )
+					{
+						Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_forwardwall" );
+						Util.MapDebugPrint("^1Axis built forward barbed fence");
+					}
+					else if ( Map.Red_Forwardwall_Count == 3 )
+					{
+						Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_forwardwall" );
+						Util.MapDebugPrint("^1Axis built forward wall");
+					}
+					else if ( Map.Red_Forwardwall_Count >= 4 )
+					{
+						Util.DisableGoal("CAPPOINT_red_pad_forwardwall");
+
+						if ( Map.Red_Forwardwall_Count == 4 )
+							{ Util.MapDebugPrint("^1Axis built forward fortified wall"); }
+					}
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	Red_Assault_Count = 0,
+	Red_Assault =
+	{
+		Name = "Red_Assault",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.AXIS )
+			{
+				if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+				{
+					Map.Red_Assault_Count += 1;
+
+					if ( Map.Red_Assault_Count == 1 )
+					{
+						Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_assault" );
+						Util.MapDebugPrint("^1Axis built a Wooden Tower");
+					}
+					else if ( Map.Red_Assault_Count == 2 )
+					{
+						Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_assault" );
+						Util.MapDebugPrint("^1Axis mounted a Tower Rocketgun");
+					}
+					else if ( Map.Red_Assault_Count == 3 )
+					{
+						Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_assault" );
+						Util.MapDebugPrint("^1Axis built a Super Assault Tower");
+					}
+					else if ( Map.Red_Assault_Count >= 4 )
+					{
+						Util.DisableGoal("CAPPOINT_red_pad_assault");
+
+						if ( Map.Red_Assault_Count == 4 )
+							{ Util.MapDebugPrint("^1Axis mounted Upgraded Tower Machine Guns"); }
+					}
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	Red_Bunker_Count = 0,
+	Red_Bunker =
+	{
+		Name = "Red_Bunker",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.AXIS )
+			{
+				if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+				{
+					Map.Red_Bunker_Count += 1;
+
+					if ( Map.Red_Bunker_Count == 1 )
+					{
+						Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_gatebunker" );
+						Util.MapDebugPrint("^1Axis have built a Bunker");
+					}
+					else if ( Map.Red_Bunker_Count == 2 )
+					{
+						Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_gatebunker" );
+						Util.MapDebugPrint("^1Axis mounted a Bunker Rocketgun");
+					}
+					else if ( Map.Red_Bunker_Count == 3 )
+					{
+						Map.ProcessStrat( TEAM.AXIS, "CAPPOINT_red_pad_gatebunker" );
+						Util.MapDebugPrint("^1Axis built a Super Assault Tower");
+					}
+					else if ( Map.Red_Bunker_Count >= 4 )
+					{
+						Util.DisableGoal("CAPPOINT_red_pad_gatebunker");
+
+						if ( Map.Red_Bunker_Count == 4 )
+							{ Util.MapDebugPrint("^1Axis mounted Upgraded Bunker Machine Guns"); }
+					}
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	Blue_Leftwall_Count = 0,
+	Blue_Leftwall =
+	{
+		Name = "Blue_Leftwall",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+				{
+					Map.Blue_Leftwall_Count += 1;
+
+					if ( Map.Blue_Leftwall_Count == 1 )
+					{
+						Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_leftwall" );
+						Util.MapDebugPrint("^DAllies built left chain fence");
+					}
+					else if ( Map.Blue_Leftwall_Count == 2 )
+					{
+						Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_leftwall" );
+						Util.MapDebugPrint("^DAllies built left barbed fence");
+					}
+					else if ( Map.Blue_Leftwall_Count == 3 )
+					{
+						Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_leftwall" );
+						Util.MapDebugPrint("^DAllies built left wall");
+					}
+					else if ( Map.Blue_Leftwall_Count >= 4 )
+					{
+						Util.DisableGoal("CAPPOINT_blue_pad_leftwall");
+
+						if ( Map.Blue_Leftwall_Count == 4 )
+							{ Util.MapDebugPrint("^DAllies built left fortified wall"); }
+					}
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	Blue_Rightwall_Count = 0,
+	Blue_Rightwall =
+	{
+		Name = "Blue_Rightwall",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+				{
+					Map.Blue_Rightwall_Count += 1;
+
+					if ( Map.Blue_Rightwall_Count == 1 )
+					{
+						Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_rightwall" );
+						Util.MapDebugPrint("^DAllies built right chain fence");
+					}
+					else if ( Map.Blue_Rightwall_Count == 2 )
+					{
+						Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_rightwall" );
+						Util.MapDebugPrint("^DAllies built right barbed fence");
+					}
+					else if ( Map.Blue_Rightwall_Count == 3 )
+					{
+						Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_rightwall" );
+						Util.MapDebugPrint("^DAllies built right wall");
+					}
+					else if ( Map.Blue_Rightwall_Count >= 4 )
+					{
+						Util.DisableGoal("CAPPOINT_blue_pad_rightwall");
+
+						if ( Map.Blue_Rightwall_Count == 4 )
+							{ Util.MapDebugPrint("^DAllies built right fortified wall"); }
+					}
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	Blue_Forwardwall_Count = 0,
+	Blue_Forwardwall =
+	{
+		Name = "Blue_Forwardwall",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+				{
+					Map.Blue_Forwardwall_Count += 1;
+
+					if ( Map.Blue_Forwardwall_Count == 1 )
+					{
+						Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_forwardwall" );
+						Util.MapDebugPrint("^DAllies built forward chain fence");
+					}
+					else if ( Map.Blue_Forwardwall_Count == 2 )
+					{
+						Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_forwardwall" );
+						Util.MapDebugPrint("^DAllies built forward barbed fence");
+					}
+					else if ( Map.Blue_Forwardwall_Count == 3 )
+					{
+						Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_forwardwall" );
+						Util.MapDebugPrint("^DAllies built forward wall");
+					}
+					else if ( Map.Blue_Forwardwall_Count >= 4 )
+					{
+						Util.DisableGoal("CAPPOINT_blue_pad_forwardwall");
+
+						if ( Map.Blue_Forwardwall_Count == 4 )
+							{ Util.MapDebugPrint("^DAllies built forward fortified wall"); }
+					}
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	Blue_Assault_Count = 0,
+	Blue_Assault =
+	{
+		Name = "Blue_Assault",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+				{
+					Map.Blue_Assault_Count += 1;
+
+					if ( Map.Blue_Assault_Count == 1 )
+					{
+						Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_assault" );
+						Util.MapDebugPrint("^DAllies built a Wooden Tower");
+					}
+					else if ( Map.Blue_Assault_Count == 2 )
+					{
+						Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_assault" );
+						Util.MapDebugPrint("^DAllies mounted a Tower Rocketgun");
+					}
+					else if ( Map.Blue_Assault_Count == 3 )
+					{
+						Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_assault" );
+						Util.MapDebugPrint("^DAllies built a Super Assault Tower");
+					}
+					else if ( Map.Blue_Assault_Count >= 4 )
+					{
+						Util.DisableGoal("CAPPOINT_blue_pad_assault");
+
+						if ( Map.Blue_Assault_Count == 4 )
+							{ Util.MapDebugPrint("^DAllies mounted Upgraded Tower Machine Guns"); }
+					}
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	Blue_Bunker_Count = 0,
+	Blue_Bunker =
+	{
+		Name = "Blue_Bunker",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+				{
+					Map.Blue_Bunker_Count += 1;
+
+					if ( Map.Blue_Bunker_Count == 1 )
+					{
+						Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_gatebunker" );
+						Util.MapDebugPrint("^DAllies have built a Bunker");
+					}
+					else if ( Map.Blue_Bunker_Count == 2 )
+					{
+						Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_gatebunker" );
+						Util.MapDebugPrint("^DAllies mounted a Bunker Rocketgun");
+					}
+					else if ( Map.Blue_Bunker_Count == 3 )
+					{
+						Map.ProcessStrat( TEAM.ALLIES, "CAPPOINT_blue_pad_gatebunker" );
+						Util.MapDebugPrint("^DAllies built a Super Assault Tower");
+					}
+					else if ( Map.Blue_Bunker_Count >= 4 )
+					{
+						Util.DisableGoal("CAPPOINT_blue_pad_gatebunker");
+
+						if ( Map.Blue_Bunker_Count == 4 )
+							{ Util.MapDebugPrint("^DAllies mounted Upgraded Bunker Machine Guns"); }
+					}
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	Axis_Announced = false,
+	Axis_Announce_Strat = function( trigger )
+	{
+		if ( Map.Axis_Announced )
+			{ return; }
+
+		Map.InitStrat(TEAM.AXIS, Map.AxisBotStrategy);
+		Map.Axis_Announced = true;
+		yield();
+		foreach ( id and bot in BotTable )
+		{
+			if ( bot.GetTeam() == TEAM.AXIS )
+			{
+				bot.SayTeam( "We are using the ^1", Map.BaseStrats[ Map.AxisBotStrategy ].Name, " ^5strategy" );
+				break;
+			}
+		}
+	},
+
+	Allies_Announced = false,
+	Allies_Announce_Strat = function( trigger )
+	{
+		if ( Map.Allies_Announced )
+			{ return; }
+
+		Map.InitStrat(TEAM.ALLIES, Map.AlliedBotStrategy);
+		Map.Allies_Announced = true;
+		yield();
+		foreach ( id and bot in BotTable )
+		{
+			if ( bot.GetTeam() == TEAM.ALLIES )
+			{
+				bot.SayTeam( "We are using the ^1", Map.BaseStrats[ Map.AlliedBotStrategy ].Name, " ^5strategy" );
+				break;
+			}
+		}
+	},
+};
+
+global OnMapLoad = function()
+{
+	Util.SetGoalPosition( 726.646, 2426.764, -119.875, "PLANT_Allied_Underbase_Wall" );
+	Util.SetGoalPosition( -1210.916, 2525.277, -111.875, "PLANT_Allied_Underbase_Door" );
+	Util.SetGoalPosition( -496.490, -1907.657, -119.680, "PLANT_Axis_Underbase_Wall" );
+	Util.SetGoalPosition( 1451.430, -2013.612, -111.875, "PLANT_Axis_Underbase_Door" );
+
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "^1The Axis have built an Infirmary! ^JFirst Aid available!", Map.Axis_Med_L1 );
+	OnTrigger( "^1The Axis Infirmary has been upgraded to ^kLevel 2^1! ^JHealth Stand a", Map.Axis_Med_L2 );
+	OnTrigger( "^1The Axis Infirmary has been upgraded to ^zLevel 3^1! ^JMedical Chests", Map.Axis_Med_L3 );
+	OnTrigger( "^1The Axis Infirmary has been upgraded to ^lLevel 4^1! ^JDefensive supp", Map.Axis_Med_L4 );
+	OnTrigger( "^1The Axis have built an Tactical Shack! ^JLandmine notification active", Map.Axis_Ops_L1 );
+	OnTrigger( "^1The Axis Tactical Shack has been upgraded to ^kLevel 2^1! ^JEnemy int", Map.Axis_Ops_L2 );
+	OnTrigger( "^1The Axis Tactical Shack has been upgraded to ^zLevel 3^1! ^JWall Jump", Map.Axis_Ops_L3 );
+	OnTrigger( "^1The Axis Tactical Shack has been upgraded to ^lLevel 4^1! ^JEnemy tea", Map.Axis_Ops_L4 );
+	OnTrigger( "^1The Axis have built an Armory! ^jHeavy Weapons stocked!", Map.Axis_Armory_L1 );
+	OnTrigger( "^1The Axis Armory has been upgraded to ^kLevel 2^1! ^jAmmunition stocke", Map.Axis_Armory_L2 );
+	OnTrigger( "^1The Axis Armory has been upgraded to ^zLevel 3^1! ^jAmmunition chests", Map.Axis_Armory_L3 );
+	OnTrigger( "^1The Axis Armory has been upgraded to ^lLevel 4^1! ^jRocketguns carry ", Map.Axis_Armory_L4 );
+	OnTrigger( "^1The Axis have built an Engineering Shack! ^jBase defenses improved!", Map.Axis_Eng_L1 );
+	OnTrigger( "^1The Axis Engineering Shack has been upgraded to ^kLevel 2^1! ^jBase d", Map.Axis_Eng_L2 );
+	OnTrigger( "^1The Axis Engineering Shack has been upgraded to ^zLevel 3^1! ^jRocket", Map.Axis_Eng_L3 );
+	OnTrigger( "^1The Axis Engineering Shack has been upgraded to ^lLevel 4^1! ^jLandmi", Map.Axis_Eng_L4 );
+	OnTrigger( "^1The Axis Spawn has been upgraded to Level 1!", Map.Axis_Spawn_L1 );
+	OnTrigger( "^1The Axis Spawn has been upgraded to ^kLevel 2^1!", Map.Axis_Spawn_L2 );
+	OnTrigger( "^1The Axis Spawn has been upgraded to ^zLevel 3^1!", Map.Axis_Spawn_L3 );
+	OnTrigger( "^1The Axis Spawn has been upgraded to ^lLevel 4^1!", Map.Axis_Spawn_L4 );
+	OnTrigger( "the Axis Underbase Door Destroyed.", Map.Axis_Underbase_Door_Destroyed );
+	OnTrigger( "the Axis Underbase Wall Destroyed.", Map.Axis_Underbase_Wall_Destroyed );
+	OnTrigger( "Axis have stolen Construction Materials!", Map.Axis_Announce_Strat );
+	OnTrigger( "Planted at the Allied Underbase Door.", Map.Allied_Door_Planted );
+	OnTrigger( "Planted at the Allied Underbase Wall.", Map.Allied_Wall_Planted );
+	OnTrigger( "Defused at the Allied Underbase Door.", Map.Allied_Door_Defused );
+	OnTrigger( "Defused at the Allied Underbase Wall.", Map.Allied_Wall_Defused );
+
+	OnTrigger( "^DThe Allies have built an Infirmary! ^fFirst Aid available!", Map.Allies_Med_L1 );
+	OnTrigger( "^DThe Allied Infirmary has been upgraded to ^kLevel 2^D! ^fHealth Stand", Map.Allies_Med_L2 );
+	OnTrigger( "^DThe Allied Infirmary has been upgraded to ^zLevel 3^D! ^fMedical Ches", Map.Allies_Med_L3 );
+	OnTrigger( "^DThe Allied Infirmary has been upgraded to ^lLevel 4^D! ^fDefensive su", Map.Allies_Med_L4 );
+	OnTrigger( "^DThe Allies have built an Tactical Shack! ^fLandmine notification acti", Map.Allies_Ops_L1 );
+	OnTrigger( "^DThe Allied Tactical Shack has been upgraded to ^kLevel 2^D! ^fEnemy i", Map.Allies_Ops_L2 );
+	OnTrigger( "^DThe Allied Tactical Shack has been upgraded to ^zLevel 3^D! ^fWall Ju", Map.Allies_Ops_L3 );
+	OnTrigger( "^DThe Allied Tactical Shack has been upgraded to ^lLevel 4^D! ^fEnemy t", Map.Allies_Ops_L4 );
+	OnTrigger( "^DThe Allies have built an Armory! ^fHeavy Weapons stocked!", Map.Allies_Armory_L1 );
+	OnTrigger( "^DThe Allied Armory has been upgraded to ^kLevel 2^D! ^fAmmunition stoc", Map.Allies_Armory_L2 );
+	OnTrigger( "^DThe Allied Armory has been upgraded to ^zLevel 3^D! ^fAmmunition ches", Map.Allies_Armory_L3 );
+	OnTrigger( "^DThe Allied Armory has been upgraded to ^lLevel 4^D! ^fRocketguns carr", Map.Allies_Armory_L4 );
+	OnTrigger( "^DThe Allies have built an Engineering Shack! ^fBase defenses improved!", Map.Allies_Eng_L1 );
+	OnTrigger( "^DThe Allied Engineering Shack has been upgraded to ^kLevel 2^D! ^fBase", Map.Allies_Eng_L2 );
+	OnTrigger( "^DThe Allied Engineering Shack has been upgraded to ^zLevel 3^D! ^fRock", Map.Allies_Eng_L3 );
+	OnTrigger( "^DThe Allied Engineering Shack has been upgraded to ^lLevel 4^D! ^fLand", Map.Allies_Eng_L4 );
+	OnTrigger( "^DThe Allied Spawn has been upgraded to Level 1!", Map.Allies_Spawn_L1 );
+	OnTrigger( "^DThe Allied Spawn has been upgraded to ^kLevel 2^D!", Map.Allies_Spawn_L2 );
+	OnTrigger( "^DThe Allied Spawn has been upgraded to ^zLevel 3^D!", Map.Allies_Spawn_L3 );
+	OnTrigger( "^DThe Allied Spawn has been upgraded to ^lLevel 4^D!", Map.Allies_Spawn_L4 );
+	OnTrigger( "the Allied Underbase Door Destroyed.", Map.Allied_Underbase_Door_Destroyed );
+	OnTrigger( "the Allied Underbase Wall Destroyed.", Map.Allied_Underbase_Wall_Destroyed );
+	OnTrigger( "Allies have stolen Construction Materials!", Map.Allies_Announce_Strat );
+	OnTrigger( "Planted at the Axis Underbase Door.", Map.Axis_Door_Planted );
+	OnTrigger( "Planted at the Axis Underbase Wall.", Map.Axis_Wall_Planted );
+	OnTrigger( "Defused at the Axis Underbase Door.", Map.Axis_Door_Defused );
+	OnTrigger( "Defused at the Axis Underbase Wall.", Map.Axis_Wall_Defused );
+
+	//duplicate triggers for some ... using trigger regions
+	red_pad_leftwall = OnTriggerRegion(AABB(-1408.385,-2816.695,4.125,-1279.727,-2690.010,78.125), Map.Red_Leftwall);
+	red_pad_rightwall = OnTriggerRegion(AABB(1290.663,-3182.572,4.125,1412.532,-3058.490,78.125), Map.Red_Rightwall);
+	red_pad_forwardwall = OnTriggerRegion(AABB(779.320,-2300.631,4.125,899.655,-2182.057,78.125), Map.Red_Forwardwall);
+	blue_pad_leftwall = OnTriggerRegion(AABB(1524.877,3204.998,4.125,1644.631,3320.503,78.125), Map.Blue_Leftwall);
+	blue_pad_rightwall = OnTriggerRegion(AABB(-1172.535,3572.043,4.125,-1049.249,3688.849,78.125), Map.Blue_Rightwall);
+	blue_pad_forwardwall = OnTriggerRegion(AABB(-656.862,2691.736,4.125,-544.474,2809.071,78.125), Map.Blue_Forwardwall);
+	red_pad_assault = OnTriggerRegion(AABB(952.927,-2575.944,4.125,1079.854,-2448.402,78.125), Map.Red_Assault);
+	red_pad_gatebunker = OnTriggerRegion(AABB(-510.204,-2293.800,4.125,-383.071,-2172.045,78.125), Map.Red_Bunker);
+	blue_pad_assault = OnTriggerRegion(AABB(-843.543,2960.235,4.125,-709.884,3088.429,78.125), Map.Blue_Assault);
+	blue_pad_gatebunker = OnTriggerRegion(AABB(622.582,2678.962,4.125,750.359,2804.604,78.125), Map.Blue_Bunker);
+
+	// these doors are no longer team only after tactical ops level 4
+	Wp.SetWaypointFlag( "rRightdoor", "axis", true );
+	Wp.SetWaypointFlag( "rLeftdoor", "axis", true );
+	Wp.SetWaypointFlag( "bRightdoor", "allies", true );
+	Wp.SetWaypointFlag( "bLeftdoor", "allies", true );
+
+	// draw trigger regions if debugging
+	if ( Map.Debug > 0 )
+		{ ExecCommand("drawtriggers"); }
+
+	SetGoalPriority( "FLAG_Construction_Materials.*", 0.85, TEAM.ALLIES );
+	SetGoalPriority( "FLAG_Construction_Materials_2", 1.5, TEAM.AXIS );
+	SetGoalPriority( "FLAG_Construction_Materials_3", 1.5, TEAM.ALLIES );
+	SetGoalPriority( "FLAG_Construction_Materials_6", 0.9, TEAM.AXIS );
+	SetGoalPriority( "FLAG_Construction_Materials_7", 0.9, TEAM.ALLIES );
+	SetGoalPriority( "FLAG_Construction_Materials_drop.*", 0.9, 0, 0, true );
+	SetGoalPriority( "FLAGRETURN.*", 0.9, 0, 0, true );
+	SetGoalPriority( "CAMP.*", 0.86, 0, 0, true );
+	// engineer camps to cover dyno
+	SetGoalPriority( "DEFEND_r_cover.*", 0.0 );
+	SetGoalPriority( "DEFEND_b_cover.*", 0.0 );
+	SetGoalPriority( "DEFEND_r_cover.*", 1.0, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "DEFEND_b_cover.*", 1.0, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_.*", 1.1, 0, CLASS.ENGINEER );
+
+	Util.DisableGoal( ".*", true ); //all but routes
+	Util.DisableGoal( "ROUTE_r_e_underbase" );
+	Util.DisableGoal( "ROUTE_r_w_underbase" );
+	Util.DisableGoal( "ROUTE_b_e_underbase" );
+	Util.DisableGoal( "ROUTE_b_w_underbase" );
+
+	Util.SetMaxUsersInProgress( 2, "FLAG_Construction_Materials_drop.*" );
+	Util.SetMaxUsersInProgress( 2, "FLAGRETURN.*" );
+	Util.SetMaxUsers( 1, "CAMP.*" );
+
+	SetMapGoalProperties( "CAMP_.*", {MinCampTime=15, MaxCampTime=30});
+
+	//allies goals
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Axis_Underbase_Door" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Axis_Underbase_Wall" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_Construction_Materials_3" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_Construction_Materials_4" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_Construction_Materials_5" );
+	//SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_Construction_Materials_8" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CAMP_bDefense.*" );
+	Util.SetRoleForTable( Map.Defend.Allies, ROLE.DEFENDER );
+
+	//axis goals
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Allied_Underbase_Door" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Allied_Underbase_Wall" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "FLAG_Construction_Materials" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "FLAG_Construction_Materials_1" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "FLAG_Construction_Materials_2" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "CAMP_rDefense.*" );
+	Util.SetRoleForTable( Map.Defend.Axis, ROLE.DEFENDER );
+
+	MapRoutes =
+	{
+		FLAG_Construction_Materials_4 =
+		{
+			ROUTE_bSpawn =
+			{
+				ROUTE_ne_trench =
+				{
+					ROUTE_e_trench =
+					{
+						ROUTE_se_trench = {},
+					},
+				},
+				ROUTE_nw_trench =
+				{
+					ROUTE_w_trench =
+					{
+						ROUTE_sw_trench = {},
+					},
+				},
+				ROUTE_ne_upper =
+				{
+					ROUTE_e_upper =
+					{
+						ROUTE_se_upper = {},
+					},
+				},
+				ROUTE_nw_upper =
+				{
+					ROUTE_w_upper =
+					{
+						ROUTE_sw_upper = {},
+					},
+				},
+				ROUTE_n_tunnel =
+				{
+					Weight = 2,
+					ROUTE_n_midtunnel =
+					{
+						ROUTE_s_midtunnel =
+						{
+							ROUTE_s_tunnel = {},
+						},
+					},
+				},
+				ROUTE_e_uppermid = {},
+				ROUTE_w_uppermid = {},
+			},
+			ROUTE_bOutpostSpawn =
+			{
+				ROUTE_ne_trench = {},
+				ROUTE_e_trench = {},
+				ROUTE_ne_upper = {},
+				ROUTE_b_e_underbase = {},
+			},
+		},
+
+		FLAG_Construction_Materials =
+		{
+			ROUTE_rSpawn =
+			{
+				ROUTE_se_trench =
+				{
+					ROUTE_e_trench =
+					{
+						ROUTE_ne_trench = {},
+					},
+				},
+				ROUTE_sw_trench =
+				{
+					ROUTE_w_trench =
+					{
+						ROUTE_nw_trench = {},
+					},
+				},
+				ROUTE_se_upper =
+				{
+					ROUTE_e_upper =
+					{
+						ROUTE_ne_upper = {},
+					},
+				},
+				ROUTE_sw_upper =
+				{
+					ROUTE_w_upper =
+					{
+						ROUTE_nw_upper = {},
+					},
+				},
+				ROUTE_s_tunnel =
+				{
+					Weight = 2,
+					ROUTE_s_midtunnel =
+					{
+						ROUTE_n_midtunnel =
+						{
+							ROUTE_n_tunnel = {},
+						},
+					},
+				},
+				ROUTE_e_uppermid = {},
+				ROUTE_w_uppermid = {},
+			},
+			ROUTE_rOutpostSpawn =
+			{
+				ROUTE_sw_trench = {},
+				ROUTE_w_trench = {},
+				ROUTE_sw_upper = {},
+				ROUTE_r_w_underbase = {},
+			},
+		},
+
+		PLANT_Axis_Underbase_Door =
+		{
+			ROUTE_bSpawn =
+			{
+				ROUTE_ne_trench =
+				{
+					ROUTE_e_trench =
+					{
+						ROUTE_se_trench = {},
+					},
+				},
+				ROUTE_nw_upper =
+				{
+					ROUTE_e_upper =
+					{
+						ROUTE_se_upper = {},
+					},
+				},
+				ROUTE_e_uppermid = {},
+			},
+		},
+
+		PLANT_Allied_Underbase_Door =
+		{
+			ROUTE_rSpawn =
+			{
+				ROUTE_sw_trench =
+				{
+					ROUTE_w_trench =
+					{
+						ROUTE_nw_trench = {},
+					},
+				},
+				ROUTE_sw_upper =
+				{
+					ROUTE_w_upper =
+					{
+						ROUTE_nw_upper = {},
+					},
+				},
+				ROUTE_w_uppermid = {},
+			},
+		},
+
+		PLANT_Axis_Underbase_Wall =
+		{
+			ROUTE_bSpawn =
+			{
+				ROUTE_nw_trench =
+				{
+					ROUTE_w_trench =
+					{
+						ROUTE_sw_trench = {},
+					},
+				},
+				ROUTE_nw_upper =
+				{
+					ROUTE_w_upper =
+					{
+						ROUTE_sw_upper = {},
+					},
+				},
+				ROUTE_n_tunnel =
+				{
+					Weight = 2,
+					ROUTE_n_midtunnel =
+					{
+						ROUTE_s_midtunnel =
+						{
+							ROUTE_s_tunnel = {},
+						},
+					},
+				},
+				ROUTE_w_uppermid = {},
+			},
+		},
+
+		PLANT_Allied_Underbase_Wall =
+		{
+			ROUTE_rSpawn =
+			{
+				ROUTE_se_trench =
+				{
+					ROUTE_e_trench =
+					{
+						ROUTE_ne_trench = {},
+					},
+				},
+				ROUTE_se_upper =
+				{
+					ROUTE_e_upper =
+					{
+						ROUTE_ne_upper = {},
+					},
+				},
+				ROUTE_s_tunnel =
+				{
+					Weight = 2,
+					ROUTE_s_midtunnel =
+					{
+						ROUTE_n_midtunnel =
+						{
+							ROUTE_n_tunnel = {},
+						},
+					},
+				},
+				ROUTE_e_uppermid = {},
+			},
+		},
+
+		CAPPOINT_blue_pad_armory =
+		{
+			ROUTE_bWestGrab =
+			{
+				ROUTE_sw_trench =
+				{
+					ROUTE_w_trench =
+					{
+						ROUTE_nw_trench = {},
+					},
+				},
+				ROUTE_sw_upper =
+				{
+					ROUTE_w_upper =
+					{
+						ROUTE_nw_upper = {},
+					},
+				},
+				ROUTE_s_tunnel =
+				{
+					Weight = 2,
+					ROUTE_s_midtunnel =
+					{
+						ROUTE_n_midtunnel =
+						{
+							ROUTE_n_tunnel = {},
+						},
+					},
+				},
+			},
+			ROUTE_bEastGrab =
+			{
+				ROUTE_r_e_underbase =
+				{
+					Weight = 3,
+					ROUTE_se_trench =
+					{
+						ROUTE_e_trench =
+						{
+							ROUTE_ne_trench = {},
+						},
+					},
+				},
+				ROUTE_se_trench =
+				{
+					ROUTE_e_trench =
+					{
+						ROUTE_ne_trench = {},
+					},
+				},
+				ROUTE_se_upper =
+				{
+					ROUTE_e_upper =
+					{
+						ROUTE_ne_upper = {},
+					},
+				},
+			},
+		},
+
+		CAPPOINT_red_pad_armory =
+		{
+			ROUTE_rWestGrab =
+			{
+				ROUTE_b_w_underbase =
+				{
+					Weight = 3,
+					ROUTE_sw_trench =
+					{
+						ROUTE_w_trench =
+						{
+							ROUTE_nw_trench = {},
+						},
+					},
+				},
+				ROUTE_nw_trench =
+				{
+					ROUTE_w_trench =
+					{
+						ROUTE_sw_trench = {},
+					},
+				},
+				ROUTE_nw_upper =
+				{
+					ROUTE_w_upper =
+					{
+						ROUTE_sw_upper = {},
+					},
+				},
+			},
+			ROUTE_rEastGrab =
+			{
+				ROUTE_ne_trench =
+				{
+					ROUTE_e_trench =
+					{
+						ROUTE_se_trench = {},
+					},
+				},
+				ROUTE_ne_upper =
+				{
+					ROUTE_e_upper =
+					{
+						ROUTE_se_upper = {},
+					},
+				},
+				ROUTE_n_tunnel =
+				{
+					Weight = 2,
+					ROUTE_n_midtunnel =
+					{
+						ROUTE_s_midtunnel =
+						{
+							ROUTE_s_tunnel = {},
+						},
+					},
+				},
+			},
+		},
+	};
+
+	MapRoutes.FLAG_Construction_Materials_5 = MapRoutes.FLAG_Construction_Materials_4;
+	MapRoutes.FLAG_Construction_Materials_1 = MapRoutes.FLAG_Construction_Materials;
+	MapRoutes.CAPPOINT_blue_pad_assault = MapRoutes.CAPPOINT_blue_pad_armory;
+	MapRoutes.CAPPOINT_blue_pad_engineering = MapRoutes.CAPPOINT_blue_pad_armory;
+	MapRoutes.CAPPOINT_blue_pad_forwardwall = MapRoutes.CAPPOINT_blue_pad_armory;
+	MapRoutes.CAPPOINT_blue_pad_gatebunker = MapRoutes.CAPPOINT_blue_pad_armory;
+	MapRoutes.CAPPOINT_blue_pad_leftwall = MapRoutes.CAPPOINT_blue_pad_armory;
+	MapRoutes.CAPPOINT_blue_pad_med = MapRoutes.CAPPOINT_blue_pad_armory;
+	MapRoutes.CAPPOINT_blue_pad_ops = MapRoutes.CAPPOINT_blue_pad_armory;
+	MapRoutes.CAPPOINT_blue_pad_rightwall = MapRoutes.CAPPOINT_blue_pad_armory;
+	MapRoutes.CAPPOINT_blue_pad_spawn = MapRoutes.CAPPOINT_blue_pad_armory;
+	MapRoutes.CAPPOINT_red_pad_assault = MapRoutes.CAPPOINT_red_pad_armory;
+	MapRoutes.CAPPOINT_red_pad_engineering = MapRoutes.CAPPOINT_red_pad_armory;
+	MapRoutes.CAPPOINT_red_pad_forwardwall = MapRoutes.CAPPOINT_red_pad_armory;
+	MapRoutes.CAPPOINT_red_pad_gatebunker = MapRoutes.CAPPOINT_red_pad_armory;
+	MapRoutes.CAPPOINT_red_pad_leftwall = MapRoutes.CAPPOINT_red_pad_armory;
+	MapRoutes.CAPPOINT_red_pad_med = MapRoutes.CAPPOINT_red_pad_armory;
+	MapRoutes.CAPPOINT_red_pad_ops = MapRoutes.CAPPOINT_red_pad_armory;
+	MapRoutes.CAPPOINT_red_pad_rightwall = MapRoutes.CAPPOINT_red_pad_armory;
+	MapRoutes.CAPPOINT_red_pad_spawn = MapRoutes.CAPPOINT_red_pad_armory;
+
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.MaxViewDistance = 2400;
+	ETUtil.SetDualObjective(bot);
+};
+

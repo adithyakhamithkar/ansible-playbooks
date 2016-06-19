@@ -1,0 +1,175 @@
+//==========================================================================================
+//
+//	uje_oil.gm
+//
+//	Who       	When		What
+//------------------------------------------------------------------------------------------
+//	^1[UJE]^3Niek	02 February 2013	Initial Script
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 1, // please set to zero before distributing your script
+	ShowMovers = false,
+
+	Allied_Chopper_on_the_Low_deck_Dyno = 0,
+	Allied_Chopper_on_the_high_deck_Dyno = 0,
+	Command_Post_Dyno = 0,
+
+	Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Built" );
+	},
+
+	Allied_Chopper_on_the_Low_deck_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Allied_Chopper_on_the_Low_deck_Dyno += 1;
+		Util.MapDebugPrint( "Allied_Chopper_on_the_Low_deck_Planted" );
+	},
+
+	Allied_Chopper_on_the_high_deck_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Allied_Chopper_on_the_high_deck_Dyno += 1;
+		Util.MapDebugPrint( "Allied_Chopper_on_the_high_deck_Planted" );
+	},
+
+	Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno += 1;
+		Util.MapDebugPrint( "Command_Post_Planted" );
+	},
+
+	Allied_Chopper_on_the_Low_deck_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Allied_Chopper_on_the_Low_deck_Dyno -= 1;
+		Util.MapDebugPrint( "Allied_Chopper_on_the_Low_deck_Defused" );
+	},
+
+	Allied_Chopper_on_the_high_deck_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Allied_Chopper_on_the_high_deck_Dyno -= 1;
+		Util.MapDebugPrint( "Allied_Chopper_on_the_high_deck_Defused" );
+	},
+
+	Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno -= 1;
+		Util.MapDebugPrint( "Command_Post_Defused" );
+	},
+
+	Allied_Chopper_on_the_Low_deck_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Allied_Chopper_on_the_Low_deck_Dyno = 0;
+
+		Util.MapDebugPrint( "Allied_Chopper_on_the_Low_deck_Destroyed" );
+	},
+
+	Allied_Chopper_on_the_high_deck_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Allied_Chopper_on_the_high_deck_Dyno = 0;
+
+		Util.MapDebugPrint( "Allied_Chopper_on_the_high_deck_Destroyed" );
+	},
+
+	Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno = 0;
+
+		Util.MapDebugPrint( "Command_Post_Destroyed" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// Register callback functions
+	OnTrigger( "MISSING_STRING", Map.Command_Post_Built );
+	OnTrigger( "Planted at the MISSING_STRING.", Map.Allied_Chopper_on_the_Low_deck_Planted );
+	OnTrigger( "Planted at the MISSING_STRING.", Map.Allied_Chopper_on_the_high_deck_Planted );
+	OnTrigger( "Planted at the MISSING_STRING.", Map.Command_Post_Planted );
+	OnTrigger( "Defused at the MISSING_STRING.", Map.Allied_Chopper_on_the_Low_deck_Defused );
+	OnTrigger( "Defused at the MISSING_STRING.", Map.Allied_Chopper_on_the_high_deck_Defused );
+	OnTrigger( "Defused at the MISSING_STRING.", Map.Command_Post_Defused );
+	OnTrigger( "MISSING_STRING", Map.Allied_Chopper_on_the_Low_deck_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Allied_Chopper_on_the_high_deck_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Command_Post_Destroyed );
+
+	//~Util.DisableGoal( ".*", true ); // all but routes
+	//~SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_.*" );
+	//~SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_.*" );
+
+	// Max users per goal
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+
+	// Camp times
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=60} );
+
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	// Uncomment for shootable breakables
+	//~bot.TargetBreakableDist = 90.0;
+	// Only set MaxViewDistance on maps with limited sight (e.g. fog)
+	//~bot.MaxViewDistance = 2400;
+};
+
+global InitializeRoutes = function()
+{
+	MapRoutes =
+	{
+		BUILD_Command_Post =
+		{
+		},
+		PLANT_Allied_Chopper_on_the_Low_deck =
+		{
+		},
+		PLANT_Command_Post =
+		{
+		},
+		PLANT_Allied_Chopper_on_the_high_deck =
+		{
+		},
+	};
+	Util.Routes(MapRoutes);
+};

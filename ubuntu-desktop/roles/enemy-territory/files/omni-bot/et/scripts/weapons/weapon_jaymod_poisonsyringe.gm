@@ -1,0 +1,17 @@
+if (GetModName()!="Jaymod") { return; }
+
+WEAPON.POISONSYRINGE = 75; // this is defined in the mods interface, and must match
+
+//////////////////////////////////////////////////////////////////////////
+// Overall weapon properties.
+this.Name = "Poison Syringe";
+this.WeaponId = WEAPON.POISONSYRINGE;
+
+//////////////////////////////////////////////////////////////////////////
+// Set some weapon properties that affect some internal logic.
+this.PrimaryFire.WeaponType = "melee";
+this.PrimaryFire.RequiresAmmo = true;
+this.PrimaryFire.WaterProof = true;
+
+this.PrimaryFire.DefaultDesirability = 0.0;
+this.PrimaryFire.SetDesirabilityRange(0, 100, 0.85);

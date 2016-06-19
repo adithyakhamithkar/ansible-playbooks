@@ -1,0 +1,219 @@
+global Map =
+{
+	Debug = 0,
+	DispenseAmmoTime = 15, // give axis time to go call the arty
+	IdolStatus = false,
+	FlexDefense = true,
+
+	Roles =
+	{
+		AXIS =
+		{
+			DEFENDER1 =
+			{
+				numbots = 4,
+			}
+		}
+	},
+
+	Ark_of_the_Covenant_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_documents" );
+
+		Util.MapDebugPrint( "Ark_of_the_Covenant_Destroyed" );
+	},
+
+	Idol_Taken = function( trigger )
+	{
+		Map.IdolStatus = true;
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rTransmit_.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAMP_bPnzTransmit.*" );
+
+		Util.MapDebugPrint( "Idol_Taken" );
+	},
+
+	Idol_Returned = function( trigger )
+	{
+		Map.IdolStatus = false;
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rCrypt.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rPreCrypt.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAMP_bPnzTransmit.*" );
+
+		Util.MapDebugPrint( "Idol_Returned" );
+	},
+
+	Idol_Secured = function( trigger )
+	{
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "Idol_Secured" );
+	},
+
+	the_flag_Axis_Captured = function( trigger )
+	{
+		Util.SetMaxUsersInProgress( 3, "CHECKPOINT.*" );
+		Util.MapDebugPrint( "the_flag_Axis_Captured" );
+	},
+
+	the_flag_Allies_Captured = function( trigger )
+	{
+		Util.SetMaxUsersInProgress( 2, "CHECKPOINT.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "AIRSTRIKE_bCryptAS_.*" );
+
+		Util.MapDebugPrint( "the_flag_Allies_Captured" );
+	},
+
+	CheckAllies = function()
+	{
+		while ( !ETUtil.IsTeamDead( TEAM.ALLIES ) && !Map.IdolStatus )
+		{
+			sleep( 1 );
+		}
+
+		// push back out if all the allies are down
+		if ( !Map.IdolStatus ) {
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_rCrypt.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_rPreCrypt.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_rCrypt.*" );
+		}
+	},
+
+	CryptTrigger =
+	{
+		Name = "CryptTrigger",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function( ent )
+		{
+			if ( Map.IdolStatus == false ) {
+				if ( GetEntTeam( ent ) == TEAM.ALLIES ) {
+					if ( Map.CheckAlliesThread ) {
+						threadKill( Map.CheckAlliesThread );
+					}
+
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rCrypt.*" );
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rPreCrypt.*" );
+					SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_rCrypt.*" );
+
+					if ( Map.FlexDefense ) {
+						Map.CheckAlliesThread = thread( Map.CheckAllies );
+					}
+					Util.MapDebugPrint( "CryptTrigger" );
+				}
+			}
+		},
+		OnExit = function( ent )
+		{
+		},
+	},
+};
+
+global OnMapLoad = function()
+{
+	OnTrigger( "Allies have breached the Ark of the Covenant!", Map.Ark_of_the_Covenant_Destroyed );
+	OnTrigger( "Allies have stolen the documents!", Map.Idol_Taken );
+	OnTrigger( "Flag returned documents!", Map.Idol_Returned );
+	OnTrigger( "Allied team has transported the documents!", Map.Idol_Secured );
+	OnTrigger( "Axis capture the forward spawn!", Map.the_flag_Axis_Captured );
+	OnTrigger( "Allies capture the forward spawn!", Map.the_flag_Allies_Captured );
+
+	OnTriggerRegion( AABB( -4955,2663,-36,-4910,2920,77 ), Map.CryptTrigger );
+	OnTriggerRegion( AABB( -5065,2359,-67,-5020,2624,121 ), Map.CryptTrigger );
+
+	SetMapGoalProperties( "ATTACK_.*", {mincamptime = 15, maxcamptime = 30} );
+	SetMapGoalProperties( "DEFEND_.*", {mincamptime = 20, maxcamptime = 40} );
+	SetMapGoalProperties( "DEFEND_rInitial.*", {mincamptime = 45, maxcamptime = 60} );
+
+	Util.AddUseWp( "PLANT_Ark_of_Covenant", { "crypt1", "crypt2" } );
+
+	Util.DisableGoal( ".*", true ); // all but routes
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rInitial.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_rCourtyard.*" );
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_bCrypt.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_bCrypt.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT.*" );
+
+   SetGoalPriority( "FLAG.*", 0.7 );
+   SetGoalPriority( "CHECKPOINT.*", 0.7 );
+   SetGoalPriority( "CHECKPOINT.*", 0.4, TEAM.AXIS, CLASS.ENGINEER );
+
+	Util.SetMaxUsersInProgress( 3, "CHECKPOINT.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_rInitial.*" );
+
+	Util.SetRoleForGoals("DEFEND_rCrypt.*", ROLE.DEFENDER1);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global InitializeRoutes = function()
+{
+	MapRoutes =
+	{
+		PLANT_Ark_of_Covenant =
+		{
+			ROUTE_flagspawn =
+			{
+				ROUTE_uppersouth =
+				{
+					ROUTE_cryptnorth = {},
+					ROUTE_cryptsouth = {},
+				}
+			},
+			ROUTE_bspawn =
+			{
+				ROUTE_lowernorth =
+				{
+					ROUTE_cryptnorth = {},
+					ROUTE_cryptsouth = {},
+				},
+				ROUTE_lowersouth =
+				{
+					ROUTE_cryptnorth = {},
+					ROUTE_cryptsouth = {},
+				},
+			},
+		},
+		CAPPOINT_transmit =
+		{
+			ROUTE_docgrab =
+			{
+				ROUTE_cryptsouth =
+				{
+					ROUTE_lowersouth =
+					{
+						ROUTE_mapsouth = {},
+						ROUTE_mapmid = {},
+					},
+				},
+				ROUTE_cryptnorth =
+				{
+					ROUTE_lowernorth =
+					{
+						ROUTE_mapnorth = {},
+					},
+				},
+			},
+		},
+	};
+
+	MapRoutes.PLANT_Ark_of_Covenant.ROUTE_flagspawn.ROUTE_uppernorth = MapRoutes.PLANT_Ark_of_Covenant.ROUTE_flagspawn.ROUTE_uppersouth;
+	MapRoutes["ATTACK_bCrypt_.*"] = MapRoutes.PLANT_Ark_of_Covenant;
+	MapRoutes["AIRSTRIKE_bCryptAS_.*"] = MapRoutes.PLANT_Ark_of_Covenant;
+	MapRoutes.FLAG_documents = MapRoutes.PLANT_Ark_of_Covenant;
+	Util.Routes( MapRoutes );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 80.0;
+};

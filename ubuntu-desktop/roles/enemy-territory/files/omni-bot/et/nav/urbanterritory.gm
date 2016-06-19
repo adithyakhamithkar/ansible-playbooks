@@ -1,0 +1,265 @@
+//==========================================================================================
+//
+//	UrbanTerritory.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	palota	20 April 2010	Initial Script
+//	palota	23 October 2010	DYNAMITE_safe, ROUTE_allies_passage, mg42 aim vectors
+//	palota	12 November 2011	fixed ladders paththrough navigation, added paththrough navigation to destroy sewer hatches, disable bot push on roof pipes, higher SNIPE priority, increased ATTACK max users
+//
+//==========================================================================================
+//
+global Map =
+{
+	Debug=0,
+	safeIsDestroyed=false,
+	safePlantedTime=null,
+
+	IgnoreEntPositions = { Vector3(-1441, 799, 30), Vector3(-835, -255, 66), Vector3(-798, -273, 65), Vector3(-874, -275, 65),
+		Vec3(1300, 2517, -2), Vec3(326, 880, 0), Vec3(336, -801, 0) },
+
+	DestroyBreakable1 = function(_this, position, facing)
+	{
+		for(i=0; i<5; i+=1)
+		{
+			ent = TraceLine( position, position + 200*facing, 0, TRACE.SHOT, _this.Bot.GetGameId(), false ).entity;
+			if(!ent || GetEntClass(ent)!=CLASS.BREAKABLE){ break; }
+			id = GetGameIdFromEntity(ent);
+			Util.MapDebugPrint("destroying breakable " + id, true);
+			_this.Bot.HoldButton(BTN.FORWARD, 5);
+			_this.AddAimRequest(Priority.High, "facing", facing);
+			_this.AddWeaponRequest(Priority.High, WEAPON.KNIFE);
+			_this.BlockForWeaponChange(WEAPON.KNIFE);
+			for(j=0; j<30; j+=1) {
+				if (!EntityIsValid(id)){ break; }
+				_this.Bot.HoldButton(BTN.ATTACK1, 0.5);
+				if(facing.z < -0.7){ _this.Bot.HoldButton(BTN.CROUCH, 0.4); }
+				_this.Bot.ResetStuckTime();
+				sleep(0.5);
+			}
+		}
+	},
+
+	DestroyBreakable = function(_this, position, facing)
+	{
+		Map.DestroyBreakable1(_this, position, facing);
+		sleep(3);
+	},
+
+	Navigation =
+	{
+		door =
+		{
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.High, "facing", Vec3(0,-1,0));
+				sleep(1.5);
+			}
+		},
+
+		long_ladder = //to the roof
+		{
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.High, "position", Vec3(-1389.056, -414.324, 422.125));
+				sleep(5);
+			}
+		},
+
+		ladder_down =  //roof
+		{
+			navigate = function(_this)
+			{
+				// at top of ladder, turn completely around
+				_this.AddAimRequest(Priority.High, "position", Vector3(392.873, -519.284, 288.125));
+				_this.Bot.HoldButton(BTN.CROUCH, 1.5);
+				sleep(0.5);
+				if(_this.Bot.GetPosition().z > 380){
+					_this.Bot.HoldButton(BTN.BACKWARD, 0.5);
+					sleep(0.5);
+				}
+				sleep(1);
+			}
+		},
+
+		ladder_sewer = //route from the axis spawn to sewerage
+		{
+			navigate = function(_this)
+			{
+				Map.DestroyBreakable1(_this, Vec3(-1384.126, 702.168, 70.125), Vec3(0.222, -0.003, -0.975));
+
+				_this.AddAimRequest(Priority.High, "facing", Vector3(-0.3,0,-0.9));
+				_this.Bot.HoldButton(BTN.FORWARD,BTN.CROUCH, 1.5);
+				sleep(0.3);
+				_this.AddAimRequest(Priority.High, "facing", Vector3(0.3,0,-0.9));
+				sleep(2);
+			}
+		},
+
+		hatch_truck = {
+			navigate = function(_this)
+			{
+				Map.DestroyBreakable(_this, Vec3(1304.875, 2523.771, -16.733), Vec3(0.635, 0.003, 0.773));
+			}
+		},
+		hatch_center = {
+			navigate = function(_this)
+			{
+				Map.DestroyBreakable(_this, Vec3(330.125, 884.487, -18.482), Vec3(-0.315, 0.015, 0.949));
+			}
+		},
+		hatch_bank = {
+			navigate = function(_this)
+			{
+				Map.DestroyBreakable(_this, Vec3(342.275, -806.875, -11.855), Vec3(0.020, -0.392, 0.920));
+			}
+		},
+		ductfan = {
+			navigate = function(_this)
+			{
+				Map.DestroyBreakable(_this, Vec3(1202.515, -1088.875, -11.328), Vec3(-0.004, -0.353, 0.935));
+			}
+		},
+	},
+
+	Gold_Taken = function( trigger )
+	{
+		if(!Map.safeIsDestroyed){ Map.Safe_Destroyed(); }
+		Util.EnableGoal("DEFEND_truck.*");
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_truck1");
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_truck4");
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_truck5");
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_safe.*");
+	},
+
+	Gold_Returned = function( trigger )
+	{
+		Util.DisableGoal("DEFEND_truck.*");
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_safe.*");
+	},
+
+	Safe_Planted = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_safe8");
+	},
+
+	Safe_Destroyed = function()
+	{
+		Map.safeIsDestroyed = true;
+		SetAvailableMapGoals( TEAM.AXIS, true, "FLAG_Gold");
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_safe.*");
+		SetAvailableMapGoals( TEAM.AXIS, false, "DYNAMITE_safe");
+		Util.MapDebugPrint( "Safe_Destroyed" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	OnTrigger( "Axis have stolen Gold!", Map.Gold_Taken );
+	OnTrigger( "Flag returned Gold!", Map.Gold_Returned );
+	OnTrigger( "Planted at The Safe.", Map.Safe_Planted );
+
+	// grenade goals send a trigger when the target entity is destroyed
+	// replacing the Watch_Safe thread with this as an example since this is a lot easier
+	// /bot goal_create grenade safetrigger    /bot goal_setproperty trace while pointing at the explosive ent
+	// feel free to remove these comments.
+	OnTrigger( "GRENADE_safetrigger Exploded.", Map.Safe_Destroyed );
+
+	// a re-usable region trigger to disable bot pushing and combat movement. this one is around the rooftop ladder
+	OnTriggerRegion(AABB(-213,-640.875,265.125,476.875,-407.125,510),RegionTrigger.DisableBotPush);
+
+	Util.DisableGoal("GRENADE.*");
+	SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG.*");
+	SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT.*");
+	Util.DisableGoal("DEFEND_truck.*");
+	Util.LimitToTeam( TEAM.ALLIES, "TRIPMINE_l.*");
+
+	SetAvailableMapGoals( TEAM.AXIS, false, "FLAG_Gold");
+	SetGoalPriority("MOUNTMG42.*", 0, TEAM.AXIS, CLASS.ENGINEER);
+	SetGoalPriority("SNIPE.*", 0.81, TEAM.AXIS);
+
+	Util.SetMaxUsersInProgress(9, "ATTACK.*");
+	Util.SetMaxUsersInProgress(1, "SNIPE.*");
+	Util.SetMaxUsersInProgress(1, "MOUNTMG42.*");
+
+	SetMapGoalProperties( "DEFEND.*", {mincamptime=40, maxcamptime=150} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {mincamptime=90, maxcamptime=300} );
+	SetMapGoalProperties( "MOUNTMG42_.*", {mincamptime=90, maxcamptime=300} );
+
+	MapRoutes =
+	{
+		FLAG_Gold = {
+			ROUTE_axis_spawn = {
+				ROUTE_north1 = { ROUTE_floor1 = {}},
+				ROUTE_north3 = { ROUTE_floor2 = {}},
+				ROUTE_north4 = { ROUTE_floor2 = {}},
+				ROUTE_sewer_center = { Weight=4,
+					ROUTE_xxx = {},
+					ROUTE_sewer_south = { Weight=3,
+						ROUTE_shaft1 = {},
+						ROUTE_shaft2 = {},
+					},
+				},
+				ROUTE_roof = {},
+				ROUTE_south_west = { ROUTE_marijuana = { ROUTE_floor1 = {}}},
+				ROUTE_disco = { ROUTE_floor2 = {}},
+			}
+		},
+		CAPPOINT_van = {
+			ROUTE_gold1 = {
+				ROUTE_north1 = {},
+				ROUTE_north3 = {},
+				ROUTE_north4 = { Weight=2 },
+				ROUTE_sewer_south = { Weight=3, ROUTE_sewer_north = {}},
+			}
+		},
+		DEFEND_safe1 = {
+			ROUTE_allied_spawn = {
+				ROUTE_back = { Weight=2 },
+				ROUTE_entrance = {},
+				ROUTE_allies2 = {},
+			}
+		},
+		DEFEND_truck1 = {
+			ROUTE_allied_spawn = {
+				ROUTE_allies_passage = {},
+				ROUTE_north1 = {},
+				ROUTE_north3 = {},
+			}
+		},
+	};
+	MapRoutes.DYNAMITE_safe = MapRoutes.FLAG_Gold;
+	MapRoutes.ATTACK_safe3 = MapRoutes.FLAG_Gold;
+	MapRoutes.ATTACK_safe4 = MapRoutes.ATTACK_safe3;
+	MapRoutes.DEFEND_safe2 = MapRoutes.DEFEND_safe1;
+	MapRoutes.DEFEND_safe5 = MapRoutes.DEFEND_safe1;
+	MapRoutes.DEFEND_safe7 = MapRoutes.DEFEND_safe1;
+	MapRoutes.DEFEND_safe8 = MapRoutes.DEFEND_safe1;
+	MapRoutes.DEFEND_truck3 = MapRoutes.DEFEND_truck1;
+	MapRoutes.DEFEND_truck4 = MapRoutes.DEFEND_truck1;
+	Util.Routes(MapRoutes);
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 250.0;
+
+	if (!Map.IgnoreEnt)
+	{
+		Map.IgnoreEnt = table();
+		foreach(i and pos in Map.IgnoreEntPositions)
+		{
+			ent = TraceLine( pos, pos + Vector3(10,10,10), 0, TRACE.SHOT, 0, false ).entity;
+			if(ent)
+			{
+				Map.IgnoreEnt[i] = ent;
+				Util.MapDebugPrint("Ignoring entity " + GetGameIdFromEntity(ent), true);
+			}
+		}
+	}
+	foreach(ent in Map.IgnoreEnt)
+	{
+		bot.IgnoreTarget(ent, 99999);
+	}
+};

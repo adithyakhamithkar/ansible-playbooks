@@ -1,0 +1,17 @@
+global Map = 
+{
+	PanzerMap = true,
+	Movers = { "MOVER_glider_sm" },
+};
+
+global OnMapLoad = function()
+{
+	Util.DisableGoal(".*MG42_Compound.*");
+	Util.SetMaxUsers(1, "MOUNTMG42.*");
+};
+
+global OnBotJoin = function(bot)
+{
+	ETUtil.ChangeToPanzer(bot);
+	Util.IgnoreTargetGoal( bot, "MOVER_glider_sm" );
+};

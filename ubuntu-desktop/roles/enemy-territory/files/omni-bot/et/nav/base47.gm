@@ -1,0 +1,551 @@
+//==========================================================================================
+//
+//	base47.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	MickyP	25 July 2010	Initial Script
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	ShowMovers = false,
+	middleexit = false,
+	topexit = false,
+
+	Navigation =
+	{
+		top =
+		{
+			navigate = function(_this)
+			{
+				if ( !Map.topexit )
+				{
+					_this.AddWeaponRequest(Priority.High, WEAPON.KNIFE );
+					_this.BlockForWeaponChange( WEAPON.KNIFE );
+
+					while( !Map.topexit )
+					{
+						_this.Bot.HoldButton(BTN.ATTACK1, 0.25);
+						yield();
+					}
+				}
+				sleep(1);
+			},
+		},
+
+		middle =
+		{
+			navigate = function(_this)
+			{
+				if ( !Map.middleexit )
+				{
+					_this.AddWeaponRequest(Priority.High, WEAPON.KNIFE );
+					_this.BlockForWeaponChange( WEAPON.KNIFE );
+
+					while( !Map.middleexit )
+					{
+						_this.Bot.HoldButton(BTN.ATTACK1, 0.25);
+						yield();
+					}
+				}
+				sleep(1);
+			},
+		},
+	},
+
+	Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Built" );
+	},
+
+	Base_47_Radar_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Radar.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Radar.*" );
+		Util.MapDebugPrint( "Base_47_Radar_Destroyed" );
+	},
+
+	Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Post_Destroyed" );
+	},
+
+	Sewer_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.EnableGoal( "ROUTE_Sewer_Door", true );
+
+		Util.MapDebugPrint( "Sewer_Door_Destroyed" );
+	},
+
+	War_Documents_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Docs.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Cap.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Cap.*" );
+		Util.MapDebugPrint( "War_Documents_Taken" );
+	},
+
+	War_Documents_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Docs.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Cap.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Cap.*" );
+		Util.MapDebugPrint( "War_Documents_Returned" );
+	},
+
+	War_Documents_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Cap.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Cap.*" );
+		Util.MapDebugPrint( "War_Documents_Secured" );
+	},
+
+	Top_Broken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.topexit = true;
+		Util.MapDebugPrint( "Top_Broken" );
+	},
+
+	Middle_Broken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.middleexit = true;
+		Util.MapDebugPrint( "Middle_Broken" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// Register callback functions
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Command_Post_Built );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Radar Tower!", Map.Base_47_Radar_Destroyed );
+	OnTrigger( "Allied team has destroyed the Sewer Door!", Map.Sewer_Door_Destroyed );
+	OnTrigger( "Allies have stolen the War Documents!", Map.War_Documents_Taken );
+	OnTrigger( "Flag returned War Documents!", Map.War_Documents_Returned );
+	OnTrigger( "Allied team has transmitted the war documents!", Map.War_Documents_Secured );
+	OnTrigger( "GRENADE_Top Exploded.", Map.Top_Broken );
+	OnTrigger( "GRENADE_Middle Exploded.", Map.Middle_Broken );
+
+	Util.DisableGoal( ".*", true ); // all but routes
+	Util.DisableGoal( "ROUTE_Sewer_Door" );
+
+	Util.EnableGoal( "AMMOCAB.*" );
+	Util.EnableGoal( "HEALTHCAB.*" );
+	Util.EnableGoal( "BUILD_Command_Post" );
+	Util.EnableGoal( "PLANT_Command_Post" );
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Sewer_Door" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Command_Post" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Base_47_Radar" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_War_Documents" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_Radio" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Radar.*" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Docs.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Radar.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CAMP_Roam.*" );
+
+	SetGoalPriority( "CAMP_Roam.*", 0.49 );
+	SetGoalPriority( "ATTACK_Cap.*", 0.51 );
+	SetGoalPriority( "DEFEND_Cap.*", 0.51 );
+	SetGoalPriority( "PLANT_Command_Post", 0.8 );
+	SetGoalPriority( "BUILD_Command_Post", 0.8 );
+	SetGoalPriority( "PLANT_Sewer_Door", 0.82 );
+
+	Util.AddUseWp( "PLANT_Base_47_Radar", "Radar" );
+
+	// Max users per goal
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "PLANT_Sewer_Door" );
+	Util.SetMaxUsers( 1, "PLANT_Command_Post" );
+	Util.SetMaxUsers( 1, "BUILD_Command_Post" );
+
+	// Camp times
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=60} );
+
+	nocombat1 = OnTriggerRegion(AABB(-208.823,403.733,225.125,144.875,498.748,408.414), RegionTrigger.DisableCombatMovement);
+
+	MapRoutes =
+	{
+		FLAG_War_Documents =
+		{
+			ROUTE_Allies_Spawn  =
+			{
+				ROUTE_Bridge  =
+				{
+					ROUTE_Main_Exit  =
+					{
+						ROUTE_South_Stairs  =
+						{
+							ROUTE_South_Stairs_Top_Right  =
+							{
+							},
+							ROUTE_Docs_Back  =
+							{
+							},
+						},
+						ROUTE_Lower_Door  =
+						{
+							ROUTE_South_Stairs  =
+							{
+								ROUTE_South_Stairs_Top_Right  =
+								{
+								},
+							},
+						},
+						ROUTE_North_Stairs  =
+						{
+						},
+					},
+				},
+				ROUTE_River_Side  =
+				{
+					ROUTE_Main_Exit  =
+					{
+						ROUTE_South_Stairs  =
+						{
+							ROUTE_South_Stairs_Top_Right  =
+							{
+							},
+							ROUTE_Docs_Back  =
+							{
+							},
+						},
+						ROUTE_Lower_Door  =
+						{
+							ROUTE_South_Stairs  =
+							{
+								ROUTE_South_Stairs_Top_Right  =
+								{
+								},
+							},
+						},
+						ROUTE_North_Stairs  =
+						{
+						},
+					},
+				},
+				ROUTE_Sewer_Door  =
+				{
+					ROUTE_Far_Exit  =
+					{
+						ROUTE_Base_Far_Top  =
+						{
+							ROUTE_Inside_Ladder  =
+							{
+								ROUTE_Radar_Bridge  =
+								{
+								},
+							},
+							ROUTE_Center_Ladder  =
+							{
+								ROUTE_Radar_Bridge  =
+								{
+								},
+							},
+							ROUTE_Lower_Door  =
+							{
+								ROUTE_South_Stairs  =
+								{
+								},
+							},
+						},
+					},
+					ROUTE_Middle_Exit  =
+					{
+						ROUTE_Middle_A  =
+						{
+							ROUTE_Lower_Door  =
+							{
+								ROUTE_South_Stairs  =
+								{
+									ROUTE_South_Stairs_Top_Right  =
+									{
+									},
+									ROUTE_Docs_Back  =
+									{
+									},
+								},
+							},
+							ROUTE_South_Stairs  =
+							{
+								ROUTE_South_Stairs_Top_Right  =
+								{
+								},
+								ROUTE_Docs_Back  =
+								{
+								},
+							},
+						},
+						ROUTE_Middle_B  =
+						{
+							ROUTE_Lower_Door  =
+							{
+								ROUTE_South_Stairs  =
+								{
+									ROUTE_South_Stairs_Top_Right  =
+									{
+									},
+									ROUTE_Docs_Back  =
+									{
+									},
+								},
+							},
+							ROUTE_South_Stairs  =
+							{
+								ROUTE_South_Stairs_Top_Right  =
+								{
+								},
+								ROUTE_Docs_Back  =
+								{
+								},
+							},
+						},
+						ROUTE_Middle_C  =
+						{
+							ROUTE_Center_Ladder  =
+							{
+								ROUTE_Radar_Bridge  =
+								{
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		PLANT_Base_47_Radar =
+		{
+			ROUTE_Allies_Spawn  =
+			{
+				ROUTE_Bridge  =
+				{
+					ROUTE_Main_Exit  =
+					{
+						ROUTE_South_Stairs  =
+						{
+							ROUTE_Radar_Bridge  =
+							{
+							},
+						},
+						ROUTE_Lower_Door  =
+						{
+							ROUTE_South_Stairs  =
+							{
+								ROUTE_Radar_Bridge  =
+								{
+								},
+							},
+						},
+						ROUTE_Center_Ladder  =
+						{
+						},
+					},
+				},
+				ROUTE_River_Side  =
+				{
+					ROUTE_Main_Exit  =
+					{
+						ROUTE_South_Stairs  =
+						{
+							ROUTE_Radar_Bridge  =
+							{
+							},
+						},
+						ROUTE_Lower_Door  =
+						{
+							ROUTE_South_Stairs  =
+							{
+								ROUTE_Radar_Bridge  =
+								{
+								},
+							},
+						},
+					},
+					ROUTE_Center_Ladder  =
+					{
+					},
+				},
+				ROUTE_Sewer_Door  =
+				{
+					ROUTE_Middle_Exit  =
+					{
+						ROUTE_Middle_A  =
+						{
+							ROUTE_South_Stairs  =
+							{
+								ROUTE_Radar_Bridge  =
+								{
+								},
+							},
+						},
+						ROUTE_Middle_B  =
+						{
+							ROUTE_Center_Ladder  =
+							{
+							},
+							ROUTE_Inside_Ladder  =
+							{
+							},
+						},
+						ROUTE_Middle_C  =
+						{
+							ROUTE_Center_Ladder  =
+							{
+							},
+							ROUTE_Inside_Ladder  =
+							{
+							},
+						},
+					},
+					ROUTE_Far_Exit  =
+					{
+						ROUTE_Base_Far_Top  =
+						{
+							ROUTE_Center_Ladder  =
+							{
+							},
+							ROUTE_Inside_Ladder  =
+							{
+							},
+						},
+					},
+				},
+			},
+		},
+		CAPPOINT_Radio =
+		{
+			ROUTE_Docs  =
+			{
+				ROUTE_Docs_Back  =
+				{
+					ROUTE_Lower_Door  =
+					{
+						ROUTE_Truck  =
+						{
+						},
+					},
+					ROUTE_Main_Exit  =
+					{
+						ROUTE_Truck  =
+						{
+						},
+					},
+				},
+				ROUTE_North_Stairs  =
+				{
+				},
+				ROUTE_Radar_Bridge  =
+				{
+					ROUTE_Centre  =
+					{
+					},
+				},
+			},
+		},
+		DEFEND_Radar_1 =
+		{
+			ROUTE_Axis_Spawn  =
+			{
+				ROUTE_Center_Ladder  =
+				{
+				},
+				ROUTE_Inside_Ladder  =
+				{
+				},
+				ROUTE_North_Stairs  =
+				{
+					ROUTE_AB12  =
+					{
+						ROUTE_Radar_Bridge  =
+						{
+						},
+					},
+				},
+			},
+		},
+		DEFEND_Docs_1 =
+		{
+			ROUTE_Axis_Spawn  =
+			{
+				ROUTE_Center_Ladder  =
+				{
+					ROUTE_Radar_Bridge  =
+					{
+					},
+				},
+				ROUTE_North_Stairs  =
+				{
+				},
+			},
+			ROUTE_Lower_Door  =
+			{
+				ROUTE_South_Stairs  =
+				{
+					ROUTE_South_Stairs_Top_Right  =
+					{
+					},
+					ROUTE_Docs_Back  =
+					{
+					},
+				},
+			},
+		},
+	};
+	MapRoutes.ATTACK_Radar_1 = MapRoutes.PLANT_Base_47_Radar;
+	MapRoutes.ATTACK_Radar_2 = MapRoutes.PLANT_Base_47_Radar;
+	MapRoutes.ATTACK_Radar_3 = MapRoutes.PLANT_Base_47_Radar;
+	MapRoutes.DEFEND_Docs_2 = MapRoutes.DEFEND_Docs_1;
+	MapRoutes.DEFEND_Docs_3 = MapRoutes.DEFEND_Docs_1;
+	MapRoutes.DEFEND_Radar_2 = MapRoutes.DEFEND_Radar_1;
+	MapRoutes.DEFEND_Radar_3 = MapRoutes.DEFEND_Radar_1;
+
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	// Uncomment for shootable breakables
+	//~bot.TargetBreakableDist = 90.0;
+	// Only set MaxViewDistance on maps with limited sight (e.g. fog)
+	//~bot.MaxViewDistance = 2400;
+};

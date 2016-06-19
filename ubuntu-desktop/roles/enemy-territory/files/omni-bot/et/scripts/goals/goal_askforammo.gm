@@ -1,0 +1,173 @@
+// This script contains functionality to allow bots to look for packs or ask for ammo
+
+// These parameters are required
+this.Name = "AskForAmmo";		// The name of the goal.
+this.Parent = "HighLevel";		// The name of the parent. This setting determines where in the state tree the goal will reside in.
+
+// These parameters are optional
+this.LimitToNoClass(CLASS.FIELDOPS); //Fieldops shouldn't call for ammo
+this.SkipGetPriorityWhenActive = true;
+
+if(!BB.PICKUPAMMO) {
+	BB.PICKUPAMMO = Blackboard.MakeKey();
+}
+
+this.Initialize = function()
+{
+	if ( GetGameState() != "Playing" ) {
+		this.Disable = true;
+	}
+
+	// Internal variables
+	this.AmmoDesirThreshold = 0.5;
+	this.RangeForPickup = 2000.0;
+	this.Counter = 0;
+	this.AmmoInfo = {}; // so we re-use the same table
+	this.DroppedWeapon = null;
+	this.Class = null;
+	this.Timeout = 1500; // milliseconds
+
+	Util.ScriptDebugPrint(this.Name, "initialized");
+};
+
+this.OnSpawn = function()
+{
+	this.DelayGetPriority(2);
+	this.Class = this.Bot.GetClass();
+};
+
+this.GetPriority = function()
+{
+	askForDelay = 30; // num iterations before asking for ammo via voice
+	isMortaring = false;
+	addDesire = 0;
+
+	while(1)
+	{
+		this.Counter += 1;
+		
+		// special case for mortar
+		if ( this.Bot.GetCurrentWeapon() == WEAPON.MORTAR_SET ) {
+			askForDelay = 4; // mortar soldiers can ask more often
+			isMortaring = true;
+		}
+
+		// look for any packs or weapons laying around before calling for ammo
+		// note that goal_pickupitems handles a much shorter range pickup while this goal
+		// activates when the bot is desperate for ammo
+		this.Bot.GetMostDesiredAmmo(this.AmmoInfo);
+		if( (this.AmmoInfo.Desire > this.AmmoDesirThreshold) || (isMortaring && Util.AmmoForWeapon(this.Bot, WEAPON.MORTAR_SET) < 4) )
+		{
+			this.Pack = this.Bot.GetNearest( CAT.PICKUP, CLASS.AMMO );
+
+			// also look for a weapon
+			if ( !this.Pack && this.Class != CLASS.SOLDIER && this.Class != CLASS.COVERTOPS ) {
+				weap = this.Bot.GetNearest( CAT.PICKUP_WEAPON );
+
+				if ( weap ) {
+					weapClass = GetEntClass(weap);
+					if ( weapClass ) {
+						weaponId = GetWeaponIdFromClassId( weapClass );
+					}
+					else {
+						Util.MapDebugPrint("No weapon class for id: ", weap);
+					}
+
+					if ( weaponId == WEAPON.MP40 || weaponId == WEAPON.THOMPSON ) {
+						this.Pack = weap;
+						this.DroppedWeapon = weaponId;
+					}
+				}
+			}
+
+			botId = this.Bot.GetGameId();
+			if ( !isMortaring && !this.BlackboardIsDelayed(botId) && this.Pack && GetEntPosition(this.Pack) && this.Bot.DistanceTo(this.Pack) <= this.RangeForPickup ) {
+				this.BlackboardId = botId;
+				this.Priority = 0.8;
+			}
+			else {
+				if ( (this.Counter % askForDelay == 0) && (Util.AliveCount(this.Bot.GetTeam(), CLASS.FIELDOPS) > 0) && GetGameState() == "Playing" ) {
+					this.Bot.SayVoice(VOICE.NEED_AMMO);
+				}
+			}
+		}
+
+		sleep(2);
+	}
+};
+
+this.Enter = function()
+{
+	bbRecord = {
+		Owner = this.BlackboardId,
+		Target = this.BlackboardId,
+	};
+	Blackboard.PostRecord(BB.PICKUPAMMO, bbRecord);
+
+	this.AddFinishCriteria(this.Pack, "deleted");
+	//this.AddFinishCriteria(this.Pack,"hasentflag",ENTFLAG.DISABLED);
+};
+
+this.Exit = function()
+{
+	this.Pack = null;
+	this.ReleaseAimRequest();
+	this.Counter = 0;
+	this.DroppedWeapon = null;
+	this.Priority = 0;
+};
+
+this.Update = function()
+{
+	if ( this.Pack ) {
+		pos = GetEntPosition(this.Pack);
+		if ( pos ) {
+			offset = Vector3(0,0,0);
+
+			//offset pos if they need to swap weapon
+			if ( this.DroppedWeapon && !this.Bot.HasWeapon(this.DroppedWeapon) ) {
+				offset = Vector3(24,24,0);
+			}
+
+			if ( this.Goto(pos + offset) == EVENT.PATH_FAILED ) {
+				this.BlackboardDelay(10, this.BlackboardId);
+				this.Finished();
+			}
+		}
+		else {
+			this.BlackboardDelay(10, this.BlackboardId);
+			this.Finished();
+		}
+
+		timeout = 0;
+		while ( this.Pack && timeout < this.Timeout ) {
+			pos = GetEntPosition(this.Pack); // in case its moving
+			if ( pos ) {
+				this.AddAimRequest( Priority.High, "position", pos );
+
+				if ( this.DroppedWeapon && !this.Bot.HasWeapon(this.DroppedWeapon) ) {
+					this.Bot.PressButton(BTN.CROUCH);
+
+					// every other frame, improves pickup ability
+					if(timeout % 100 == 0) {
+						this.Bot.PressButton(BTN.USE);
+					}
+				}
+
+				this.Bot.MoveTowards( pos );
+			}
+			else {
+				this.BlackboardDelay(10, this.BlackboardId);
+				this.Finished();
+			}
+
+			timeout += 50;
+			yield();
+		}
+	}
+	else {
+		this.BlackboardDelay(10, this.BlackboardId);
+	}
+
+	this.Finished();
+};

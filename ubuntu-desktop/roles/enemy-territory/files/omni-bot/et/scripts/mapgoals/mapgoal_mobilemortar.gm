@@ -1,0 +1,223 @@
+this.GoalType = "MOBILEMORTAR";
+this.Version = 1;
+this.DefaultPriority = 1.0;
+this.RolePriorityBonus = 0.1;
+this.MaxUsers_InUse(1);
+this.MaxUsers_InProgress(1);
+//////////////////////////////////////////////////////////////////////////
+
+this.Schema = Schema();
+this.Schema.MortarAim = Validate.TableOf("vector3").Default({});
+
+//////////////////////////////////////////////////////////////////////////
+
+this.InitNewGoal = function()
+{
+	this.Schema.Check(this);
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.UpgradeVersion = function(Props)
+{
+	// version 0 is string,string key/values from the old waypoint format
+	if(Props.Version==0)
+	{
+		this.Schema.Check(Props);
+		this.SetPosition(this.GetPosition() + Util.WaypointGoalOffset);
+
+		Props.MortarAim = {};
+
+		// old stuff supported up to 12 aim vectors
+		for(i = 0; i < 12; i += 1)
+		{
+			Props.MortarAim[ tableCount(Props.MortarAim) ] = ToVector(Props["mortaraim"+i],null);
+		}
+
+		Props.WaitTime = ToFloat(Props.WaitTime,0.0);
+
+		// Version 1 Schema, upgrade from waypoint format
+		Props.Version = 1;
+	}
+	else if(Props.Version == this.Version)
+	{
+		this.Schema.Check(Props);
+		this.MortarAim = Props.MortarAim;
+
+		if(!this.Schema.Check(this) || tableCount(this.MortarAim) < 1)
+		{
+			this.DisableGoal(true);
+		}
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.Render = function(editMode)
+{
+	offset2 = Vector3(0,0,64);
+	trajectory = {};
+
+	while(this.RenderGoal == true)
+	{
+		goalBasePos = this.GetPosition();
+		goalPos = goalBasePos + offset2;
+		firepos = goalBasePos + Vector3(0,0,32);
+
+		this.RenderDefault();
+
+		if(this.IsDisabled())
+		{
+			DrawLine(goalPos,goalBasePos,COLOR.RED,2);
+		}
+		else
+		{
+			DrawLine(goalPos,goalBasePos,COLOR.GREEN,2);
+		}
+
+		foreach ( id and dir in this.MortarAim )
+		{
+			tableClear(trajectory);
+
+			yaw = dir.GetYaw();
+			pitch = dir.GetPitch() + DegToRad(60);
+			mortarDir = Vec3FromSpherical(yaw,pitch);
+
+			// velocity stuff yanked from mod sdk
+			trajectory.Velocity = Vector3(mortarDir.x * 3000.0 * 1.1, mortarDir.y * 3000.0 * 1.1, mortarDir.z * 1500.0 * 1.1);
+			trajectory.Position = firepos;
+			//trajectory.StopAtHit = true;
+			trajectory.TraceBounce = false;
+			trajectory.Duration = 30;
+			trajectory.Interval = 0.25;
+
+			DrawArrow(firepos,firepos+dir*32,COLOR.BLUE,2);
+			DrawText3d(firepos+dir*32,ToString(id),COLOR.WHITE,2,textDrawRadius);
+
+			DrawTrajectory(trajectory,COLOR.WHITE,2);
+		}
+
+		sleep(2);
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.SaveToTable = function(SaveTable)
+{
+	// save the goal specific properties
+	SaveTable.MortarAim = this.MortarAim;
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.Help = function()
+{
+	print(this.GoalType,"goal, version",this.Version);
+	print("Requires:");
+	print("     facing - Direction the bot should face, supports multiple");
+	print("     or");
+	print("     target - approximate target position, supports multiple");
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+this.SetProperty = function(property, value)
+{
+	switch(property)
+	{
+		case "facing":
+		case "target":
+		{
+			if ( value == "clearall" || value == "clear" )
+			{
+				tableClear(this.MortarAim);
+			}
+			else
+			{
+				i = ToInt(value);
+				if ( typeId(i) == 1)
+				{
+					// make em add sequentially
+					n = tableCount(this.MortarAim);
+					if ( i < 0 || i > n )
+					{
+						i = n;
+					}
+
+					if (property == "target")
+					{
+						tbl = CalcTrajectory(this.GetPosition() + Vector3(0,0,32), GetLocalPosition(), 2350, 1);
+						if(!tbl){
+							print("Mortar trajectory not found");
+							return;
+						}
+						dir = tbl[tableCount(tbl)-1];
+						playerFace = Vec3FromSpherical(dir.GetYaw(), dir.GetPitch() - DegToRad(60));
+					}
+					else
+					{
+						playerFace = GetLocalFacing();
+					}
+
+					this.MortarAim[ i ] = playerFace;
+					print("MortarAim",i,"set to",playerFace);
+
+					// adjust mortar set orientation
+					amin = null;
+					pi = DegToRad(180);
+					foreach(aim in this.MortarAim)
+					{
+						a = aim.GetYaw();
+						if (typeId(amin) == 0)
+						{
+							 amin = a;
+							 amax = a;
+						}
+						else
+						{
+							c = (amin+amax)/2;
+							if (amax-amin < pi)
+							{
+								if (a < c-pi){ amax=amin; amin=a; }
+								else if (a > c+pi){ amin=amax; amax=a; }
+								else if (a < amin){ amin=a; }
+								else if (a > amax){ amax=a; }
+							}
+							else if (a > amin && a < amax)
+							{
+								if (a < c){ amin=a; }
+								else { amax=a; }
+							}
+						}
+					}
+					a = (amin+amax)/2;
+					if (amax-amin > pi)
+					{
+						if (a > 0) { a-=pi; }
+						else { a+=pi; }
+					}
+					this.SetFacing(Vec3FromSpherical(a, 0));
+				}
+				else
+				{
+					print(this.GoalType, ": Invalid facing index, expecting int");
+				}
+			}
+		}
+		default:
+		{
+			print(this.GoalType, ": Invalid property:", property);
+		}
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+global CreateGui = function(object, guidef)
+{
+};
+//////////////////////////////////////////////////////////////////////////
+this.HudDisplay = function(window)
+{
+	this.CreateGuiFromSchema(this.Schema);
+};

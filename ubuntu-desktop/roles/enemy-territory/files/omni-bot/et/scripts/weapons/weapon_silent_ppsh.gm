@@ -1,0 +1,25 @@
+if (GetModName()!="silEnT") { return; }
+
+//////////////////////////////////////////////////////////////////////////
+
+WEAPON.PPSH = 50;
+if ( GetModVersion() == "0.3.3" ) {
+	WEAPON.PPSH = 101;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Overall weapon properties.
+this.Name = "PPSH";
+this.WeaponId = WEAPON.PPSH;
+
+//////////////////////////////////////////////////////////////////////////
+// Set some weapon properties that affect some internal logic.
+this.PrimaryFire.WeaponType = "instant";
+this.PrimaryFire.ProjectileSpeed = 1000;
+this.PrimaryFire.RequiresAmmo = true;
+this.PrimaryFire.WaterProof = false;
+
+this.PrimaryFire.DefaultDesirability = 0.7;
+
+this.PrimaryFire.LowAmmoThreshold = 1;
+this.PrimaryFire.LowAmmoPriority = 0.8;

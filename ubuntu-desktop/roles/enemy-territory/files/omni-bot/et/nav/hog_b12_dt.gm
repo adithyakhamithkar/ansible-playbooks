@@ -1,0 +1,954 @@
+global Map =
+{
+	Flag_gold = "FLAG_gold",
+	Cappoint_truck = "CAPPOINT_truck",
+	Build_Command_Post = "BUILD_Command_Post",
+	Build_Truck = "BUILD_Truck",
+	Build_door = "BUILD_door",
+	Plant_Command_Post = "PLANT_Command_Post",
+	Plant_Gate = "PLANT_Gate",
+	Plant_door = "PLANT_door",
+	Mover_truck = "MOVER_truck",
+
+	truck_at_barrier = false,
+	truck_past_barrier = false,
+	barrier_up = false,
+	gate_destroyed = false,
+	gold_secured = false,
+	
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Truck_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Truck_Built" );
+	},
+
+	truck_construct_Damaged = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "truck_construct_Damaged" );
+	},
+
+	door_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.SetRoleForGoals("ROUTE_Gold_West", ROLE.INFILTRATOR);
+		
+		Util.MapDebugPrint( "door_Built" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.gate_destroyed = true;
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_truck" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_truck" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_gate.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_hill.*" );
+		Util.MapDebugPrint( "Gate_Destroyed" );
+	},
+
+	door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Util.ClearRoleForGoals("ROUTE_Gold_West", ROLE.INFILTRATOR);
+		
+		Util.MapDebugPrint( "door_Destroyed" );
+	},
+
+	gold_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		// only have the thread running when needed
+		if ( !Map.UpdateCappointThread ) {
+			Map.UpdateCappointThread = thread(Map.UpdateCappoint);
+		}
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_GOLD.*" );
+
+		Util.MapDebugPrint( "gold_Taken" );
+	},
+
+	gold_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		// kill the the thread, since updating the position is pointless
+		if ( Map.UpdateCappointThread ) {
+			threadKill(Map.UpdateCappointThread);
+			Map.UpdateCappointThread = null;
+		}
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_GOLD.*" );
+		
+		Util.MapDebugPrint( "gold_Returned" );
+	},
+
+	gold_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		// on successful cap, kill the update thread
+		if ( Map.UpdateCappointThread ) {
+			threadKill(Map.UpdateCappointThread);
+			Map.UpdateCappointThread = null;
+		}
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_door" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "FLAG_gold" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_truck" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_door" );
+		Util.SetMaxUsersInProgress( 2, "ESCORT_truck" );
+		Map.gold_secured = true;
+		Map.UpdateSwitch();
+		
+		Util.MapDebugPrint( "gold_Captured" );
+	},
+
+	UpdateCappointThread = null,
+    UpdateCappoint = function()
+    {
+        if(!Map.TruckGoal) { Map.TruckGoal = GetGoal("MOVER_truck"); }
+
+        // / bot sgn 200 true in 0.71 while standing where the deliver spot is will show offset in console
+		Map.CappointOffset = Vector3(0,-160,-30);
+
+		if ( !Map.TruckGoal ) {
+			Util.MapDebugPrint("UpdateCappoint: Invalid Vehicle Goalname!");
+			Map.UpdateCappointThread = null;
+			return;
+		}
+
+		if (!Map.CappointGoal) { Map.CappointGoal = GetGoal("CAPPOINT_truck"); }
+
+		if (!Map.CappointGoal) {
+			Util.MapDebugPrint("UpdateCappoint: Invalid Cappoint Goalname!");
+			Map.UpdateCappointThread = null;
+			return;
+		}
+
+		moverEnt = Map.TruckGoal.GetEntity();
+		// the main loop that updates the cappoint position
+		while(1) {
+		moverPos = Map.TruckGoal.GetPosition();
+
+		// update the position only if the truck has moved
+		if ( moverPos != Map.TruckPosition ) {
+			Map.TruckPosition = moverPos;
+			newCapPos = GetEntityWorldSpace(moverEnt,Map.CappointOffset);
+			Util.SetGoalPosition(newCapPos.x, newCapPos.y, newCapPos.z, "CAPPOINT_truck");
+
+			// toggle availability so they repath
+			SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_truck" );
+			sleep(0.5);
+			SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_truck" );
+		}
+		sleep(0.5);
+        }
+    },
+
+	UpdateSwitch = function() 
+    { 
+        // disable it immediately first 
+
+			SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_barrier" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_barrier.*" );
+		
+        if ( Map.truck_past_barrier == true ) { 
+
+			SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_barrier" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_barrier.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_truck" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_truck" );
+			Util.MapDebugPrint( "Switch_Inactive" );
+			return; 
+        }
+		
+		else if ( Map.barrier_up == true ) { 
+
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_barrier" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_barrier.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_truck" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_truck" );
+			Util.MapDebugPrint( "Switch_Axis" );
+			return; 
+        }
+		
+		else if ( Map.barrier_up == false && Map.truck_at_barrier == true ) { 
+
+			if ( Map.gold_secured == false ) { 
+
+			SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_barrier" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_barrier.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_truck" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_truck" );
+			Util.MapDebugPrint( "Switch_waiting_gold" );
+			return; 
+			}
+			SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_barrier" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_barrier.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_truck" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_truck" );
+			Util.MapDebugPrint( "Switch_Allies" );
+			return; 
+        }
+
+		Util.MapDebugPrint( "switch_None" );
+    },
+	 
+    switch_Lowered = function( trigger ) 
+    { 
+        Map.barrier_up = false; 
+        Map.UpdateSwitch(); 
+        Util.MapDebugPrint( "switch_Lowered" ); 
+    }, 
+     
+    switch_Raised = function( trigger ) 
+    { 
+        Map.barrier_up = true; 
+        Map.UpdateSwitch(); 
+        Util.MapDebugPrint( "switch_Raised" ); 
+    },     
+    
+	truck_at_gate =
+ 	{
+ 		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+ 		OnEnter = function(ent)
+ 		{
+		if ( Map.gate_destroyed == false ) { 
+
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ESCORT_truck" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_truck" );
+			SetGoalPriority( "PLANT_Gate", 0.85 );
+			}
+			Util.MapDebugPrint( "truck_at_gate" );			
+		},
+ 		OnExit = function(ent)
+ 		{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_gate.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_hill.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_gate.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_hill.*" );
+		Util.MapDebugPrint( "truck_passed_gate" );
+ 		},
+	},
+	
+    truck_at_barrier = 
+	{
+ 		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+ 		OnEnter = function(ent)
+		{ 
+        Map.truck_at_barrier = true; 
+        Map.UpdateSwitch(); 
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_hill.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_switch.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_hill.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_switch.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Command_Post" );
+		SetGoalPriority( "BUILD_Command_Post", 0.8 );
+		SetGoalPriority( "PLANT_Command_Post", 0.8 );
+		Util.ChangeSpawn(TEAM.AXIS, 3);
+        Util.MapDebugPrint( "truck_at_barrier" ); 
+		},
+		OnExit = function(ent)
+		{
+		},
+    }, 
+     
+    truck_past_barrier = 
+	{
+ 		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+ 		OnEnter = function(ent)
+		{ 
+        Map.truck_past_barrier = true; 
+        Map.UpdateSwitch();
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_switch.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_track.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_switch.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_track.*" );
+		Util.DisableGoal("BUILD_Command_Post");
+		Util.DisableGoal("PLANT_Command_Post");
+        Util.MapDebugPrint( "truck_past_barrier" ); 
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+	
+	first_corner = 
+	{
+ 		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+ 		OnEnter = function(ent)
+		{ 
+		SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_Barn_Exit" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_1st_Corner" );
+        Util.MapDebugPrint( "first_corner_enter" ); 
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+	
+	gate_downhill = 
+	{
+ 		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+ 		OnEnter = function(ent)
+		{ 
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_1st_Corner" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_Gate_Entry.*" );
+        Util.MapDebugPrint( "gate_downhill_entry" ); 
+		},
+		OnExit = function(ent)
+		{
+		SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_Barn_Exit" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_Gate_Entry.*" );
+		Util.MapDebugPrint( "gate_downhill_exit" );
+		},
+	},
+
+	gate_past = 
+	{
+ 		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+ 		OnEnter = function(ent)
+		{ 
+		SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_Gate_Exit" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_Gate_Exit.*" );
+        Util.MapDebugPrint( "gate_past_entry" ); 
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+	
+	hill_area = 
+	{
+ 		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+ 		OnEnter = function(ent)
+		{ 
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_Gate_Exit" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_Gate_Exit.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_Hill" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_Hill.*" );
+        Util.MapDebugPrint( "hill_area_entry" ); 
+		},
+		OnExit = function(ent)
+		{
+		SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_Hill" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_Hill.*" );
+		Map.ASTruck(1.0);
+		Util.MapDebugPrint( "hill_area_exit" );
+		},
+	},
+	
+	gold_door = 
+	{
+ 		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+ 		OnEnter = function(ent)
+		{ 
+		SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_Gold" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_Gold.*" );
+		Map.ASTruck(0);
+        Util.MapDebugPrint( "gold_door_entry" ); 
+		},
+		OnExit = function(ent)
+		{
+		SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_Gold" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_Gold.*" );
+		Util.MapDebugPrint( "gold_door_exit" );
+		},
+	},
+	
+	final_section = 
+	{
+ 		TriggerOnEntity = GetGoal("MOVER_truck").GetEntity(),
+ 		OnEnter = function(ent)
+		{ 
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_track.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_final.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_track.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_final.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_Final" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_Final.*" );
+        Util.MapDebugPrint( "final_section_entry" ); 
+		},
+		OnExit = function(ent)
+		{
+		Map.ASTruck(1.0);
+		},
+	},
+	
+	ASTruck = function(bias)
+	{
+		w = GetWeapon(WEAPON.SMOKE_MARKER);
+		w.PrimaryFire.SetTargetBias(CLASS.VEHICLE_HVY, bias);     
+	},
+};
+
+global OnMapLoad = function()
+{
+
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "The Truck has been repaired!", Map.Truck_Built );
+	OnTrigger( "The Truck has been damaged!", Map.truck_construct_Damaged );
+	OnTrigger( "Axis team has built the door!", Map.door_Built );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "^3Allies have breached the Fortress Forward Gate!", Map.Gate_Destroyed );
+	OnTrigger( "Allied team has destroyed the door!", Map.door_Destroyed );
+	OnTrigger( "Allies have stolen The Gold Bar!", Map.gold_Taken );
+	OnTrigger( "Flag returned gold!", Map.gold_Returned );
+	OnTrigger( "goldrush_allies_gold1_secured", Map.gold_Captured );
+	OnTrigger( "Track Switch raised!", Map.switch_Raised );
+	OnTrigger( "Track Switch lowered!", Map.switch_Lowered );
+	
+	Truck1 = OnTriggerRegion(AABB(-3077.660,2824.154,-96.875,-2973.625,3054.917,-22.764),Map.truck_at_gate);
+	Truck2 = OnTriggerRegion(AABB(-1686.264,163.647,191.667,-1414.875,402.211,318.203),Map.truck_at_barrier);
+	Truck3 = OnTriggerRegion(AABB(-1601.699,212.257,191.511,-1445.687,267.899,265.917),Map.truck_past_barrier);
+	Truck4 = OnTriggerRegion(AABB(-5277.230,2753.093,124.426,-5110.675,3034.076,213.072),Map.first_corner);
+	Truck5 = OnTriggerRegion(AABB(-4815.136,2807.074,-39.038,-4061.106,3068.452,166.423),Map.gate_downhill);
+	Truck6 = OnTriggerRegion(AABB(-2357.467,2759.076,-94.875,-1719.416,3064.104,-9.294),Map.gate_past);
+	Truck7 = OnTriggerRegion(AABB(-1645.833,1710.156,-91.442,-1375.074,2761.936,219.862),Map.hill_area);
+	Truck8 = OnTriggerRegion(AABB(-1617.294,-415.237,193.137,-1362.685,64.677,271.469),Map.gold_door);
+	Truck9 = OnTriggerRegion(AABB(-1666.738,-1519.600,201.125,-1058.406,-1227.014,283.766),Map.final_section);
+	
+
+	Util.DisableGoal(".*");
+	Util.EnableGoal("ROUTE.*");
+	
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_truck" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_truck" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_gold" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_truck" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Post" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Command_Post" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Gate" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_door" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_gate.*" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_gold.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_gate.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_door" );
+	
+	Map.ASTruck(0);
+	
+	Util.SetMaxUsersInProgress( 1, "DEFEND_.*" );
+	Util.SetMaxUsersInProgress( 1, "ESCORT_truck" );
+	Util.SetGoalOffset( -50, 0, 0, "PLANT_door" );
+	SetGoalPriority( "ESCORT_truck", 0.81 );
+	SetGoalPriority( "SWITCH_barrier", 0.81 );
+	SetGoalPriority( "PLANT_Command_Post", 0.95, 0, CLASS.COVERTOPS, true );
+	SetGoalPriority( "DEFEND_gold.*", 0.51 );
+	SetGoalPriority( "DEFEND_gold.*", 0.49, TEAM.AXIS, CLASS.FIELDOPS, true );
+	
+	MapRoutes =
+	{
+		FLAG_gold = 
+		{
+			ROUTE_Allied_Spawn  = 
+			{
+				ROUTE_Center  = 
+				{
+					ROUTE_hill_top_corner  = 
+					{
+						ROUTE_Gold_North  = 
+						{
+						},
+						ROUTE_Gold_West  = 
+						{
+						},
+					},
+					ROUTE_Switch_Exit  = 
+					{
+						ROUTE_Gold_North  = 
+						{
+						},
+						ROUTE_Gold_West  = 
+						{
+						},
+					},
+					ROUTE_Far_Exit  = 
+					{
+						ROUTE_Gold_West  = 
+						{
+						},
+						ROUTE_Gold_South  = 
+						{
+						},
+					},
+				},
+			},
+			ROUTE_Comm_Post_Spawn  = 
+			{
+				ROUTE_hill_top_corner  = 
+				{
+					ROUTE_Gold_North  = 
+					{
+					},
+					ROUTE_Gold_West  = 
+					{
+					},
+				},
+				ROUTE_Middle  = 
+				{
+					ROUTE_Switch_Exit  = 
+					{
+						ROUTE_Gold_North  = 
+						{
+						},
+						ROUTE_Gold_West  = 
+						{
+						},
+					},
+					ROUTE_Far_Exit  = 
+					{
+						ROUTE_Gold_South  = 
+						{
+						},
+						ROUTE_Gold_West  = 
+						{
+						},
+					},
+				},
+			},
+		},
+		ATTACK_gate_1 = 
+		{
+			ROUTE_Allied_Spawn  = 
+			{
+				ROUTE_Corner_One  = 
+				{
+				},
+				ROUTE_Center  = 
+				{
+					ROUTE_barn_door  = 
+					{
+					},
+				},
+			},
+			ROUTE_Comm_Post_Spawn  = 
+			{
+				ROUTE_Middle  = 
+				{
+					ROUTE_Center  = 
+					{
+					},
+				},
+				ROUTE_barn_door  = 
+				{
+				},
+			},
+		},
+		ATTACK_hill_1 = 
+		{
+			ROUTE_Allied_Spawn  = 
+			{
+				ROUTE_Center  = 
+				{
+					ROUTE_Switch_Exit  = 
+					{
+					},
+					ROUTE_hill_top_corner  = 
+					{
+					},
+				},
+			},
+			ROUTE_Comm_Post_Spawn  = 
+			{
+				ROUTE_Middle  = 
+				{
+					ROUTE_Switch_Exit  = 
+					{
+					},
+				},
+				ROUTE_hill_top_corner  = 
+				{
+				},
+			},
+		},
+		ATTACK_switch_1 = 
+		{
+			ROUTE_Allied_Spawn  = 
+			{
+				ROUTE_Center  = 
+				{
+					ROUTE_hill_top_corner  = 
+					{
+					},
+					ROUTE_Switch_Exit  = 
+					{
+					},
+				},
+			},
+			ROUTE_Comm_Post_Spawn  = 
+			{
+				ROUTE_Middle  = 
+				{
+					ROUTE_Switch_Exit  = 
+					{
+					},
+					ROUTE_Far_Exit  = 
+					{
+					},
+				},
+				ROUTE_hill_top_corner  = 
+				{
+				},
+			},
+		},
+		ATTACK_track_1 = 
+		{
+			ROUTE_Allied_Spawn  = 
+			{
+				ROUTE_hill_top_corner  = 
+				{
+				},
+				ROUTE_Switch_Exit  = 
+				{
+				},
+				ROUTE_Far_Exit  = 
+				{
+				},
+			},
+			ROUTE_Comm_Post_Spawn  = 
+			{
+				ROUTE_hill_top_corner  = 
+				{
+				},
+				ROUTE_Switch_Exit  = 
+				{
+				},
+				ROUTE_Far_Exit  = 
+				{
+				},
+			},
+		},
+		ATTACK_final_1 = 
+		{
+			ROUTE_Allied_Spawn  = 
+			{
+				ROUTE_Switch_Exit  = 
+				{
+				},
+				ROUTE_Far_Exit  = 
+				{
+				},
+			},
+			ROUTE_Comm_Post_Spawn  = 
+			{
+				ROUTE_Switch_Exit  = 
+				{
+				},
+				ROUTE_Far_Exit  = 
+				{
+				},
+			},
+		},
+		DEFEND_gate_1 = 
+		{
+			ROUTE_Axis_Spawn  = 
+			{
+				ROUTE_Axis_Exit_North  = 
+				{
+					ROUTE_hill_top_corner  = 
+					{
+					},
+				},
+				ROUTE_Axis_Exit_South  = 
+				{
+					ROUTE_Gold_West_Axis  = 
+					{
+						ROUTE_Center  = 
+						{
+						},
+					},
+				},
+			},
+			ROUTE_Comm_Post_Spawn  = 
+			{
+				ROUTE_barn_door  = 
+				{
+				},
+				ROUTE_Middle  = 
+				{
+					ROUTE_Center  = 
+					{
+					},
+				},
+			},
+		},
+		DEFEND_hill_1 = 
+		{
+			ROUTE_Axis_Spawn  = 
+			{
+				ROUTE_Axis_Exit_North  = 
+				{
+				},
+				ROUTE_Axis_Exit_South  = 
+				{
+					ROUTE_Gold_West_Axis  = 
+					{
+					},
+				},
+			},
+			ROUTE_Comm_Post_Spawn  = 
+			{
+				ROUTE_hill_top_corner  = 
+				{
+				},
+				ROUTE_Middle  = 
+				{
+					ROUTE_Switch_Exit  = 
+					{
+					},
+				},
+			},
+		},
+		DEFEND_gold_1 = 
+		{
+			ROUTE_Axis_Spawn  = 
+			{
+				ROUTE_Axis_Exit_North  = 
+				{
+				},
+				ROUTE_Axis_Exit_South  = 
+				{
+				},
+			},
+			ROUTE_Comm_Post_Spawn  = 
+			{
+				ROUTE_hill_top_corner  = 
+				{
+					ROUTE_Gold_North  = 
+					{
+					},
+					ROUTE_Gold_West_Axis  = 
+					{
+					},
+				},
+				ROUTE_Middle  = 
+				{
+					ROUTE_Switch_Exit  = 
+					{
+						ROUTE_Gold_North  = 
+						{
+						},
+						ROUTE_Gold_West_Axis  = 
+						{
+						},
+					},
+				},
+			},
+		},
+		DEFEND_switch_1 = 
+		{
+			ROUTE_Axis_Spawn  = 
+			{
+				ROUTE_Axis_Exit_North  = 
+				{
+					ROUTE_Gold_North  = 
+					{
+					},
+					ROUTE_Gold_West_Axis  = 
+					{
+					},
+				},
+				ROUTE_Axis_Exit_South  = 
+				{
+					ROUTE_Gold_South  = 
+					{
+						ROUTE_Final_Corner =
+						{
+						},
+					},
+					ROUTE_Gold_West_Axis  = 
+					{
+					},
+				},
+			},
+		},
+		DEFEND_track_1 = 
+		{
+			ROUTE_Axis_Spawn  = 
+			{
+				ROUTE_Axis_Exit_North  = 
+				{
+					ROUTE_Gold_West  = 
+					{
+					},
+					ROUTE_Gold_South  = 
+					{
+						ROUTE_Final_Corner =
+						{
+						},
+					},
+				},
+				ROUTE_Axis_Exit_South  = 
+				{
+					ROUTE_Gold_West_Axis = 
+					{
+					},
+					ROUTE_Gold_South  = 
+					{
+						ROUTE_Final_Corner =
+						{
+						},
+					},
+				},
+			},
+		},
+		DEFEND_final_1 = 
+		{
+			ROUTE_Axis_Spawn  = 
+			{
+				ROUTE_Axis_Exit_North  = 
+				{
+					ROUTE_Gold_West  = 
+					{
+					},
+					ROUTE_Gold_South  = 
+					{
+					},
+				},
+				ROUTE_Axis_Exit_South  = 
+				{
+					ROUTE_Gold_West  = 
+					{
+					},
+					ROUTE_Gold_South  = 
+					{
+					},
+				},
+			},
+		},
+		PLANT_Command_Post = 
+		{
+			ROUTE_Allied_Spawn  = 
+			{
+				ROUTE_Comm_Post_Top_Entry  = 
+				{
+				},
+				ROUTE_Switch_Exit  = 
+				{
+					ROUTE_Comm_Post_Bottom_Entry  = 
+					{
+					},
+				},
+				ROUTE_Comm_Post_Door  = 
+				{
+				},
+			},
+			ROUTE_Axis_Spawn  = 
+			{
+				ROUTE_Comm_Post_Top_Entry  = 
+				{
+				},
+				ROUTE_Comm_Post_Bottom_Entry  = 
+				{
+				},
+				ROUTE_Comm_Post_Door_Axis  = 
+				{
+				},
+			},
+		},
+	};
+
+	MapRoutes.ATTACK_gate_2 = MapRoutes.ATTACK_gate_1;
+	MapRoutes.ATTACK_gate_3 = MapRoutes.ATTACK_gate_1;
+	MapRoutes.ATTACK_gate_4 = MapRoutes.ATTACK_gate_1;
+	MapRoutes.ATTACK_hill_2 = MapRoutes.ATTACK_hill_1;
+	MapRoutes.ATTACK_hill_3 = MapRoutes.ATTACK_hill_1;
+	MapRoutes.ATTACK_hill_4 = MapRoutes.ATTACK_hill_1;
+	MapRoutes.ATTACK_switch_2 = MapRoutes.ATTACK_switch_1;
+	MapRoutes.ATTACK_switch_3 = MapRoutes.ATTACK_switch_1;
+	MapRoutes.ATTACK_switch_4 = MapRoutes.ATTACK_switch_1;
+	MapRoutes.SWITCH_barrier = MapRoutes.ATTACK_switch_1;
+	MapRoutes.ATTACK_track_2 = MapRoutes.ATTACK_track_1;
+	MapRoutes.ATTACK_track_3 = MapRoutes.ATTACK_track_1;
+	MapRoutes.ATTACK_track_4 = MapRoutes.ATTACK_track_1;
+	MapRoutes.ATTACK_final_2 = MapRoutes.ATTACK_final_1;
+	MapRoutes.ATTACK_final_3 = MapRoutes.ATTACK_final_1;
+	MapRoutes.ATTACK_final_4 = MapRoutes.ATTACK_final_1;
+	MapRoutes.DEFEND_gold_2 = MapRoutes.DEFEND_gold_1;
+	MapRoutes.DEFEND_gold_3 = MapRoutes.DEFEND_gold_1;
+	MapRoutes.DEFEND_gold_4 = MapRoutes.DEFEND_gold_1;
+	MapRoutes.BUILD_door = MapRoutes.DEFEND_gold_1;
+	MapRoutes.DEFEND_gate_2 = MapRoutes.DEFEND_gate_1;
+	MapRoutes.DEFEND_gate_3 = MapRoutes.DEFEND_gate_1;
+	MapRoutes.CALLARTILLERY_Barn_Exit= MapRoutes.DEFEND_gate_1;
+	MapRoutes.DEFEND_hill_2 = MapRoutes.DEFEND_hill_1;
+	MapRoutes.DEFEND_hill_3 = MapRoutes.DEFEND_hill_1;
+	MapRoutes.DEFEND_hill_4 = MapRoutes.DEFEND_hill_1;
+	MapRoutes.CALLARTILLERY_Gate_Exit= MapRoutes.DEFEND_gate_1;
+	MapRoutes.CALLARTILLERY_Hill = MapRoutes.DEFEND_hill_1;
+	MapRoutes.DEFEND_switch_2 = MapRoutes.DEFEND_switch_1;
+	MapRoutes.DEFEND_switch_3 = MapRoutes.DEFEND_switch_1;
+	MapRoutes.DEFEND_switch_4 = MapRoutes.DEFEND_switch_1;
+	MapRoutes.DEFEND_track_2 = MapRoutes.DEFEND_track_1;
+	MapRoutes.DEFEND_track_3 = MapRoutes.DEFEND_track_1;
+	MapRoutes.DEFEND_track_4 = MapRoutes.DEFEND_track_1;
+	MapRoutes.DEFEND_final_2 = MapRoutes.DEFEND_final_1;
+	MapRoutes.DEFEND_final_3 = MapRoutes.DEFEND_final_1;
+	MapRoutes.DEFEND_final_4 = MapRoutes.DEFEND_final_1;
+	MapRoutes.CALLARTILLERY_Final = MapRoutes.DEFEND_final_1;
+		
+	Util.Routes(MapRoutes);
+	
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+// Uncomment for shootable breakables
+
+global OnBotJoin = function( bot )
+{
+	//~ bot.TargetBreakableDist = 300.0;
+};

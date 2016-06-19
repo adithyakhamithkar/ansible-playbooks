@@ -1,0 +1,21 @@
+if (GetModName()!="noquarter") { return; }
+
+//////////////////////////////////////////////////////////////////////////
+// Overall weapon properties.
+WEAPON.SHOTGUN = 90;
+
+this.Name = "Shotgun";
+this.WeaponId = WEAPON.SHOTGUN;
+
+//////////////////////////////////////////////////////////////////////////
+// Set some weapon properties that affect some internal logic.
+this.PrimaryFire.WeaponType = "instant";
+this.PrimaryFire.ProjectileSpeed = 500;
+this.PrimaryFire.RequiresAmmo = true;
+this.PrimaryFire.WaterProof = false;
+
+this.PrimaryFire.DefaultDesirability = 0.2;
+this.PrimaryFire.SetDesirabilityRange(0, 500, 0.65);
+
+this.PrimaryFire.LowAmmoThreshold = 1;
+this.PrimaryFire.LowAmmoPriority = 0.8;

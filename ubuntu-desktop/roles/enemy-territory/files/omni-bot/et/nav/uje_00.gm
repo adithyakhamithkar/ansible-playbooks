@@ -1,0 +1,395 @@
+// Map Script for uje_00
+// by NoLine
+
+global Map =
+{
+	 ShowMovers = false,
+	 Debug = 0,
+	 Movers =
+	 {
+		 //retain this so we can ignore it
+		 "MOVER_flying",
+		 "MOVER_flying_goose",
+		 "MOVER_speedy_mover",
+		 "MOVER_tap",
+	 },
+
+	//Ammo_Cabinet_237 = "AMMO_237",
+	//Ammo_Cabinet_448 = "AMMO_448",
+	ammocabinet0 = "AMMOCAB_ammocabinet0",
+	ammocabinet1 = "AMMOCAB_ammocabinet1",
+	ammocabinet2 = "AMMOCAB_ammocabinet2",
+	//Health_Cabinet_246 = "HEALTH_246",
+	Health_Cabinet_brabo_heal = "HEALTHCAB_brabo_heal",
+	Health_Cabinet_healthcabinet2 = "HEALTHCAB_healthcabinet2",
+	//Health_Cabinet_healthcabinet_fixed = "HEALTH_CABINET_healthcabinet_fixed",
+	flag1 = "CHECKPOINT_flag_1",
+	flag3 = "CHECKPOINT_flag_3",
+	Build_allied_compost_built = "BUILD_Command_Post",
+	Destroy_allied_compost_built = "PLANT_Command_Post",
+	Build_axis_compost_built = "BUILD_Command_Post",
+	Destroy_axis_compost_built = "PLANT_Command_Post",
+	Build_bridge1 = "BUILD_Bridge",
+	Build_defense1 = "BUILD_Tank_Barrier_1",
+	//Build_healthcabinet = "MAP_CONSTRUCTION_healthcabinet_fixed_construct",
+	Build_tank_construct = "BUILD_UJE_tank",
+	Build_wall_rubble = "BUILD_wall",
+	Destroy_bridge1 = "PLANT_Bridge",
+	Destroy_defense1 = "PLANT_Tank_Barrier_1",
+	fuelcans_1 = "FLAG_fuelcans_1",
+	fuelcans_2 = "FLAG_fuelcans_2",
+	fuelcans_3 = "FLAG_fuelcans_3",
+	Mount_mg42_113 = "MOUNTMG42_841",
+	Mount_mg42_120 = "MOUNTMG42_851",
+	Repair_mg42_113 = "REPAIRMG42_841",
+	Repair_mg42_120 = "REPAIRMG42_851",
+	cappoint = "CAPPOINT_fuelstation",
+	Mover_tank = "MOVER_tank",
+
+	tank_repaired = function( trigger )
+	{
+		Util.ForceRouting( "BUILD_UJE_tank", false );
+		Util.MapDebugPrint( "tank_repaired" );
+	},
+
+	boozaka = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_tunnel" );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.flag1 );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_bozaaka_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_tunnel" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_defense1 );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.flag1 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_allied_compost_built );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Destroy_axis_compost_built );
+
+		Util.OnTriggerPosition( Map.Mover_tank, "tankmarker1", 200.0, Map.tank_at_centre_tunnel );
+
+		Util.MapDebugPrint( "^3boozaka" );
+	},
+
+	loading_ammo = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_fuel_depot" );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_tank_construct );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.flag3 );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Mover_tank );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.flag3 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_fuel_.*" );
+		//SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_healthcabinet );
+
+		Util.SetMaxUsers( 2, "CHECKPOINT_flag_3");
+		SetGoalPriority( "CHECKPOINT_flag_3", 0.81);
+
+		Util.MapDebugPrint( "^3loading_ammo" );
+	},
+
+	need_fuel = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.fuelcans_1 );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.fuelcans_2 );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.fuelcans_3 );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.fuelcans_4 );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Destroy_defense1 );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ESCORT_tank" );
+		SetGoalPriority( Map.Destroy_defense1, 0.79);
+
+		Util.MapDebugPrint( "^3need_fuel" );
+	},
+
+	oldskool_axis = function( trigger )
+	{
+
+		foreach ( id and bot in BotTable )
+		{
+			if ( bot.GetTeam() == TEAM.AXIS ) {
+				bot.ChangeSpawnPoint( 4 );
+			}
+			else {
+				bot.ChangeSpawnPoint( 0 );
+			}
+		}
+
+		Util.MapDebugPrint( "^3oldskool_axis" );
+	},
+
+	oldskool_allies = function( trigger )
+	{
+		foreach ( id and bot in BotTable )
+		{
+			if ( bot.GetTeam() == TEAM.AXIS || RandInt(1,2) == 1) {
+				bot.ChangeSpawnPoint( 0 );
+			}
+			else {
+				bot.ChangeSpawnPoint( 4 );
+			}
+		}
+
+		Util.MapDebugPrint( "^3oldskool_allies" );
+	},
+
+	loaded = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_afterfuel_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_afterfuel_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_axis_compost_built );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Destroy_allied_compost_built );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_tank_construct );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Mover_tank );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Destroy_defense1 );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ESCORT_tank" );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.cappoint );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.fuelcans_1 );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.fuelcans_2 );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.fuelcans_3 );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_fuel_.*" );
+
+		Util.SetMaxUsers( 1, Map.Destroy_defense1);
+		SetGoalPriority( Map.Destroy_defense1, 0.9);
+
+		Util.MapDebugPrint( "^3loaded" );
+
+		if ( !MAP_TALK ) { return; }
+
+		foreach ( id and bot in BotTable )
+		{
+			r = RandRange(0,10);
+			if ( bot.GetTeam() == TEAM.AXIS  )
+			{
+				if( r < 4 )
+				{
+					sleep(1.0);
+					bot.SayVoice(VOICE.G_CHEER);
+				}
+			}
+		}
+	},
+
+	Spinnertal = function( trigger )
+	{
+		Util.MapDebugPrint( "^3Spinnertal" );
+	},
+
+	short_route = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_shortroute_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_shortroute_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_afterfuel_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_afterfuel_.*" );
+
+		Util.OnTriggerPosition( Map.Mover_tank, "tankmarker2", 200.0, Map.tank_leaving_town );
+
+		Util.MapDebugPrint( "^3short_route" );
+	},
+
+	long_route = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_longroute_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_afterfuel_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_afterfuel_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_longroute_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Destroy_defense1 );
+
+		Util.OnTriggerPosition( Map.Mover_tank, "tankmarker2", 200.0, Map.tank_leaving_town );
+
+		Util.MapDebugPrint( "^3long_route" );
+	},
+
+	across_bridge = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_accrossbridge_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_accrossbridge_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_bridge_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_bridge_.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_axis_compost_built );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Destroy_allied_compost_built );
+
+		Util.OnTriggerPosition( Map.Mover_tank, "tankmarker4", 200.0, Map.tank_in_fort );
+
+		Util.ChangeSpawn( TEAM.ALLIES, 0 );
+		Util.MapDebugPrint( "^3across_bridge" );
+	},
+
+	tank_at_centre_tunnel = function()
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_fuel_depot" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_tunnel" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_tunnel" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_fuel_depot" );
+
+		Util.MapDebugPrint("^3tank_at_centre_tunnel");
+	},
+
+	tank_leaving_town = function()
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_longroute_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_shortroute_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_longroute_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES,  false, "DEFEND_shortroute_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_beforebridge_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_beforebridge_.*" );
+
+		Util.OnTriggerPosition( Map.Mover_tank, "tankmarker3", 200.0, Map.tank_at_bridge );
+
+		Util.MapDebugPrint("^3tank_leaving_town");
+	},
+
+	tank_at_bridge = function()
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_bridge_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_bridge_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_beforebridge_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_beforebridge_.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_bridge1 );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_axis_compost_built );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Destroy_allied_compost_built );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_defense1 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mount_mg42_113 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mount_mg42_120 );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_Destroy_axis_compost_built );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_allied_compost_built );
+
+		Util.MapDebugPrint("^3tank_at_bridge");
+	},
+
+	tank_in_fort = function()
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_insidefort_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_insidefort_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_accrossbridge_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_accrossbridge_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.flag3 );
+		SetGoalPriority( Map.Build_bridge1, 0.81);
+
+		Util.OnTriggerPosition( Map.Mover_tank, "tankmarker5", 200.0, Map.tank_at_end );
+
+		Util.MapDebugPrint("^3tank_in_fort");
+	},
+
+	tank_at_end = function()
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_end_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_end_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_insidefort_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_insidefort_.*" );
+
+		Util.MapDebugPrint("^3tank_at_end");
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	//there are 2 versions of this map - UJE_00.pk3 and UJE_00_part2.pk3
+	OnTrigger( "The Tank has been repaired", Map.tank_repaired );
+	OnTrigger( "^5The Tank has been repaired", Map.tank_repaired );
+	OnTrigger( "^5The Axis occupied Boozaka Town.", Map.boozaka );
+	OnTrigger( "The tank is loading ammo.", Map.loading_ammo );
+	OnTrigger( "^5The tank is loading ammo.", Map.loading_ammo );
+	OnTrigger( "^5The tank now needs 8 cans of fuel.", Map.need_fuel );
+	OnTrigger( "The Axis captured the Old Skool.", Map.oldskool_axis );
+	OnTrigger( "The Allies captured the Old Skool.", Map.oldskool_allies );
+	OnTrigger( "^5The Axis have delivered all 8 fuelcans.", Map.loaded );
+	OnTrigger( "^5The Axis occupied Spinnertal.", Map.Spinnertal );
+	OnTrigger( "^5tank taking short route", Map.short_route );
+	OnTrigger( "^5tank taking long route", Map.long_route );
+	OnTrigger( "uje_axis_tank_is_across_bridge", Map.across_bridge );
+
+	// Axis goals
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_tank_construct );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Mover_tank );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_bridge1 );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_axis_compost_built );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Destroy_allied_compost_built );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Destroy_defense1 );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.fuelcans_1 );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.fuelcans_2 );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.fuelcans_3 );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.flag3 );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Mount_mg42_113 );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Mount_mg42_120 );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Repair_mg42_113 );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Repair_mg42_120 );
+	//SetAvailableMapGoals( TEAM.AXIS, false, Map.Ammo_Cabinet_237 );       //near 2nd flag
+	//SetAvailableMapGoals( TEAM.AXIS, false, Map.Ammo_Cabinet_448 );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.ammocabinet0 );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.ammocabinet1 );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.ammocabinet2 );
+	//SetAvailableMapGoals( TEAM.AXIS, false, Map.Health_Cabinet_246 );  //near 2nd flag
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Health_Cabinet_brabo_heal );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Health_Cabinet_healthcabinet2 ); //near 2nd flag same ??
+	//SetAvailableMapGoals( TEAM.AXIS, false, Map.Health_Cabinet_healthcabinet_fixed ); //old skool
+
+	// Allies goals
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNT_tank" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_bozaaka_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_defense1 );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_allied_compost_built );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_Destroy_axis_compost_built );
+	//SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_healthcabinet );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Mount_mg42_113 );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Mount_mg42_120 );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.flag3 );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_wall_rubble );
+	//SetAvailableMapGoals( TEAM.ALLIES, false, Map.Ammo_Cabinet_237 );
+	//SetAvailableMapGoals( TEAM.ALLIES, false, Map.Ammo_Cabinet_448 );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.ammocabinet0 );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.ammocabinet1 );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.ammocabinet2 );
+	//SetAvailableMapGoals( TEAM.ALLIES, false, Map.Health_Cabinet_246 );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Health_Cabinet_brabo_heal );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Health_Cabinet_healthcabinet2 );
+	//SetAvailableMapGoals( TEAM.ALLIES, false, Map.Health_Cabinet_healthcabinet_fixed );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_supplies" );
+
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=10, MaxCampTime=25});
+	Util.ForceRouting( "BUILD_UJE_tank", true );
+
+	OnTriggerRegion(AABB(2532.276,-1594.508,551.125,3407.441,-1355.419,670.111),RegionTrigger.DisableBotPush); //school checkpoint
+
+	MapRoutes =
+	{
+		BUILD_UJE_tank =
+		{
+			ROUTE_memorial_spawn =
+			{
+				ROUTE_memorial_spawn_tunnel = {},
+				ROUTE_memorial_spawn_hill = {},
+			},
+
+			ROUTE_bozaaka_spawn =
+			{
+				ROUTE_tunnel =
+				{
+					Weight = 2,
+					ROUTE_fueldepot_split = {},
+				},
+				ROUTE_alley =
+				{
+					//ROUTE_alley_split = {},
+				},
+			},
+		},
+	};
+
+	MapRoutes.CHECKPOINT_flag_1 = MapRoutes.MAP_CONSTRUCTION_tank_construct;
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	//make sure allies spawn at default
+	bot.ChangeSpawnPoint( 0 );
+
+	Util.IgnoreTargetGoalTable(bot, Map.Movers);
+};

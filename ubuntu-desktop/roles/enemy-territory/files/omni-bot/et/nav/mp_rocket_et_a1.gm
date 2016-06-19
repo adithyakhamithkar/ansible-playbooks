@@ -1,0 +1,383 @@
+global Map =
+{
+	Quiet = true,
+	FocusPrimary = false,
+
+	Switches =
+	{
+		door =
+		{
+			Enabled = true,
+			Priority = 0, // paththrough
+			WaypointName = "Door Switch",
+		},
+		
+		controls =
+		{
+			Enabled = false,
+			Priority = 0.65,
+			WaypointName = "Controls Switch",
+			LimitTeam = (1<<TEAM.AXIS), 
+			LimitBots = 2,
+			LimitClass = Util.AllClasses,
+		},
+	},
+	
+	Navigation =
+	{
+		bridgeladder =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 5);
+				sleep(6);
+			},			
+		},					
+	},	
+
+	//levers trigger on map load, so add a variable to use when the 
+	//lever is triggered the first time
+	mapstart = true,
+
+	KeyStatus = false, //home
+	DoorStatus = false, //closed
+	AxisOpenDoor = false, 
+	OfficeStatus = false,
+	ServiceStatus = false,
+
+	Checkpoint_caveone_flag = "CHECKPOINT_caveone_flag",
+	Flag_Override_Key = "FLAG_axis_gold1",
+	Cappoint_92 = "CAPPOINT_92",
+	Plant_service = "PLANT_Service_Door",
+	Plant_destroy_tunnel_rubble = "PLANT_Tunnel_Blockade",
+	Plant_office = "PLANT_Office_Door",
+	//Mover_train1 = "MOVER_train1",
+
+	Tunnel_Rubble_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_service );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_spawn_defend_.*" );		
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_flag_defend_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_key_defend_.*" );		// Fallback
+
+		Util.MapDebugPrint( "Tunnel_Rubble_Destroyed" );
+	},
+
+	Tunnel_Rubble_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//don't bother trying to defuse this
+		Util.DisableGoal("DEFUSE_Tunnel_Rubble.*");
+
+		Util.MapDebugPrint( "Tunnel_Rubble_Planted" );
+	},
+
+	Tunnel_Rubble_Defused= function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+	},
+
+	Rocket_Bay_Emergency_Exit_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.ServiceStatus = true;
+	
+		Util.EnableGoal("ROUTE_keydel[45]");
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_office );
+
+		Map.AxisOpenDoor = true;
+		Map.evaluate_door();
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_del_.*" );
+
+		Util.MapDebugPrint( "Rocket_Bay_Emergency_Exit_Destroyed" );
+	},
+
+	Rocket_Bay_Emergency_Exit_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//don't bother trying to defuse this
+		Util.DisableGoal("DEFUSE_The_Rocket_Bay.*");
+
+		Util.MapDebugPrint( "Rocket_Bay_Emergency_Exit_Planted" );
+	},
+
+	Rocket_Bay_Emergency_Exit_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+	},
+
+	Upper_Rocket_Bay_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.OfficeStatus = true;
+
+		Map.AxisOpenDoor = true;
+		Map.evaluate_door();
+
+		//shift the action
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_del_.*" );
+
+		Util.MapDebugPrint( "Upper_Rocket_Bay_Door_Destroyed" );
+	},
+
+	Upper_Rocket_Bay_Door_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		//don't bother trying to defuse this if keycard stolen
+
+		if ( Map.KeyStatus )
+			{ Util.DisableGoal("DEFUSE_The_Rocket_Bay.*"); }
+
+		Util.MapDebugPrint( "Upper_Rocket_Bay_Door_Planted" );
+	},
+
+	Upper_Rocket_Bay_Door_Defused= function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+	},
+
+ 	caveone_flag_Allies_Captured = function( trigger )
+ 	{
+		if ( TestMap )
+			{ return; }
+
+		//50% chance for a bot to select flagspawn
+		//first parameter is team, second is spawnpoint
+		Util.RandomSpawn(TEAM.ALLIES, 1);
+
+		Util.MapDebugPrint( "allies_flag" );	
+ 	},
+
+ 	caveone_flag_Axis_Captured = function( trigger )
+ 	{
+		if ( TestMap )
+			{ return; }	
+
+		Util.MapDebugPrint( "axis_flag" );			
+ 	},
+
+ 	Override_Key_Taken = function( trigger )
+ 	{
+		if ( TestMap )
+			{ return; }
+
+		Map.KeyStatus = true;
+
+		//axis should shut the door using the controls switch
+		Map.AxisOpenDoor = false;
+
+		//check the door status to see which teams should open
+		Map.evaluate_door();
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_del_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_allies_del_.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_key_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Allies_Key_.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_spawn_defend_.*" );		
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_flag_defend_.*" );
+
+		Util.MapDebugPrint( "key_taken" );
+ 	},
+
+ 	Override_Key_Returned= function( trigger )
+ 	{
+		if ( TestMap )
+			{ return; }
+
+ 		Map.KeyStatus = false; 
+		
+		if ( !Map.OfficeStatus && !Map.ServiceStatus )
+			{ Map.AxisOpenDoor = false; }
+		else
+			{ Map.AxisOpenDoor = true; }
+
+		//check the door status to see which teams should open
+		Map.evaluate_door();
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_axis_key_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Allies_Key_.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_allies_del_.*" );
+
+		//if office or service door is gone, keep the rear defense goals available
+		if ( !Map.OfficeStatus && !Map.ServiceStatus )
+			{ SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_del_.*" ); }
+ 	},
+
+	// called from the switch triggers
+	evaluate_door = function ()
+	{
+		if ( Map.DoorStatus && !Map.AxisOpenDoor ) //door is open and axis want it shut
+		{
+			Map.Switches.controls.Enabled = true;
+		}
+		else if ( !Map.DoorStatus && Map.AxisOpenDoor ) //axis can open now
+		{
+			Map.Switches.controls.Enabled  = true; //doors closed, nobody should use this
+		}
+		else // leave it open
+		{
+			Map.Switches.controls.Enabled = false; 					
+		}
+	},	
+
+ 	door_lever = function( trigger )
+ 	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.mapstart )
+		{
+			Map.mapstart = false;
+			return;
+		}
+
+		Map.Switches.door.Enabled = false;
+		Map.Switches.controls.Enabled = false;	
+ 	},
+
+ 	door_trigger = function( trigger )
+ 	{
+		if ( TestMap )
+			{ return; }
+
+		vel = ToVector(trigger.Action);
+
+
+		if ( vel[0] < 0 )
+		{
+			Map.DoorStatus = false;
+			Map.Switches.door.Enabled = true;
+			Util.MapDebugPrint("door closing", true); 
+		}
+		else if ( vel[0] > 0 )
+		{
+			Map.DoorStatus = true; 
+			Map.Switches.door.Enabled = false;
+			Util.MapDebugPrint("door opening", true); 
+		}
+		
+		//run some logic tests
+		Map.evaluate_door();		
+ 	},
+};
+
+global OnMapLoad = function()
+{
+	Util.SetGoalPosition( -1084, 374, -286, "PLANT_Tunnel_Blockade" );
+	
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "Allies have destroyed the Office Door", Map.Upper_Rocket_Bay_Door_Destroyed );
+	OnTrigger( "Planted at the Office Door.", Map.Upper_Rocket_Bay_Door_Planted );
+	OnTrigger( "Defused at the Office Door.", Map.Upper_Rocket_Bay_Door_Defused );
+	OnTrigger( "Allies have destroyed the Service Door", Map.Rocket_Bay_Emergency_Exit_Destroyed );
+	OnTrigger( "Planted at the Service Door.", Map.Rocket_Bay_Emergency_Exit_Planted );
+	OnTrigger( "Defused at the Service Door.", Map.Rocket_Bay_Emergency_Exit_Defused );
+	OnTrigger( "Allies have destroyed the Depot Side Wall", Map.Tunnel_Rubble_Destroyed );
+	OnTrigger( "Planted at the Tunnel Blockade.", Map.Tunnel_Rubble_Planted );
+	OnTrigger( "Defused at the Tunnel Blockade.", Map.Tunnel_Rubble_Defused );
+ 	OnTrigger( "The Allies have captured the Security Checkpoint!", Map.caveone_flag_Allies_Captured );
+ 	OnTrigger( "The Axis have have captured the Security Checkpoint!", Map.caveone_flag_Axis_Captured );
+	OnTrigger( "Allies have stolen the Key Card!", Map.Override_Key_Taken );
+	OnTrigger( "Flag returned axis_gold1!", Map.Override_Key_Returned );
+	OnTrigger( "rocdoor_lever1_goto", Map.door_lever );
+	OnTrigger( "rocdoor_right_goto", Map.door_trigger );
+
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=15, MaxCampTime=30});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=15, MaxCampTime=30});
+
+	ETUtil.SetPrimaryGoals(1.0);
+
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_allies_del.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_office );
+	SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_service );
+	
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_del_defend_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_spawn_defend_.*" ); // cs: disabled breaks defense	
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_axis_flag_defend_.*" ); // cs: disabled breaks defense	
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, Map.Checkpoint_caveone_flag );
+
+	Util.DisableGoal("ROUTE_keydel[45]");
+
+	//this removes the goal, so the bots wont target it or anything
+	Util.RemoveGoal("MOVER_train1");
+
+	Util.SetMaxUsersInProgress( 1, "DEFEND_.*" );
+	Util.SetMaxUsersInProgress( 1, "ATTACK_.*" );
+	Util.SetMaxUsersInProgress( 2, "CHECKPOINT_.*" );
+
+	//set up the switches
+	Util.UpdateSwitchData();
+
+	MapRoutes =
+	{
+		FLAG_axis_gold1 =
+		{
+			ROUTE_allyspawn = 
+			{
+				ROUTE_tunnel = {},
+				ROUTE_upper_axisspawn = {},
+				ROUTE_rocketarea = {},
+			},
+			ROUTE_forwardspawn = 
+			{
+				ROUTE_tunnel = {},
+				//ROUTE_upper_axisspawn = {},
+				ROUTE_rocketarea = {},
+			},
+		},
+
+		CAPPOINT_92 =
+		{
+			ROUTE_keygrab = 
+			{
+				ROUTE_keydel1 = {},
+				ROUTE_keydel2 = {},
+				ROUTE_keydel3 = {},
+				ROUTE_keydel5 = { ROUTE_keydel4 = {}, },
+			},
+		},
+	};
+
+	MapRoutes.ATTACK_Allies_Key_Attack_1 = MapRoutes.FLAG_axis_gold1;
+	MapRoutes.ATTACK_Allies_Key_Attack_2 = MapRoutes.FLAG_axis_gold1;
+	MapRoutes.ATTACK_Allies_Key_Attack_3 = MapRoutes.FLAG_axis_gold1;
+	MapRoutes.ATTACK_Allies_Key_Attack_4 = MapRoutes.FLAG_axis_gold1;
+	MapRoutes.ATTACK_Allies_Key_Attack_5 = MapRoutes.FLAG_axis_gold1;
+	MapRoutes.ATTACK_Allies_Key_Attack_6 = MapRoutes.FLAG_axis_gold1;
+
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	//bot.TargetBreakableDist = 150.0;
+
+	//default spawn
+	bot.ChangeSpawnPoint( 0 );
+};

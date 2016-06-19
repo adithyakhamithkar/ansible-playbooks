@@ -1,0 +1,448 @@
+this.Name = "CovertOps";
+this.Parent = "HighLevel";
+this.AlwaysRecieveEvents = true;
+this.SkipGetPriorityWhenActive = true;
+this.AutoAdd = true;
+this.Debug = false;
+
+this.LimitToClass(CLASS.COVERTOPS);
+
+// some states
+this.GOTO_TARGET = 1;
+this.GIB_TARGET = 2;
+this.STEAL_UNIFORM = 3;
+this.SPOT_MINES = 4;
+this.STEALTH = 5;
+this.SEARCH_FOR_CORPSE = 6;
+
+this.Initialize = function()
+{
+	this.State = this.SPOT_MINES;
+	this.UpdateDebugString();
+};
+
+this.OnSpawn = function()
+{
+	this.State = this.SPOT_MINES;
+	this.UpdateDebugString();
+};
+
+this.GetPriority = function()
+{
+	if (this.HasBinoculars)
+	{
+		this.ReleaseWeaponRequest();
+		this.HasBinoculars = false;
+	}
+
+	while(1)
+	{
+		sleep(1);
+
+		delay = RandInt(10, 45);
+		if ( this.State == this.SPOT_MINES )
+		{
+			if ( this.Debug ) { this.Bot.Say("spot mine evaluation"); }
+			if ( !this.Bot.HasEntityFlag(ENTFLAG.INWATER) && RandInt(0,10) < 2 && !this.Bot.GetVelocity().IsZero() && !this.Bot.HasTarget() ) {
+				this.HasBinoculars = true;
+				this.AddWeaponRequest(Priority.High, WEAPON.BINOCULARS );
+				sleep(0.5);
+				this.Bot.HoldButton(BTN.ATTACK1, 3);
+				binocTime = 0;
+				while( binocTime < 3 && !this.Bot.HasTarget() ) {
+					sleep(1);
+					binocTime += 1;
+				}
+				this.ReleaseWeaponRequest();
+				this.HasBinoculars = false;
+			}
+
+			sleep(delay);
+
+			// if it's still a spot mines state, toggle it to search for corpse (if not already disguised)
+			if ( this.State == this.SPOT_MINES && !this.Bot.HasAnyEntityFlag(ENTFLAG.DISGUISED) ) {
+				this.UpdateDebugString();
+				this.State = this.SEARCH_FOR_CORPSE;
+			}
+			else {
+				sleep(delay); // double it
+			}
+		}
+		else if ( this.State == this.SEARCH_FOR_CORPSE) {
+			if ( this.Debug ) { this.Bot.Say("searching for corpse"); }
+			corpse = ETUtil.FindUsableCorpse(this.Bot, 1000);
+			if ( corpse ) {
+				this.State = this.GOTO_TARGET;
+				this.TargetPosition = null;
+				this.TargetEntity = corpse;
+				this.Priority = 1.0;
+			}
+			else {
+				this.State = this.SPOT_MINES; // toggle it back
+				this.UpdateDebugString();
+			}
+
+			sleep(delay);
+		}
+	}
+};
+
+this.Enter = function()
+{
+	// Set up some finish criteria
+	if (GetEntClass(this.TargetEntity) != CLASS.CORPSE){
+		this.AddFinishCriteria(this.TargetEntity,"deleted");
+	}
+};
+
+this.Update = function()
+{
+	while(1)
+	{
+		this.UpdateDebugString();
+		switch(this.State)
+		{
+			case this.GOTO_TARGET:
+			{
+				if ( this.Debug ) {
+					this.Bot.Say("going to gib!");
+				}
+
+				this.UpdateGotoTarget();
+			}
+			case this.GIB_TARGET:
+			{
+				if ( this.Debug ) {
+					this.Bot.Say("gibbing!");
+				}
+				this.UpdateGib();
+			}
+			case this.STEAL_UNIFORM:
+			{
+				if ( this.Debug ) {
+					this.Bot.Say("stealing uniform!");
+				}
+				this.UpdateStealUniform();
+			}
+			case this.STEALTH:
+			{
+				if ( this.Debug ) {
+					this.Bot.Say("stealth!");
+				}
+				this.UpdateStealth();
+			}
+			default:
+			{
+				this.Finished();
+			}
+		}
+		yield();
+	}
+};
+
+this.TargetOffsets =
+{
+	Vector3(24,24,0),
+	Vector3(-24,-24,0),
+	Vector3(24,-24,0),
+	Vector3(-24,24,0),
+};
+
+this.UpdateGotoTarget = function()
+{
+	if ( this.TargetEntity )
+	{
+		// did it move?
+		checkPosition = GetEntPosition(this.TargetEntity);
+
+		// oops, it's not valid anymore so bail
+		if ( !checkPosition ) {
+			this.Finished();
+		}
+
+		// target position starts as null so this is guaranteed to run once
+		if ( checkPosition != this.TargetPosition ) {
+			this.TargetPosition = checkPosition;
+
+			// trace to find a reachable offset
+			eyePos = this.Bot.GetEyePosition();
+			botEnt = this.Bot.GetGameEntity();
+			offsetPos = null;
+			foreach( id and offset in this.TargetOffsets ) {
+				tr = TraceLine(eyePos, this.TargetPosition + this.TargetOffsets[ id ], null, TRACE.SHOT, botEnt, false);
+				if (tr.fraction == 1) {
+					offsetPos = this.TargetPosition + this.TargetOffsets[ id ];
+					break;
+				}
+			}
+
+			if (offsetPos && this.Goto(offsetPos, 64.0) == EVENT.PATH_SUCCESS) {
+				// sanity check ent and target ...
+				if ( !this.TargetEntity || !this.TargetPosition ) {
+					this.Finished();
+				}
+				// can't do this dynamically. bad waypoints break it. repath if its too far
+				if ( DistanceBetween(this.TargetEntity, this.TargetPosition) > 64 ) {
+					return;
+				}
+				if (GetEntClass(this.TargetEntity) == CLASS.CORPSE)
+				{
+					this.State = this.STEAL_UNIFORM;
+				}
+				else
+				{
+					this.State = this.GIB_TARGET;
+				}
+				return;
+			}
+			else {
+				this.Finished();
+			}
+		}
+	}
+	else
+	{
+		this.Finished();
+	}
+};
+
+this.UpdateGib = function()
+{
+	yield();
+
+	if ( this.TargetPosition )
+	{
+		//cache the position because for some reason its getting destroyed in rare cases
+		tPos = this.TargetPosition;
+
+		if ( this.Bot.HasTarget() ) {
+			this.Finished();
+		}
+
+		// already gibbed?
+		if (GetEntFlags(this.TargetEntity, ENTFLAG.LIMBO)) {
+			this.State = this.STEAL_UNIFORM;
+			return;
+		}
+
+		// crouch time must be lower than gib timeout,
+		// because body sometimes can't be gibbed if covertops is crouched
+		this.Bot.HoldButton(BTN.CROUCH, 2);
+		
+		this.AddAimRequest(Priority.High, "position", tPos + Vector3(0,0,-12));
+
+		this.AddWeaponRequest(Priority.High, WEAPON.KNIFE);
+		//this.BlockForWeaponChange( WEAPON.KNIFE );
+
+		// cs: weapon request for knife appears to be failing in some cases
+		sleep(0.25);
+
+		timeout = 0;
+		while( timeout < 70 && !GetEntFlags(this.TargetEntity, ENTFLAG.LIMBO) ) {
+			this.Bot.MoveTowards(tPos + Vector3(12,12,0));
+			this.Bot.HoldButton(BTN.ATTACK1, 0.5 );
+			yield();
+			timeout += 1;
+		}
+
+		this.ReleaseWeaponRequest();
+
+		if (GetEntFlags(this.TargetEntity, ENTFLAG.LIMBO)) {
+			this.State = this.STEAL_UNIFORM;
+		}
+		else {
+			this.Finished();
+		}
+	}
+	else {
+		this.Finished();
+	}
+};
+
+this.UpdateStealUniform = function()
+{
+	yield();
+	if ( this.TargetPosition )
+	{
+		//cache the position because for some reason its getting destroyed in rare cases
+		tPos = this.TargetPosition;
+
+		if ( this.Bot.HasTarget() ) {
+			this.Finished();
+		}
+
+		this.Bot.HoldButton(BTN.CROUCH, 99);
+		this.AddAimRequest(Priority.High, "position", tPos + Vector3(0,0,-12));
+
+		this.Bot.HoldButton(BTN.USE, 99);
+
+		botEnt = this.Bot.GetGameEntity();
+		timeout = 0;
+		while(timeout <= 180 && !GetEntFlags(botEnt, ENTFLAG.DISGUISED)) {
+			this.Bot.MoveTowards(tPos + Vector3(24,24,0));
+			yield();
+			timeout += 1;
+		}
+
+		this.Bot.ReleaseButton(BTN.CROUCH, BTN.USE);
+		this.ReleaseAimRequest();
+
+		if ( GetEntFlags(botEnt, ENTFLAG.DISGUISED) ) {
+			if ( this.Debug ) {
+				this.Bot.Say("In Disguise!");
+			}
+			this.State = this.STEALTH;
+		}
+		else {
+			if ( this.Debug ) {
+				this.Bot.Say("Steal uniform failed");
+			}
+			this.Finished(); // it failed
+		}
+	}
+	else {
+		this.Finished();
+	}
+};
+
+this.UpdateStealth = function()
+{
+	// reduce priority so they can go do regular goals while in disguise
+	// but keep it a bit higher priority than typical camp goals
+	// cs: testing a lower priority per Palota's request.
+	// so let's have it lower than camp goals. goal_indisguise is now changed
+	// to have them only ignore targets if they are not at a camp spot ( velocity > 0 ).
+	//this.Priority = 0.62;
+	this.Priority = 0.4;
+
+	botEnt = this.Bot.GetGameEntity();
+	while( this.State == this.STEALTH ) {
+		if (!this.GotoRandomAsync(32.0)) {
+			this.Finished();
+		}
+		sleep(0.5); // give them a chance to start moving before checking velocity ...
+		while(!this.Bot.GetVelocity().IsZero()) {
+			sleep(5);
+			if (!GetEntFlags(botEnt, ENTFLAG.DISGUISED) ) {
+				this.Finished();
+			}
+		}
+	}
+	this.Finished();
+};
+
+this.Exit = function()
+{
+	this.Priority = 0; // this func is called directly in some cases
+	if (this.State == this.GOTO_TARGET) {
+		// target entered limbo
+		this.State = this.SEARCH_FOR_CORPSE;
+	} else {
+		this.State = this.SPOT_MINES;
+	}
+	this.TargetPosition = null;
+	this.Bot.ReleaseButton(BTN.CROUCH, BTN.USE, BTN.ATTACK1);
+	this.ReleaseAimRequest();
+	this.ReleaseWeaponRequest();
+};
+
+this.UpdateDebugString = function()
+{
+	stateString = "";
+
+	switch(this.State)
+	{
+		case this.GOTO_TARGET:
+		{
+			stateString = "GOTO_TARGET";
+		}
+		case this.GIB_TARGET:
+		{
+			stateString = "GIB_TARGET";
+		}
+		case this.STEAL_UNIFORM:
+		{
+			stateString = "STEAL_UNIFORM";
+		}
+		case this.SPOT_MINES:
+		{
+			stateString = "SPOT_MINES";
+		}
+		case this.STEALTH:
+		{
+			stateString = "STEALTH";
+		}
+		case this.SEARCH_FOR_CORPSE:
+		{
+			stateString = "SEARCH_FOR_CORPSE";
+		}
+		default:
+		{
+			stateString = "";
+		}
+	}
+
+	// for /bot debugbot <bot or all> fpinfo prints
+	this.DebugString = "state : " + stateString;
+};
+
+this.Events[EVENT.KILLEDSOMEONE] = function(victim, mod)
+{
+	if ( !this.Bot || this.Bot.GetClass() != CLASS.COVERTOPS || this.IsActive()) { return; }
+
+	if ( victim ) {
+		if ( this.Bot.GetTarget() == victim && this.Bot.DistanceTo(victim) < 1000 )
+		{
+			// wait till it settles before go to target
+			// Can't wait for zero velocity, because the velocity of dead body is not zero vector !
+			prevPos = GetEntPosition(victim);
+			for (timeout = 0; timeout < 25; timeout +=1)
+			{
+				sleep(0.2);
+				pos = GetEntPosition(victim);
+				if (!pos){ return; }
+				if ( pos==prevPos )
+				{
+					if ( this.Debug ) {
+						this.Bot.Say("waited ", timeout * 0.2, " seconds for target to settle");
+					}
+					if(!this.IsActive())
+					{
+						this.TargetPosition = null;
+						this.TargetEntity = victim;
+						this.State = this.GOTO_TARGET;
+						this.Priority = 1.0;
+					}
+					return;
+				}
+				prevPos = pos;
+			}
+			if ( this.Debug ) {
+				this.Bot.Say("cannot gib, target velocity ", GetEntVelocity(victim));
+			}
+		}
+	}
+};
+
+this.Events[EVENT.FEEL_PAIN] = function(Inflictor, PreviousHealth, CurrentHealth)
+{
+	// interrupt any active state if taking fire (from targets that are alive ...)
+	if ( this.Bot && this.IsActive() || this.HasBinoculars)
+	{
+		if ( Inflictor && !GetEntFlags(Inflictor, ENTFLAG.DEAD, ENTFLAG.LIMBO) ) {
+			inflictorClass = GetEntClass(Inflictor);
+			if ( (inflictorClass & CLASS.ANYPLAYER || inflictorClass == 1)
+				&& GetEntTeam(Inflictor) != this.Bot.GetTeam() )
+			{
+				if ( this.IsActive() ) {
+					this.Finished();
+				}
+				else
+				{
+					// just call Exit directly to handle states run in GetPriority
+					this.Exit();
+				}
+			}
+		}
+	}
+};

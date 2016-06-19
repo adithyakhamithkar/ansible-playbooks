@@ -1,0 +1,777 @@
+//==========================================================================================
+//
+//	citycontest.gm
+//
+//	Who		When		What
+//------------------------------------------------------------------------------------------
+//	Hank_officer	Unknown		Version 1
+//	MickyP		16 July 2010	Script Update
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+
+	Allied_Command_Post_Dyno = 0,
+	Axis_Camp_Dyno = 0,
+	Axis_Command_Post_Dyno = 0,
+
+	city = 1, // 1 = allies , 0 = axis
+	camp = 0, // 0 = not yet , 1 = build
+	citymg42_status = 0, // 1 = set , 0 = disable
+	truckneardepot = false,
+	truckoutdepot = false,
+	nearend_status = false,
+	gate_status = 1, // 1 = closed , 0 = opened
+	depotcp_status = 0, // 1 = constructed , 0 = destroyed
+	finishdeliver_status = 0, // 0 = not yet , 1 = build
+
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.depotcp_status = 1;
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_Allied_Command_Post" );
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Axis_Camp_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.camp = 1;
+
+		// Allies
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_city" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Allied_Command_Post" );
+
+		// Axis
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_city" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Axis_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Axis_Camp" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Truck" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_ac_cover.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_ac_main.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_axiscamp_sidec.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ESCORT_Truck" );
+
+		Util.MapDebugPrint( "Axis_Camp_Built" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Truck_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ESCORT_Truck" );
+		Util.MapDebugPrint( "Truck_Built" );
+	},
+
+	Truck_Damaged = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ESCORT_Truck" );
+
+		Util.MapDebugPrint( "Truck_Damaged" );
+	},
+
+	Allied_Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Allied_Command_Post_Dyno += 1;
+		Util.MapDebugPrint( "Allied_Command_Post_Planted" );
+	},
+
+	Axis_Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Command_Post_Dyno += 1;
+		Util.MapDebugPrint( "Axis_Command_Post_Planted" );
+	},
+
+	Allied_Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Allied_Command_Post_Dyno -= 1;
+		Util.MapDebugPrint( "Allied_Command_Post_Defused" );
+	},
+
+	Axis_Camp_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Camp_Dyno -= 1;
+		Util.MapDebugPrint( "Axis_Camp_Defused" );
+	},
+
+	Axis_Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Command_Post_Dyno -= 1;
+		Util.MapDebugPrint( "Axis_Command_Post_Defused" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Allied_Command_Post_Dyno = 0;
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Axis_Command_Post_Dyno = 0;
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	city_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.city = 0;
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_city_mg" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_city_mg" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_cityD.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_ac_main.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_axiscamp_sidec.*" );
+
+		if( Map.citymg42_status == 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_CityMG42" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_CityMG42" );
+		}
+
+		Util.MapDebugPrint( "city_Axis_Captured" );
+	},
+
+	city_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.city = 1;
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_cityD.*" );
+
+		if( Map.citymg42_status == 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42_city_mg" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "REPAIRMG42_city_mg" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_CityMG42" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_CityMG42" );
+		}
+
+		if( Map.citymg42_status == 0 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_CityMG42" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_CityMG42" );
+		}
+
+		Util.MapDebugPrint( "city_Allies_Captured" );
+	},
+
+	city1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.truckneardepot = true;
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_city1D.*" );
+
+		Util.MapDebugPrint( "truck_city1" );
+	},
+
+	city2 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.truckneardepot = true;
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_city1D.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_city2D.*" );
+
+		Util.MapDebugPrint( "truck_city2" );
+	},
+	neardepot = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.truckneardepot = true;
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_city2D.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_cityD.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_depotD.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_depot2fD.*" );
+
+		Util.SetMaxUsersInProgress( 3, "CHECKPOINT_city" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_ac_main.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_covertruck_nd.*" );
+
+		if( Map.gate_status == 1 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_GateButton" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_GateButton*" );
+			Util.MapDebugPrint( "axis_need_open_the_gate" );
+		}
+		else
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_GateButton" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_GateButton*" );
+			Util.MapDebugPrint( "allies_need_close_the_gate" );
+		}
+
+		Util.MapDebugPrint( "truck_near_depot" );
+	},
+
+	depotgate = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if( Map.gate_status == 1 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Truck" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "ESCORT_Truck" );
+			Util.MapDebugPrint( "axis_need_open_the_gate" );
+		}
+
+		Util.MapDebugPrint( "depotgate" );
+	},
+
+	indepot = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_depotD.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_depot2fD.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_depot2D.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_GateButton*" );
+
+		Util.SetMaxUsersInProgress( 4, "PLANT_Allied_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_DepotA.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_covertruck_nd.*" );
+
+		Util.MapDebugPrint( "truck_indepot" );
+	},
+
+	outdepot_now = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.truckoutdepot = true;
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_outdepotA.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_radarpostA.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Allied_Command_Post" );
+
+		Util.SetMaxUsersInProgress( 2, "PLANT_Allied_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_DepotA.*" );
+
+		Util.ChangeSpawn(TEAM.ALLIES, 1);
+
+		Util.MapDebugPrint( "outdepot_now" );
+	},
+	radarpost_now = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_covertruck_rp.*" );
+
+		Util.MapDebugPrint( "radarpost_now" );
+	},
+	nearend_now = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.nearend_status = true;
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_nearendA.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_radarpostA.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_covertruck_rp.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_nearend.*" );
+
+		Util.ChangeSpawn(TEAM.AXIS, 2);
+
+		Util.MapDebugPrint( "nearend_now" );
+	},
+	end_now = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_endA.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_nearendA.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_city" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Axis_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_ac_side.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_nearend.*" );
+
+		Util.MapDebugPrint( "end_now" );
+	},
+
+	alliesmg42 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.citymg42_status = 1;
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42_city_mg" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "REPAIRMG42_city_mg" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_CityMG42" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_CityMG42" );
+
+		if( Map.camp == 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_CityMG42" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_CityMG42" );
+		}
+
+		Util.MapDebugPrint( "alliesmg42" );
+	},
+	axismg42 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.citymg42_status = 0;
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_city_mg" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_city_mg" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_CityMG42" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_CityMG42" );
+
+		if( Map.city == 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_CityMG42" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_CityMG42" );
+		}
+
+		Util.MapDebugPrint( "axismg42" );
+	},
+
+	axisgate = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.gate_status = 0;
+
+		if( Map.finishdeliver_status == 1 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_GateButton" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_GateButton*" );
+		}
+		else if( Map.truckneardepot == true )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_GateButton" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_GateButton*" );
+			Util.MapDebugPrint( "allies_need_close_the_gate" );
+		}
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Truck" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ESCORT_Truck" );
+		Util.MapDebugPrint( "axis_opened_gate" );
+	},
+	alliesgate = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.gate_status = 1;
+
+		if( Map.finishdeliver_status == 1 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_GateButton" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_GateButton*" );
+		}
+		else if( Map.truckneardepot == true )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_GateButton" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_GateButton*" );
+			Util.MapDebugPrint( "axis_need_open_the_gate" );
+		}
+
+		Util.MapDebugPrint( "allies_closed_gate" );
+	},
+
+	Startband = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_city" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_city_mg" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_city_mg" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_city" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "BUILD_Truck" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SWITCH_CityMG42" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_CityMG42" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_Band*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ESCORT_Truck" );
+
+		Util.MapDebugPrint( "truck_position" );
+	},
+	movingband = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_depot2D.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_outdepotA.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_Band*" );
+
+		Util.MapDebugPrint( "band_moving" );
+	},
+	finishdeliver = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.finishdeliver_status = 1;
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ESCORT_Truck" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Truck" );
+
+		Util.MapDebugPrint( "finishdeliver" );
+	},
+
+	truck_at_location = function( trigger )
+	{
+		switch(Map.VehicleLocation)
+		{
+			case 1:
+			{
+				Map.city1();
+			}
+			case 2:
+			{
+				Map.city2();
+			}
+			case 3:
+			{
+				Map.neardepot();
+			}
+			case 4:
+			{
+				Map.depotgate();
+			}
+			case 5:
+			{
+				Map.indepot();
+			}
+			case 6:
+			{
+				Map.outdepot_now();
+			}
+			case 7:
+			{
+				ETUtil.SetExcludeIndexes( "BUILD_Truck", { 4, 5, 6 } );
+				ETUtil.SetExcludeIndexes( "ESCORT_Truck", { 2 } );
+			}
+			case 8:
+			{
+				Map.radarpost_now();
+			}
+			case 9:
+			{
+				ETUtil.SetExcludeIndexes( "BUILD_Truck", {} );
+				ETUtil.SetExcludeIndexes( "ESCORT_Truck", {} );
+			}
+			case 10:
+			{
+				Map.nearend_now();
+			}
+			case 11:
+			{
+				Map.end_now();
+			}
+		}
+		Util.MapDebugPrint("vehicle at location " + Map.VehicleLocation, true);
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// Register callback functions
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis camp is constructed and cannot be destroyed!", Map.Axis_Camp_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "The Truck has been repaired!", Map.Truck_Built );
+	OnTrigger( "The Truck has been damaged!", Map.Truck_Damaged );
+	OnTrigger( "Planted at the Allied Command Post.", Map.Allied_Command_Post_Planted );
+	OnTrigger( "Planted at the Axis Command Post.", Map.Axis_Command_Post_Planted );
+	OnTrigger( "Defused at the Allied Command Post.", Map.Allied_Command_Post_Defused );
+	OnTrigger( "Defused at the Axis Command Post.", Map.Axis_Command_Post_Defused );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "Axis reclaim the city!", Map.city_Axis_Captured );
+	OnTrigger( "Allies captured the city!", Map.city_Allies_Captured );
+	OnTrigger( "Allies set the mg42 at city.", Map.alliesmg42 );
+	OnTrigger( "Axis disabled the mg42 at city.", Map.axismg42 );
+	OnTrigger( "Axis opened the base gate!", Map.axisgate );
+	OnTrigger( "Allies closed the base gate!", Map.alliesgate );
+	OnTrigger( "The Truck is in the position!", Map.Startband );
+	OnTrigger( "Axis Started the band to deliver their secret box on the truck!", Map.movingband );
+	OnTrigger( "Axis delivered their secret box on the truck!", Map.finishdeliver );
+	OnTrigger( "truck at location", Map.truck_at_location );
+
+	city1 = 	OnTriggerRegion(AABB(-1252.655,165.219,1.125,-1186.169,403.883,75.125), 	RegionTrigger.VehicleTrigger);
+	city2 = 	OnTriggerRegion(AABB(-772.734,-388.391,1.125,-548.296,-346.108,75.125),		RegionTrigger.VehicleTrigger);
+	neardepot = 	OnTriggerRegion(AABB(-392.292,-1728.875,1.125,-353.502,-1571.482,75.125),	RegionTrigger.VehicleTrigger);
+	depotgate = 	OnTriggerRegion(AABB(873.709,-1713.907,1.125,934.379,-1482.479,75.125),		RegionTrigger.VehicleTrigger);
+	indepot = 	OnTriggerRegion(AABB(1397.458,-1728.389,1.125,1443.789,-1517.276,75.125),	RegionTrigger.VehicleTrigger);
+	outdepot_now = 	OnTriggerRegion(AABB(1897.036,-189.904,1.125,2169.846,-137.845,75.125),		RegionTrigger.VehicleTrigger);
+	WallStart = 	OnTriggerRegion(AABB(1407.125,1159.712,1.125,1654.042,1228.954,75.125),		RegionTrigger.VehicleTrigger);
+	radarpost_now = OnTriggerRegion(AABB(1448.279,1783.714,1.125,1626.466,1833.328,75.125),		RegionTrigger.VehicleTrigger);
+	WallEnd = 	OnTriggerRegion(AABB(1212.090,3311.167,1.125,1491.337,3365.125,75.125),		RegionTrigger.VehicleTrigger);
+	nearend_now = 	OnTriggerRegion(AABB(352.838,3369.434,1.319,391.858,3604.100,75.319),		RegionTrigger.VehicleTrigger);
+	end_now = 	OnTriggerRegion(AABB(-928.403,2216.614,1.125,-751.839,2415.638,75.125),		RegionTrigger.VehicleTrigger);
+	breakable =	OnTriggerRegion(AABB(2239.125,103.736,-188.631,2380.527,384.875,75.125), 	RegionTrigger.BreakableDistance);
+
+
+	Util.DisableGoal( ".*", true ); // all but routes
+	Util.EnableGoal( "AMMO.*", true );
+	Util.EnableGoal( "HEALTH.*", true );
+
+	Util.SetGoalOffset( -15, 45, -15, "BUILD_Axis_Camp" );
+
+	// Allies
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_cityD.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SWITCH_CityMG42" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_city" );
+
+	// Axis
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_ac_cover.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Axis_Camp" );
+
+	// Max users per goal
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+
+	// Camp times
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=60} );
+
+	MapRoutes =
+	{
+		DEFEND_ac_cover1 =
+		{
+			ROUTE_AxisEsc_1 =
+			{
+				ROUTE_ac_route1 = {},
+				ROUTE_ac_route2 = {},
+			},
+			ROUTE_AxisEsc_2 =
+			{
+				ROUTE_ac_route1 = {},
+			},
+		},
+		CHECKPOINT_city =
+		{
+			ROUTE_AxisEsc_1 =
+			{
+				ROUTE_ac_route1 =
+				{
+					ROUTE_nearcity1 = {},
+					ROUTE_nearcity2 = {},
+					ROUTE_axiscp =
+					{
+						Weight = 3,
+						ROUTE_axiscp = {},
+						ROUTE_nearcity3 = { ROUTE_nearcity4 = {}, },
+					},
+				},
+				ROUTE_ac_route2 =
+				{
+					ROUTE_nearcity1 = {},
+					ROUTE_nearcity2 = {},
+				},
+			},
+			ROUTE_AxisEsc_2 =
+			{
+				ROUTE_ac_route1 =
+				{
+					ROUTE_nearcity1 = {},
+					ROUTE_nearcity2 = {},
+					ROUTE_axiscp =
+					{
+						Weight = 3,
+						ROUTE_axiscp = {},
+						ROUTE_nearcity3 = { ROUTE_nearcity4 = {}, },
+					},
+				},
+			},
+		},
+		DEFEND_depotD_1 =
+		{
+			ROUTE_alliesRes =
+			{
+				ROUTE_depotR3 = {},
+				ROUTE_depotR4 = {},
+				ROUTE_todepot1 =
+				{
+					Weight = 3,
+					ROUTE_todepot1_1 = {},
+				},
+			},
+			ROUTE_depot =
+			{
+				ROUTE_depotgoout1 = {},
+				ROUTE_depotgoout2 = {},
+				ROUTE_depotgoout3 = {},
+				ROUTE_depotgoout4 = {},
+			},
+		},
+		ATTACK_radarpostA_1 =
+		{
+			ROUTE_alliesRes =
+			{
+				ROUTE_allygoout1 = {},
+				ROUTE_allygoout2 = {},
+				ROUTE_allygoout3 = {},
+			},
+		},
+		ATTACK_DepotA_1 =
+		{
+			ROUTE_city_route =
+			{
+				ROUTE_nearcity3 =
+				{
+					ROUTE_depotR1 = {},
+					ROUTE_depotR2 = {},
+					ROUTE_depotR3 = {},
+					ROUTE_gate2 = {},
+					ROUTE_allyRes1 = { ROUTE_depotR3 = {}, },
+					ROUTE_axiscp =
+					{
+						ROUTE_todepot1 =
+						{
+							Weight = 4,
+							ROUTE_todepot1_1 = {},
+						},
+					},
+				},
+			},
+			ROUTE_city_route2 =
+			{
+				ROUTE_nearcity3 =
+				{
+					ROUTE_depotR1 = {},
+					ROUTE_depotR2 = {},
+					ROUTE_depotR3 = {},
+					ROUTE_gate2 = {},
+					ROUTE_allyRes1 = { ROUTE_depotR3 = {}, },
+					ROUTE_axiscp =
+					{
+						ROUTE_todepot1 =
+						{
+							Weight = 4,
+							ROUTE_todepot1_1 = {},
+						},
+					},
+				},
+			},
+		},
+	};
+
+	MapRoutes.DEFEND_ac_cover2 = MapRoutes.DEFEND_ac_cover1;
+	MapRoutes.DEFEND_ac_cover3 = MapRoutes.DEFEND_ac_cover1;
+	MapRoutes.DEFEND_ac_cover4 = MapRoutes.DEFEND_ac_cover1;
+
+	MapRoutes.ATTACK_DepotA_2 = MapRoutes.ATTACK_DepotA_1;
+	MapRoutes.ATTACK_DepotA_3 = MapRoutes.ATTACK_DepotA_1;
+
+	MapRoutes.DEFEND_depotD_2 = MapRoutes.DEFEND_depotD_1;
+	MapRoutes.DEFEND_depotD_3 = MapRoutes.DEFEND_depotD_1;
+	MapRoutes.DEFEND_depotD_4 = MapRoutes.DEFEND_depotD_1;
+	MapRoutes.DEFEND_depotD_5 = MapRoutes.DEFEND_depotD_1;
+	MapRoutes.DEFEND_depotD_6 = MapRoutes.DEFEND_depotD_1;
+	MapRoutes.DEFEND_depotD_7 = MapRoutes.DEFEND_depotD_1;
+	MapRoutes.DEFEND_depot2D_1 = MapRoutes.DEFEND_depotD_1;
+	MapRoutes.DEFEND_depot2D_2 = MapRoutes.DEFEND_depotD_1;
+	MapRoutes.DEFEND_depot2D_3 = MapRoutes.DEFEND_depotD_1;
+	MapRoutes.DEFEND_depot2D_4 = MapRoutes.DEFEND_depotD_1;
+	MapRoutes.DEFEND_depot2D_5 = MapRoutes.DEFEND_depotD_1;
+	MapRoutes.DEFEND_depot2D_6 = MapRoutes.DEFEND_depotD_1;
+	MapRoutes.DEFEND_depot2D_7 = MapRoutes.DEFEND_depotD_1;
+	MapRoutes.DEFEND_depot2D_8 = MapRoutes.DEFEND_depotD_1;
+	MapRoutes.DEFEND_depot2fD_1 = MapRoutes.DEFEND_depotD_1;
+	MapRoutes.DEFEND_depot2fD_2 = MapRoutes.DEFEND_depotD_1;
+	MapRoutes.DEFEND_depot2fD_3 = MapRoutes.DEFEND_depotD_1;
+	MapRoutes.DEFEND_depot2fD_4 = MapRoutes.DEFEND_depotD_1;
+
+	MapRoutes.ATTACK_radarpostA_2 = MapRoutes.ATTACK_radarpostA_1;
+	MapRoutes.ATTACK_radarpostA_3 = MapRoutes.ATTACK_radarpostA_1;
+	MapRoutes.ATTACK_nearendA_1 = MapRoutes.ATTACK_radarpostA_1;
+	MapRoutes.ATTACK_nearendA_2 = MapRoutes.ATTACK_radarpostA_1;
+	MapRoutes.ATTACK_nearendA_3 = MapRoutes.ATTACK_radarpostA_1;
+	MapRoutes.ATTACK_endA_1 = MapRoutes.ATTACK_radarpostA_1;
+	MapRoutes.ATTACK_endA_2 = MapRoutes.ATTACK_radarpostA_1;
+	MapRoutes.ATTACK_endA_3 = MapRoutes.ATTACK_radarpostA_1;
+
+	Util.Routes( MapRoutes );
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	// Uncomment for shootable breakables
+	//~bot.TargetBreakableDist = 90.0;
+	// Only set MaxViewDistance on maps with limited sight (e.g. fog)
+	//~bot.MaxViewDistance = 2400;
+};

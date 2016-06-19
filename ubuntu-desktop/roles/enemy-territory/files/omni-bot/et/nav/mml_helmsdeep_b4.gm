@@ -1,0 +1,962 @@
+/********************************************************
+Script and waypoints made by  >WES< P!NNAN & >WES< GRANNY
+********************************************************/
+
+global Map =
+{
+	ShowMovers = false,
+	Debug = false,
+	Quiet = true,
+	//set Talk to false if you don't want the bots talking ingame:
+	Talk = true,
+	Turner = true,
+	Dynamite1 = false,
+	Dynamite2 = false,
+	Hall_Gate_Blown = 0,
+
+	Call_Artillery_ar_al_call_1 = "CALLARTILLERY_ar_al_call_1",
+	Artillery_S_Checkpoint_1 = "ARTILLERY_S_Checkpoint_1",
+	Artillery_S_Checkpoint_2 = "ARTILLERY_S_Checkpoint_2",
+	Artillery_S_Checkpoint_3 = "ARTILLERY_S_Checkpoint_3",
+	Artillery_S_Checkpoint_4 = "ARTILLERY_S_Checkpoint_4",
+	Artillery_S_Checkpoint_5 = "ARTILLERY_S_Checkpoint_5",
+	Artillery_S_Checkpoint_6 = "ARTILLERY_S_Checkpoint_6",
+	Artillery_S_Checkpoint_7 = "ARTILLERY_S_Checkpoint_7",
+	Artillery_S_Checkpoint_8 = "ARTILLERY_S_Checkpoint_8",
+	Artillery_S_Checkpoint_9 = "ARTILLERY_S_Checkpoint_9",
+	Checkpoint_allied_south_valley_spawns_flag = "CHECKPOINT_allied_south_valley_spawns_flag",
+	Checkpoint_axis_south_valley_spawns_flag = "CHECKPOINT_axis_south_valley_spawns_flag",
+	Flag_explosives = "FLAG_explosives",
+	Cappoint_Dropoff = "CAPPOINT_Dropoff",
+	Build_Axis_Command_Post = "BUILD_Axis_Command_Post",
+	Build_Main_Cave_Defences = "BUILD_Main_Cave_Defences",
+	Build_Side_Cave_Defences = "BUILD_Side_Cave_Defences",
+	Build_Tank = "BUILD_Tank",
+	Build_Valley_MG42_placement = "BUILD_Valley_MG42_placement",
+	Plant_Axis_Command_Post = "PLANT_Axis_Command_Post",
+	Plant_Exit_Tunnel = "PLANT_Exit_Tunnel",
+	Plant_Main_Cave_Defences = "PLANT_Main_Cave_Defences",
+	Plant_Side_Cave_Defences = "PLANT_Side_Cave_Defences",
+	Plant_Valley_MG42_placement = "PLANT_Valley_MG42_placement",
+	Plant_wall_object = "PLANT_wall_object",
+	Mount_2592 = "MOUNTMG42_2592",
+	Mount_Valley_MG42_placement = "MOUNTMG42_Valley_MG42_placement",
+	Mount_wall_mg42_2 = "MOUNTMG42_wall_mg42_2",
+	Repair_2592 = "REPAIRMG42_2592",
+	Repair_Valley_MG42_placement = "REPAIRMG42_Valley_MG42_placement",
+	Repair_wall_mg42_2 = "REPAIRMG42_wall_mg42_2",
+	Repair_wall_object = "REPAIRMG42_wall_object",
+	Mobile_MG42_mg_al_castle = "MOBILEMG42_mg_al_castle",
+	Mobile_MG42_mg_al_castle_1 = "MOBILEMG42_mg_al_castle_1",
+	Mobile_MG42_mg_al_cave_1 = "MOBILEMG42_mg_al_cave_1",
+	Mobile_MG42_mg_al_hall_1 = "MOBILEMG42_mg_al_hall_1",
+	Mobile_MG42_mg_al_hall_2 = "MOBILEMG42_mg_al_hall_2",
+	Mobile_MG42_mg_ax_1 = "MOBILEMG42_mg_ax_1",
+	Mobile_MG42_mg_ax_cave_1 = "MOBILEMG42_mg_ax_cave_1",
+	Snipe_s_ax_1 = "SNIPE_s_ax_1",
+	Snipe_s_ax_2 = "SNIPE_s_ax_2",
+	Snipe_s_ax_3 = "SNIPE_s_ax_3",
+	Snipe_s_ax_4 = "SNIPE_s_ax_4",
+	Snipe_s_ax_5 = "SNIPE_s_ax_5",
+	Snipe_s_ax_6 = "SNIPE_s_ax_6",
+	Snipe_s_ax_7 = "SNIPE_s_ax_7",
+	Snipe_s_ax_8 = "SNIPE_s_ax_8",
+	Snipe_s_ax_exit_1 = "SNIPE_s_ax_exit_1",
+	Snipe_s_ax_exit_2 = "SNIPE_s_ax_exit_2",
+	Mover_tank = "MOVER_tank",
+
+	Navigation =
+	{
+		wellswitch_pt =
+		{
+			navigate = function(_this)
+			{
+				if ( !Map.Turner )
+				{
+					if ( !Map.WellswitchInfo ) {
+						Map.WellswitchInfo = Util.WpNameInfo("Wellswitch");
+					}
+
+					_this.AddAimRequest(Priority.High, "facing", Map.WellswitchInfo.facing);
+
+					while( !Map.Turner )
+					{
+						_this.Bot.HoldButton(BTN.USE, 0.3);
+						yield();
+					}
+				}
+				sleep(1);
+			},
+		},
+	},
+
+	Switches =
+	{
+		WellSwitch =
+		{
+			Enabled = true,
+			//Debug = true,
+			WaypointName = "Wellswitch",
+			LimitBots = 1,
+			LimitTeam = (1<<TEAM.ALLIES),
+			LimitClass = (1<<CLASS.COVERTOPS),
+			Priority = 0.9,
+		},
+	},
+
+	//Tankstuff
+	Tank_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Tank_Built" );
+	},
+
+	tank_leaves_artyarea_1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_Checkpoint_1" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_Checkpoint_2" );
+
+		Util.MapDebugPrint( "tank_leaves_artyarea_1" );
+	},
+
+	tank_leaves_artyarea_2 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_Checkpoint_2" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_Checkpoint_3" );
+
+		Util.MapDebugPrint( "tank_leaves_artyarea_2" );
+	},
+
+	tank_leaves_artyarea_3 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_Checkpoint_3" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_Checkpoint_4" );
+
+		Util.MapDebugPrint( "tank_leaves_artyarea_3" );
+	},
+
+	tank_leaves_artyarea_4 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_Checkpoint_4" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_Checkpoint_5" );
+
+		Util.MapDebugPrint( "tank_leaves_artyarea_4" );
+	},
+
+	tank_leaves_artyarea_5 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_Checkpoint_5" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_Checkpoint_6" );
+
+		Util.MapDebugPrint( "tank_leaves_artyarea_5" );
+	},
+
+	tank_leaves_artyarea_6 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_Checkpoint_6" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_Checkpoint_7" );
+
+		Util.MapDebugPrint( "tank_leaves_artyarea_6" );
+	},
+
+	tank_leaves_artyarea_7 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_Checkpoint_7" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_Checkpoint_8" );
+
+		Util.MapDebugPrint( "tank_leaves_artyarea_7" );
+	},
+
+	tank_leaves_artyarea_8 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_Checkpoint_8" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_Checkpoint_9" );
+
+		Util.MapDebugPrint( "tank_leaves_artyarea_8" );
+	},
+
+	tank_leaves_artyarea_9 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_Checkpoint_9" );
+
+		Util.MapDebugPrint( "tank_leaves_artyarea_9" );
+	},
+
+	tank_leaves_artyarea_11 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_hall_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMG42_mg_al_hall_1" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMG42_mg_al_hall_2" );
+
+		Util.MapDebugPrint( "tank_leaves_artyarea_11" );
+	},
+
+	//wall and gates
+	Hall_Gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+
+		Map.Hall_Gate_Blown = 1;
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Checkpoint_axis_south_valley_spawns_flag );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNT_tank" );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_Tank );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_a_castle_.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Axis_Command_Post );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Mobile_MG42_mg_ax_cave_1 );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Exit_Tunnel );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Main_Cave_Defences );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Side_Cave_Defences );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_cave_.*" );
+
+		//sleep(60); ///Why??? It was stopping the bots defending for 1 minute
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_d_hall_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_mg_al_hall_1" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_mg_al_hall_2" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_mg_al_castle" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Mount_2592 );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Repair_2592 );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_d_castle_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_d_ladder_.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mobile_MG42_mg_al_cave_1 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Axis_Command_Post );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_cave_.*" );
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.DESTROY_SECONDARY);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTAttack");
+					}
+				}
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.REINFORCE_DEF);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTFallBack");
+					}
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "Hall_Gate_Destroyed" );
+	},
+
+	Main_Gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Switches.WellSwitch.LimitTeam = (1<<TEAM.ALLIES);//turner only for Allies
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Artillery_S_Checkpoint_1 );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Call_Artillery_ar_al_call_1 );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Checkpoint_allied_south_valley_spawns_flag );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Mount_wall_object );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Mount_wall_mg42_2 );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Repair_wall_object );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Repair_wall_mg42_2 );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_d_start_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_s_al_.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Main_Cave_Defences );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Side_Cave_Defences );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mobile_MG42_mg_al_castle );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mobile_MG42_mg_al_castle_1 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mount_2592 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Repair_2592 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_castle_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_ladder_.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Mobile_MG42_mg_ax_1 );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_Valley_MG42_placement );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Mount_Valley_MG42_placement );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.repair_Valley_MG42_placement );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_a_start_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_s_ax_.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Checkpoint_axis_south_valley_spawns_flag );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOUNT_tank" );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Tank );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_castle_.*" );
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.PATH_CLEARED);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTAttack");
+					}
+				}
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.REINFORCE_DEF);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTFallBack");
+					}
+				}
+			}
+		}
+		Util.MapDebugPrint( "Main_Gate_Destroyed" );
+	},
+
+	wall_object_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Culvert" );
+
+		if ( Map.Hall_Gate_Blown == 0 )
+		{
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Artillery_S_Checkpoint_1 );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Call_Artillery_ar_al_call_1 );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Checkpoint_allied_south_valley_spawns_flag );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Mount_wall_object );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Mount_wall_mg42_2 );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Repair_wall_object );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Repair_wall_mg42_2 );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_d_start_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_s_al_.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mobile_MG42_mg_al_castle );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mobile_MG42_mg_al_castle_1 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mount_2592 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Repair_2592 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_castle_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_ladder_.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Mobile_MG42_mg_ax_1 );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_Valley_MG42_placement );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Mount_Valley_MG42_placement );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.repair_Valley_MG42_placement );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_a_start_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_s_ax_.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Checkpoint_axis_south_valley_spawns_flag );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOUNT_tank" );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Tank );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_castle_.*" );
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.PATH_CLEARED);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTAttack");
+					}
+				}
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.REINFORCE_DEF);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTFallBack");
+					}
+				}
+			}
+		}
+		}
+		Util.MapDebugPrint( "wall_object_Destroyed" );
+	},
+
+	//CP
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	//Cave defenses
+	Main_Cave_Defences_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Main_Cave_Defences_Built" );
+	},
+
+	Side_Cave_Defences_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Side_Cave_Defences_Built" );
+	},
+
+	Main_Cave_Defences_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Mobile_MG42_mg_al_cave_1 );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_Axis_Command_Post );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_d_cave_.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mobile_MG42_mg_al_cave_1 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_exit_.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Build_Axis_Command_Post );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Mobile_MG42_mg_ax_cave_1 );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_a_cave_.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Mobile_MG42_mg_ax_cave_1 );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Exit_Tunnel );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Main_Cave_Defences );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Side_Cave_Defences );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_exit_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_s_ax_exit.*" );
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.DESTROY_PRIMARY);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTAttack");
+					}
+				}
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.REINFORCE_DEF);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTFallBack");
+					}
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "Main_Cave_Defences_Destroyed" );
+	},
+
+	Side_Cave_Defences_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_Axis_Command_Post );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_d_cave_.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mobile_MG42_mg_al_cave_1 );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_exit_.*" );
+
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_a_cave_.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Mobile_MG42_mg_ax_cave_1 );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Exit_Tunnel );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Main_Cave_Defences );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Side_Cave_Defences );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_exit_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_s_ax_exit.*" );
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.DESTROY_PRIMARY);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTAttack");
+					}
+				}
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.REINFORCE_DEF);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTFallBack");
+					}
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "Side_Cave_Defences_Destroyed" );
+	},
+
+	//valleymg42
+	Valley_MG42_placement_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Valley_MG42_placement_Built" );
+	},
+
+	Valley_MG42_placement_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Valley_MG42_placement_Destroyed" );
+	},
+
+	//explosives and cappoint
+	explosives_Taken1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "explosives_Taken1" );
+	},
+
+	explosives_Taken2 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "explosives_Taken2" );
+	},
+
+	explosives_Returned1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "explosives_Returned1" );
+	},
+
+	explosives_Returned2 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "explosives_Returned2" );
+	},
+
+	Dropoff_Captured1 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		Map.Dynamite1 = true;
+
+		if ( Map.Dynamite2)
+		{
+			Map.Switches.WellSwitch.LimitTeam = (1<<TEAM.ALLIES);
+			SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Culvert" );
+			SetAvailableMapGoals( TEAM.AXIS, false, Map.Cappoint_Dropoff );
+			SetAvailableMapGoals( TEAM.AXIS, false, Map.Flag_explosives );
+		}
+
+		Util.MapDebugPrint( "Dropoff_Captured1" );
+	},
+	Dropoff_Captured2 = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		Map.Dynamite2 = true;
+
+		if ( Map.Dynamite1)
+		{
+			Map.Switches.WellSwitch.LimitTeam = (1<<TEAM.ALLIES);
+			SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Culvert" );
+			SetAvailableMapGoals( TEAM.AXIS, false, Map.Cappoint_Dropoff );
+			SetAvailableMapGoals( TEAM.AXIS, false, Map.Flag_explosives );
+		}
+
+		Util.MapDebugPrint( "Dropoff_Captured2" );
+	},
+
+	//spawnflag
+	allied_south_valley_spawns_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "allied_south_valley_spawns_flag_Axis_Captured" );
+	},
+
+	allied_south_valley_spawns_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "allied_south_valley_spawns_flag_Allies_Captured" );
+	},
+
+	axis_south_valley_spawns_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "axis_south_valley_spawns_flag_Axis_Captured" );
+	},
+
+	axis_south_valley_spawns_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "axis_south_valley_spawns_flag_Allies_Captured" );
+	},
+
+	//axis won
+	Exit_Tunnel_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		ETUtil.WinningChat( TEAM.AXIS );
+		ETUtil.LosingChat( TEAM.ALLIES );
+
+		Util.MapDebugPrint( "Exit_Tunnel_Destroyed" );
+	},
+
+	//rope
+	well_upper_ropey_start = function( trigger )
+	{
+		vec = ToVector( trigger.Action );
+
+		//turner pulled again , rope will go down
+		if ( vec.z < -240 )
+		{
+			Map.Rope = "down";
+			Map.Turner = true;
+		}
+
+		//turner pulled  , rope will go up
+		if ( vec.z > 240 )
+		{
+			Map.Switches.WellSwitch.LimitTeam = 0;
+			Map.Rope = "up";
+		}
+		Util.MapDebugPrint( "Rope is now: " + Map.Rope, true );
+	},
+
+	Tank_Health = function()
+	{
+		tankEnt = Util.GetGoalEnt("MOVER_tank");
+
+		if (tankEnt)
+		{
+			tankName = GetEntName(tankEnt);
+			triggerInfo =
+			{
+				Entity = tankEnt,
+				Activator = null,
+				TagName = "",
+				Action = "",
+			};
+
+			status = GetEntFlags(tankEnt, ENTFLAG.DEAD);
+			while(1)
+			{
+				newStatus = GetEntFlags(tankEnt, ENTFLAG.DEAD);
+				if ( newStatus != status )
+				{
+					if ( newStatus == true ) {
+						triggerInfo.TagName = tankName + " damaged!";
+						triggerInfo.Action = "damaged";
+						SendTrigger(triggerInfo);
+					}
+					else {
+						triggerInfo.TagName = tankName + " built!";
+						triggerInfo.Action = "built";
+						SendTrigger(triggerInfo);
+					}
+
+					status = newStatus;
+				}
+
+				sleep(0.5);
+			}
+		}
+	},
+
+	Tank_Damaged = function( trigger )
+	{
+		Util.SetPositionGoal( "BUILD_Tank", "MOVER_tank" );
+		Util.MapDebugPrint( "Tank_Damaged", true );
+	},
+
+	tank_at_location = function( trigger )
+	{
+		switch(Map.VehicleLocation)
+		{
+			case 1: { Map.tank_leaves_artyarea_1(); }
+			case 2: { Map.tank_leaves_artyarea_2(); }
+			case 3: { Map.tank_leaves_artyarea_3(); }
+			case 4: { Map.tank_leaves_artyarea_4(); }
+			case 5: { Map.tank_leaves_artyarea_5(); }
+			case 6: { Map.tank_leaves_artyarea_6(); }
+			case 7: { Map.tank_leaves_artyarea_7(); }
+			case 8: { Map.tank_leaves_artyarea_8(); }
+			case 9: { Map.tank_leaves_artyarea_9(); }
+			case 10: { Map.tank_leaves_artyarea_11(); }
+		}
+
+		Util.MapDebugPrint("tank at location " + Map.VehicleLocation, true);
+	},
+};
+
+global OnMapLoad = function()
+{
+	// custom trigger for tank damaged
+	thread(Map.Tank_Health);
+
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	Util.SetGoalOffset( -9.448, 4.304, -158.710, "PLANT_Exit_Tunnel" );
+	Util.SetGoalOffset( 0.448, -41.496, 0, "BUILD_Valley_MG42_placement" ); // don't build into oblivion
+
+	OnTrigger( "Axis Command Post constructed!", Map.Axis_Command_Post_Built );
+	OnTrigger( "Allies have built the Main Cave Defences!", Map.Main_Cave_Defences_Built );
+	OnTrigger( "Allies have built the Side Cave Defences!", Map.Side_Cave_Defences_Built );
+	OnTrigger( "The Tank has been repaired!", Map.Tank_Built );
+	OnTrigger( "Axis have built the Valley MG42", Map.Valley_MG42_placement_Built );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "The Exit Tunnel has been blocked off!", Map.Exit_Tunnel_Destroyed );
+	OnTrigger( "The Tank has blown the Hall Gate!", Map.Hall_Gate_Destroyed );
+	OnTrigger( "Axis have destroyed the Main Cave Defences!", Map.Main_Cave_Defences_Destroyed );
+	OnTrigger( "The Tank has blown the Main Gate!", Map.Main_Gate_Destroyed );
+	OnTrigger( "Axis have destroyed the Side Cave Defences!", Map.Side_Cave_Defences_Destroyed );
+	OnTrigger( "Allies have destroyed the Valley MG42", Map.Valley_MG42_placement_Destroyed );
+	OnTrigger( "Axis have breached the wall!", Map.wall_object_Destroyed );
+	OnTrigger( "Axis have taken the first crate of explosives!", Map.explosives_Taken1 );
+	OnTrigger( "Axis have taken the second crate of explosives!", Map.explosives_Taken2 );
+	OnTrigger( "The first crate of explosives has been returned!", Map.explosives_Returned1 );
+	OnTrigger( "The second crate of explosives has been returned!", Map.explosives_Returned2 );
+	OnTrigger( "Axis have planted the first crate of explosives at the culvert", Map.Dropoff_Captured1 );
+	OnTrigger( "Axis have planted the second crate of explosives at the culvert", Map.Dropoff_Captured2 );
+	OnTrigger( "Allies have cleared the South Valley flag!", Map.allied_south_valley_spawns_flag_Axis_Captured );
+	OnTrigger( "Allies have captured the South Valley flag!", Map.allied_south_valley_spawns_flag_Allies_Captured );
+	OnTrigger( "Axis have cleared the South Valley flag!", Map.axis_south_valley_spawns_flag_Axis_Captured );
+	OnTrigger( "Axis have captured the South Valley flag!", Map.axis_south_valley_spawns_flag_Allies_Captured );
+	OnTrigger( "well_upper_ropey_start", Map.well_upper_ropey_start );
+	OnTrigger( "tank damaged!", Map.Tank_Damaged );
+	OnTrigger( "tank at location", Map.tank_at_location );
+
+	//set up a positional triggers for the tank
+	// cs: most of these are unnecessary ...
+	l1 = OnTriggerRegion(AABB(5145.167,6784.649,-1801.219,5261.422,7088.213,-1683.919), RegionTrigger.VehicleTrigger);
+	l2 = OnTriggerRegion(AABB(4795.522,6803.901,-1810.749,4892.689,7149.219,-1688.726), RegionTrigger.VehicleTrigger);
+	l3 = OnTriggerRegion(AABB(4462.321,6842.072,-1814.073,4533.340,7170.487,-1694.697), RegionTrigger.VehicleTrigger);
+	l4 = OnTriggerRegion(AABB(4037.996,6851.860,-1809.727,4103.590,7142.663,-1696.222), RegionTrigger.VehicleTrigger);
+	l5 = OnTriggerRegion(AABB(3602.700,6648.923,-1796.145,3706.406,7055.746,-1664.517), RegionTrigger.VehicleTrigger);
+	l6 = OnTriggerRegion(AABB(3229.361,6090.392,-1717.817,3487.844,6420.620,-1622.875), RegionTrigger.VehicleTrigger);
+	l7 = OnTriggerRegion(AABB(2789.091,5707.744,-1701.755,3093.635,5985.671,-1602.522), RegionTrigger.VehicleTrigger);
+	l8 = OnTriggerRegion(AABB(2375.734,5297.823,-1696.813,2663.513,5537.812,-1612.170), RegionTrigger.VehicleTrigger);
+	l9 = OnTriggerRegion(AABB(1993.274,4988.154,-1696.262,2230.995,5282.711,-1595.589), RegionTrigger.VehicleTrigger);
+	l11 = OnTriggerRegion(AABB(201.531,-442.832,-38.953,371.345,-67.251,37.125), RegionTrigger.VehicleTrigger);
+
+	//set max users for goals
+	Util.SetMaxUsersInProgress( 2, "BUILD.*" );
+	Util.SetMaxUsersInProgress( 2, "PLANT.*" );
+	Util.SetMaxUsersInProgress( 1, "SNIPE.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_.*" );
+	Util.SetMaxUsersInProgress( 1, "ATTACK_.*" );
+	Util.SetMaxUsersInProgress( 2, "FLAG_.*" );
+	Util.SetMaxUsersInProgress( 3, "MOUNT_tank" );
+
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=240, MaxCampTime=400});
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=60, MaxCampTime=120});
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=30, MaxCampTime=60});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=60, MaxCampTime=120});
+
+	//Priority Main goals
+	//SetGoalPriority( "DEFEND_d_cave_.*", 0.9 );
+	//SetGoalPriority( "DEFEND_d_exit_.*", 0.9 );
+
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+
+	Util.EnableGoal("ROUTE.*"); //enable routing for both teams
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Artillery_S_Checkpoint_1 );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Call_Artillery_ar_al_call_1 );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Checkpoint_allied_south_valley_spawns_flag );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mount_wall_object );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Mount_wall_mg42_2 );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Repair_wall_object );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Repair_wall_mg42_2 );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_d_start_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_s_al_.*" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Tank );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Cappoint_Dropoff );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Flag_explosives );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Mobile_MG42_mg_ax_1 );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOUNT_tank" );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Valley_MG42_placement );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Mount_Valley_MG42_placement );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.repair_Valley_MG42_placement );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_a_start_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_s_ax_.*" );
+
+	//Routes
+	MapRoutes =
+	{
+		CAPPOINT_Dropoff =
+		{
+			ROUTE_r_axisspawn_1 =
+			{
+				ROUTE_r_explosive =
+				{
+					ROUTE_r_hill_spawn =
+					{
+						ROUTE_r_field_1 =
+						{
+							ROUTE_r_stone_1 =
+							{
+								ROUTE_r_field_2 =
+								{
+									ROUTE_r_stone_2 = { ROUTE_r_field_3 = {}, },
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	};
+
+
+	//set up the Switches and Routes
+	Util.UpdateSwitchData();
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	team = bot.GetTeam();
+	bot.MaxViewDistance = 10000;
+	bot.TargetBreakableDist = 100.0;
+	if ( team == TEAM.AXIS )
+	{
+		if ( RandInt(0,5) < 2)     // 60% Tank, 40% Cabinet
+		{
+			bot.ChangeSpawnPoint(2) ;
+			Util.MapDebugPrint("Axis Bot Spawn 2", true);
+		}
+	};
+	if ( team == TEAM.ALLIES )
+	{
+		yield();yield();
+		if ( bot.CanSnipe() )
+		{
+			bot.ChangeSpawnPoint(7) ;
+			Util.MapDebugPrint("Allies Sniper Spawn 7", true);
+		}
+	};
+};

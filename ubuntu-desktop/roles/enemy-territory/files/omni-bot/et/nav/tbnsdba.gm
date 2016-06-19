@@ -1,0 +1,132 @@
+//==========================================================================================
+//
+//	tbnsdba.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	palota	06 April 2012	Initial Script
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+
+	SetSpawn1 = function(bot)
+	{
+		if (bot.GetTeam()==TEAM.ALLIES) { s=3; } else { s=1; }
+		bot.ChangeSpawnPoint(RandInt(0,1) + s);
+	},
+
+	Progress = function()
+	{
+		yield(); yield();
+		n = tableCount(BotTable) / 5 + 1;
+		Util.SetMaxUsers(ToInt(n), "FLAG.*");
+		yield();
+
+		foreach(bot in BotTable)
+		{
+			Map.SetSpawn1(bot);
+		}
+	},
+
+	doorOpened = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_C5" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_P5" );
+		Util.EnableGoal("DEFEND_.5.*");
+		Util.MapDebugPrint( "doorOpened" );
+	},
+
+	axisSecured = function( i )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_C" + i );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_C" + i + ".*" );
+		Map.Progress();
+		Util.MapDebugPrint( "axisSecured" + i );
+	},
+
+	alliedSecured = function( i )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_P" + i );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_P" + i + ".*" );
+		Map.Progress();
+		Util.MapDebugPrint( "alliedSecured" + i );
+	},
+
+	redflag_Secured1 = function( trigger )
+	{
+		Map.axisSecured(1);
+	},
+	redflag_Secured2 = function( trigger )
+	{
+		Map.axisSecured(2);
+	},
+	redflag_Secured3 = function( trigger )
+	{
+		Map.axisSecured(3);
+	},
+	redflag_Secured4 = function( trigger )
+	{
+		Map.axisSecured(4);
+	},
+	redflag_Secured5 = function( trigger )
+	{
+		Map.axisSecured(5);
+	},
+	blueflag_Secured1 = function( trigger )
+	{
+		Map.alliedSecured(1);
+	},
+	blueflag_Secured2 = function( trigger )
+	{
+		Map.alliedSecured(2);
+	},
+	blueflag_Secured3 = function( trigger )
+	{
+		Map.alliedSecured(3);
+	},
+	blueflag_Secured4 = function( trigger )
+	{
+		Map.alliedSecured(4);
+	},
+	blueflag_Secured5 = function( trigger )
+	{
+		Map.alliedSecured(5);
+	},
+};
+
+global OnMapLoad = function()
+{
+	OnTrigger( "t139_Moving", Map.doorOpened );
+	OnTrigger( "Allies filled machine No. 1!", Map.blueflag_Secured1 );
+	OnTrigger( "Allies filled machine No. 2!", Map.blueflag_Secured2 );
+	OnTrigger( "Allies filled machine No. 3!", Map.blueflag_Secured3 );
+	OnTrigger( "Allies filled machine No. 4!", Map.blueflag_Secured4 );
+	OnTrigger( "Allies filled machine No. 5!", Map.blueflag_Secured5 );
+	OnTrigger( "Axis filled machine No. 1!", Map.redflag_Secured1 );
+	OnTrigger( "Axis filled machine No. 2!", Map.redflag_Secured2 );
+	OnTrigger( "Axis filled machine No. 3!", Map.redflag_Secured3 );
+	OnTrigger( "Axis filled machine No. 4!", Map.redflag_Secured4 );
+	OnTrigger( "Axis filled machine No. 5!", Map.redflag_Secured5 );
+
+	Util.DisableGoal( ".*");
+	SetAvailableMapGoals( TEAM.AXIS, true, "FLAG_redflag" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_blueflag" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_C[1234]" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_P[1234]" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_P[1234].*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_C[1234].*" );
+
+	Map.Progress();
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	Map.SetSpawn1(bot);
+};

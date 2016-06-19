@@ -1,0 +1,626 @@
+/********************************************************
+Script and waypoints made by  >WES< P!NNAN & >WES< GRANNY
+********************************************************/
+global Map =
+{
+	Debug = false,
+	Quiet = true,
+	//set Talk to false if you don't want the bots talking ingame:
+	Talk = true,
+
+	Ammo_Cabinet_north_ammocabinet = "AMMOCAB_north_ammocabinet",
+	Ammo_Cabinet_south_ammocabinet = "AMMOCAB_south_ammocabinet",
+	Health_Cabinet_north_healthcabinet = "HEALTHCAB_north_healthcabinet",
+	Health_Cabinet_south_healthcabinet = "HEALTHCAB_south_healthcabinet",
+	Flag_radarbox1 = "FLAG_radarbox1",
+	Flag_secretdocs = "FLAG_secretdocs",
+	Cappoint_Dropoff = "CAPPOINT_Dropoff",
+	Cappoint_Dropoff_1 = "CAPPOINT_Dropoff_1",
+	Build_Big_Gun_MG = "BUILD_Big_Gun_MG",
+	Build_Command_Post = "BUILD_Command_Post",
+	Build_High_Guardhouse = "BUILD_High_Guardhouse",
+	Build_Schutzschild = "BUILD_Schutzschild",
+	Plant_Big_Gun = "PLANT_Big_Gun",
+	Plant_Big_Gun_MG = "PLANT_Big_Gun_MG",
+	Plant_Command_Post = "PLANT_Command_Post",
+	Plant_High_Guardhouse = "PLANT_High_Guardhouse",
+	Plant_Schutzschild = "PLANT_Schutzschild",
+	Mount_520 = "MOUNTMG42_520",
+	Mount_536 = "MOUNTMG42_536",
+	Mount_538 = "MOUNTMG42_538",
+	Mount_565 = "MOUNTMG42_565",
+	Mount_586 = "MOUNTMG42_586",
+	Mount_Big_Gun_MG = "MOUNTMG42_Big_Gun_MG",
+	Mount_High_Guardhouse = "MOUNTMG42_High_Guardhouse",
+	Mount_Schutzschild = "MOUNTMG42_Schutzschild",
+	Repair_520 = "REPAIRMG42_520",
+	Repair_536 = "REPAIRMG42_536",
+	Repair_538 = "REPAIRMG42_538",
+	Repair_565 = "REPAIRMG42_565",
+	Repair_586 = "REPAIRMG42_586",
+	Repair_Big_Gun_MG = "REPAIRMG42_Big_Gun_MG",
+	Repair_High_Guardhouse = "REPAIRMG42_High_Guardhouse",
+	Repair_Schutzschild = "REPAIRMG42_Schutzschild",
+
+	Navigation =
+	{
+		schutzschildladder_pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 2);
+				sleep(2);
+			},
+		},
+		mgtowerladder_pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 2);
+				sleep(2);
+			},
+		},
+		mg1towerladder_pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 2);
+				sleep(2);
+			},
+		},
+		alliesmgladder_pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 3);
+				sleep(3);
+			},
+		},
+		lefttowerladder_pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 2);
+				sleep(2);
+			},
+		},
+		righttowerladder_pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 2);
+				sleep(2);
+			},
+		},
+		tunnelladder_1_pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 2);
+				sleep(2);
+			},
+		},
+		tunnelladder_2_pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 2);
+				sleep(2);
+			},
+		},
+		truckladder_pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 2);
+				sleep(2);
+			},
+		},
+		gunladder_pt =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 2);
+				sleep(2);
+			},
+		},
+	},
+
+	Big_Gun_MG_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Big_Gun_MG_Built" );
+	},
+
+	//CP stuff
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	High_Guardhouse_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "High_Guardhouse_Built" );
+	},
+
+	Schutzschild_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Schutzschild_Built" );
+	},
+
+	Big_Gun_MG_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Big_Gun_MG_Destroyed" );
+	},
+
+	High_Guardhouse_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "High_Guardhouse_Destroyed" );
+	},
+
+	Schutzschild_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Schutzschild_Destroyed" );
+	},
+
+	//Obj stuff
+	radarbox1_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group1);
+		Groups.DisableAxis(Groups.group2);
+		Groups.EnableAllies(Groups.group3);
+		Groups.EnableAxis(Groups.group4);
+
+		Util.MapDebugPrint( "radarbox1_Taken" );
+	},
+
+	radarbox1_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "radarbox1_Returned" );
+	},
+
+	Dropoff_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals(0, false, "MOUNTMG42_565");
+		Util.MapDebugPrint( "Dropoff_Captured" );
+	},
+
+	Detonator_Charged = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, true, "SWITCH_Detonator");
+	},
+
+	Detonator_Used = function( trigger )
+	{
+		SetAvailableMapGoals(TEAM.ALLIES, false, "SWITCH_Detonator");
+
+		Groups.DisableAllies(Groups.group3);
+		Groups.DisableAxis(Groups.group4);
+		Groups.EnableAllies(Groups.group5);
+		Groups.EnableAxis(Groups.group6);
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.PATH_CLEARED);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTAttack");
+					}
+				}
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.REINFORCE_DEF);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTFallBack");
+					}
+				}
+			}
+		}
+	},
+
+	secretdocs_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "secretdocs_Taken" );
+	},
+
+	secretdocs_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "secretdocs_Returned" );
+	},
+
+	Dropoff_1_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Groups.DisableAllies(Groups.group5);
+		Groups.DisableAxis(Groups.group6);
+		Groups.EnableAllies(Groups.group7);
+		Groups.EnableAxis(Groups.group8);
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.ALLIES )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.DESTROY_PRIMARY);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTAttack");
+					}
+				}
+				if ( bot.GetTeam() == TEAM.AXIS )
+				{
+					r = RandRange(0,10);
+					if( r < 2 )
+					{
+						bot.SayVoice(VOICE.DEFEND_OBJECTIVE);
+					}
+					else if( r > 8 )
+					{
+						sleep(1.2);
+						bot.ExecCommand("vsay_team FTFallBack");
+					}
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "Dropoff_1_Captured" );
+	},
+
+	Big_Gun_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+
+		Util.MapDebugPrint( "Big_Gun_Destroyed" );
+	},
+
+	Crate_Exploded = function()
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Flag_radarbox1 );
+		Util.MapDebugPrint( "Crate_Exploded" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	Util.SetGoalOffset( 0, -20, 0, "MOUNTMG42_Big_Gun_MG" );
+
+	OnTrigger( "The Big Gun MG have been built.", Map.Big_Gun_MG_Built );
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "The high Guardtower have been built.", Map.High_Guardhouse_Built );
+	OnTrigger( "The Schutzschild have been built.", Map.Schutzschild_Built );
+	OnTrigger( "Allies have destroyed the Big Gun!", Map.Big_Gun_Destroyed );
+	OnTrigger( "The Big Gun MG have been destroyed!", Map.Big_Gun_MG_Destroyed );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "The high Guardtower have been destroyed!", Map.High_Guardhouse_Destroyed );
+	OnTrigger( "The Schutzschild have been destroyed!", Map.Schutzschild_Destroyed );
+	OnTrigger( "Allies has taken the Detonator Battery!", Map.radarbox1_Taken );
+	OnTrigger( "Axis has secured the Detonator Battery!", Map.radarbox1_Returned );
+	OnTrigger( "Allies have armed the Train Dynamite Detonator!", Map.Dropoff_Captured );
+	OnTrigger( "Allies has taken the Key-Code Documents!", Map.secretdocs_Taken );
+	OnTrigger( "Axis has secured the Key-Code Documents!", Map.secretdocs_Returned );
+	OnTrigger( "The Key Code Door is now Unlocked!", Map.Dropoff_1_Captured );
+	OnTrigger( "The detonator is now charged!", Map.Detonator_Charged );
+	OnTrigger( "dyna_lever_Moving", Map.Detonator_Used );
+	OnTrigger( "GRENADE_crate1 Exploded.", Map.Crate_Exploded );
+
+
+	//set max users for goals
+	Util.SetMaxUsers( 2, "BUILD.*" );
+	Util.SetMaxUsers( 2, "PLANT.*" );
+	Util.SetMaxUsers( 1, "SNIPE.*" );
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsersInProgress( 3, "SWITCH_.*" );
+
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=120, MaxCampTime=120});
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=60, MaxCampTime=120});
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=30, MaxCampTime=60});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=60, MaxCampTime=120});
+
+	SetGoalPriority("SWITCH_Detonator", 1.0);
+
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+
+	//enable part 1 goals
+	Groups.EnableAllies(Groups.group1);
+	Groups.EnableAxis(Groups.group2);
+
+	MapRoutes =
+	{
+		CAPPOINT_Dropoff =
+		{
+			ROUTE_bunker_spawn =
+			{
+				ROUTE_railtrack = {},
+				ROUTE_churchpath = {},
+			},
+		},
+
+		ATTACK_a_code_1 =
+		{
+			ROUTE_town_spawn =
+			{
+				ROUTE_side_tunnel = {},
+				ROUTE_pond_side = {},
+				ROUTE_farmhouse_front = {},
+			},
+		},
+
+		CAPPOINT_Dropoff_1 =
+		{
+			ROUTE_docs =
+			{
+				ROUTE_side_tunnel = {},
+				ROUTE_pond_side = {},
+				ROUTE_farmhouse_front = {},
+			},
+		},
+	};
+	MapRoutes.ATTACK_a_start_1 = MapRoutes.CAPPOINT_Dropoff;
+	MapRoutes.ATTACK_a_start_2 = MapRoutes.CAPPOINT_Dropoff;
+	MapRoutes.ATTACK_a_start_3 = MapRoutes.CAPPOINT_Dropoff;
+	MapRoutes.ATTACK_a_start_4 = MapRoutes.CAPPOINT_Dropoff;
+	MapRoutes.ATTACK_a_start_5 = MapRoutes.CAPPOINT_Dropoff;
+	MapRoutes.ATTACK_a_start_6 = MapRoutes.CAPPOINT_Dropoff;
+	MapRoutes.ATTACK_a_start_7 = MapRoutes.CAPPOINT_Dropoff;
+	MapRoutes.ATTACK_a_start_8 = MapRoutes.CAPPOINT_Dropoff;
+	MapRoutes.ATTACK_a_code_2 = MapRoutes.ATTACK_a_code_1;
+	MapRoutes.ATTACK_a_code_3 = MapRoutes.ATTACK_a_code_1;
+	MapRoutes.ATTACK_a_code_4 = MapRoutes.ATTACK_a_code_1;
+	MapRoutes.ATTACK_a_code_5 = MapRoutes.ATTACK_a_code_1;
+	MapRoutes.ATTACK_a_code_6 = MapRoutes.ATTACK_a_code_1;
+	MapRoutes.ATTACK_a_end_1 = MapRoutes.ATTACK_a_code_1;
+	MapRoutes.ATTACK_a_end_2 = MapRoutes.ATTACK_a_code_1;
+	MapRoutes.ATTACK_a_end_3 = MapRoutes.ATTACK_a_code_1;
+	MapRoutes.ATTACK_a_end_4 = MapRoutes.ATTACK_a_code_1;
+	MapRoutes.ATTACK_gun_out_1 = MapRoutes.ATTACK_gun_1;
+	MapRoutes.ATTACK_gun_out_2 = MapRoutes.ATTACK_gun_1;
+	MapRoutes.PLANT_Big_Gun = MapRoutes.ATTACK_gun_1;
+
+	Util.Routes(MapRoutes);
+	Util.MapDebugPrint( "Script for 2 Hide loaded successfully" );
+};
+
+global OnBotJoin = function( bot )
+{
+
+	bot.MaxViewDistance = 2500;
+	bot.TargetBreakableDist = 150.0;
+
+	if ( bot.GetTeam() == TEAM.AXIS )
+	{
+		bot.ChangeSpawnPoint(2) ;
+		Util.MapDebugPrint("Axis Bot Spawn 2", true);
+	};
+};
+
+global Groups =
+{
+	//Allies part 1
+	group1 =
+	{
+		"GRENADE_crate1",
+		Map.Cappoint_Dropoff,
+		Map.Build_High_Guardhouse,
+		Map.Mount_565,
+		Map.Mount_High_Guardhouse,
+		Map.Repair_565,
+		Map.Repair_High_Guardhouse,
+		"ATTACK_a_start_.*",
+	},
+
+	//Axis part 1
+	group2 =
+	{
+		Map.Build_Command_Post,
+		Map.Mobile_MG42_mg_ax_start,
+		Map.Build_Schutzschild,
+		Map.Mount_536,
+		Map.Mount_538,
+		Map.Mount_586,
+		Map.Plant_High_Guardhouse,
+		Map.Repair_536,
+		Map.Repair_538,
+		Map.Repair_586,
+		"DEFEND_d_start_.*",
+
+	},
+
+	//Allies part 2
+	group3 =
+	{
+		Map.Flag_radarbox1,
+		Map.Flag_secretdocs,
+		Map.Cappoint_Dropoff,
+		Map.Mount_565,
+		Map.Plant_Schutzschild,
+		Map.Repair_565,
+		"ATTACK_a_detonator_.*",
+
+	},
+
+	//Axis part 2
+	group4 =
+	{
+		Map.Build_Schutzschild,
+		Map.Mount_Schutzschild,
+		Map.Repair_Schutzschild,
+		"DEFEND_d_detonator_.*",
+	},
+
+	//Allies part 3
+	group5 =
+	{
+		Map.Flag_secretdocs,
+		Map.Cappoint_Dropoff_1,
+		Map.Plant_Big_Gun_MG,
+		Map.Build_Command_Post,
+		Map.Plant_Command_Post,
+		Map.Mobile_MG42_mg_al_gun_1,
+		"ATTACK_a_code_.*",
+		"SNIPE_s_al_gun_.*",
+	},
+
+	//Axis part 3
+	group6 =
+	{
+		Map.Build_Big_Gun_MG,
+		Map.Mount_520,
+		Map.Mount_Big_Gun_MG,
+		Map.Repair_520,
+		Map.Repair_Big_Gun_MG,
+		"DEFEND_d_code_.*",
+	},
+
+	//Allies part 4
+	group7 =
+	{
+		Map.Flag_secretdocs,
+		Map.Cappoint_Dropoff_1,
+		Map.Plant_Big_Gun,
+		//Map.Plant_Big_Gun_MG,
+		Map.Build_Command_Post,
+		"ATTACK_a_code_.*",
+		"ATTACK_a_end_.*",
+	},
+
+	//Axis part 4
+	group8 =
+	{
+		Map.Build_Big_Gun_MG,
+		Map.Mount_520,
+		Map.Mount_Big_Gun_MG,
+		Map.Repair_520,
+		Map.Repair_Big_Gun_MG,
+		"DEFEND_d_code_.*",
+		"DEFEND_d_end_.*",
+	},
+
+	EnableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, goal );
+			Util.MapDebugPrint("EnableAllies: enabling " + goal, true);
+		}
+	},
+
+	EnableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, goal );
+			Util.MapDebugPrint("EnableAxis: enabling " + goal, true);
+		}
+	},
+
+	DisableAllies = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, goal );
+			Util.MapDebugPrint("DisableAllies: disabling " + goal, true);
+		}
+	},
+
+	DisableAxis = function(group)
+	{
+		foreach (id and goal in group)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, goal );
+			Util.MapDebugPrint("DisableAxis: disabling " + goal, true);
+		}
+	},
+};

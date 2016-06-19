@@ -1,0 +1,67 @@
+global Map =
+{
+	SnipeMap = true,
+	Debug = 0,
+
+	Roles =
+	{
+		AXIS =
+		{
+			SNIPER = {
+				numbots = 4,
+			},
+		},
+		ALLIES =
+		{
+			SNIPER = {
+				numbots = 4,
+			},
+		},
+	},
+
+	Navigation =
+	{
+		l1 = {
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.High, "facing", Vector3(0.5,-0.5,0.7));
+				sleep(4);
+			},
+		},
+		l2 = {
+			navigate = function(_this)
+			{
+				_this.AddAimRequest(Priority.High, "facing", Vector3(-0.5,0.5,0.7));
+				sleep(4);
+			},
+		},
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	OnTriggerRegion(AABB(2888.776,-2502.978,212.603,3210.698,-2134.465,444.361),RegionTrigger.DisableCombatMovement); //allied pyramid
+
+	Util.DisableGoal(".*CAB_.*");
+	foreach(i in { 2,4,5,6,9, }) {
+		SetAvailableMapGoals(TEAM.AXIS, true, "HEALTHCAB_misc_cabinet_health" + i);
+		SetAvailableMapGoals(TEAM.AXIS, true, "AMMOCAB_misc_cabinet_supply" + i);
+	}
+	foreach(i in { 1,3,7,8,10, }) {
+		SetAvailableMapGoals(TEAM.ALLIES, true, "HEALTHCAB_misc_cabinet_health" + i);
+		SetAvailableMapGoals(TEAM.ALLIES, true, "AMMOCAB_misc_cabinet_supply" + i);
+	}
+
+	Util.SetRoleForTable({ "SNIPE_tower.*", "HEALTHCAB_misc_cabinet_health[34]", "AMMOCAB_misc_cabinet_supply[34]" }, ROLE.SNIPER);
+
+	SetMapGoalProperties("SNIPE.*", { MinCampTime=50, MaxCamptime=100 });
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.MaxViewDistance = 4500;
+	Util.ChangeToSniperWeapons(bot);
+};

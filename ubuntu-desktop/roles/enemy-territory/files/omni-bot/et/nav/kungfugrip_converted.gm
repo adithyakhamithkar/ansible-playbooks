@@ -1,0 +1,312 @@
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+	northVent = false,
+	eastVent = false,
+	southVent = false,
+	flagAllied = true,
+
+	// Keep these movers
+	Movers =
+	{
+		"MOVER_FishMover",
+	},
+
+	Roles =
+	{
+		ALLIES =
+		{
+			DEFENDER1 = {
+				numbots = 2,
+			},
+		},
+	},
+
+	SetObj = function(taken)
+	{
+		SetAvailableMapGoals( TEAM.AXIS, taken, "ATTACK_cp.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, taken, "DEFEND_cp.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, taken, "SNIPE_cp.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, !taken, "CALLARTILLERY_.*" );
+	},
+
+	axis_obj01_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.SetObj(true);
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_flag.*" );
+		Util.SetMaxUsersInProgress( 2, "CHECKPOINT_forwardflag" );
+		Util.MapDebugPrint( "axis_obj01_Taken" );
+	},
+
+	axis_obj01_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.SetObj(false);
+		if(!Map.flagAllied){
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_flag.*" );
+		}
+		Util.SetMaxUsersInProgress( 6, "CHECKPOINT_forwardflag" );
+		Util.MapDebugPrint( "axis_obj01_Returned" );
+	},
+
+	axis_obj01_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		ETUtil.WinningChat( TEAM.AXIS );
+		ETUtil.LosingChat( TEAM.ALLIES );
+		Util.MapDebugPrint( "axis_obj01_Secured" );
+	},
+
+	north_vent_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.northVent = true;
+		if(Map.eastVent)
+		{
+			Util.EnableGoal("ROUTE_shaft_N.*");
+		}
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_East_Vent" );
+		Util.MapDebugPrint( "north_vent_Destroyed" );
+	},
+
+	east_vent_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.eastVent = true;
+		if(Map.northVent)
+		{
+			Util.EnableGoal("ROUTE_shaft_N.*");
+		}
+		if(Map.southVent)
+		{
+			Util.EnableGoal("ROUTE_shaft_S.*");
+		}
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_South_Vent" );
+		Util.MapDebugPrint( "east_vent_Destroyed" );
+	},
+
+	south_vent_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.southVent = true;
+		if(Map.eastVent)
+		{
+			Util.EnableGoal("ROUTE_shaft_S.*");
+		}
+		Util.MapDebugPrint( "south_vent_Destroyed" );
+	},
+
+	SetFlag = function(allied)
+	{
+		Map.flagAllied = allied;
+		SetAvailableMapGoals( TEAM.ALLIES, !allied, "CHECKPOINT_forwardflag" );
+		SetAvailableMapGoals( TEAM.ALLIES, allied, "DEFEND_hall.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, allied, "DEFEND_flag.*" );
+		SetAvailableMapGoals( TEAM.AXIS, !allied, "DEFEND_flag.*" );
+	},
+
+	forwardflag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.SetFlag(false);
+		SetGoalPriority( "SNIPE_dart", 0.8 );
+		Util.MapDebugPrint( "forwardflag_Axis_Captured" );
+	},
+
+	forwardflag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.SetFlag(true);
+		SetGoalPriority( "SNIPE_dart", -1.0 );
+		Util.MapDebugPrint( "forwardflag_Allies_Captured" );
+	},
+
+	dartMover1_Moving = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( trigger.Action == "opening" )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "SWITCH_dart" );
+			Util.MapDebugPrint( "dartMover1_Moving" );
+		}
+	},
+
+	LidMover_start = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_wheel" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "FLAG_axis_obj01" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CALLARTILLERY_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_aquarium" );
+		Util.MapDebugPrint( "LidMover_start" );
+	},
+
+	RemoteMover_goto = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_radiocontrol" );
+		Util.MapDebugPrint( "RemoteMover_goto" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "Axis have stolen ^1Allied Documents!", Map.axis_obj01_Taken );
+	OnTrigger( "Flag returned axis_obj01!", Map.axis_obj01_Returned );
+	OnTrigger( "^1The Axis team has used the cd_key!", Map.axis_obj01_Secured );
+	OnTrigger( "^1Axis have captured the Forward Bunker!", Map.forwardflag_Axis_Captured );
+	OnTrigger( "^1Allies have reclaimed the Forward Bunker!", Map.forwardflag_Allies_Captured );
+	OnTrigger( "Axiss have blown the North Vent!", Map.north_vent_Destroyed );
+	OnTrigger( "Axiss have blown the East Vent!", Map.east_vent_Destroyed );
+	OnTrigger( "Axiss have blown the South Vent!", Map.south_vent_Destroyed );
+	OnTrigger( "dartMover1_Moving", Map.dartMover1_Moving );
+	OnTrigger( "RemoteMover_goto", Map.RemoteMover_goto );
+	OnTrigger( "LidMover_start", Map.LidMover_start );
+
+	OnTriggerRegion(AABB(4482.640,1107.323,-158.891,4864.577,1961.619,64.441),RegionTrigger.DisableBotPush);
+
+	Util.DisableGoal( ".*", true );
+	Util.DisableGoal("ROUTE_shaft_.*");
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_key" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_North_Vent" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "SWITCH_dart" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_forwardflag" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_wheel" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_radiocontrol" );
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_cp.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_hall.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_flag.*" );
+
+	Util.EnableGoal("ATTACK_52");
+
+	SetGoalPriority( "ATTACK_cp.*", 0.6 );
+	SetGoalPriority( "DEFEND_cp.*", 0.65 );
+	SetGoalPriority( "SNIPE_cp.*", 0.81 );
+	SetGoalPriority( "CHECKPOINT_forwardflag", 0.65 );
+	SetGoalPriority( "FLAG_axis_obj01", 0.65 );
+	SetGoalPriority( "ATTACK_wheel", 0.65 );
+	SetGoalPriority( "ATTACK_radiocontrol", 0.51 );
+
+	Util.SetRoleForGoals("DEFEND_hall.*", ROLE.DEFENDER1);
+
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "PLANT_.*" );
+	Util.SetMaxUsersInProgress( 2, "ATTACK_wheel" );
+	Util.SetMaxUsersInProgress( 4, "FLAG_axis_obj01" );
+
+	SetMapGoalProperties( "DEFEND_cp.*", {MinCampTime=20, MaxCampTime=50} );
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=20, MaxCampTime=70} );
+
+	Util.AddUsePoint("PLANT_East_Vent", Vec3(4732.303, 2723.294, -471.875));
+	Util.AddUsePoint("PLANT_South_Vent", Vec3(524.961, 834.443, -469.875));
+
+
+	MapRoutes =
+	{
+		CHECKPOINT_forwardflag = {
+			ROUTE_axis_spawn = {
+				ROUTE_shaft_N1 = { Weight=3,
+					ROUTE_shaft_N2 = {}
+				},
+				ROUTE_hall_1e = {
+					ROUTE_hall_3e = {
+						ROUTE_armchair1 = { Weight=0.5 },
+						ROUTE_armchair2 = {},
+					},
+				},
+				ROUTE_hall_2w = { Weight=2,
+					ROUTE_hall_2e = { ROUTE_hall_3e = {}},
+					ROUTE_hall_3w = { ROUTE_hall_3e = {}},
+				},
+				ROUTE_dart = {},
+			},
+			ROUTE_allied_spawn = {
+				ROUTE_shaft_S3 = { Weight=2,
+					ROUTE_shaft_S2 = { ROUTE_shaft_S1 = {}}
+				},
+				ROUTE_hall_5e = {
+					ROUTE_hall_3e = {},
+				},
+				ROUTE_hall_4w = {
+					ROUTE_hall_4e = { ROUTE_hall_3e = {}},
+					ROUTE_hall_3w = { ROUTE_hall_3e = {}},
+					ROUTE_hall_3e = {},
+				},
+			},
+		},
+		CAPPOINT_key = {
+			ROUTE_obj = {
+				ROUTE_shaft_S1 = { Weight=3,
+					ROUTE_shaft_S2 = { ROUTE_shaft_S3 = {}}
+				},
+				ROUTE_armchair1 = {
+					ROUTE_hall_3e = {
+						ROUTE_hall_5e = {},
+						ROUTE_hall_4w = {},
+					}
+				},
+				ROUTE_armchair2 = { ROUTE_hall_3e = {}},
+			}
+		},
+		SNIPE_dart = {
+			ROUTE_allied_spawn = {
+				ROUTE_hall_5e = {},
+				ROUTE_hall_4w = {
+					ROUTE_hall_2e = {},
+					ROUTE_hall_3w = {},
+				},
+			}
+		},
+	};
+	MapRoutes["DEFEND_flag.*"] = {
+		ROUTE_allied_spawn = MapRoutes.CHECKPOINT_forwardflag.ROUTE_allied_spawn
+	};
+	MapRoutes.FLAG_axis_obj01 = {
+		ROUTE_forward_spawn = {
+			ROUTE_flag1 = {},
+			ROUTE_flag2 = {},
+			ROUTE_flag3 = {},
+		},
+		ROUTE_axis_spawn = MapRoutes.CHECKPOINT_forwardflag.ROUTE_axis_spawn
+	};
+	MapRoutes.CAPPOINT_key.ROUTE_obj2 = MapRoutes.CAPPOINT_key.ROUTE_obj;
+
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	Util.IgnoreTargetGoal( bot, "MOVER_FishMover" );
+};

@@ -1,0 +1,722 @@
+global Map =
+{
+	Quiet = true,
+	Ammo_Cabinet_scr_allied_ammo_rack = "AMMOCAB_scr_allied_ammo_rack",
+	Ammo_Cabinet_scr_axis_ammo_rack = "AMMOCAB_scr_axis_ammo_rack",
+	Health_Cabinet_scr_allied_health_rack = "HEALTHCAB_scr_allied_health_rack",
+	Health_Cabinet_scr_axis_health_rack = "HEALTHCAB_scr_axis_health_rack",
+	Call_Artillery_100 = "CALLARTILLERY_100",
+	Call_Artillery_110 = "CALLARTILLERY_110",
+	Call_Artillery_205 = "CALLARTILLERY_205",
+	Call_Artillery_211 = "CALLARTILLERY_211",
+	Call_Artillery_229 = "CALLARTILLERY_229",
+	Call_Artillery_24 = "CALLARTILLERY_24",
+	Call_Artillery_258 = "CALLARTILLERY_258",
+	Call_Artillery_371 = "CALLARTILLERY_371",
+	Call_Artillery_418 = "CALLARTILLERY_418",
+	Call_Artillery_snipe1 = "CALLARTILLERY_snipe1",
+	Artillery_D_101 = "ARTILLERY_D_101",
+	Artillery_D_313 = "ARTILLERY_D_313",
+	Artillery_D_413 = "ARTILLERY_D_413",
+	Artillery_D_434 = "ARTILLERY_D_434",
+	Artillery_D_48 = "ARTILLERY_D_48",
+	Artillery_D_ally22 = "ARTILLERY_D_ally22",
+	Artillery_S_109 = "ARTILLERY_S_109",
+	Artillery_S_112 = "ARTILLERY_S_112",
+	Artillery_S_313 = "ARTILLERY_S_313",
+	Artillery_S_413 = "ARTILLERY_S_413",
+	Artillery_S_434 = "ARTILLERY_S_434",
+	Artillery_S_439 = "ARTILLERY_S_439",
+	Artillery_S_48 = "ARTILLERY_S_48",
+	Artillery_S_95 = "ARTILLERY_S_95",
+	Artillery_S_97 = "ARTILLERY_S_97",
+	Artillery_S_ally22 = "ARTILLERY_S_ally22",
+	Checkpoint_flag_respawn_obj = "CHECKPOINT_flag_respawn_obj",
+	Flag_obj_trigger01 = "FLAG_obj_trigger01",
+	Cappoint_442 = "CAPPOINT_442",
+	Build_Allied_Command_Post = "BUILD_Allied_Command_Post",
+	Build_Allied_Re_Supply_Cabinate = "BUILD_Allied_Re_Supply_Cabinate",
+	Build_Axis_Command_Post = "BUILD_Axis_Command_Post",
+	Build_Axis_Re_Supply_Cabinate = "BUILD_Axis_Re_Supply_Cabinate",
+	Build_Bridge_MG_42 = "BUILD_Bridge_MG_42",
+	Build_Canal_MG_42 = "BUILD_Canal_MG_42",
+	Build_Command_Center_MG42 = "BUILD_Command_Center_MG42",
+	Build_Pill_Box_MG_42 = "BUILD_Pill_Box_MG_42",
+	Plant_Allied_Command_Center = "PLANT_Allied_Command_Center",
+	Plant_Allied_Command_Post = "PLANT_Allied_Command_Post",
+	Plant_Allied_Re_Supply_Cabinate = "PLANT_Allied_Re_Supply_Cabinate",
+	Plant_Axis_Command_Post = "PLANT_Axis_Command_Post",
+	Plant_Axis_Re_Supply_Cabinate = "PLANT_Axis_Re_Supply_Cabinate",
+	Plant_Command_Center_Gates = "PLANT_Command_Center_Gates",
+	Plant_Water_Tower_Door = "PLANT_Water_Tower_Door",
+	Explode_Bridge_MG_42 = "EXPLODE_Bridge_MG_42",
+	Explode_Canal_MG_42 = "EXPLODE_Canal_MG_42",
+	Explode_Command_Center_MG42 = "EXPLODE_Command_Center_MG42",
+	Explode_Pill_Box_MG_42 = "EXPLODE_Pill_Box_MG_42",
+	Mount_380 = "MOUNTMG42_380",
+	Mount_475 = "MOUNTMG42_475",
+	Mount_bridge_mg42 = "MOUNTMG42_bridge_mg42",
+	Mount_canal_mg42 = "MOUNTMG42_canal_mg42",
+	Mount_cc_mg42 = "MOUNTMG42_cc_mg42",
+	Mount_pillbox_mg42 = "MOUNTMG42_pillbox_mg42",
+	Repair_380 = "REPAIRMG42_380",
+	Repair_475 = "REPAIRMG42_475",
+	Repair_bridge_mg42 = "REPAIRMG42_bridge_mg42",
+	Repair_canal_mg42 = "REPAIRMG42_canal_mg42",
+	Repair_cc_mg42 = "REPAIRMG42_cc_mg42",
+	Repair_pillbox_mg42 = "REPAIRMG42_pillbox_mg42",
+	Snipe_369 = "SNIPE_369",
+	Snipe_372 = "SNIPE_372",
+	Snipe_375 = "SNIPE_375",
+	Snipe_567 = "SNIPE_567",
+	Snipe_6 = "SNIPE_6",
+	Snipe_snipe1 = "SNIPE_snipe1",
+	Snipe_snipe2 = "SNIPE_snipe2",
+	Plant_Mine_ally_mine = "PLANTMINE_ally_mine",
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Allied_Re_Supply_Cabinate_Built = function( trigger )
+	{
+		Util.EnableGoal("AMMOCAB_286");
+		Util.EnableGoal("HEALTHCAB_279");
+
+		Util.MapDebugPrint( "Allied_Re_Supply_Cabinate_Built" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Axis_Re_Supply_Cabinate_Built = function( trigger )
+	{
+		Util.EnableGoal("AMMOCAB_b1");
+		Util.EnableGoal("HEALTHCAB_b1");
+
+		Util.MapDebugPrint( "Axis_Re_Supply_Cabinate_Built" );
+	},
+
+	Bridge_MG_42_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Bridge_MG_42_Built" );
+	},
+
+	Canal_MG_42_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Canal_MG_42_Built" );
+	},
+
+	Command_Center_MG42_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Center_MG42_Built" );
+	},
+
+	Pill_Box_MG_42_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Pill_Box_MG_42_Built" );
+	},
+
+	Allied_Command_Center_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Center_Destroyed" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Allied_Re_Supply_Cabinate_Destroyed = function( trigger )
+	{
+		Util.DisableGoal("AMMOCAB_286");
+		Util.DisableGoal("HEALTHCAB_279");
+
+		Util.MapDebugPrint( "Allied_Re_Supply_Cabinate_Destroyed" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	Axis_Re_Supply_Cabinate_Destroyed = function( trigger )
+	{
+		Util.DisableGoal("AMMOCAB_b1");
+		Util.DisableGoal("HEALTHCAB_b1");
+
+		Util.MapDebugPrint( "Axis_Re_Supply_Cabinate_Destroyed" );
+	},
+
+	Command_Center_Gates_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Command_Center_Gates_Destroyed" );
+	},
+
+	Water_Tower_Door_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_obj_trigger01" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_380" );
+
+		Util.MapDebugPrint( "Water_Tower_Door_Destroyed" );
+	},
+
+	obj_trigger01_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "obj_trigger01_Taken" );
+	},
+
+	CAPPOINT_442_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "CAPPOINT_442_Captured" );
+	},
+
+	flag_respawn_obj_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "flag_respawn_obj_Axis_Captured" );
+	},
+
+	flag_respawn_obj_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "flag_respawn_obj_Allies_Captured" );
+	},
+	
+	gate_plant = function( trigger )
+	{
+		
+
+		Util.MapDebugPrint( "planted at gates" );
+	},
+	
+	tower_plant = function( trigger )
+	{
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_pillbox_mg42" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_380" );
+		
+		foreach ( id and bot in BotTable )
+		{
+			if ( bot.GetTeam() == TEAM.AXIS )
+			{
+				if ( RandInt(0,1) < 2)
+				{
+					bot.ChangeSpawnPoint( 1 ); // house
+				}
+				else 
+				{
+					bot.ChangeSpawnPoint( 1 ); //flag
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "planted at tower" );
+	},
+	
+	tower_defused = function( trigger )
+	{
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_pillbox_mg42" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_380" );
+		
+		foreach ( id and bot in BotTable )
+		{
+			if ( bot.GetTeam() == TEAM.AXIS )
+			{
+				if ( RandInt(0,1) < 2)
+				{
+					bot.ChangeSpawnPoint( 2 ); // house
+				}
+				else 
+				{
+					bot.ChangeSpawnPoint( 2 ); //flag
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "defused at tower" );
+	},
+	
+	center_plant = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_wt.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_canal_mg42" );
+		
+		foreach ( id and bot in BotTable )
+		{
+			if ( bot.GetTeam() == TEAM.ALLIES )
+			{
+				if ( RandInt(0,1) < 2)
+				{
+					bot.ChangeSpawnPoint( 2 ); // house
+				}
+				else 
+				{
+					bot.ChangeSpawnPoint( 2 ); //flag
+				}
+			}	
+		}
+
+		Util.MapDebugPrint( "planted at center" );
+	},
+	
+	center_defused = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_wt.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_wt3" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42_canal_mg42" );
+		
+		foreach ( id and bot in BotTable )
+		{
+			if ( bot.GetTeam() == TEAM.ALLIES )
+			{
+				if ( RandInt(0,1) < 2)
+				{
+					bot.ChangeSpawnPoint( 1 ); // house
+				}
+				else 
+				{
+					bot.ChangeSpawnPoint( 1 ); //flag
+				}
+			}	
+		}
+
+		Util.MapDebugPrint( "defused at center" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "MISSING_STRING", Map.Allied_Command_Post_Built );
+	OnTrigger( "The Allied Re-supply has been constructed!", Map.Allied_Re_Supply_Cabinate_Built );
+	OnTrigger( "MISSING_STRING", Map.Axis_Command_Post_Built );
+	OnTrigger( "The Axit Re-supply has been constructed!", Map.Axis_Re_Supply_Cabinate_Built );
+	OnTrigger( "MISSING_STRING", Map.Bridge_MG_42_Built );
+	OnTrigger( "MISSING_STRING", Map.Canal_MG_42_Built );
+	OnTrigger( "MISSING_STRING", Map.Command_Center_MG42_Built );
+	OnTrigger( "MISSING_STRING", Map.Pill_Box_MG_42_Built );
+	OnTrigger( "MISSING_STRING", Map.Allied_Command_Center_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "The Allied Re-supply has been destroyed!", Map.Allied_Re_Supply_Cabinate_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "The Axis Re-supply has been destroyed!", Map.Axis_Re_Supply_Cabinate_Destroyed );
+	OnTrigger( "Axis have destroyed the Command Center gates!", Map.Command_Center_Gates_Destroyed );
+	OnTrigger( "Allies have destroyed the Water Tower Door!", Map.Water_Tower_Door_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.obj_trigger01_Taken );
+	OnTrigger( "MISSING_STRING", Map.CAPPOINT_442_Captured );
+	OnTrigger( "MISSING_STRING", Map.flag_respawn_obj_Axis_Captured );
+	OnTrigger( "MISSING_STRING", Map.flag_respawn_obj_Allies_Captured );
+	OnTrigger( "Planted at the Command Center Gates!.", Map.gate_plant );
+	OnTrigger( "Planted at the Allied Command Center.", Map.center_plant );
+	OnTrigger( "Defused at the Allied Command Center.", Map.center_defused );
+	OnTrigger( "Planted at the Water Tower Door.", Map.tower_plant );
+	OnTrigger( "Defused at the Water Tower Door.", Map.tower_defused );
+
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Water_Tower_Door" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_Center_MG42" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Canal_MG_42" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Allied_Re_Supply_Cabinate" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_command.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_command4" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_wt.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_wt3" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_flag_respawn_obj" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Allied_Command_Post" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMORTAR_mrt1" );
+//~	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Axis_Re_Supply_Cabinate" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42_cc_mg42" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42_canal_mg42" );
+	
+	SetGoalPriority( "BUILD_Command_Center_MG42", 0.6, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "BUILD_Pill_Box_MG_42", 0.6, TEAM.AXIS, CLASS.ENGINEER );
+	SetGoalPriority( "CHECKPOINT_flag_respawn_obj", 0.8, 0, 0 );
+	
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Axis_Re_Supply_Cabinate" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Pill_Box_MG_42" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_tower.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Allied_Command_Center" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_flag_respawn_obj" );
+//~	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Allied_Re_Supply_Cabinate" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Command_Center_Gates" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Allied_Command_Center" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_pillbox_mg42" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Axis_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMORTAR_mrt3" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_380" );
+	
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "BUILD_Pill_Box_MG_42" );
+	Util.SetMaxUsers( 1, "BUILD_Command_Center_MG42" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "BUILD_Axis_Re_Supply_Cabinate" );
+	Util.SetMaxUsers( 1, "BUILD_Allied_Re_Supply_Cabinate" );
+	Util.SetGoalPosition( 2870.125, -2312.5, 1112.125, "BUILD_Axis_Re_Supply_Cabinate" ) ;	
+	Util.SetGoalPosition( -4417.9, -1769.7, 1136.125, "BUILD_Allied_Re_Supply_Cabinate" ) ;	
+	Util.SetGoalPosition( -5468.626, -3097, 1112.125, "PLANT_Command_Center_Gates" ) ;
+	Util.SetGoalPosition( 7810.125, -1915.2, 1192.125, "PLANT_Water_Tower_Door" ) ;
+	Util.SetGoalPosition( -7877.85, -2495.4, 923.3, "PLANT_Allied_Command_Center" ) ;
+	ETUtil.LimitToClass("CHECKPOINT_.*", 0, CLASS.COVERTOPS);
+	ETUtil.LimitToClass("PLANT_Allied_Re_Supply_Cabinate", TEAM.AXIS, CLASS.COVERTOPS);
+	ETUtil.LimitToClass("PLANT_Axis_Re_Supply_Cabinate", TEAM.ALLIES, CLASS.COVERTOPS);
+	ETUtil.LimitToClass("MOUNTMG42_pillbox_mg42", TEAM.AXIS, CLASS.COVERTOPS,CLASS.MEDIC,CLASS.FIELDOPS,CLASS.SOLDIER);
+	ETUtil.LimitToClass("DEFEND_.*", 0, CLASS.COVERTOPS,CLASS.MEDIC,CLASS.FIELDOPS,CLASS.SOLDIER);
+	ETUtil.LimitToClass("ATTACK_.*", 0, CLASS.COVERTOPS,CLASS.MEDIC,CLASS.FIELDOPS,CLASS.SOLDIER);
+	
+	SetMapGoalProperties( "DEFEND_.*", {mincamptime=45, maxcamptime=90} ); 
+	SetMapGoalProperties( "MOUNT_.*", {mincamptime=40, maxcamptime=90} ); 
+	SetMapGoalProperties( "MOBILEMG42_.*", {mincamptime=60, maxcamptime=90} ); 
+	SetMapGoalProperties( "ATTACK_.*", {mincamptime=45, maxcamptime=60} ); 
+	
+	SetGoalPriority( "ATTACK_.*", 0.65, 0, 0 );
+	SetGoalPriority( "DEFEND_.*", 0.65, 0, 0 );
+	SetGoalPriority( "MOBILEMORTAR_.*", 0.66, 0, 0 );
+	
+	Util.EnableGoal("ROUTE.*"); //enables for both teams
+	
+	MapRoutes =
+	{
+		PLANT_Allied_Command_Center = 
+		{
+			ROUTE_axis1  = 
+			{
+				ROUTE_ally22  = 
+				{
+					ROUTE_axis2  = 
+					{
+						ROUTE_598  = 
+						{
+							ROUTE_axis3  = 
+							{
+								ROUTE_axis4  = 
+								{
+									ROUTE_cc3  = 
+									{
+										ROUTE_cc2  = 
+										{
+											ROUTE_166  = 
+											{
+											},
+										},
+									},
+									ROUTE_123  = 
+									{
+										ROUTE_124  = 
+										{
+											ROUTE_151  = 
+											{
+												ROUTE_255  = 
+												{
+													ROUTE_128  = 
+													{
+														ROUTE_cc6  = 
+														{
+															ROUTE_cc5  = 
+															{
+																ROUTE_cc4  = 
+																{
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					ROUTE_266  = 
+					{
+						ROUTE_618  = 
+						{
+							ROUTE_ally3  = 
+							{
+								ROUTE_ally2  = 
+								{
+									ROUTE_ally1  = 
+									{
+										ROUTE_axis5  = 
+										{
+											ROUTE_axis6  = 
+											{
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_r99  = 
+				{
+					ROUTE_ally13  = 
+					{
+						ROUTE_ally12  = 
+						{
+							ROUTE_ally11  = 
+							{
+								ROUTE_ally10  = 
+								{
+									ROUTE_ally9  = 
+									{
+										ROUTE_ally8  = 
+										{
+											ROUTE_ally7  = 
+											{
+												ROUTE_ally6  = 
+												{
+													ROUTE_ally5  = 
+													{
+														ROUTE_ally4  = 
+														{
+															ROUTE_ally2  = 
+															{
+																ROUTE_ally1  = 
+																{
+																	ROUTE_axis5  = 
+																	{
+																		ROUTE_axis6  = 
+																		{
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	
+	
+	PLANT_Water_Tower_Door = 
+		{
+			ROUTE_ally1  = 
+			{
+				ROUTE_ally2  = 
+				{
+					ROUTE_ally19  = 
+					{
+						ROUTE_ally20  = 
+						{
+							ROUTE_ally21  = 
+							{
+								ROUTE_axis3  = 
+								{
+									ROUTE_598  = 
+									{
+										ROUTE_axis2  = 
+										{
+											ROUTE_ally22  = 
+											{
+												ROUTE_axis1  = 
+												{
+													ROUTE_ally25  = 
+													{
+														ROUTE_ally26  = 
+														{
+															ROUTE_ally28  = 
+															{
+																ROUTE_ally30  = 
+																{
+																	ROUTE_ally31  = 
+																	{
+																		ROUTE_ally32  = 
+																		{
+																			ROUTE_629  = 
+																			{
+																				ROUTE_58  = 
+																				{
+																					ROUTE_462  = 
+																					{
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					ROUTE_ally3  = 
+					{
+						ROUTE_ally5  = 
+						{
+							ROUTE_ally6  = 
+							{
+								ROUTE_ally7  = 
+								{
+									ROUTE_ally8  = 
+									{
+										ROUTE_ally9  = 
+										{
+											ROUTE_ally10  = 
+											{
+												ROUTE_ally11  = 
+												{
+													ROUTE_ally12  = 
+													{
+														ROUTE_ally13  = 
+														{
+															ROUTE_ally14  = 
+															{
+																ROUTE_ally15  = 
+																{
+																	ROUTE_ally16  = 
+																	{
+																		ROUTE_ally17  = 
+																		{
+																			ROUTE_ally18  = 
+																			{
+																				ROUTE_46  = 
+																				{
+																					ROUTE_462  = 
+																					{
+																					},
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_667  = 
+			{
+				ROUTE_ally10  = 
+				{
+					ROUTE_ally11  = 
+					{
+						ROUTE_ally12  = 
+						{
+							ROUTE_ally13  = 
+							{
+								ROUTE_ally16  = 
+								{
+									ROUTE_ally17  = 
+									{
+										ROUTE_ally18  = 
+										{
+											ROUTE_ally19  = 
+											{
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_ally22  = 
+				{
+					ROUTE_axis1  = 
+					{
+						ROUTE_ally25  = 
+						{
+							ROUTE_ally29  = 
+							{
+								ROUTE_ally30  = 
+								{
+									ROUTE_462  = 
+									{
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	
+	};
+
+	MapRoutes.ATTACK_wt1 = MapRoutes.PLANT_Water_Tower_Door;
+	MapRoutes.ATTACK_wt2 = MapRoutes.PLANT_Water_Tower_Door;
+	MapRoutes.ATTACK_wt3 = MapRoutes.PLANT_Water_Tower_Door;
+	MapRoutes.FLAG_obj_trigger01 = MapRoutes.PLANT_Water_Tower_Door;
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	 bot.TargetBreakableDist = 100.0;
+};

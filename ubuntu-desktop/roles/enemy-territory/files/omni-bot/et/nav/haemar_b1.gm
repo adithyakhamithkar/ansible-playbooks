@@ -1,0 +1,613 @@
+global Map =
+{
+	Debug=0,
+	Quiet = true,
+	DontDispenseAmmo = true,
+	Suicide = 1,
+
+	rampBuilt = false,
+	truckBuilt = false,
+	gateDestroyed = false,
+	controlsDestroyed = false,
+
+	TriggerOneVoiceChat = false,
+	TriggerOne =
+	{
+		Name = "TriggerOne",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if ( TestMap )
+				{ return; }
+
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{
+				SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_ax1" );
+				SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMORTAR_mor1" );
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_dgate.*" );
+				SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_dramp.*" );
+				
+				// cs: only do this once or else it's extremely annoying
+				if ( !Map.TriggerOneVoiceChat && MAP_TALK ) {
+					Util.OneBotVSayTeam( TEAM.AXIS, VOICE.DEFEND_OBJECTIVE );
+					Map.TriggerOneVoiceChat = true;
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	SetCity = function(b)
+	{
+		if (!Map.controlsDestroyed)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, b, "PLANT_Door_Controls" );
+			SetAvailableMapGoals( TEAM.ALLIES, b, "ATTACK_acontrols.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, b, "MOBILEMG42_ally99" );
+		}
+		if (!Map.truckBuilt){
+			SetAvailableMapGoals( TEAM.ALLIES, b, "CHECKPOINT_spawnflag" );
+		}
+		SetAvailableMapGoals( TEAM.ALLIES, b, ".*_Neutral_Command_Post" );
+		SetAvailableMapGoals( TEAM.ALLIES, b, "BUILD_Escape_Truck" );
+		SetAvailableMapGoals( TEAM.ALLIES, !b, "ATTACK_gate.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, !b, "SMOKEBOMB_a1" );
+	},
+
+	Allied_Assault_Ramp_Built = function( trigger )
+	{
+		Map.rampBuilt = true;
+		Util.MapDebugPrint("Allied_Assault_Ramp_Built");
+		sleep(2);
+		if(Map.rampBuilt){
+			Map.SetCity(true);
+		}
+	},
+
+	Escape_Truck_Built = function( trigger )
+	{
+		Map.truckBuilt = true;
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_.*" );
+
+		//forward flag secured by allies
+		Map.SetCity(true);
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Allied_Assault_Ramp" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANT_Allied_Assault_Ramp" );
+		if (!Map.gateDestroyed){
+			SetAvailableMapGoals( TEAM.ALLIES, false, "PLANT_City_Gate" );
+		}
+		Util.DisableGoal("CHECKPOINT_spawnflag");
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_.*" );
+
+		Util.MapDebugPrint( "Escape_Truck_Built" );
+	},
+
+	Neutral_Command_Post_Built = function( trigger )
+	{
+		Util.MapDebugPrint( "Neutral_Command_Post_Built" );
+	},
+
+	Allied_Assault_Ramp_Destroyed = function( trigger )
+	{
+		Map.rampBuilt = false;
+		if (!Map.gateDestroyed && !Map.truckBuilt){
+			Map.SetCity(false);
+		}
+
+		Util.MapDebugPrint( "Allied_Assault_Ramp_Destroyed" );
+	},
+
+	City_Gate_Destroyed = function( trigger )
+	{
+		Map.gateDestroyed = true;
+		sleep(2);
+		Map.SetCity(true);
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_dgate.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_dramp.*" );
+
+		Util.MapDebugPrint( "City_Gate_Destroyed" );
+	},
+
+	Door_Controls_Destroyed = function( trigger )
+	{
+		Map.controlsDestroyed = true;
+		sleep(6);
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_adocs.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_dcontrols.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_ddocs.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_acontrols.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SMOKEBOMB_a2" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "GRENADE_ally3" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "GRENADE_ally2" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOBILEMG42_ally99" );
+
+		Util.MapDebugPrint( "Door_Controls_Destroyed" );
+	},
+
+	Neutral_Command_Post_Destroyed = function( trigger )
+	{
+		Util.MapDebugPrint( "Neutral_Command_Post_Destroyed" );
+	},
+
+	northdocs_Taken = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_ddocs.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_atruck.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_dtruck.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_axis3" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_adocs.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "SMOKEBOMB_a2" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "GRENADE_ally3" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "GRENADE_ally2" );
+		Util.ChangeSpawn(TEAM.AXIS, 3, 9);
+
+		Util.MapDebugPrint( "northdocs_Taken" );
+	},
+
+	northdocs_Returned = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_ddocs.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_dtruck.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_atruck.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_adocs.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SMOKEBOMB_a2" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "AIRSTRIKE_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "GRENADE_ally3" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "GRENADE_ally2" );
+		Util.ChangeSpawn(TEAM.AXIS, 0, 9);
+
+		foreach ( id and bot in BotTable )
+		{
+			if ( bot.GetTeam() == TEAM.AXIS )
+			{
+				//distance check instead?
+				if ( Map.Suicide && bot.GetReinforceTime() < 5 )
+				{
+					bot.ExecCommand( "kill" );
+				}
+			}
+		}
+
+		Util.MapDebugPrint( "northdocs_returned" );
+	},
+
+	control_plant = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_dgate.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_dramp.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_dcontrols.*" );
+
+		Util.MapDebugPrint( "planted at door controls" );
+	},
+
+	spawnflag_Axis_Captured = function( trigger )
+	{
+		Util.MapDebugPrint( "spawnflag_Axis_Captured" );
+	},
+
+	spawnflag_Allies_Captured = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_spawnflag" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_dcontrols.*" );
+		Map.DontDispenseAmmo = false;
+
+		Util.MapDebugPrint( "spawnflag_Allies_Captured" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "The Allied North Assault Ramp has been constructed.", Map.Allied_Assault_Ramp_Built );
+	OnTrigger( "The Truck has been repaired.", Map.Escape_Truck_Built );
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Neutral_Command_Post_Built );
+	OnTrigger( "Axis have destroyed the Allied North Assault Ramp.", Map.Allied_Assault_Ramp_Destroyed );
+	OnTrigger( "Allied Team has destroyed the City Gate.", Map.City_Gate_Destroyed );
+	OnTrigger( "Allied Team has destroyed the Doors Controls.", Map.Door_Controls_Destroyed );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Neutral_Command_Post_Destroyed );
+	OnTrigger( "Allies have stolen the Documents!", Map.northdocs_Taken );
+	OnTrigger( "Flag returned northdocs!", Map.northdocs_Returned );
+	OnTrigger( "Planted at the Door Controls.", Map.control_plant );
+	OnTrigger( "Axis reclaimed the Old City!", Map.spawnflag_Axis_Captured );
+	OnTrigger( "Allies capture the Old City!", Map.spawnflag_Allies_Captured );
+
+	cellar = OnTriggerRegion(AABB(-2167.1, -1408.9, 135.125, -1831.09, -1362.5, 218.6), Map.TriggerOne);
+	storage = OnTriggerRegion(AABB(-1749.4, -1857.7, 135.125, -1684.9, -1558.845, 225.125), Map.TriggerOne);
+	westhall = OnTriggerRegion(AABB(-2698.04, -2338.14, 327.125, -2511.74, -2287.126, 401.125), Map.TriggerOne);
+	easthall = OnTriggerRegion(AABB(-2464.76, -2340.09, 151.125, -2260.5, -2287.126, 225.125), Map.TriggerOne);
+
+	Util.DisableGoal(".*", true);
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_gate.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SMOKEBOMB_a1" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_City_Gate" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Allied_Assault_Ramp" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, ".*_Neutral_Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_dgate.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_dramp.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_ax1" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMORTAR_mor1" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Allied_Assault_Ramp" );
+
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=30, MaxCampTime=90} );
+
+	SetGoalPriority( "BUILD_Allied_Assault_Ramp", 0.85, TEAM.ALLIES);
+	SetGoalPriority( "PLANT_City_Gate", 0.85, TEAM.ALLIES);
+
+	Util.SetMaxUsers( 2, "CHECKPOINT_.*" );
+	Util.SetMaxUsers( 1, "BUILD_.*" );
+	Util.SetMaxUsers( 1, "PLANT_City_Gate" );
+	Util.SetMaxUsers( 1, "PLANT_Neutral_Command_Post" );
+
+	Util.AddUsePoint( "BUILD_Escape_Truck", Vec3(-586.5, -2239, 160.125) ) ;
+	Util.AddUsePoint( "PLANT_City_Gate", { Vec3(2195, 1077, 112.125), Vec3(2085.45, 1077.5, 112.125) });
+	Util.AddUsePoint( "PLANT_Door_Controls", { Vec3(-2335.8, -1782, 176.125), Vec3(-2325.56, -1872, 176.125), Vec3(-2349.8, -1961.2, 176.125) } ) ;
+	Util.SetGoalPosition( 1614, 2132.4, 297.098, "PLANT_Allied_Assault_Ramp" ) ;
+
+	Util.ChangeSpawn(TEAM.AXIS, 1, 6);
+
+	MapRoutes =
+	{
+		DEFEND_dgate1 =
+		{
+			ROUTE_ax1  =
+			{
+				ROUTE_ax2  =
+				{
+					ROUTE_axr1  =
+					{
+						ROUTE_axr2  =
+						{
+						},
+					},
+					ROUTE_axl1  =
+					{
+						ROUTE_axl2  =
+						{
+							ROUTE_axl3  =
+							{
+								ROUTE_axl4  =
+								{
+									ROUTE_axl5  =
+									{
+									},
+									ROUTE_axl7  =
+									{
+									},
+								},
+							},
+						},
+						ROUTE_axr2  =
+						{
+						},
+					},
+				},
+				ROUTE_dst1  =
+				{
+					ROUTE_axl1  =
+					{
+						ROUTE_axl2  =
+						{
+							ROUTE_axl3  =
+							{
+								ROUTE_axl4  =
+								{
+									ROUTE_axl5  =
+									{
+									},
+									ROUTE_axl7  =
+									{
+									},
+								},
+							},
+						},
+						ROUTE_axr2  =
+						{
+						},
+					},
+				},
+			},
+		},
+
+		ATTACK_acontrols1 =
+		{
+			ROUTE_407  =
+			{
+				ROUTE_290  =
+				{
+					ROUTE_324  =
+					{
+						ROUTE_303  =
+						{
+						},
+						ROUTE_296  =
+						{
+							ROUTE_300  =
+							{
+								ROUTE_303  =
+								{
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		FLAG_northdocs =
+		{
+			ROUTE_407  =
+			{
+				ROUTE_docs1  =
+				{
+					ROUTE_290  =
+					{
+						ROUTE_docs4  =
+						{
+							ROUTE_docs5  =
+							{
+								ROUTE_docs8  =
+								{
+									ROUTE_docs12  =
+									{
+									},
+								},
+							},
+							ROUTE_docs2  =
+							{
+								ROUTE_docs9  =
+								{
+									ROUTE_docs10  =
+									{
+										ROUTE_docs11  =
+										{
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		CAPPOINT_truck =
+		{
+			ROUTE_documents  =
+			{
+				ROUTE_docs12  =
+				{
+					ROUTE_docs8  =
+					{
+						ROUTE_docs5  =
+						{
+							ROUTE_docs4  =
+							{
+								ROUTE_run8  =
+								{
+								},
+							},
+						},
+						ROUTE_docs2  =
+						{
+							ROUTE_324  =
+							{
+								ROUTE_303  =
+								{
+									ROUTE_run77  =
+									{
+										ROUTE_run78  =
+										{
+											ROUTE_run79  =
+											{
+											},
+										},
+									},
+								},
+							},
+						},
+						ROUTE_290  =
+						{
+							ROUTE_docs1  =
+							{
+								ROUTE_407  =
+								{
+									ROUTE_axl3  =
+									{
+										ROUTE_ax2  =
+										{
+											ROUTE_run3  =
+											{
+												ROUTE_run4  =
+												{
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_docs11  =
+				{
+					ROUTE_docs10  =
+					{
+						ROUTE_docs9  =
+						{
+							ROUTE_docs3  =
+							{
+								ROUTE_df6  =
+								{
+									ROUTE_df7  =
+									{
+									},
+								},
+							},
+							ROUTE_324  =
+							{
+								ROUTE_303  =
+								{
+									ROUTE_run1  =
+									{
+										ROUTE_417  =
+										{
+											ROUTE_run2  =
+											{
+												ROUTE_axl2  =
+												{
+													ROUTE_axl4  =
+													{
+														ROUTE_dst1  =
+														{
+															ROUTE_run4  =
+															{
+															},
+														},
+													},
+													ROUTE_run3  =
+													{
+														ROUTE_run4  =
+														{
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+							ROUTE_docs4  =
+							{
+								ROUTE_run8  =
+								{
+									ROUTE_run1  =
+									{
+										ROUTE_docs1  =
+										{
+											ROUTE_axl4  =
+											{
+												ROUTE_axl5  =
+												{
+													ROUTE_axr2  =
+													{
+														ROUTE_axr1  =
+														{
+															ROUTE_axl2  =
+															{
+																ROUTE_run4  =
+																{
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		DEFEND_dcontrols1 =
+		{
+			ROUTE_df1  =
+			{
+				ROUTE_df3  =
+				{
+					ROUTE_df4  =
+					{
+						ROUTE_df5  =
+						{
+							ROUTE_df6  =
+							{
+								ROUTE_df7  =
+								{
+								},
+							},
+							ROUTE_df8  =
+							{
+							},
+						},
+					},
+				},
+			},
+			ROUTE_df2  =
+			{
+				ROUTE_df3  =
+				{
+					ROUTE_df4  =
+					{
+						ROUTE_df5  =
+						{
+							ROUTE_df6  =
+							{
+								ROUTE_df7  =
+								{
+								},
+							},
+							ROUTE_df8  =
+							{
+							},
+						},
+					},
+				},
+			},
+		},
+	};
+
+	MapRoutes.DEFEND_dgate2 = MapRoutes.DEFEND_dgate1;
+	MapRoutes.DEFEND_dgate3 = MapRoutes.DEFEND_dgate1;
+	MapRoutes.DEFEND_dgate4 = MapRoutes.DEFEND_dgate1;
+	MapRoutes.DEFEND_dramp1 = MapRoutes.DEFEND_dgate1;
+	MapRoutes.DEFEND_dramp2 = MapRoutes.DEFEND_dgate1;
+	MapRoutes.ATTACK_acontrols2 = MapRoutes.ATTACK_acontrols1;
+	MapRoutes.ATTACK_acontrols3 = MapRoutes.ATTACK_acontrols1;
+	MapRoutes.ATTACK_acontrols4 = MapRoutes.ATTACK_acontrols1;
+	MapRoutes.ATTACK_acontrols5 = MapRoutes.ATTACK_acontrols1;
+	MapRoutes.PLANT_Door_Controls = MapRoutes.ATTACK_acontrols1;
+	MapRoutes.ATTACK_adocs1 = MapRoutes.FLAG_northdocs;
+	MapRoutes.ATTACK_adocs2 = MapRoutes.FLAG_northdocs;
+	MapRoutes.ATTACK_adocs3 = MapRoutes.FLAG_northdocs;
+	MapRoutes.ATTACK_adocs4 = MapRoutes.FLAG_northdocs;
+	MapRoutes.ATTACK_atruck1 = MapRoutes.CAPPOINT_truck;
+	MapRoutes.ATTACK_atruck2 = MapRoutes.CAPPOINT_truck;
+	MapRoutes.ATTACK_atruck3 = MapRoutes.CAPPOINT_truck;
+	MapRoutes.ATTACK_atruck4 = MapRoutes.CAPPOINT_truck;
+	MapRoutes.ATTACK_atruck5 = MapRoutes.CAPPOINT_truck;
+	MapRoutes.ATTACK_atruck6 = MapRoutes.CAPPOINT_truck;
+	MapRoutes.DEFEND_dtruck1 = MapRoutes.CAPPOINT_truck;
+	MapRoutes.DEFEND_dtruck2 = MapRoutes.CAPPOINT_truck;
+	MapRoutes.DEFEND_dtruck3 = MapRoutes.CAPPOINT_truck;
+	MapRoutes.DEFEND_dtruck4 = MapRoutes.CAPPOINT_truck;
+	MapRoutes.DEFEND_dtruck5 = MapRoutes.CAPPOINT_truck;
+	MapRoutes.DEFEND_dtruck6 = MapRoutes.CAPPOINT_truck;
+	MapRoutes.DEFEND_dcontrols2 = MapRoutes.DEFEND_dcontrols1;
+	MapRoutes.DEFEND_dcontrols3 = MapRoutes.DEFEND_dcontrols1;
+	MapRoutes.DEFEND_dcontrols4 = MapRoutes.DEFEND_dcontrols1;
+	MapRoutes.DEFEND_dcontrols5 = MapRoutes.DEFEND_dcontrols1;
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 100.0;
+	bot.MaxViewDistance = 2900.0;
+};

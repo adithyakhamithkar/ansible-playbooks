@@ -1,0 +1,687 @@
+//==========================================================================================
+//
+//	reactor_final.gm
+//
+//	Who  	When		What
+//------------------------------------------------------------------------------------------
+//	^4Tardis	22 April 2011	Initial Script
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0, // please set to zero before distributing your script
+	ShowMovers = false,
+
+	Coolant_Controls_Dyno = 0,
+	East_Security_Door_Dyno = 0,
+	West_Security_Door_Dyno = 0,
+
+	Movers =
+	{
+		"MOVER_truck",
+	},
+	
+	Navigation =
+	{
+		jump =
+		{
+			navigate = function( _this )
+			{
+				_this.Bot.PressButton(BTN.JUMP);
+				_this.Bot.HoldButton(BTN.FORWARD, 12);
+				_this.Bot.HoldButton(BTN.SPRINT, 12);
+				sleep(10);
+
+				Util.MapDebugPrint("Yee-Ha!");
+			},
+		},
+	},
+	
+	FallbackTriggered = false,
+	AxisFallBack =
+	{
+		Name = "AxisFallBack",
+		TriggerOnClass = CLASS.COVERTOPS,
+		OnEnter = function(ent)
+		{
+			// only for allied covert ops in disguise
+			if ( Map.FallbackTriggered || !GetEntFlags(ent, ENTFLAG.DISGUISED) || GetEntTeam(ent) != TEAM.ALLIES ) {
+				return;
+			}
+
+			Map.FallbackTriggered = true;
+
+			// NOTE: they will not shift forward after they do this since it's highly likely
+			// that humans will keep trying to exploit it. 
+			// spawn the axis engineers back to defend
+			ETUtil.SuicideSpawn( TEAM.AXIS, 2, -1, CLASS.ENGINEER );
+			SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Coolant_Controls" );
+			// and defend the coolant
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_cool.*" );
+			
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+	
+	
+	
+	Coolant_Controls_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Coolant_Controls" );
+		
+		Util.MapDebugPrint( "Coolant_Controls_Built" );
+	},
+	
+	Coolant_Controls_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Coolant_Controls_Dyno += 1;
+		Util.MapDebugPrint( "Coolant_Controls_Planted" );
+	},
+	
+	Coolant_Controls_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Coolant_Controls_Dyno -= 1;
+		Util.MapDebugPrint( "Coolant_Controls_Defused" );
+	},
+	
+	Coolant_Controls_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Coolant_Controls_Dyno = 0;
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Coolant_Controls" );
+		
+		Util.MapDebugPrint( "Coolant_Controls_Destroyed" );
+	},
+	
+	Truck_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Truck_Built" );
+	},
+
+	East_Security_Door_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.East_Security_Door_Dyno += 1;
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_east.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_east.*" );
+		
+		Util.MapDebugPrint( "East_Security_Door_Planted" );
+	},
+	
+	East_Security_Door_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.East_Security_Door_Dyno -= 1;
+		Util.MapDebugPrint( "East_Security_Door_Defused" );
+	},
+	
+	East_Security_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.East_Security_Door_Dyno = 0;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_east.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_east.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_west.*" );
+	
+		Util.MapDebugPrint( "East_Security_Door_Destroyed" );
+	},
+	
+	West_Security_Door_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.West_Security_Door_Dyno += 1;
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_west.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_west.*" );
+		
+		Util.MapDebugPrint( "West_Security_Door_Planted" );
+	},
+
+	West_Security_Door_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.West_Security_Door_Dyno -= 1;
+		Util.MapDebugPrint( "West_Security_Door_Defused" );
+	},
+
+	West_Security_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.West_Security_Door_Dyno = 0;
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_west.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_west.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_east.*" );
+		
+		Util.MapDebugPrint( "West_Security_Door_Destroyed" );
+	},
+
+	gas_can_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "gas_can_Taken" );
+	},
+
+	gas_can_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "gas_can_Returned" );
+	},
+
+	gas_can_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		SetAvailableMapGoals( TEAM.ALLIES, false, "FLAG_gas_can" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_50" );
+		
+		Util.MapDebugPrint( "gas_can_Secured" );
+	},
+
+	forward_spawn_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		//Allies get the flag 
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT.*" );
+		
+		Util.MapDebugPrint( "forward_spawn_Axis_Captured" );
+	},
+
+	forward_spawn_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		//Axis get flag back
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT.*" );
+		
+		Util.MapDebugPrint( "forward_spawn_Allies_Captured" );
+	},
+	
+	gate_destroyed = function( trigger )
+	{
+		if ( TestMap )
+		{ return; }
+		//Attack & Defend flag room , Plant @ Security_Door's
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Truck" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_bunker.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_flag" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_flag.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_D_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_.*" );		
+		SetAvailableMapGoals( TEAM.AXIS, true, "AIRSTRIKE_.*" );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_East_Security_Door" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_West_Security_Door" );
+		
+		
+		Util.MapDebugPrint( "gate_destroyed" );
+		
+	},
+	
+	bunker_Secured = function( trigger )
+	{
+		if ( TestMap )
+		{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Coolant_Controls" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_cool.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_bunker.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_east.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_west.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_cool.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Coolant_Controls" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "AIRSTRIKE_.*" );
+		SetGoalPriority( "DEFUSE_East_Security_Door_.*", 0.0, TEAM.AXIS, CLASS.ENGINEER, true);
+		SetGoalPriority( "DEFUSE_West_Security_Door_.*", 0.0, TEAM.AXIS, CLASS.ENGINEER, true);
+		
+		Util.MapDebugPrint( "bunker_Secured" );
+		
+	},
+	
+	tower_1_filled = function( trigger )
+	{
+		if ( TestMap )
+		{ return; }
+		
+		Map.tower_counter = -1;	
+		
+		Util.MapDebugPrint( "tower_1_filled" );
+		
+	},
+	
+	tower_1_drained = function( trigger )
+	{
+		if ( TestMap )
+		{ return; }
+		
+		Map.tower_counter = +1;
+		SetGoalPriority( "BUILD_Coolant_Controls", 1.0, TEAM.AXIS, CLASS.ENGINEER, true);
+		Util.MapDebugPrint( "tower_1_drained" );
+		
+	},
+	
+	tower_2_filled = function( trigger )
+	{
+		if ( TestMap )
+		{ return; }
+		
+		Map.tower_counter = -1;	
+		
+		Util.MapDebugPrint( "tower_2_filled" );
+		
+	},
+	
+	tower_2_drained = function( trigger )
+	{
+		if ( TestMap )
+		{ return; }
+		
+		Map.tower_counter = +1;	
+		SetGoalPriority( "BUILD_Coolant_Controls", 1.0, TEAM.AXIS, CLASS.ENGINEER, true);
+		Util.MapDebugPrint( "tower_2_drained" );
+		
+	},
+	
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// Register callback functions
+	OnTrigger( "Coolant controls repaired.", Map.Coolant_Controls_Built );
+	OnTrigger( "The Truck has been repaired", Map.Truck_Built );
+	OnTrigger( "Planted at the Coolant_Controls", Map.Coolant_Controls_Planted );
+	OnTrigger( "Planted at the East_Security_Door", Map.East_Security_Door_Planted );
+	OnTrigger( "Planted at the West_Security_Door", Map.West_Security_Door_Planted );
+	OnTrigger( "Defused at the Coolant_Controls", Map.Coolant_Controls_Defused );
+	OnTrigger( "Defused at the East_Security_Door", Map.East_Security_Door_Defused );
+	OnTrigger( "Defused at the West_Security_Door", Map.West_Security_Door_Defused );
+	OnTrigger( "Coolant controls destroyed!!", Map.Coolant_Controls_Destroyed );
+	OnTrigger( "East Security Door breached!!", Map.East_Security_Door_Destroyed );
+	OnTrigger( "West Security Door breached!!", Map.West_Security_Door_Destroyed );
+	OnTrigger( "The Allies have stolen the box of explosives", Map.gas_can_Taken );
+	OnTrigger( "The Axis have recovered the box of explosives", Map.gas_can_Returned );
+	OnTrigger( "The Allies have loaded the explosives onto the truck", Map.gas_can_Secured );
+	OnTrigger( "Axis capture the Forward Bunker!", Map.forward_spawn_Axis_Captured );
+	OnTrigger( "Allies capture the Forward Bunker!", Map.forward_spawn_Allies_Captured );
+	OnTrigger("the truck has rammed the main gate", Map.gate_destroyed);
+	OnTrigger("Allies have secured the forward bunker", Map.bunker_Secured );
+	
+	//coolant checks
+	OnTrigger("Coolant tower 1 filled", Map.tower_1_filled );
+	OnTrigger("Coolant tower 1 drained", Map.tower_1_drained );
+	OnTrigger("Coolant tower 2 filled", Map.tower_2_filled );
+	OnTrigger("Coolant tower 2 drained", Map.tower_2_drained );
+	
+	// detect covert ops sneaking through 
+	fallback = OnTriggerRegion(AABB(1353.482,502.898,1.125,1534.215,763.647,134.631), Map.AxisFallBack);
+	fallback = OnTriggerRegion(AABB(-1181.563,285.738,1.125,-1009.880,532.499,115.547), Map.AxisFallBack);
+	
+	Util.SetGoalOffset( 30, 0, 0, "BUILD_Coolant_Controls" );
+	
+	Util.DisableGoal( ".*", true ); // all but routes
+	//Start - ALLIES Get gas and repair truck  
+	//Start - Axis Stop gas and truck
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Truck" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_gas_can" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_50" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_flag.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_flag" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_D_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_.*" );
+	
+	// Max users per goal
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 2, "CHECKPOINT_.*" );
+	Util.SetMaxUsers( 1, "PLANT_.*" );
+	Util.SetMaxUsers( 2, "BUILD_.*" );
+	
+	// Camp times
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=60} );
+
+	Util.AddUseWp("PLANT_West_Security_Door", "west");
+	Util.AddUseWp("PLANT_West_Security_Door", "west1");
+	Util.AddUseWp("PLANT_East_Security_Door", "east");
+	Util.AddUseWp("PLANT_East_Security_Door", "east1");
+	
+	
+	//Map Routes	
+	MapRoutes =
+	{
+		CAPPOINT_50 = 
+		{
+			ROUTE_can  = 
+			{
+				ROUTE_can_1  = 
+				{
+					ROUTE_can_2  = 
+					{
+						ROUTE_can_3  = 
+						{
+							ROUTE_can_4  = 
+							{
+								ROUTE_can_5  = 
+								{
+									ROUTE_can_6  = 
+									{
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_gas  = 
+			{
+				ROUTE_gas_1  = 
+				{
+					ROUTE_gas_2  = 
+					{
+						ROUTE_gas_3  = 
+						{
+							ROUTE_gas_4  = 
+							{
+								ROUTE_gas_5  = 
+								{
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		PLANT_East_Security_Door = 
+		{
+			ROUTE_flagsplit  = 
+			{
+				ROUTE_east_1  = 
+				{
+					ROUTE_east_2  = 
+					{
+						ROUTE_east_3  = 
+						{
+							ROUTE_east_4  = 
+							{
+							},
+						},
+					},
+				},
+			},
+		},
+		PLANT_West_Security_Door = 
+		{
+			ROUTE_flagsplit  = 
+			{
+				ROUTE_west  = 
+				{
+					ROUTE_west_1  = 
+					{
+						ROUTE_west_2  = 
+						{
+						},
+					},
+				},
+			},
+		},
+		PLANT_Coolant_Controls = 
+		{
+			ROUTE_flagsplit  = 
+			{
+				Weight = 2,
+				ROUTE_east_1  = 
+				{
+					ROUTE_east_2  = 
+					{
+						ROUTE_east_3  = 
+						{
+							ROUTE_east_4  = 
+							{
+								ROUTE_eastA  = 
+								{
+									ROUTE_cool  = 
+									{
+									},
+								},
+								ROUTE_eastB  = 
+								{
+									ROUTE_cool  = 
+									{
+									},
+								},
+							},
+						},
+					},
+				},
+				
+				Weight = 2,
+				ROUTE_west  = 
+				{
+					ROUTE_west_1  = 
+					{
+						ROUTE_west_2  = 
+						{
+							ROUTE_westA  = 
+							{
+								ROUTE_cool  = 
+								{
+								},
+							},
+							ROUTE_westB  = 
+							{
+								ROUTE_cool  = 
+								{
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		BUILD_Coolant_Controls = 
+		{
+			ROUTE_outA  = 
+			{
+				ROUTE_outA_1  = 
+				{
+					ROUTE_outeast  = 
+					{
+						ROUTE_outeast_1  = 
+						{
+							ROUTE_outeast_2  = 
+							{
+								ROUTE_eastA  = 
+								{
+									ROUTE_cool  = 
+									{
+									},
+								},
+								ROUTE_eastB  = 
+								{
+									ROUTE_cool  = 
+									{
+									},
+								},
+							},
+						},
+					},
+					ROUTE_outwest  = 
+					{
+						ROUTE_outwest_1  = 
+						{
+							ROUTE_westA  = 
+							{
+								ROUTE_cool  = 
+								{
+								},
+							},
+							ROUTE_westB  = 
+							{
+								ROUTE_cool  = 
+								{
+								},
+							},
+						},
+					},
+				},
+			},
+			ROUTE_outC  = 
+			{
+				ROUTE_outC_1  = 
+				{
+					ROUTE_outC_2  = 
+					{
+						ROUTE_cool  = 
+						{
+						},
+					},
+				},
+			},
+			ROUTE_outB_1  = 
+			{
+				ROUTE_outB  = 
+				{
+					ROUTE_outeast  = 
+					{
+						ROUTE_outeast_1  = 
+						{
+							ROUTE_outeast_2  = 
+							{
+								ROUTE_eastA  = 
+								{
+									ROUTE_cool  = 
+									{
+									},
+								},
+								ROUTE_eastB  = 
+								{
+									ROUTE_cool  = 
+									{
+									},
+								},
+							},
+						},
+					},
+					ROUTE_outwest  = 
+					{
+						ROUTE_outwest_1  = 
+						{
+							ROUTE_westA  = 
+							{
+								ROUTE_cool  = 
+								{
+								},
+							},
+							ROUTE_westB  = 
+							{
+								ROUTE_cool  = 
+								{
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	};
+	
+	MapRoutes.ATTACK_cool = MapRoutes.PLANT_Coolant_Controls;
+	MapRoutes.ATTACK_cool_1 = MapRoutes.PLANT_Coolant_Controls;
+	MapRoutes.ATTACK_cool_2 = MapRoutes.PLANT_Coolant_Controls;
+	MapRoutes.ATTACK_cool_3 = MapRoutes.PLANT_Coolant_Controls;
+	MapRoutes.ATTACK_cool_4 = MapRoutes.PLANT_Coolant_Controls;
+	MapRoutes.ATTACK_cool_5 = MapRoutes.PLANT_Coolant_Controls;
+	
+	MapRoutes.ATTACK_east = MapRoutes.PLANT_East_Security_Door;
+	MapRoutes.ATTACK_east_1 = MapRoutes.PLANT_East_Security_Door;
+	MapRoutes.ATTACK_east_2 = MapRoutes.PLANT_East_Security_Door;
+	
+	MapRoutes.ATTACK_west = MapRoutes.PLANT_Wast_Security_Door;
+	MapRoutes.ATTACK_west_1 = MapRoutes.PLANT_Wast_Security_Door;
+	MapRoutes.ATTACK_west_2 = MapRoutes.PLANT_Wast_Security_Door;
+
+	MapRoutes.DEFEND_cool = MapRoutes.BUILD_Coolant_Controls;
+	MapRoutes.DEFEND_cool_1 = MapRoutes.BUILD_Coolant_Controls;
+	MapRoutes.DEFEND_cool_2 = MapRoutes.BUILD_Coolant_Controls;
+	MapRoutes.DEFEND_cool_4 = MapRoutes.BUILD_Coolant_Controls;
+	MapRoutes.DEFEND_cool_5 = MapRoutes.BUILD_Coolant_Controls;
+	MapRoutes.DEFEND_cool_6 = MapRoutes.BUILD_Coolant_Controls;
+	MapRoutes.DEFEND_cool_7 = MapRoutes.BUILD_Coolant_Controls;
+	MapRoutes.DEFEND_cool_8 = MapRoutes.BUILD_Coolant_Controls;
+	MapRoutes.DEFEND_cool_9 = MapRoutes.BUILD_Coolant_Controls;
+	
+	MapRoutes.DEFEND_west = MapRoutes.DEFUSE_West_Security_Door;
+	MapRoutes.DEFEND_west_1 = MapRoutes.DEFUSE_West_Security_Door;
+	MapRoutes.DEFEND_west_2 = MapRoutes.DEFUSE_West_Security_Door;
+	MapRoutes.DEFEND_west_3 = MapRoutes.DEFUSE_West_Security_Door;
+	
+	MapRoutes.DEFEND_east = MapRoutes.DEFUSE_East_Security_Door;
+	MapRoutes.DEFEND_east_1 = MapRoutes.DEFUSE_East_Security_Door;
+	MapRoutes.DEFEND_east_2 = MapRoutes.DEFUSE_East_Security_Door;
+	MapRoutes.DEFEND_east_3 = MapRoutes.DEFUSE_East_Security_Door;
+	MapRoutes.DEFEND_east_4 = MapRoutes.DEFUSE_East_Security_Door;
+	
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	// Uncomment for shootable breakables
+	bot.TargetBreakableDist = 90.0;
+	// Only set MaxViewDistance on maps with limited sight (e.g. fog)
+	//~bot.MaxViewDistance = 2400;
+};

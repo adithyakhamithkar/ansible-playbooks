@@ -1,0 +1,535 @@
+global Map =
+{
+	Checkpoint_forwardspawn = "CHECKPOINT_forwardspawn",
+	Flag_Urn = "FLAG_Urn",
+	Cappoint_1 = "CAPPOINT_1",
+	Build_Command_Post = "BUILD_Command_Post",
+	Build_Truck = "BUILD_Truck",
+	Build_ruins_access_rope = "BUILD_ruins_access_rope",
+	Build_truck_ramp = "BUILD_truck_ramp",
+	Plant_Command_Post = "PLANT_Command_Post",
+	Plant_south_valley_gate = "PLANT_south_valley_gate",
+	Plant_lower_south_valley_gate = "PLANT_lower_south_valley_gate",
+	Plant_ruins_gate = "PLANT_north_ruins_gate",
+	Plant_ruins_access_rope = "PLANT_ruins_access_rope",
+	Plant_truck_ramp = "PLANT_truck_ramp",
+	Mount_mg42_house = "MOUNTMG42_mg42_house",
+	Repair_mg42_house = "REPAIRMG42_mg42_house",
+	Mobile_MG42_phase5_10 = "MOBILEMG42_phase5_10",
+	Mobile_MG42_phase5_11 = "MOBILEMG42_phase5_11",
+	Mobile_MG42_phase6_1 = "MOBILEMG42_phase6_1",
+	Mover_truck = "MOVER_truck",
+
+	iw1 = 0,
+	DefendingTeam = TEAM.AXIS,
+	Talk = true,
+	PlantMines = true,
+	Phase = 1,
+
+	Truck_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.Talk && MAP_TALK && Map.Phase > 3 )
+		{
+			foreach ( gameId and bot in BotTable )
+			{
+				if (bot.GetTeam() == TEAM.ALLIES && bot.GetClass() == CLASS.ENGINEER && RandInt(1,10) < 2)
+				{
+					sleep(1.0);
+					bot.SayVoice(VOICE.ESCORT_VEHICLE);
+				}
+				else if (bot.GetTeam() == TEAM.AXIS && RandInt(1,20) < 2)
+				{
+					sleep(1.2);
+					bot.SayVoice(VOICE.DESTROY_VEHICLE);
+				}
+			}
+		}
+		Util.MapDebugPrint( "Truck_Built" );
+	},
+
+	Truck_Damaged = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		// center it every time it is damaged
+		Util.SetPositionGoal( "BUILD_Truck", "MOVER_truck" );
+		if ( Map.Talk && MAP_TALK && Map.Phase > 3 )
+		{
+			rand = ETUtil.CountTeam(TEAM.ALLIES) * 2;
+			foreach ( gameId and bot in BotTable )
+			{
+				if (bot.GetTeam() == TEAM.ALLIES && bot.GetClass() != CLASS.ENGINEER && RandInt(1,rand) < 2)
+				{
+					sleep(1.0);
+					bot.SayVoice(VOICE.REPAIR_VEHICLE);
+				}
+			}
+		}
+		Util.MapDebugPrint( "Truck_Damaged" );
+	},
+
+	ruins_access_rope_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "ruins_access_rope_Built" );
+	},
+
+	truck_ramp_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "truck_ramp_Built" );
+	},
+
+	lower_south_valley_gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals(TEAM.ALLIES, true, "ROUTE_cellar");
+		Util.MapDebugPrint( "lower_south_valley_gate_Destroyed" );
+	},
+
+	south_valley_gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.Phase < 4 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_south_gate.*" );
+		}
+		SetAvailableMapGoals(TEAM.ALLIES, true, "ROUTE_door_right");
+		SetAvailableMapGoals(TEAM.ALLIES, true, "ROUTE_door_left");
+		Util.MapDebugPrint( "south_valley_gate_Destroyed" );
+	},
+
+	ruins_gate_Planted = function()
+	{
+		Util.MapDebugPrint("ruins_gate_Planted");
+		if (Map.Talk && MAP_TALK && Map.Phase <3)
+		{
+			wppos = Util.GetWpNamePosition( "phase1_8" );
+			foreach ( id and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.AXIS && bot.GetClass() != CLASS.ENGINEER && bot.DistanceTo(wppos)<750 )
+				{
+					ran = RandRange(0,10);
+					if( ran < 4 && !bot.GetNearestAlly(CAT.PLAYER,CLASS.ENGINEER))
+					{
+						sleep(ran);
+						bot.SayVoice(VOICE.NEED_ENGINEER);
+					}
+					else if( ran > 6 )
+					{
+						sleep(1);
+						bot.SayVoice(VOICE.DISARM_DYNAMITE);
+					}
+				}
+			}
+		}
+	},
+
+	ruins_gate_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetGoalPriority( "ATTACK_phase1_15", 0.55 );
+		if (Map.Talk && MAP_TALK && GetGameTimeLeft()>90 && Map.Phase <3)
+		{
+			rand = ETUtil.CountTeam(TEAM.AXIS) * 2;
+			rand2 = ETUtil.CountTeam(TEAM.ALLIES) * 2;
+			foreach ( gameId and bot in BotTable )
+			{
+				if ( bot.GetTeam() == TEAM.AXIS && RandInt(1,rand) < 2 )
+				{
+					sleep(1.0);
+					bot.SayVoice(VOICE.REINFORCE_DEF);
+				}
+				else if ( bot.GetTeam() == TEAM.AXIS && RandInt(0,rand) < 2 )
+				{
+					sleep(1.5);
+					bot.SayVoice(VOICE.DEFEND_OBJECTIVE);
+				}
+				else if (bot.GetTeam() == TEAM.ALLIES && RandInt(1,rand2) < 2)
+				{
+					sleep(1.2);
+					bot.ExecCommand("vsay_team FTAttack");
+				}
+			}
+		}
+		Util.MapDebugPrint( "ruins_gate_Destroyed" );
+	},
+
+	ruins_access_rope_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "ruins_access_rope_Destroyed" );
+	},
+
+	truck_ramp_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "truck_ramp_Destroyed" );
+	},
+
+	Urn_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase1_15" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase1_16" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_phase1_17" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_cappoint.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_cappoint.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_cappoint.*" );
+		Util.MapDebugPrint( "Urn_Taken" );
+	},
+
+	Urn_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase1_15" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase1_16" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase1_17" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_cappoint.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_cappoint.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_cappoint.*" );
+		Util.MapDebugPrint( "Urn_Returned" );
+	},
+
+	Urn_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Phase = 3;
+		DeleteTriggerRegion( Map.iw1 );
+
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Plant_ruins_access_rope );
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANTMINE_ruins_gate.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_phase3.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase3.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_phase3.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ESCORT_truck" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Truck );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_ruins_access_rope );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_ruins_gate );
+
+		if ( Map.Talk && MAP_TALK )
+		{
+			foreach ( gameId and bot in BotTable )
+			{
+				if (bot.GetTeam() == TEAM.ALLIES && bot.GetClass() == CLASS.ENGINEER && RandInt(1,10) < 2)
+				{
+					sleep(1.0);
+					bot.SayVoice(VOICE.ESCORT_VEHICLE);
+				}
+			}
+		}
+		Util.OnTriggerPosition("MOVER_truck", "trigger1", 150, Map.Phase4_On);
+		Util.MapDebugPrint( "Urn_Secured" );
+	},
+
+	Phase4_On = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Phase = 4; // truck near church
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANTMINE_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Mount_mg42_house );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Repair_mg42_house );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Checkpoint_forwardspawn );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_truck_ramp );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_bridge.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_phase4.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase4.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_phase4.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_cappoint.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Checkpoint_forwardspawn );
+		Util.MapDebugPrint( "Phase4_On" );
+	},
+
+	Phase5_On = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Phase = 5; // church spawn permanently Allied
+
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Checkpoint_forwardspawn );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_phase5.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase5.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_phase5.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_truck_ramp );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_lower_south_valley_gate );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_south_valley_gate );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Checkpoint_forwardspawn );
+
+		Util.OnTriggerPosition("MOVER_truck", "trigger2", 200, Map.Phase6_On);
+		Util.MapDebugPrint( "Phase5_On" );
+	},
+
+	Phase6_On = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Phase = 6; // near bridge
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_phase5_12" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_phase5_13" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_phase5_14" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_phase6.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_phase6_15" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase6.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_phase6.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_phase6_15" );
+		Util.OnTriggerPosition("MOVER_truck", "trigger3", 200, Map.Phase7_On);
+		Util.MapDebugPrint( "Phase6_On" );
+	},
+
+	Phase7_On = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Phase = 7; // over bridge
+
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Plant_truck_ramp );
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANTMINE_bridge.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMG42_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_phase7.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_phase6_14" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase7.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_phase7.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_truck_ramp );
+
+		Util.MapDebugPrint( "Phase7_On" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// *** TRIGGERS ***
+	OnTrigger( "MISSING_STRING", Map.ruins_access_rope_Built );
+	OnTrigger( "MISSING_STRING", Map.ruins_access_rope_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.truck_ramp_Built );
+	OnTrigger( "MISSING_STRING", Map.truck_ramp_Destroyed );
+	OnTrigger( "The Truck has been repaired!", Map.Truck_Built );
+	OnTrigger( "The Truck has been damaged!", Map.Truck_Damaged );
+	OnTrigger( "Allied team has breached the lower south gate", Map.lower_south_valley_gate_Destroyed );
+	OnTrigger( "Allied team has breached the south valley gate", Map.south_valley_gate_Destroyed );
+	OnTrigger( "Planted at the north ruins gate.", Map.ruins_gate_Planted );
+	OnTrigger( "Allied team has breached the north ruins gate", Map.ruins_gate_Destroyed );
+	OnTrigger( "Allies have stolen The Urn!", Map.Urn_Taken );
+	OnTrigger( "Flag returned Urn!", Map.Urn_Returned );
+	OnTrigger( "allies_objectivesecured", Map.Urn_Secured );
+	OnTrigger( "Allied team OWNS the church forward spawn", Map.Phase5_On );
+
+	// *** AVAILABILITY AT MAP START ***
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_phase1_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_phase1_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_phase1_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Mount_mg42_house );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Repair_mg42_house );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_ruins_access_rope );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Plant_Command_Post );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Command_Post );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Checkpoint_forwardspawn );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_ruins_gate.*" );
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Command_Post );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Command_Post );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_ruins_access_rope );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_south_valley_gate );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_lower_south_valley_gate );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_ruins_gate );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Cappoint_1 );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Flag_Urn );
+
+	// Priority and max users
+	Util.SetMaxUsersInProgress( 1, "ATTACK_.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_.*" );
+	Util.SetMaxUsersInProgress( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsersInProgress( 1, "SNIPE_.*" );
+	Util.SetMaxUsersInProgress( 1, "BUILD_.*" );
+	Util.SetMaxUsersInProgress( 2, "BUILD_Truck" );
+	Util.SetMaxUsersInProgress( 4, "FLAG_.*" );
+	Util.SetMaxUsersInProgress( 2, "CHECKPOINT_.*" );
+	Util.SetMaxUsersInProgress( 1, "PLANT_.*" );
+	SetGoalPriority( "ATTACK_cappoint.*", 0.55 );
+	SetGoalPriority( Map.Plant_lower_south_valley_gate, 0.95 );
+	SetGoalPriority( Map.Plant_lower_south_valley_gate, 0.0, TEAM.ALLIES, CLASS.COVERTOPS );
+	SetGoalPriority( Map.Plant_south_valley_gate, 0.9 );
+	SetGoalPriority( Map.Plant_south_valley_gate, 0.0, TEAM.ALLIES, CLASS.COVERTOPS );
+	SetGoalPriority( Map.Plant_ruins_gate, 0.9 );
+	SetGoalPriority( Map.Plant_ruins_gate, 0.0, TEAM.ALLIES, CLASS.COVERTOPS );
+	SetGoalPriority( Map.Plant_Command_Post, 0.8 );
+	if (!Map.PlantMines)
+		{ SetGoalPriority( "PLANTMINE_.*", 0.0 ); }
+
+	// Camp time
+	SetMapGoalProperties( "SNIPE_.*", {maxcamptime=60} );
+	SetMapGoalProperties( "ATTACK_.*", {maxcamptime=30} );
+	SetMapGoalProperties( "ATTACK_phase1_15", {mincamptime=10,maxcamptime=50} );
+	SetMapGoalProperties( "MOUNTMG42_.*", {maxcamptime=180} );
+
+	Util.SetGoalPosition( -607,3434,2146, Map.Plant_ruins_access_rope );
+	Util.SetGoalOffset( 15, 25, 0, Map.Build_ruins_access_rope );
+
+	Map.iw1 = OnTriggerRegion( AABB(-644.151,3564.467,1503.609,-465.730,3817.088,1626.681), RegionTrigger.IntrusionWarning );
+	Map.Phase = 1;
+
+	// *** ROUTES ***
+	Maproutes =
+	{
+		CHECKPOINT_forwardspawn =
+		{
+			ROUTE_allied_spawn =
+			{
+				ROUTE_left_spawn_exit1 = {},
+				ROUTE_left_spawn_exit2 = {},
+				ROUTE_right_spawn_exit1 = {},
+				ROUTE_right_spawn_exit2 = {},
+				ROUTE_door_left =
+				{
+					ROUTE_left_spawn_exit1 = {},
+					ROUTE_left_spawn_exit2 = {},
+					ROUTE_right_spawn_exit1 = {},
+					ROUTE_right_spawn_exit2 = {},
+				},
+				ROUTE_door_right =
+				{
+					ROUTE_left_spawn_exit1 = {},
+					ROUTE_left_spawn_exit2 = {},
+					ROUTE_right_spawn_exit1 = {},
+					ROUTE_right_spawn_exit2 = {},
+				},
+				ROUTE_cellar =
+				{
+					ROUTE_left_spawn_exit1 = {},
+					ROUTE_left_spawn_exit2 = {},
+					ROUTE_right_spawn_exit1 = {},
+					ROUTE_right_spawn_exit2 = {},
+				},
+			},
+		},
+		FLAG_Urn =
+		{
+			ROUTE_allied_spawn =
+			{
+				ROUTE_door_left = {},
+				ROUTE_door_right = {},
+				ROUTE_cellar = {},
+			},
+			ROUTE_church_spawn =
+			{
+				ROUTE_left_spawn_exit1 = {},
+				ROUTE_left_spawn_exit2 = {},
+				ROUTE_right_spawn_exit1 = {},
+				ROUTE_right_spawn_exit2 = {},
+			},
+		},
+		ATTACK_phase1_2 =
+		{
+			ROUTE_church_spawn =
+			{
+				ROUTE_left_spawn_exit1 = {},
+				ROUTE_left_spawn_exit2 = {},
+				ROUTE_right_spawn_exit1 = {},
+				ROUTE_right_spawn_exit2 = {},
+			},
+		},
+	};
+	Maproutes.PLANT_north_ruins_gate = Maproutes.FLAG_Urn;
+	Maproutes.ATTACK_phase1_3 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase1_4 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase1_5 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase1_6 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase1_7 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase1_8 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase1_9 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase1_10 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase1_11 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase1_12 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase1_13 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase3_1 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase3_2 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase3_4 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase3_5 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase3_6 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase3_7 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase3_8 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase4_1 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase4_2 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase4_3 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase4_4 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase4_5 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase4_6 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase4_7 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase4_8 = Maproutes.ATTACK_phase1_2;
+	Maproutes.ATTACK_phase4_9 = Maproutes.ATTACK_phase1_2;
+	Maproutes.MOUNTMG42_mg42_house = Maproutes.FLAG_Urn;
+	Maproutes.PLANT_Command_Post = Maproutes.FLAG_Urn;
+	Maproutes.BUILD_Command_Post = Maproutes.FLAG_Urn;
+	Util.Routes(Maproutes);
+	SetAvailableMapGoals(TEAM.AXIS, true, "ROUTE_church_spawn");
+	SetAvailableMapGoals(TEAM.AXIS, true, "ROUTE_left_spawn_exit1");
+	SetAvailableMapGoals(TEAM.AXIS, true, "ROUTE_left_spawn_exit2");
+	SetAvailableMapGoals(TEAM.AXIS, true, "ROUTE_right_spawn_exit1");
+	SetAvailableMapGoals(TEAM.AXIS, true, "ROUTE_right_spawn_exit2");
+	SetAvailableMapGoals(TEAM.ALLIES, false, "ROUTE_cellar");
+	SetAvailableMapGoals(TEAM.ALLIES, false, "ROUTE_door_right");
+	SetAvailableMapGoals(TEAM.ALLIES, false, "ROUTE_door_left");
+	SetAvailableMapGoals(TEAM.ALLIES, true, "ROUTE_allied_spawn");
+	SetAvailableMapGoals(TEAM.ALLIES, true, "ROUTE_church_spawn");
+	SetAvailableMapGoals(TEAM.ALLIES, true, "ROUTE_left_spawn_exit1");
+	SetAvailableMapGoals(TEAM.ALLIES, true, "ROUTE_left_spawn_exit2");
+	SetAvailableMapGoals(TEAM.ALLIES, true, "ROUTE_right_spawn_exit1");
+	SetAvailableMapGoals(TEAM.ALLIES, true, "ROUTE_right_spawn_exit2");
+
+	Util.MapDebugPrint( "Omni-bot map script for Vesuvius_rev executed." );
+};

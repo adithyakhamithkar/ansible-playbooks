@@ -1,0 +1,92 @@
+//==========================================================================================
+//
+//	trooptrain.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	palota	08 April 2012	Initial Script
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+
+	an_Obstruction_Destroyed = function( trigger )
+	{
+		sleep(2);
+		Util.EnableGoal(".*MG42_mg");
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_tank.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_a_Tiger_Tank.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_tank.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "AMMO.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_midtrain_flag" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_obstruct.*" );
+		Util.MapDebugPrint( "an_Obstruction_Destroyed" );
+	},
+
+	midtrain_flag_Allies_Captured = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_midtrain_flag" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_obstruct.*" );
+		Util.MapDebugPrint( "midtrain_flag_Allies_Captured" );
+	},
+
+	midtrain_flag_Axis_Captured = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_obstruct.*" );
+		Util.MapDebugPrint( "midtrain_flag_Axis_Captured" );
+	},
+
+	midtrain_flag_Allies_Secured = function( trigger )
+	{
+		Util.DisableGoal("CHECKPOINT_midtrain_flag");
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_obstruct.*" );
+		Util.MapDebugPrint( "midtrain_flag_Allies_Secured" );
+	},
+
+	Allies_Win = function( trigger )
+	{
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "Allies_Win" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	OnTrigger( "^3*** ^7The Allies have destroyed one of the blocking crates! ^3***", Map.an_Obstruction_Destroyed );
+	OnTrigger( "^3*** ^7Allies have captured the Midtrain! ^3***", Map.midtrain_flag_Allies_Captured );
+	OnTrigger( "^3*** ^7Axis have retaken the Midtrain! ^3***", Map.midtrain_flag_Axis_Captured );
+	OnTrigger( "^3*** ^7Allies have permanently captured the Midtrain! ^3***", Map.midtrain_flag_Allies_Secured );
+	OnTrigger( "^3*** ^7The Allies have destroyed both Tiger tanks! ^3***", Map.Allies_Win );
+
+	Util.DisableGoal( ".*"/*, true*/ );
+	Util.EnableGoal( ".*Command_Post" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "AMMO.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_obstruct.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_an_Obstruction.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_obstruct.*" );
+
+	SetGoalPriority("DEFEND_obstruct.*", 0.55);
+
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+
+	Util.AddUsePoint("PLANT_an_Obstruction", Vec3(7797.412, 1889.636, 120.125));
+	Util.AddUsePoint("PLANT_an_Obstruction_1", Vec3(7788.473, 2206.255, 120.125));
+	Util.AddUsePoint("PLANT_a_Tiger_Tank", Vec3(4566.168, 1897.187, 120.125));
+	Util.AddUsePoint("PLANT_a_Tiger_Tank_1", Vec3(4977.756, 2225.945, 120.125));
+
+	WeaponTable.SetWeaponAvailability( CLASS.SOLDIER, WEAPON.PANZERFAUST, false );
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.MaxViewDistance = 2000;
+	bot.DisableCombatMovement = true;
+	//bot.DisableBotPush(true);
+};

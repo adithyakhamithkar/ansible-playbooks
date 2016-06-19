@@ -1,0 +1,354 @@
+global Map =
+{
+	Quiet = true,
+	Ammo_Cabinet_north_ammocabinet = "AMMOCAB_north_ammocabinet",
+	Ammo_Cabinet_north_ammocabinet_1 = "AMMOCAB_north_ammocabinet_1",
+	Health_Cabinet_axis_healthcabinet = "HEALTHCAB_axis_healthcabinet",
+	Health_Cabinet_north_healthcabinet = "HEALTHCAB_north_healthcabinet",
+	Call_Artillery_61 = "CALLARTILLERY_61",
+	Call_Artillery_62 = "CALLARTILLERY_62",
+	Artillery_D_14 = "ARTILLERY_D_14",
+	Checkpoint_phlagpoal1 = "CHECKPOINT_phlagpoal1",
+	Flag_holygrail = "FLAG_holygrail",
+	Flag_holynade = "FLAG_holynade",
+	Cappoint_GRAIL_1 = "CAPPOINT_GRAIL_1",
+	Cappoint_NADE_POINT_1 = "CAPPOINT_NADE_POINT_1",
+	Build_Allied_Command_Post = "BUILD_Allied_Command_Post",
+	Build_Axis_Command_Post = "BUILD_Axis_Command_Post",
+	Build_Cloister_Door = "BUILD_Cloister_Door",
+	Build_Roof_Bridge = "BUILD_Roof_Bridge",
+	Plant_Allied_Command_Post = "PLANT_Allied_Command_Post",
+	Plant_Axis_Command_Post = "PLANT_Axis_Command_Post",
+	Plant_Cloister_Door = "PLANT_Cloister_Door",
+	Plant_Grenade_Casket = "PLANT_Grenade_Casket",
+	Plant_Main_Entrance = "PLANT_Main_Entrance",
+	Plant_Roof_Bridge = "PLANT_Roof_Bridge",
+	Mount_127 = "MOUNTMG42_127",
+	Mount_6 = "MOUNTMG42_6",
+	Repair_127 = "REPAIRMG42_127",
+	Repair_6 = "REPAIRMG42_6",
+	Plant_Mine_370 = "PLANTMINE_370",
+	Plant_Mine_59 = "PLANTMINE_59",
+	Plant_Mine_60 = "PLANTMINE_60",
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Cloister_Door_Built = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_cloister1" );
+
+		Util.MapDebugPrint( "Cloister_Door_Built" );
+	},
+
+	Roof_Bridge_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Roof_Bridge_Built" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	Cloister_Door_Destroyed = function( trigger )
+	{
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Grenade_Casket" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Cloister_Door" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_cloister1" );
+
+		Util.MapDebugPrint( "Cloister_Door_Destroyed" );
+	},
+
+	Grenade_Casket_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_holynade" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_NADE_POINT_1" );
+
+		Util.MapDebugPrint( "Grenade_Casket_Destroyed" );
+	},
+
+	Main_Entrance_Destroyed = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Grenade_Casket" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_6" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_main.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_dnade.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_casket.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOUNTMG42_127" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Allied_Command_Post" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Axis_Command_Post" );
+		Util.ChangeSpawn(TEAM.AXIS, 2, 6);
+
+		Util.MapDebugPrint( "Main_Entrance_Destroyed" );
+	},
+
+	Roof_Bridge_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Roof_Bridge_Destroyed" );
+	},
+
+	holygrail_Taken = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_cp.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_grail.*" );
+
+		Util.MapDebugPrint( "holygrail_Taken" );
+	},
+	
+		holygrail_returned = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_cp.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_grail.*" );
+
+		Util.MapDebugPrint( "holygrail_returned" );
+	},
+
+
+
+	holynade_Taken = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_dnade.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_grenade.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_casket.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_agrenade.*" );
+
+		Util.MapDebugPrint( "holynade_Taken" );
+	},
+	
+	holynade_returned = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_dnade.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_grenade.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_casket.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_agrenade.*" );
+
+		Util.MapDebugPrint( "holynade_returned" );
+	},
+
+	GRAIL_1_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "GRAIL_1_Captured" );
+	},
+
+	NADE_POINT_1_Captured = function( trigger )
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, true, "FLAG_holygrail" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CAPPOINT_GRAIL_1" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_NADE_POINT_1" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_grenade.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_grail.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_casket.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_agrenade.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_127" );
+
+		Util.MapDebugPrint( "NADE_POINT_1_Captured" );
+	},
+
+	phlagpoal1_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "phlagpoal1_Axis_Captured" );
+	},
+
+	phlagpoal1_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "phlagpoal1_Allies_Captured" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "The Cloister Doors have been repaired", Map.Cloister_Door_Built );
+	OnTrigger( "MISSING_STRING", Map.Roof_Bridge_Built );
+	OnTrigger( "MISSING_STRING", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "Allies have destroyed the Cloister Doors", Map.Cloister_Door_Destroyed );
+	OnTrigger( "The Grenade Casket has been destroyed!", Map.Grenade_Casket_Destroyed );
+	OnTrigger( "Allies have destroyed the Main Entrance doors", Map.Main_Entrance_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Roof_Bridge_Destroyed );
+	OnTrigger( "Allies have half-hinched the ^1Holy Grail^7!", Map.holygrail_Taken );
+	OnTrigger( "Flag returned holygrail!", Map.holygrail_returned );
+	OnTrigger( "Allies have nabbed the ^3Holy Handgrenade^7!", Map.holynade_Taken );
+	OnTrigger( "Flag returned holynade!", Map.holynade_returned );
+	OnTrigger( "MISSING_STRING", Map.GRAIL_1_Captured );
+	OnTrigger( "The tower entrance has been blown to tiny bits!", Map.NADE_POINT_1_Captured );
+	OnTrigger( "MISSING_STRING", Map.phlagpoal1_Axis_Captured );
+	OnTrigger( "MISSING_STRING", Map.phlagpoal1_Allies_Captured );
+
+	SetAvailableMapGoals( TEAM.AXIS, false, ".*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, ".*" );
+	Util.EnableGoal("ROUTE_.*");
+	Util.EnableGoal("AMMOCAB_.*");
+	Util.EnableGoal("HEALTHCAB_.*");
+	
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Main_Entrance" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Cloister_Door" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_cloister1" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42_6" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_main.*" );
+	
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=30, MaxCampTime=90} ); 
+	SetMapGoalProperties( "DEFEND_start.*", {MinCampTime=60, MaxCampTime=90} );
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=60, MaxCampTime=120} ); 
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=60, MaxCampTime=90} ); 
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=25, MaxCampTime=60} ); 
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=40, MaxCampTime=60} ); 
+	
+	Util.SetGoalPosition( 1021.4, -138.4, -95.875, "PLANT_Cloister_Door" ) ;
+	Util.SetMaxUsersInProgress( 1, "PLANT_Cloister_Door" );
+	Util.SetMaxUsersInUse( 1, "PLANT_Cloister_Door" );
+	SetGoalPriority( "PLANT_Grenade_Casket", 0.89, TEAM.ALLIES, CLASS.COVERTOPS );
+	
+	
+	
+	Util.SetMaxUsers (2, "CHECKPOINT_.*" );
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "BUILD_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	
+	MapRoutes =
+	{
+		PLANT_Grenade_Casket = 
+		{
+			ROUTE_spawn3  = 
+			{
+				ROUTE_cs1  = 
+				{
+					ROUTE_cs2  = 
+					{
+						ROUTE_cs3  = 
+						{
+							ROUTE_cs4  = 
+							{
+								ROUTE_holynade  = 
+								{
+									ROUTE_holynade1  = 
+									{
+										ROUTE_cs5  = 
+										{
+											ROUTE_cs6  = 
+											{
+												ROUTE_cs7  = 
+												{
+													ROUTE_cs8  = 
+													{
+													},
+												},
+											},
+										},
+									},
+									ROUTE_cs9  = 
+									{
+										ROUTE_holynade2  = 
+										{
+											ROUTE_cs10  = 
+											{
+												ROUTE_cs11  = 
+												{
+													ROUTE_cs6  = 
+													{
+														ROUTE_cloister4  = 
+														{
+															ROUTE_cs8  = 
+															{
+																ROUTE_cs7  = 
+																{
+																},
+															},
+														},
+														ROUTE_cs7  = 
+														{
+															ROUTE_cs8  = 
+															{
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ROUTE_cloister1  = 
+				{
+					ROUTE_cloister2  = 
+					{
+						ROUTE_cloister3  = 
+						{
+							ROUTE_cloister4  = 
+							{
+							},
+						},
+					},
+				},
+			},
+		},
+	};
+	
+	
+	MapRoutes.ATTACK_casket1 = MapRoutes.PLANT_Grenade_Casket;
+	MapRoutes.ATTACK_casket2 = MapRoutes.PLANT_Grenade_Casket;
+	MapRoutes.ATTACK_casket3 = MapRoutes.PLANT_Grenade_Casket;
+	MapRoutes.ATTACK_casket4 = MapRoutes.PLANT_Grenade_Casket;
+	MapRoutes.FLAG_holynade = MapRoutes.PLANT_Grenade_Casket;
+	Util.Routes(MapRoutes);
+
+
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	 bot.TargetBreakableDist = 100.0;
+};

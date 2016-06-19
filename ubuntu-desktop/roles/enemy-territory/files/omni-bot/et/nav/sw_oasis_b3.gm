@@ -1,0 +1,938 @@
+/****************************************************
+Adapted from Siwa Oasis Official waypoints
+Pathing and script both adapted by **PCZ** >M@t3o$<
+Correspondant WAY file size : 64,6 Ko (66�176 octets)
+Last Update : 28 February 2010
+****************************************************/
+
+global Map =
+{
+	DispenseAmmoTime = 15,
+	
+	Ammo_Cabinet_cabinet_ammo = "AMMOCAB_cabinet_ammo",
+	Health_Cabinet_cabinet_health = "HEALTHCAB_cabinet_health",
+	Call_Artillery_Flag_13 = "CALLARTILLERY_Flag_13",
+	Artillery_D_894 = "ARTILLERY_D_894",
+	Checkpoint_oldcityflag = "CHECKPOINT_oldcityflag",
+	Build_Allied_Command_Post = "BUILD_Allied_Command_Post",
+	Build_Axis_Command_Post = "BUILD_Axis_Command_Post",
+	Build_Axis_Command_Post_1 = "BUILD_Axis_Command_Post_1",
+	Build_Garrison_Door = "BUILD_Garrison_Door",
+	Build_Oasis_Water_Pump = "BUILD_Oasis_Water_Pump",
+	Build_Old_City_MG_Nest = "BUILD_Old_City_MG_Nest",
+	Plant_Allied_Command_Post = "PLANT_Allied_Command_Post",
+	Plant_Axis_Command_Post = "PLANT_Axis_Command_Post",
+	Plant_Axis_Command_Post_1 = "PLANT_Axis_Command_Post_1",
+	Plant_Garrison_Door = "PLANT_Garrison_Door",
+	Plant_North_PAK_75mm_Gun = "PLANT_North_PAK_75mm_Gun",
+	Plant_Oasis_Water_Pump = "PLANT_Oasis_Water_Pump",
+	Plant_Old_City_MG_Nest = "PLANT_Old_City_MG_Nest",
+	Plant_Old_City_Wall = "PLANT_Old_City_Wall",
+	Plant_South_PAK_75mm_Gun = "PLANT_South_PAK_75mm_Gun",
+	Mount_Old_City_MG_Nest = "MOUNTMG42_Old_City_MG_Nest",
+	Repair_Old_City_MG_Nest = "REPAIRMG42_Old_City_MG_Nest",
+	Mobile_MG42_p1axis_west_courtyard = "MOBILEMG42_p1axis_west_courtyard",
+	Mobile_MG42_p2axis_north_garrison_entrance_1 = "MOBILEMG42_p2axis_north_garrison_entrance_1",
+	Mobile_Mortar_1690 = "MOBILEMORTAR_1690",
+	Snipe_p1axis_behindflagroom = "SNIPE_p1axis_behindflagroom",
+	Snipe_p1axis_supplyroom = "SNIPE_p1axis_supplyroom",
+	Snipe_p1axis_valleyledge_1 = "SNIPE_p1axis_valleyledge_1",
+	Snipe_p1axis_valleyledge_2 = "SNIPE_p1axis_valleyledge_2",
+	Snipe_p2axis_garrison_barracks = "SNIPE_p2axis_garrison_barracks",
+	Snipe_p2axis_garrison_canopy = "SNIPE_p2axis_garrison_canopy",
+	Snipe_p2axis_garrison_southwest_corner = "SNIPE_p2axis_garrison_southwest_corner",
+	Snipe_p2axis_old_city_oasis = "SNIPE_p2axis_old_city_oasis",
+	Plant_Mine_p1axis_courtyard_middle = "PLANTMINE_p1axis_courtyard_middle",
+	Plant_Mine_p1axis_west_of_flagroom = "PLANTMINE_p1axis_west_of_flagroom",
+
+	//dyno counters
+	NorthDyno = 0,
+	SouthDyno = 0,
+	WallDyno = 0,
+	
+	FlagStatus = 0, //no team owns it initially
+	
+	NorthGunStatus = 0, //intact
+	SouthGunStatus = 0,
+	WallStatus = true, //intact
+
+	// aggressive defenders will be split into north and south 'teams'
+	// this will keep them from wandering across the map
+	Roles =
+	{
+		AXIS =
+		{
+			DEFENDER1 =
+			{
+				numbots = 2,
+			},
+			DEFENDER2 =
+			{
+				numbots = 2,
+			},
+		},
+	},
+
+	// path through for axis throwing a/s over the wall when attempting to reclaim
+	Airstrike =
+	{
+		wall =
+		{
+			Enabled = true,
+			Team = (1<<TEAM.AXIS),
+			Facing = Vector3(-0.601,-0.392,0.696),
+			NoPause = true,
+		},
+	},
+
+	Navigation =
+	{
+		quickjump =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.PressButton(BTN.JUMP);
+				sleep(0.25);
+			},
+		},
+	},
+	
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+	
+	Garrison_Door_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Garrison_Door_Built" );
+	},
+
+	Old_City_MG_Nest_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Old_City_MG_Nest_Built" );
+	},
+
+	Oasis_Water_Pump_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_p1axis_west_courtyard" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMORTAR_waterpump" );
+
+		Util.MapDebugPrint( "Oasis_Water_Pump_Built" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+	
+	Garrison_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Garrison_Door_Destroyed" );
+	},
+
+	North_PAK_75mm_Gun_Destroyed = function( trigger )
+	{
+		Map.NorthGunStatus = 1;
+
+		//don't worry about additional dynos at this point
+		Map.NorthDyno = 0;
+
+		//focus on south defense
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_North_Anti_Tank_Gun.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_North_Gun.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_north_clear.*" );
+
+		//hmm might consider staying conservative after one is destroyed
+		if ( Map.SouthDyno < 1 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_gun_flex.*" );
+		}
+
+		Util.MapDebugPrint( "North_PAK_75mm_Gun_Destroyed" );
+	},
+
+	Oasis_Water_Pump_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Oasis_Water_Pump_Destroyed" );
+	},
+
+	Old_City_MG_Nest_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Old_City_MG_Nest_Destroyed" );
+	},
+
+	Old_City_Wall_Destroyed = function( trigger )
+	{
+		// this region trigger isn't needed anymore
+		DeleteTriggerRegion("snuckpast");
+
+		// and kill the thread watching players that snuck through
+		if ( Map.WatchPlayerThreadId ) {
+			threadKill(Map.WatchPlayerThreadId);
+		}
+
+		if ( TestMap )
+			{ return; }
+
+		Map.DispenseAmmoTime = 5;
+		Map.FlagStatus = 0;
+		Map.WallDyno = 0;
+		Map.WallStatus = false;
+
+		// Axis goals
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_South_Gun_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_North_Gun_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_middle_patrol.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_p2axis_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMG42_rGuns.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_p2axis_garrison_canopy" );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Axis_Command_Post );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_gun_flex.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_rGuns.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_rTunnel.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_rSouthEntrance.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_rTunnel.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_rSouthEntrance.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Garrison_Door );
+
+		// all classes now
+		SetGoalPriority( "DEFEND_north_clear.*", 0.92 );
+		SetGoalPriority( "DEFEND_south_clear.*", 0.92 );
+
+		// and turn em off if no dyno
+		if ( Map.NorthDyno < 1 ) {
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_north_clear.*" );
+		}
+		
+		if ( Map.SouthDyno < 1 ) {
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_south_clear.*" );
+		}
+
+		// disable the pathrough airstrike at the wall
+		Map.Airstrike.wall.Enabled = false;
+
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_p1axis_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Ammo_Cabinet_cabinet_ammo );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Health_Cabinet_cabinet_health );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Plant_Oasis_Water_Pump );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Plant_Old_City_MG_Nest );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Plant_Allied_Command_Post );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Old_City_Wall.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Flag_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_rFirstTunnel.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_rFirstTunnel.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "MOBILEMORTAR_waterpump" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "PLANTMINE_rFlag.*" );
+
+		// this one can be enabled sooner
+		SetAvailableMapGoals( TEAM.ALLIES, true, "MOBILEMORTAR_bGuns.*" );
+
+		//optionally keep the waterpump2 dynamite action. problem is, meds will
+		//leave defensive spots to go revive engineers as they inevitably get killed
+		//because its so close to allied spawn
+		if ( !Map.DestroyWaterPumpAfterWall )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, Map.Plant_Old_City_Water_Pump );
+		}
+
+		// cs: delay it long enough for the blockable status
+		// this prevents a ton of failed paths for allies
+		sleep(2.1);
+
+		// Allied goals
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Guns_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "SMOKEBOMB_bGuns.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_North_PAK_75mm_Gun );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_South_PAK_75mm_Gun );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Plant_Axis_Command_Post );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Garrison_Door" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Mount_Old_City_MG_Nest );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Repair_Old_City_MG_Nest );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Health_Cabinet_cabinet_health );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Ammo_Cabinet_cabinet_ammo );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Plant_Old_City_Wall );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Wall_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_Oasis_Water_Pump );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Build_Old_City_MG_Nest );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "AIRSTRIKE_bWall.*" );
+
+		Util.MapDebugPrint( "Old_City_Wall_Destroyed" );
+	},
+
+	South_PAK_75mm_Gun_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.SouthGunStatus = 1;
+		//don't worry about additional dynos at this point
+		Map.SouthDyno = 0;
+
+		//focus on north defense
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_South_PAK_75mm_Gun.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_South_Gun.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_south_clear.*" );
+
+		if ( Map.NorthDyno < 1 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_gun_flex.*" );
+		}
+		
+		Util.MapDebugPrint( "South_PAK_75mm_Gun_Destroyed" );
+	},
+
+	oldcityflag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.FlagStatus = 1;
+
+		SetGoalPriority( Map.Plant_Old_City_Wall, 0.91, TEAM.ALLIES, CLASS.ENGINEER );
+
+		// Allied goals
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_Wall_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Ammo_Cabinet_cabinet_ammo );
+		SetAvailableMapGoals( TEAM.ALLIES, false, Map.Health_Cabinet_cabinet_health );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "AIRSTRIKE_bWall.*" );
+
+		// Axis goals
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, ".*_p1axis_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_rFirstTunnel.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_rFirstTunnel.*" );
+		
+		Util.MapDebugPrint( "oldcityflag_Axis_Captured" );
+	},
+
+	oldcityflag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.FlagStatus = 2;
+
+		SetGoalPriority( Map.Plant_Old_City_Wall, 0.95, TEAM.ALLIES, CLASS.ENGINEER );
+
+		// Allied goals
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_Wall_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Ammo_Cabinet_cabinet_ammo );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Health_Cabinet_cabinet_health );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "AIRSTRIKE_bWall.*" );
+
+		// Axis goals
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_Flag_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, ".*_p1axis_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CALLARTILLERY_rFirstTunnel.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_rFirstTunnel.*" );
+		
+		Util.MapDebugPrint( "oldcityflag_Allies_Captured" );
+	},
+
+	North_Plant = function ( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.NorthDyno += 1;
+
+		//shift defense to support defuse
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_gun_flex.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true,	"DEFEND_north_clear.*" );
+		
+		Util.MapDebugPrint( "North_Plant" );
+	},
+
+	North_Defuse = function ( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.NorthDyno -= 1;
+
+		if ( Map.NorthDyno < 1  )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_north_clear.*" );
+
+			if ( Map.SouthDyno < 1 ) {
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_gun_flex.*" );
+			}
+		}
+
+		Util.MapDebugPrint( "North_Defuse" );
+	},
+
+	South_Plant = function ( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.SouthDyno += 1;
+
+		//shift defense to support defuse
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_gun_flex.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true,	"DEFEND_south_clear.*" );
+		
+		Util.MapDebugPrint( "South_Plant" );
+	},
+
+	South_Defuse = function ( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.SouthDyno -= 1;
+
+		if ( Map.SouthDyno < 1 )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_south_clear.*" );
+
+			if ( Map.NorthDyno < 1 ) {
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_gun_flex.*" );
+			}
+		}
+
+		Util.MapDebugPrint( "South_Defuse" );
+	},
+
+	Wall_Plant = function ( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.WallDyno += 1;
+		
+		//plant wall first
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Allied_Command_Post );
+		SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Old_City_MG_Nest );
+			
+		Util.MapDebugPrint( "Wall Plant" );
+	},
+	
+	Wall_Defuse = function ( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.WallDyno -= 1;
+
+		//no more dyno, back to focusing on wall plant
+		if ( Map.WallDyno < 1 )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Allied_Command_Post );
+			SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Old_City_MG_Nest );
+		}
+			
+		Util.MapDebugPrint( "Wall Defuse" );
+	},
+	
+	WatchPlayerLimbo = function()
+	{
+		while(Map.WatchPlayer && !GetEntFlags(Map.WatchPlayer, ENTFLAG.LIMBO)) {
+			sleep(0.5);
+		}
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_north_clear.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_south_clear.*" );
+		Util.MapDebugPrint( "Sneaky player died" );
+	},
+
+	SnuckPast =
+	{
+		Name = "snuckpast",
+		TriggerOnClass = CLASS.ENGINEER,
+		OnEnter = function(ent)
+		{
+			if ( TestMap ) { return; }
+			team = GetEntTeam(ent);
+			if ( team != TEAM.ALLIES ) { return; }
+
+			// spawn the engineers back (only do this once)
+			if ( !Map.SpawnedBack ) {
+				ETUtil.SuicideSpawn( TEAM.AXIS, 1, -1, CLASS.ENGINEER );
+				Map.SpawnedBack = true;
+			}
+
+			// have the engineers defend the guns
+			ETUtil.LimitToClass( "DEFEND_north_clear.*", TEAM.AXIS, CLASS.ENGINEER );
+			ETUtil.LimitToClass( "DEFEND_south_clear.*", TEAM.AXIS, CLASS.ENGINEER );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_north_clear.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_south_clear.*" );
+
+			// and do it until the sneaky player dies
+			Map.WatchPlayer = ent;
+
+			if ( Map.WatchPlayerThreadId ) {
+				threadKill(Map.WatchPlayerThreadId);
+			}
+			Map.WatchPlayerThreadId = thread(Map.WatchPlayerLimbo);
+			Util.MapDebugPrint( GetEntName(ent) + " entering." );
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+	
+	increasebreakabledist =
+	{
+		Name = "increasebreakabledist",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			team = GetEntTeam(ent);
+			if ( team != TEAM.ALLIES ) { return; }
+			b = Util.IsBot(ent);
+			if (b)
+			{
+				b.TargetBreakableDist = 570.0;
+			}
+		},
+		OnExit = function(ent)
+		{
+			team = GetEntTeam(ent);
+			if ( team != TEAM.ALLIES ) { return; }
+			b = Util.IsBot(ent);
+			if (b)
+			{
+				b.TargetBreakableDist = 0.0;
+			}
+		},
+	},
+};
+
+global OnMapLoad = function()
+{
+	Util.SetGoalPosition( 9661.875, 3858.125, -199.875, "PLANT_South_PAK_75mm_Gun" );
+	Util.SetGoalPosition( 9646.170, 4780.875, -199.875, "PLANT_North_PAK_75mm_Gun" );
+	
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "Axis have built the Garrison Side Door!", Map.Garrison_Door_Built );
+	OnTrigger( "Allies have built the Oasis Water Pump!", Map.Oasis_Water_Pump_Built );
+	OnTrigger( "The Old City MG Nest has been constructed!", Map.Old_City_MG_Nest_Built );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "Allies have blown the Garrison Side Door!", Map.Garrison_Door_Destroyed );
+	OnTrigger( "Allies have destroyed the North Anti-Tank Gun!", Map.North_PAK_75mm_Gun_Destroyed );
+	OnTrigger( "Axis have damaged the Oasis Water Pump!", Map.Oasis_Water_Pump_Destroyed );
+	OnTrigger( "The Old City MG Nest has been damaged!", Map.Old_City_MG_Nest_Destroyed );
+	OnTrigger( "Allies have breached the Old City wall and disabled power to the tunnel", Map.Old_City_Wall_Destroyed );
+	OnTrigger( "Allied team has destroyed the South Anti-Tank Gun!", Map.South_PAK_75mm_Gun_Destroyed );
+	OnTrigger( "Axis reclaim the Old City!", Map.oldcityflag_Axis_Captured );
+	OnTrigger( "Allies capture the Old City!", Map.oldcityflag_Allies_Captured );
+	OnTrigger( "Planted at the North Anti-Tank Gun.", Map.North_Plant );
+	OnTrigger( "Planted at the South Anti-Tank Gun.", Map.South_Plant );
+	OnTrigger( "Defused at the North Anti-Tank Gun.", Map.North_Defuse );
+	OnTrigger( "Defused at the South Anti-Tank Gun.", Map.South_Defuse );
+	OnTrigger( "Planted at the Old City Wall.", Map.Wall_Plant );
+	OnTrigger( "Defused at the Old City Wall.", Map.Wall_Defuse );
+
+	// detect engineers getting through when wall is still intact
+	wall = OnTriggerRegion(AABB(5536.597,6820.100,-565.253,5700.429,7872.364,-367.812),Map.SnuckPast);
+	Tunnel = OnTriggerRegion( AABB(4688.855,6283.303,-501.804,5009.452,6667.561,-376.875), Map.increasebreakabledist );
+	
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=15, MaxCampTime=30});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=10, MaxCampTime=15});
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=45, MaxCampTime=90});
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=30, MaxCampTime=60});
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=120, MaxCampTime=120});
+	SetMapGoalProperties( "DEFEND_north_clear.*", {MinCampTime=30, MaxCampTime=35});
+	SetMapGoalProperties( "DEFEND_south_clear.*", {MinCampTime=30, MaxCampTime=35});
+	SetMapGoalProperties( "DEFEND_middle_patrol.*", {MinCampTime=1, MaxCampTime=2});
+
+	SetGoalPriority( "MOUNTMG42_.*", 0.0, 0, CLASS.MEDIC );
+	SetGoalPriority( "MOUNTMG42_.*", 0.0, 0, CLASS.ENGINEER );
+	
+	// don't backtrack to defuse these unless camping
+	SetGoalPriority( "DEFUSE_Oasis_Water_Pump.*", 0.7, TEAM.ALLIES, CLASS.ENGINEER, true );
+	SetGoalPriority( "DEFUSE_Allied_Command_Post.*", 0.7, TEAM.ALLIES, CLASS.ENGINEER, true );
+
+	// Max users per goal
+	Util.SetMaxUsersInProgress( 15, Map.Checkpoint_oldcityflag );
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "REPAIR_.*" );
+	Util.SetMaxUsersInProgress( 5, "DEFEND_north_clear.*" );
+	Util.SetMaxUsersInUse( 1, "DEFEND_north_clear.*" );
+	Util.SetMaxUsersInProgress( 5, "DEFEND_south_clear.*" );
+	Util.SetMaxUsersInUse( 1, "DEFEND_south_clear.*" );
+
+	// Allied goals
+	SetGoalPriority( Map.Build_Oasis_Water_Pump, 0.94, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( Map.Build_Allied_Command_Post, 0.93, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( Map.Checkpoint_oldcityflag, 0.92, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( Map.Plant_Old_City_Wall, 0.91, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( Map.Build_Old_City_MG_Nest, 0.89, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( Map.Plant_North_PAK_75mm_Gun, 0.81, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( Map.Plant_South_PAK_75mm_Gun, 0.81, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( Map.Plant_Axis_Command_Post, 0.0, TEAM.ALLIES, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_Garrison_Door", 0.0, TEAM.ALLIES, CLASS.ENGINEER );
+	
+	Util.DisableGoal( ".*", true ); // all but routes
+
+	SetAvailableMapGoals( TEAM.ALLIES, true, "REPAIRMG42_Old_City_MG_Nest" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Oasis_Water_Pump" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Old_City_Wall" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "MOUNTMG42_Old_City_MG_Nest" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_oldcityflag" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Allied_Command_Post );
+	SetAvailableMapGoals( TEAM.ALLIES, true, Map.Build_Old_City_MG_Nest );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANTMINE_rFlag.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_cabinet_ammo" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_cabinet_health" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Allied_Command_Post" );
+	//SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Oasis_Water_Pump" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Old_City_MG_Nest" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_p1axis_valleyledge_2" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_p1axis_behindflagroom" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_p1axis_supplyroom" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_p1axis_valleyledge_1" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_oldcityflag" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_Flag_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "MOBILEMORTAR_waterpump" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_rFirstTunnel.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_rFirstTunnel.*" );
+	
+	Util.MapDebugPrint( "OnMapLoad" );
+	
+	// Set up routes to get to various goals
+	
+	// Routing
+	MapRoutes =
+	{
+		// Alternate Routes
+		CHECKPOINT_oldcityflag =
+		{
+			ROUTE_allyspawn =
+			{
+				ROUTE_frontdoor_l = {},
+				ROUTE_frontdoor_r = {},
+				ROUTE_leftdoor =
+				{
+					Weight = 2,
+					ROUTE_toproute_a = {},
+					ROUTE_ruins_l = 
+					{
+						ROUTE_ruins_stairs = 
+						{
+							ROUTE_flag_l = {},
+							ROUTE_flag_t = {},
+						},
+					},
+				},
+				ROUTE_tunnel1 = 
+				{
+					Weight = 2, 
+					ROUTE_tunnel2 = {}, 
+				},
+			},
+			ROUTE_WaterPumpSpawn =
+			{
+				ROUTE_frontdoor_l = {},
+				ROUTE_frontdoor_r = {},
+				ROUTE_leftdoor =
+				{
+					Weight = 2,
+					ROUTE_toproute_a = {},
+					ROUTE_ruins_l = 
+					{
+						ROUTE_ruins_stairs = 
+						{
+							ROUTE_flag_l = {},
+							ROUTE_flag_t = {},
+						},
+					},
+				},
+				ROUTE_tunnel1 = 
+				{
+					Weight = 2, 
+					ROUTE_tunnel2 = {}, 
+				},
+			},
+			ROUTE_AxisSpawn1 = 
+			{
+				ROUTE_overwall =
+				{
+					ROUTE_walltop = {},
+					ROUTE_wallfar = {},
+				},
+				ROUTE_walldoor = {},
+			},
+			ROUTE_AxisSpawn2 = 
+			{
+				ROUTE_overwall =
+				{
+					ROUTE_walltop = {},
+					ROUTE_wallfar = {},
+				},
+				ROUTE_walldoor = {},
+			},
+		},
+		DEFEND_Flag_3 =
+		{
+			ROUTE_AxisSpawn1 = 
+			{
+				ROUTE_overwall =
+				{
+					ROUTE_walltop = {},
+					ROUTE_wallfar = {},
+				},
+				ROUTE_walldoor = {},
+			},
+			ROUTE_AxisSpawn2 = 
+			{
+				ROUTE_overwall =
+				{
+					ROUTE_walltop = {},
+					ROUTE_wallfar = {},
+				},
+				ROUTE_walldoor = {},
+			},
+		},
+		PLANT_North_PAK_75mm_Gun =
+		{
+			ROUTE_FlagSpawn =
+			{
+				ROUTE_oc_tunnel =
+				{
+					Weight = 3,
+					ROUTE_southentrance = {},
+					ROUTE_se_corner = { ROUTE_eastentrance = {}, },
+				},
+				ROUTE_upper_connection =
+				{
+					ROUTE_northentrance1 =
+					{
+						ROUTE_cp_split =
+						{
+							ROUTE_cp_route = {},
+							ROUTE_halls = {},
+						},
+					},
+					ROUTE_northentrance2 = {},
+					ROUTE_ne_corner = { ROUTE_eastentrance = {}, },
+					ROUTE_westside = 
+					{
+						ROUTE_sw_corner =
+						{
+							ROUTE_southentrance = {},
+							ROUTE_se_corner = { ROUTE_eastentrance = {}, },	
+						},
+					},
+				},
+				ROUTE_lower_connection =
+				{
+					ROUTE_northentrance1 =
+					{
+						ROUTE_cp_split =
+						{
+							ROUTE_cp_route = {},
+							ROUTE_halls = {},
+						},
+					},
+					ROUTE_northentrance2 = {},
+					ROUTE_ne_corner = { ROUTE_eastentrance = {}, },
+					ROUTE_westside = 
+					{
+						ROUTE_sw_corner =
+						{
+							ROUTE_southentrance = {},
+							ROUTE_se_corner = { ROUTE_eastentrance = {}, },	
+						},
+					},
+				},
+			},
+		},
+		PLANT_South_PAK_75mm_Gun  =
+		{
+			ROUTE_FlagSpawn =
+			{
+				ROUTE_oc_tunnel =
+				{
+					Weight = 3,
+					ROUTE_southentrance = {},
+					ROUTE_se_corner = { ROUTE_eastentrance = {}, },
+				},
+				ROUTE_upper_connection =
+				{
+					ROUTE_northentrance1 =
+					{
+						ROUTE_cp_split =
+						{
+							ROUTE_halls =
+							{
+								ROUTE_uppersouth = {},
+							},
+						},
+						ROUTE_lowermg1 = { ROUTE_lowermg2 = {}, },
+					},
+					ROUTE_northentrance2 = {},
+					ROUTE_ne_corner = { ROUTE_eastentrance = {}, },
+					ROUTE_westside =
+					{
+						ROUTE_sw_corner =
+						{
+							ROUTE_southentrance = {},
+							ROUTE_se_corner = { ROUTE_eastentrance = {}, },
+						},
+					},
+				},
+				ROUTE_lower_connection =
+				{
+					ROUTE_northentrance1 =
+					{
+						ROUTE_cp_split =
+						{
+							ROUTE_halls =
+							{
+								ROUTE_uppersouth = {},
+							},
+						},
+						ROUTE_lowermg1 = { ROUTE_lowermg2 = {}, },
+					},
+					ROUTE_northentrance2 = {},
+					ROUTE_ne_corner = { ROUTE_eastentrance = {}, },
+					ROUTE_westside =
+					{
+						ROUTE_sw_corner =
+						{
+							ROUTE_southentrance = {},
+							ROUTE_se_corner = { ROUTE_eastentrance = {}, },
+						},
+					},
+				},
+			},
+		},
+		PLANT_Oasis_Water_Pump =
+		{
+			ROUTE_FlagSpawn =
+				{ ROUTE_tunnel2 = { ROUTE_tunnel1 = {}, }, },
+		},
+		DEFEND_gun_flex_4 =
+		{
+			ROUTE_AxisSpawn1 =
+			{
+				ROUTE_gunpatrol2 = { ROUTE_northentrance2 = {}, },
+			},
+			ROUTE_AxisSpawn2 =
+			{
+				ROUTE_gunpatrol2 = { ROUTE_northentrance2 = {}, },
+			},
+		},
+		PLANT_Garrison_Door =
+		{
+			ROUTE_FlagSpawn =
+			{
+				ROUTE_oc_tunnel = {},
+				ROUTE_upper_connection = { ROUTE_westside = {}, },
+			},
+		},
+		MOBILEMG42_rGuns1 =
+		{
+			// send them this way so they don't have their back to enemy when heading to them
+			ROUTE_AxisSpawn1 =
+			{
+				ROUTE_nTruck = {},
+			},
+			ROUTE_AxisSpawn2 =
+			{
+				ROUTE_nTruck = {},
+			},
+		},
+		SMOKEBOMB_bGuns_south =
+		{
+			ROUTE_FlagSpawn =
+			{
+				ROUTE_oc_tunnel =
+				{
+					ROUTE_southentrance = {},
+				},
+			},
+		},
+		SMOKEBOMB_bGuns_north =
+		{
+			ROUTE_FlagSpawn =
+			{
+				ROUTE_upper_connection = {},
+				ROUTE_lower_connection = {},
+			},
+		},
+	};
+
+	//copy some routes
+	MapRoutes.DEFEND_Flag_4 = MapRoutes.DEFEND_Flag_3;
+	MapRoutes.DEFEND_Flag_5 = MapRoutes.DEFEND_Flag_3;
+	MapRoutes.DEFEND_Flag_6 = MapRoutes.DEFEND_Flag_3;
+	MapRoutes.DEFEND_Flag_7 = MapRoutes.DEFEND_Flag_3;
+	MapRoutes.DEFEND_Flag_8 = MapRoutes.DEFEND_Flag_3;
+	MapRoutes.DEFEND_Flag_9 = MapRoutes.DEFEND_Flag_3;
+	MapRoutes.DEFEND_Flag_10 = MapRoutes.DEFEND_Flag_3;
+	MapRoutes.DEFEND_Flag_11 = MapRoutes.DEFEND_Flag_3;
+	MapRoutes.DEFEND_Flag_12 = MapRoutes.DEFEND_Flag_3;
+	MapRoutes.DEFEND_Flag_13 = MapRoutes.DEFEND_Flag_3;
+	MapRoutes.DEFEND_Flag_14 = MapRoutes.DEFEND_Flag_3;
+	MapRoutes.DEFEND_Flag_15 = MapRoutes.DEFEND_Flag_3;
+	MapRoutes.PLANT_Axis_Command_Post = MapRoutes.PLANT_North_PAK_75mm_Gun;
+	MapRoutes.ATTACK_Guns_1 = MapRoutes.PLANT_North_PAK_75mm_Gun;
+	MapRoutes.ATTACK_Guns_2 = MapRoutes.PLANT_North_PAK_75mm_Gun;
+	MapRoutes.ATTACK_Guns_3 = MapRoutes.PLANT_North_PAK_75mm_Gun;
+	MapRoutes.ATTACK_Guns_4 = MapRoutes.PLANT_North_PAK_75mm_Gun;
+	MapRoutes.ATTACK_Guns_5 = MapRoutes.PLANT_North_PAK_75mm_Gun;
+	MapRoutes.DEFEND_gun_flex_5 = MapRoutes.DEFEND_gun_flex_4;
+	MapRoutes.DEFEND_gun_flex_6 = MapRoutes.DEFEND_gun_flex_4;
+	MapRoutes.MOBILEMG42_rGuns2 = MapRoutes.MOBILEMG42_rGuns1;
+	
+	Util.Routes(MapRoutes);
+};
+
+// Uncomment for shootable breakables
+
+global OnBotJoin = function( bot )
+{
+	//default spawn
+	bot.ChangeSpawnPoint( 0 );
+};

@@ -1,0 +1,160 @@
+// this script assigns bot roles as defined in the map table
+this.Name = "RoleManager";
+this.Parent = "LowLevel";
+this.Debug = false;
+this.AlwaysRecieveEvents = true;
+
+this.Initialize = function()
+{
+	this.justStarted = true;
+};
+
+this.FindFreeRoleSlot = function()
+{
+	// return if map doesn't have Roles table
+	// skip bots that already have a role
+	if ( !Map || !Map.Roles || Util.BotHasAnyRole(this.Bot) ) {
+		return;
+	}
+
+	team = this.Bot.GetTeam();
+	teamRoles = Map.Roles[ Util.TeamName(team) ];
+	if (!teamRoles){ return; }
+
+	botCount = 0;
+	evalNum = 0;
+	newClass = null;
+	foreach ( id and role in teamRoles ) {
+		if ( typeId(role) != 6 || !role.numbots ) { continue; }
+
+		if ( role.MinBotsForRole ) {
+			if ( Server.Team[ team ].NumBots < role.MinBotsForRole ) {
+				continue;
+			}
+		}
+
+		if ( !role.bots ) { role.bots = table(); }
+
+		//remove disconnected bots
+		deleted = null;
+		foreach ( bot and val in role.bots ) {
+			if (!bot.Name) {
+				if (!deleted){ deleted = table(); }
+				deleted[tableCount(deleted)] = bot;
+			}
+		}
+		if (deleted) {
+			foreach ( bot in deleted ) {
+				role.bots[bot] = null;
+			}
+		}
+
+		currentBots = tableCount(role.bots);
+		botCount += currentBots;
+		numFree =  role.numbots - currentBots;
+
+		if ( this.Debug ) {
+			print( Util.TeamName(team), id, "current:", currentBots, "free:", numFree, "evalnum:" + evalNum );
+		}
+
+		// prioritize roles that have no players
+		if (currentBots == 0) { numFree += 9; }
+
+		// see which one needs a bot the most
+		if ( numFree > evalNum ) {
+			evalNum = numFree;
+			newRole = id;
+
+			if ( currentBots == 0 ) {
+				newClass = role.crucialClass;
+			} else {
+				newClass = null;
+			}
+			spawnPoint = role.spawnpt;
+			voiceMacro = role.voice;
+		}
+	}
+
+	//team counter is used only immediately after map restart
+	if (!teamRoles.teamCount){ teamRoles.teamCount = 0; }
+	teamRoles.teamCount += 1;
+
+	// store it in the table and set the role
+	if ( typeId(newRole) != 0 ) {
+
+		// every other bot for the team unless specified
+		if (!teamRoles.AllBots) {
+			// teamCount = ETUtil.CountTeam(); //deprecated
+			teamCount = 0;
+			foreach ( bot in BotTable )
+			{
+				if ( bot.GetTeam() == team )
+					{ teamCount += 1; }
+			}
+			if (teamCount > teamRoles.teamCount) {
+				//do not count bots that have not been initialized yet
+				teamCount = teamRoles.teamCount;
+			}
+			if (2 * botCount >= teamCount - 1) {
+				return;
+			}
+		}
+
+		if (this.Debug) { print(this.Bot.Name, "role set to", newRole); }
+		teamRoles[ newRole ].bots[ this.Bot ] = true;
+		this.Bot.SetRoles(ROLE[newRole]);
+
+		// and change class if necessary
+		if ( newClass ) {
+			if (this.Debug) { print(this.Bot.Name, "crucial class set to", Util.ClassName(newClass)); }
+			this.Bot.crucialClass = newClass;
+			this.Bot.ChangeClass(newClass);
+		}
+
+		// spawnpoint too
+		if ( spawnPoint ) {
+			this.Bot.ChangeSpawnPoint(spawnPoint);
+		}
+
+		// signal a voice macro
+		if ( voiceMacro ) {
+			signal( format("%s_%s", this.Bot.Name, voiceMacro) );
+		}
+	}
+};
+
+this.Events[EVENT.DISCONNECTED] = function()
+{
+	// wait a frame so the disconnecting bot is gone
+	yield();
+	// see if any bots without roles can take the spot
+	// this is executed for all bots except the bot which has been disconnected
+	if (this.FindFreeRoleSlot){ this.FindFreeRoleSlot(); }
+};
+
+this.Events[EVENT.CHANGETEAM] = function(team)
+{
+	if ( !Map || !Map.Roles ) {
+		return;
+	}
+	if (this.justStarted) {
+		this.justStarted = null;
+	} else {
+		// clear role in old team
+		if (team==TEAM.AXIS){ team=TEAM.ALLIES; } else { team=TEAM.AXIS; }
+		teamRoles = Map.Roles[ Util.TeamName(team) ];
+		if (teamRoles) {
+			bot = this.Bot;
+			foreach ( name and role in teamRoles ) {
+				if (typeId(role) == 6 && role.bots && role.bots[bot]) {
+					if (this.Debug){ print(bot.Name, "role", name, "cleared"); }
+					role.bots[bot] = null;
+					bot.ClearRoles(ROLE[name]);
+					bot.crucialClass = null;
+				}
+			}
+		}
+	}
+	// set role in new team
+	this.FindFreeRoleSlot();
+};

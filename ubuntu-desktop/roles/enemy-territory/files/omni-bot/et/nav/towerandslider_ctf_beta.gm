@@ -1,0 +1,1012 @@
+//==========================================================================================
+//
+//	towerandslider_ctf_beta.gm
+//	towerandslider_ctf_beta_goals.gm
+//	towerandslider_ctf_beta.way
+//
+//	Who      	When		What
+//------------------------------------------------------------------------------------------
+//	Qiki		06.06.2012	Final release
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+	
+	Gold_AL21SW_Taken = false,
+	Gold_AX17SW_Taken = false,	//Golds which have to be stolen by allies
+	Gold_AL15NE_Taken = false,
+	
+	Gold_AX21NE_Taken = false,
+	Gold_AL17NE_Taken = false,	//Golds which have to be stolen by axis
+	Gold_AX15SW_Taken = false,
+	
+	Navigation =
+	{
+		//  	/bot waypoint_setproperty paththrough Navigation_PT:a
+		a =
+		{
+			navigate = function(_this)
+			{
+				wpTable = {};
+				Wp.GetWaypointByName("A", wpTable);
+				if ( _this.Goto(wpTable.position) == EVENT.PATH_SUCCESS )
+				{
+					_this.AddAimRequest(Priority.VeryHigh, "facing", wpTable.facing);
+					sleep(0.7);
+					_this.Bot.HoldButton(BTN.USE, 0.8);
+					sleep(4);
+				}
+			},
+		},
+		//  	/bot waypoint_setproperty paththrough Navigation_PT:b
+		b =
+		{
+			navigate = function(_this)
+			{
+				wpTable = {};
+				Wp.GetWaypointByName("B", wpTable);
+				if ( _this.Goto(wpTable.position) == EVENT.PATH_SUCCESS )
+				{
+					_this.AddAimRequest(Priority.VeryHigh, "facing", wpTable.facing);
+					sleep(0.7);
+					_this.Bot.HoldButton(BTN.USE, 0.8);
+					sleep(4);
+					_this.Bot.HoldButton(BTN.JUMP, 0.5);
+					sleep(0,5);
+				}
+			},
+		},
+	},
+	
+	AX01SE_Door_Built_By_Allies = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Door_3", "door", true );
+		Wp.SetWaypointFlag( "Door_4", "door", true );
+		Wp.SetWaypointFlag( "Door_3", "allies", true );
+		Wp.SetWaypointFlag( "Door_4", "allies", true );
+		Wp.SetWaypointFlag( "Door_3", "axis", false );
+		Wp.SetWaypointFlag( "Door_4", "axis", false );
+
+		Util.MapDebugPrint( "AX01SE_Door_Built_By_Allies" );
+	},
+	
+	AX01SE_Door_Built_By_Axis = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Door_3", "door", true );
+		Wp.SetWaypointFlag( "Door_4", "door", true );
+		Wp.SetWaypointFlag( "Door_3", "allies", false );
+		Wp.SetWaypointFlag( "Door_4", "allies", false );
+		Wp.SetWaypointFlag( "Door_3", "axis", true );
+		Wp.SetWaypointFlag( "Door_4", "axis", true );
+			
+		Util.MapDebugPrint( "AX01SE_Door_Built_By_Axis" );
+	},
+	
+	AL01NW_Door_Built_By_Axis = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Door_7", "door", true );
+		Wp.SetWaypointFlag( "Door_8", "door", true );
+		Wp.SetWaypointFlag( "Door_7", "axis", true );
+		Wp.SetWaypointFlag( "Door_8", "axis", true );
+		Wp.SetWaypointFlag( "Door_7", "allies", false );
+		Wp.SetWaypointFlag( "Door_8", "allies", false );
+			
+		Util.MapDebugPrint( "AL01NW_Door_Built_By_Axis" );
+	},
+	
+	AL01NW_Door_Built_By_Allies = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Door_7", "door", true );
+		Wp.SetWaypointFlag( "Door_8", "door", true );
+		Wp.SetWaypointFlag( "Door_7", "axis", false );
+		Wp.SetWaypointFlag( "Door_8", "axis", false );
+		Wp.SetWaypointFlag( "Door_7", "allies", true );
+		Wp.SetWaypointFlag( "Door_8", "allies", true );
+			
+		Util.MapDebugPrint( "AL01NW_Door_Built_By_Allies" );
+	},
+	
+	AL16NW_Fence_Built_By_Axis = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Fence_2", "allies", false );
+		Wp.SetWaypointFlag( "Fence_2", "axis", true );
+		Wp.SetWaypointFlag( "Fence_2", "door", true );
+		
+		Wp.SetWaypointFlag( "Fence_4", "allies", false );
+		Wp.SetWaypointFlag( "Fence_4", "axis", true );
+		Wp.SetWaypointFlag( "Fence_4", "door", true );
+
+		Util.MapDebugPrint( "AL16NW_Fence_Built_By_Axis" );
+	},
+	
+	AL16NW_Fence_Built_By_Allies = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Fence_2", "allies", true );
+		Wp.SetWaypointFlag( "Fence_2", "axis", false );
+		Wp.SetWaypointFlag( "Fence_2", "door", true );
+		
+		Wp.SetWaypointFlag( "Fence_4", "allies", true );
+		Wp.SetWaypointFlag( "Fence_4", "axis", false );
+		Wp.SetWaypointFlag( "Fence_4", "door", true );
+		
+		Util.MapDebugPrint( "AL16NW_Fence_Built_By_Allies" );
+	},
+	
+	AL18NE_Wall_Built_By_Allies = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Wall_3", "allies", true );
+		Wp.SetWaypointFlag( "A", "allies", true );
+		Wp.SetWaypointFlag( "A", "closed", false );
+		Wp.SetWaypointFlag( "Wall_3", "axis", false );
+		Wp.SetWaypointFlag( "Wall_3", "door", true );
+		
+		Wp.SetWaypointFlag( "Wall_4", "allies", true );
+		Wp.SetWaypointFlag( "Wall_4", "axis", false );
+		Wp.SetWaypointFlag( "Wall_4", "door", true );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ROUTE_AL20NE" );
+
+		Util.MapDebugPrint( "AL18NE_Wall_Built_By_Allies" );
+	},
+	
+	AL18NE_Wall_Built_By_Axis = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Wall_3", "allies", false );
+		Wp.SetWaypointFlag( "A", "axis", true );
+		Wp.SetWaypointFlag( "A", "closed", false );
+		Wp.SetWaypointFlag( "Wall_3", "axis", true );
+		Wp.SetWaypointFlag( "Wall_3", "door", true );
+		
+		Wp.SetWaypointFlag( "Wall_4", "allies", false );
+		Wp.SetWaypointFlag( "Wall_4", "axis", true );
+		Wp.SetWaypointFlag( "Wall_4", "door", true );
+
+		Util.MapDebugPrint( "AL18NE_Wall_Built_By_Axis" );
+	},
+	
+	AX16SE_Fence_Built_By_Axis = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Fence_7", "allies", false );
+		Wp.SetWaypointFlag( "Fence_7", "axis", true );
+		Wp.SetWaypointFlag( "Fence_7", "door", true );
+		
+		Wp.SetWaypointFlag( "Fence_8", "allies", false );
+		Wp.SetWaypointFlag( "Fence_8", "axis", true );
+		Wp.SetWaypointFlag( "Fence_8", "door", true );
+
+		Util.MapDebugPrint( "AX16SE_Fence_Built_By_Axis" );
+	},
+	
+	AX16SE_Fence_Built_By_Allies = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Fence_7", "allies", true );
+		Wp.SetWaypointFlag( "Fence_7", "axis", false );
+		Wp.SetWaypointFlag( "Fence_7", "door", true );
+		
+		Wp.SetWaypointFlag( "Fence_8", "allies", true );
+		Wp.SetWaypointFlag( "Fence_8", "axis", false );
+		Wp.SetWaypointFlag( "Fence_8", "door", true );
+		
+		Util.MapDebugPrint( "AX16SE_Fence_Built_By_Allies" );
+	},
+	
+	AX18SW_Wall_Built_By_Axis = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Wall_7", "allies", false );
+		Wp.SetWaypointFlag( "Wall_7", "axis", true );
+		Wp.SetWaypointFlag( "Wall_7", "door", true );
+		
+		Wp.SetWaypointFlag( "Wall_8", "allies", false );
+		Wp.SetWaypointFlag( "Wall_8", "axis", true );
+		Wp.SetWaypointFlag( "Wall_8", "door", true );
+		Wp.SetWaypointFlag( "B", "closed", false );
+		Wp.SetWaypointFlag( "B", "allies", false );
+		Wp.SetWaypointFlag( "B", "axis", true );
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "ROUTE_AX20SW" );
+		
+		Util.MapDebugPrint( "AX18SW_Wall_Built_By_Axis" );
+	},
+	
+	AX18SW_Wall_Built_By_Allies = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Wall_7", "allies", true );
+		Wp.SetWaypointFlag( "Wall_7", "axis", false );
+		Wp.SetWaypointFlag( "Wall_7", "door", true );
+		
+		Wp.SetWaypointFlag( "Wall_8", "allies", true );
+		Wp.SetWaypointFlag( "Wall_8", "axis", false );
+		Wp.SetWaypointFlag( "Wall_8", "door", true );
+		Wp.SetWaypointFlag( "B", "closed", false );
+		Wp.SetWaypointFlag( "B", "axis", false );
+		Wp.SetWaypointFlag( "B", "allies", false );
+		
+		Util.MapDebugPrint( "AX18SW_Wall_Built_By_Allies" );
+	},
+	
+	AX01SE_Door_Destroyed_By_Axis = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Door_3", "door", false );
+		Wp.SetWaypointFlag( "Door_4", "door", false );
+		Wp.SetWaypointFlag( "Door_3", "allies", false );
+		Wp.SetWaypointFlag( "Door_4", "allies", false );
+		Wp.SetWaypointFlag( "Door_3", "axis", false );
+		Wp.SetWaypointFlag( "Door_4", "axis", false );
+
+		Util.MapDebugPrint( "AX01SE_Door_Destroyed_By_Axis" );
+	},
+	
+	AX01SE_Door_Destroyed_By_Allies = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Door_3", "door", false );
+		Wp.SetWaypointFlag( "Door_4", "door", false );
+		Wp.SetWaypointFlag( "Door_3", "allies", false );
+		Wp.SetWaypointFlag( "Door_4", "allies", false );
+		Wp.SetWaypointFlag( "Door_3", "axis", false );
+		Wp.SetWaypointFlag( "Door_4", "axis", false );
+
+		Util.MapDebugPrint( "AX01SE_Door_Destroyed_By_Allies" );
+	},
+	
+	AL01NW_Door_Destroyed_By_Allies = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Door_7", "door", false );
+		Wp.SetWaypointFlag( "Door_8", "door", false );
+		Wp.SetWaypointFlag( "Door_7", "axis", false );
+		Wp.SetWaypointFlag( "Door_8", "axis", false );
+		Wp.SetWaypointFlag( "Door_7", "allies", false );
+		Wp.SetWaypointFlag( "Door_8", "allies", false );
+
+		Util.MapDebugPrint( "AL01NW_Door_Destroyed_By_Allies" );
+	},
+	
+	AL01NW_Door_Destroyed_By_Axis = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Door_7", "door", false );
+		Wp.SetWaypointFlag( "Door_8", "door", false );
+		Wp.SetWaypointFlag( "Door_7", "axis", false );
+		Wp.SetWaypointFlag( "Door_8", "axis", false );
+		Wp.SetWaypointFlag( "Door_7", "allies", false );
+		Wp.SetWaypointFlag( "Door_8", "allies", false );
+
+		Util.MapDebugPrint( "AL01NW_Door_Destroyed_By_Axis" );
+	},
+	
+	AL16NW_Fence_Destroyed_By_Allies = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		Wp.SetWaypointFlag( "Fence_2", "allies", false );
+		Wp.SetWaypointFlag( "Fence_2", "axis", false );
+		Wp.SetWaypointFlag( "Fence_2", "door", false );
+		
+		Wp.SetWaypointFlag( "Fence_4", "allies", false );
+		Wp.SetWaypointFlag( "Fence_4", "axis", false );
+		Wp.SetWaypointFlag( "Fence_4", "door", false );
+
+		Util.MapDebugPrint( "AL16NW_Fence_Destroyed_By_Allies" );
+	},
+	
+	AL16NW_Fence_Destroyed_By_Axis = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Fence_2", "allies", false );
+		Wp.SetWaypointFlag( "Fence_2", "axis", false );
+		Wp.SetWaypointFlag( "Fence_2", "door", false );
+		
+		Wp.SetWaypointFlag( "Fence_4", "allies", false );
+		Wp.SetWaypointFlag( "Fence_4", "axis", false );
+		Wp.SetWaypointFlag( "Fence_4", "door", false );
+		
+		Util.MapDebugPrint( "AL16NW_Fence_Destroyed_By_Axis" );
+	},
+	
+	AL18NE_Wall_Destroyed_By_Allies = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Wall_3", "allies", false );
+		Wp.SetWaypointFlag( "A", "closed", true );
+		Wp.SetWaypointFlag( "A", "axis", false );
+		Wp.SetWaypointFlag( "A", "allies", false );
+		Wp.SetWaypointFlag( "Wall_3", "axis", false );
+		Wp.SetWaypointFlag( "Wall_3", "door", false );
+		
+		Wp.SetWaypointFlag( "Wall_4", "allies", false );
+		Wp.SetWaypointFlag( "Wall_4", "axis", false );
+		Wp.SetWaypointFlag( "Wall_4", "door", false );
+		
+		Util.MapDebugPrint( "AL18NE_Wall_Destroyed_By_Allies" );
+	},
+	
+	AL18NE_Wall_Destroyed_By_Axis = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Wall_3", "allies", false );
+		Wp.SetWaypointFlag( "A", "closed", true );
+		Wp.SetWaypointFlag( "A", "axis", false );
+		Wp.SetWaypointFlag( "A", "allies", false );
+		Wp.SetWaypointFlag( "Wall_3", "axis", false );
+		Wp.SetWaypointFlag( "Wall_3", "door", false );
+		
+		Wp.SetWaypointFlag( "Wall_4", "allies", false );
+		Wp.SetWaypointFlag( "Wall_4", "axis", false );
+		Wp.SetWaypointFlag( "Wall_4", "door", false );
+		
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_AL20NE" );
+		
+		Util.MapDebugPrint( "AL18NE_Wall_Destroyed_By_Axis" );
+	},
+	
+	AX16SE_Fence_Destroyed_By_Axis = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Fence_7", "allies", false );
+		Wp.SetWaypointFlag( "Fence_7", "axis", false );
+		Wp.SetWaypointFlag( "Fence_7", "door", false );
+		
+		Wp.SetWaypointFlag( "Fence_8", "allies", false );
+		Wp.SetWaypointFlag( "Fence_8", "axis", false );
+		Wp.SetWaypointFlag( "Fence_8", "door", false );
+
+		Util.MapDebugPrint( "AX16SE_Fence_Destroyed_By_Axis" );
+	},
+	
+	AX16SE_Fence_Destroyed_By_Allies = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Wp.SetWaypointFlag( "Fence_7", "allies", false );
+		Wp.SetWaypointFlag( "Fence_7", "axis", false );
+		Wp.SetWaypointFlag( "Fence_7", "door", false );
+		
+		Wp.SetWaypointFlag( "Fence_8", "allies", false );
+		Wp.SetWaypointFlag( "Fence_8", "axis", false );
+		Wp.SetWaypointFlag( "Fence_8", "door", false );
+		
+		Util.MapDebugPrint( "AX16SE_Fence_Destroyed_By_Allies" );
+	},
+	
+	AX18SW_Wall_Destroyed_By_Axis = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Wp.SetWaypointFlag( "Wall_7", "allies", false );
+		Wp.SetWaypointFlag( "Wall_7", "axis", false );
+		Wp.SetWaypointFlag( "Wall_7", "door", false );
+		
+		Wp.SetWaypointFlag( "Wall_8", "allies", false );
+		Wp.SetWaypointFlag( "Wall_8", "axis", false );
+		Wp.SetWaypointFlag( "Wall_8", "door", false );
+		Wp.SetWaypointFlag( "B", "closed", true );
+		Wp.SetWaypointFlag( "B", "axis", false );
+		Wp.SetWaypointFlag( "B", "allies", false );
+		
+		Util.MapDebugPrint( "AX18SW_Wall_Destroyed_By_Axis" );
+	},
+	
+	AX18SW_Wall_Destroyed_By_Allies = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Wp.SetWaypointFlag( "Wall_7", "allies", false );
+		Wp.SetWaypointFlag( "Wall_7", "axis", false );
+		Wp.SetWaypointFlag( "Wall_7", "door", false );
+		
+		Wp.SetWaypointFlag( "Wall_8", "allies", false );
+		Wp.SetWaypointFlag( "Wall_8", "axis", false );
+		Wp.SetWaypointFlag( "Wall_8", "door", false );
+		Wp.SetWaypointFlag( "B", "closed", true );
+		Wp.SetWaypointFlag( "B", "axis", false );
+		Wp.SetWaypointFlag( "B", "allies", false );
+		
+		SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_AX20SW" );
+		
+		Util.MapDebugPrint( "AX18SW_Wall_Destroyed_By_Allies" );
+	},
+
+	Axis_AX15SW_Gold_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Gold_AX15SW_Taken = true;
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_AX01SE_.*" );
+		
+		Util.MapDebugPrint( "Axis_AX15SW_Gold_Taken" );
+	},
+
+	Axis_AL17NE_Gold_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Gold_AL17NE_Taken = true;
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_AX01SE_.*" );
+		
+		Util.MapDebugPrint( "Axis_AL17NE_Gold_Taken" );
+	},
+
+	Axis_AX21NE_Gold_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Gold_AX21NE_Taken = true;
+		
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_AX01SE_.*" );
+		
+		Util.MapDebugPrint( "Axis_AX21NE_Gold_Taken" );
+	},
+
+	Allies_AL15NE_Gold_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Gold_AL15NE_Taken = true;
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_AL01NW_.*" );
+		
+		Util.MapDebugPrint( "Allies_AL15NE_Gold_Taken" );
+	},
+
+	Allies_AX17SW_Gold_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Gold_AX17SW_Taken = true;
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_AL01NW_.*" );
+		
+		Util.MapDebugPrint( "Allies_AX17SW_Gold_Taken" );
+	},
+
+	Allies_AL21SW_Gold_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.Gold_AL21SW_Taken = true;
+		
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_AL01NW_.*" );
+
+		Util.MapDebugPrint( "Allies_AL21SW_Gold_Taken" );
+	},
+	
+	Axis_AX15SW_Gold_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Gold_AX15SW_Taken = false;
+		
+		Util.BotChat( TEAM.ALLIES, "vsay", VOICE.G_AFFIRMATIVE, 1 );
+		
+		if ( !Map.Gold_AX21NE_Taken and !Map.Gold_AL17NE_Taken )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AX01SE_.*" );
+		}
+		
+		Util.MapDebugPrint( "Axis_AX15SW_Gold_Returned" );
+	},
+
+	Axis_AL17NE_Gold_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Gold_AL17NE_Taken = false;
+		
+		Util.BotChat( TEAM.ALLIES, "vsay", VOICE.G_AFFIRMATIVE, 1 );
+		
+		if ( !Map.Gold_AX15SW_Taken and !Map.Gold_AX21NE_Taken )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AX01SE_.*" );
+		}
+		
+		Util.MapDebugPrint( "Axis_AL17NE_Gold_Returned" );
+	},
+
+	Axis_AX21NE_Gold_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Gold_AX21NE_Taken = false;
+		
+		Util.BotChat( TEAM.ALLIES, "vsay", VOICE.G_AFFIRMATIVE, 1 );
+		
+		if ( !Map.Gold_AL17NE_Taken and !Map.Gold_AX15SW_Taken )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AX01SE_.*" );
+		}
+		
+		Util.MapDebugPrint( "Axis_AX21NE_Gold_Returned" );
+	},
+
+	Allies_AL15NE_Gold_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Gold_AL15NE_Taken = false;
+		
+		Util.BotChat( TEAM.AXIS, "vsay", VOICE.G_AFFIRMATIVE, 1 );
+		
+		if ( !Map.Gold_AX17SW_Taken and !Map.Gold_AL21SW_Taken )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AL01NW_.*" );
+		}
+		
+		Util.MapDebugPrint( "Allies_AL15NE_Gold_Returned" );
+	},
+
+	Allies_AX17SW_Gold_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Gold_AX17SW_Taken = false;
+		
+		Util.BotChat( TEAM.AXIS, "vsay", VOICE.G_AFFIRMATIVE, 1 );
+		
+		if ( !Map.Gold_AL15NE_Taken and !Map.Gold_AL21SW_Taken )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AL01NW_.*" );
+		}
+		
+		Util.MapDebugPrint( "Allies_AX17SW_Gold_Returned" );
+	},
+
+	Allies_AL21SW_Gold_Returned = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+			
+		Map.Gold_AL21SW_Taken = false;
+		
+		Util.BotChat( TEAM.AXIS, "vsay", VOICE.G_AFFIRMATIVE, 1 );
+		
+		if ( !Map.Gold_AL15NE_Taken and !Map.Gold_AX17SW_Taken )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AL01NW_.*" );
+		}
+		
+		Util.MapDebugPrint( "Allies_AL21SW_Gold_Returned" );
+	},
+
+	Axis_AX15SW_Gold_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Gold_AX15SW_Taken = false;
+		
+		if ( !Map.Gold_AX21NE_Taken and !Map.Gold_AL17NE_Taken )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AX01SE_.*" );
+		}
+		
+		Util.BotChat( TEAM.AXIS, "vsay", VOICE.G_CHEER, 1 );
+		
+		Util.MapDebugPrint( "Axis_AX15SW_Gold_Secured" );
+	},
+
+	Axis_AL17NE_Gold_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Gold_AL17NE_Taken = false;
+		
+		if ( !Map.Gold_AX15SW_Taken and !Map.Gold_AX21NE_Taken )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AX01SE_.*" );
+		}
+		
+		Util.BotChat( TEAM.AXIS, "vsay", VOICE.G_CHEER, 1 );
+		
+		Util.MapDebugPrint( "Axis_AL17NE_Gold_Secured" );
+	},
+
+	Axis_AX21NE_Gold_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Gold_AX21NE_Taken = false;
+		
+		if ( !Map.Gold_AL17NE_Taken and !Map.Gold_AX15SW_Taken )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_AX01SE_.*" );
+		}
+		
+		Util.BotChat( TEAM.AXIS, "vsay", VOICE.G_CHEER, 1 );
+		
+		Util.MapDebugPrint( "Axis_AX21NE_Gold_Secured" );
+	},
+
+	Allies_AL15NE_Gold_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Gold_AL15NE_Taken = false;
+		
+		if ( !Map.Gold_AX17SW_Taken and !Map.Gold_AL21SW_Taken )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AL01NW_.*" );
+		}
+		
+		Util.BotChat( TEAM.ALLIES, "vsay", VOICE.G_CHEER, 1 );
+		
+		Util.MapDebugPrint( "Allies_AL15NE_Gold_Secured" );
+	},
+
+	Allies_AX17SW_Gold_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		
+		Map.Gold_AX17SW_Taken = false;
+		
+		if ( !Map.Gold_AL15NE_Taken and !Map.Gold_AL21SW_Taken )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AL01NW_.*" );
+		}
+		
+		Util.BotChat( TEAM.ALLIES, "vsay", VOICE.G_CHEER, 1 );
+		
+		Util.MapDebugPrint( "Allies_AX17SW_Gold_Secured" );
+	},
+	
+	Allies_AL21SW_Gold_Secured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Gold_AL21SW_Taken = false;
+		
+		if ( !Map.Gold_AL15NE_Taken and !Map.Gold_AX17SW_Taken )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_AL01NW_.*" );
+		}
+		
+		Util.BotChat( TEAM.ALLIES, "vsay", VOICE.G_CHEER, 1 );
+		
+		Util.MapDebugPrint( "Allies_AL21SW_Gold_Secured" );
+	},
+	
+	Something_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFUSE_.*" );
+
+		Util.MapDebugPrint( "Something_Planted" );
+	},
+	
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+		
+	//Door
+	OnTrigger( "^6AXIS^7's Door has been constructed! (^5AL^701NW)", Map.AL01NW_Door_Built_By_Axis );
+	OnTrigger( "^5ALLIES^7's Door has been constructed! (^5AL^701NW)", Map.AL01NW_Door_Built_By_Allies );
+	OnTrigger( "^5ALLIES^7's Door has been constructed! (^6AX^701SE)", Map.AX01SE_Door_Built_By_Allies );
+	OnTrigger( "^6AXIS^7's Door has been constructed! (^6AX^701SE)", Map.AX01SE_Door_Built_By_Axis );
+	
+	//Fence
+	OnTrigger( "^6AXIS^7's Fence has been constructed! (^5AL^716NW)", Map.AL16NW_Fence_Built_By_Axis );
+	OnTrigger( "^6AXIS^7's Fence has been constructed! (^6AX^716SE)", Map.AX16SE_Fence_Built_By_Axis );
+	OnTrigger( "^5ALLIES^7's Fence has been constructed! (^5AL^716NW)", Map.AL16NW_Fence_Built_By_Allies );
+	OnTrigger( "^5ALLIES^7's Fence has been constructed! (^6AX^716SE)", Map.AX16SE_Fence_Built_By_Allies );
+	
+	//Wall
+	OnTrigger( "^5ALLIES^7's Wall has been constructed! (^5AL^718NE)", Map.AL18NE_Wall_Built_By_Allies );
+	OnTrigger( "^5ALLIES^7's Wall has been constructed! (^6AX^718SW)", Map.AX18SW_Wall_Built_By_Allies );
+	OnTrigger( "^6AXIS^7's Wall has been constructed! (^5AL^718NE)", Map.AL18NE_Wall_Built_By_Axis );
+	OnTrigger( "^6AXIS^7's Wall has been constructed! (^6AX^718SW)", Map.AX18SW_Wall_Built_By_Axis );
+	
+	//Door
+	OnTrigger( "^5ALLIES^7's Door has been destroyed! (^6AX^701SE)", Map.AX01SE_Door_Destroyed_By_Axis );
+	OnTrigger( "^6AXIS^7's Door has been destroyed! (^6AX^701SE)", Map.AX01SE_Door_Destroyed_By_Allies );
+	OnTrigger( "^6AXIS^7's Door has been destroyed! (^5AL^701NW)", Map.AL01NW_Door_Destroyed_By_Allies );
+	OnTrigger( "^5ALLIES^7's Door has been destroyed! (^5AL^701NW)", Map.AL01NW_Door_Destroyed_By_Axis );
+	
+	//Fence
+	OnTrigger( "^6AXIS^7's Fence has been destroyed! (^5AL^716NW)", Map.AL16NW_Fence_Destroyed_By_Allies );
+	OnTrigger( "^5ALLIES^7's Fence has been destroyed! (^5AL^716NW)", Map.AL16NW_Fence_Destroyed_By_Axis );
+	OnTrigger( "^5ALLIES^7's Fence has been destroyed! (^6AX^716SE)", Map.AX16SE_Fence_Destroyed_By_Axis );
+	OnTrigger( "^6AXIS^7's Fence has been destroyed! (^6AX^716SE)", Map.AX16SE_Fence_Destroyed_By_Allies );
+	
+	//Wall
+	OnTrigger( "^5ALLIES^7's Wall has been destroyed! (^5AL^718NE)", Map.AL18NE_Wall_Destroyed_By_Axis );
+	OnTrigger( "^5ALLIES^7's Wall has been destroyed! (^6AX^718SW)", Map.AX18SW_Wall_Destroyed_By_Axis );
+	OnTrigger( "^6AXIS^7's Wall has been destroyed! (^5AL^718NE)", Map.AL18NE_Wall_Destroyed_By_Allies );
+	OnTrigger( "^6AXIS^7's Wall has been destroyed! (^6AX^718SW)", Map.AX18SW_Wall_Destroyed_By_Allies );
+	
+	OnTrigger( "Axis have stolen ^5ALLIES^7's Gold Bars (^6AX^715SW)!", Map.Axis_AX15SW_Gold_Taken );
+	OnTrigger( "Flag returned allies_goldbar_1!", Map.Axis_AX15SW_Gold_Returned );
+	OnTrigger( "^6AXIS ^3has secured the Gold Bars Crate! (^6AX^715SW^3)", Map.Axis_AX15SW_Gold_Secured );
+	
+	OnTrigger( "Axis have stolen ^5ALLIES^7's Gold Bars (^5AL^717NE)!", Map.Axis_AL17NE_Gold_Taken );
+	OnTrigger( "Flag returned allies_goldbar_2!", Map.Axis_AL17NE_Gold_Returned );
+	OnTrigger( "^6AXIS ^3has secured the Gold Bars Crate! (^5AL^717NE^3)", Map.Axis_AL17NE_Gold_Secured );
+	
+	OnTrigger( "Axis have stolen ^5ALLIES^7's Gold Bars (^6AX^721NE)!", Map.Axis_AX21NE_Gold_Taken );
+	OnTrigger( "Flag returned allies_goldbar_3!", Map.Axis_AX21NE_Gold_Returned );
+	OnTrigger( "^6AXIS ^3has secured the Gold Bars Crate! (^6AX^721NE^3)", Map.Axis_AX21NE_Gold_Secured );
+	
+	OnTrigger( "Allies have stolen ^6AXIS^7's Gold Bars (^5AL^715NE)!", Map.Allies_AL15NE_Gold_Taken );
+	OnTrigger( "Flag returned axis_goldbar_1!", Map.Allies_AL15NE_Gold_Returned );
+	OnTrigger( "^5ALLIES ^3has secured the Gold Bars Crate! (^5AL^715NE^3)", Map.Allies_AL15NE_Gold_Secured );
+	
+	OnTrigger( "Allies have stolen ^6AXIS^7's Gold Bars (^6AX^717SW)!", Map.Allies_AX17SW_Gold_Taken );
+	OnTrigger( "Flag returned axis_goldbar_2!", Map.Allies_AX17SW_Gold_Returned );
+	OnTrigger( "^5ALLIES ^3has secured the Gold Bars Crate! (^6AX^717SW^3)", Map.Allies_AX17SW_Gold_Secured );
+	
+	OnTrigger( "Allies have stolen ^6AXIS^7's Gold Bars (^5AL^721SW)!", Map.Allies_AL21SW_Gold_Taken );
+	OnTrigger( "Flag returned axis_goldbar_3!", Map.Allies_AL21SW_Gold_Returned );
+	OnTrigger( "^5ALLIES ^3has secured the Gold Bars Crate! (^5AL^721SW^3)", Map.Allies_AL21SW_Gold_Secured );
+	
+	OnTrigger( "Planted at ^7Door (^5AL^701NW).", Map.Something_Planted );
+	OnTrigger( "Planted at ^7Fence (^5AL^716NW).", Map.Something_Planted );
+	OnTrigger( "Planted at ^7Wall (^5AL^718NE).", Map.Something_Planted );
+	OnTrigger( "Planted at ^7Door (^6AX^701SE).", Map.Something_Planted );
+	OnTrigger( "Planted at ^7Fence (^6AX^716SE).", Map.Something_Planted );
+	OnTrigger( "Planted at ^7Wall (^6AX^718SW).", Map.Something_Planted );
+
+	SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_Allies" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "REPAIRMG42_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "MOUNTMG42_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ROUTE_AX20SW" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+	
+	SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_Axis" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "REPAIRMG42_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "MOUNTMG42_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ROUTE_AL20NE" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_.*" );
+	
+	SetGoalPriority( "FLAG_.*", 0.78, 0, 0 );
+	SetGoalPriority( "BUILD_.*", 0.9, 0, CLASS.ENGINEER );
+	SetGoalPriority( "PLANT_.*", 0.91, 0, CLASS.ENGINEER );
+	SetGoalPriority( "DEFEND_.*", 0.79, 0, 0 );
+	
+	if(GetModName() == "noquarter")
+	{
+	
+		Util.AddUseWp( "PLANT_7Door_^6AX701SE", "Door_1" );
+		Util.AddUseWp( "PLANT_7Door_^6AX701SE", "Door_2" );
+		Util.AddUseWp( "PLANT_7Door_^5AL701NW", "Door_5" );
+		Util.AddUseWp( "PLANT_7Door_^5AL701NW", "Door_6" );
+		Util.AddUseWp( "PLANT_7Fence_^5AL716NW", "Fence_1" );
+		Util.AddUseWp( "PLANT_7Fence_^5AL716NW", "Fence_3" );
+		Util.AddUseWp( "PLANT_7Fence_^6AX716SE", "Fence_5" );
+		Util.AddUseWp( "PLANT_7Fence_^6AX716SE", "Fence_6" );
+		Util.AddUseWp( "PLANT_7Wall_^5AL718NE", "Wall_1" );
+		Util.AddUseWp( "PLANT_7Wall_^5AL718NE", "Wall_2" );
+		Util.AddUseWp( "PLANT_7Wall_^6AX718SW", "Wall_5" );
+		Util.AddUseWp( "PLANT_7Wall_^6AX718SW", "Wall_6" );
+	}
+	else
+	{
+		Util.AddUseWp( "PLANT_Door_AX01SE", "Door_1" );
+		Util.AddUseWp( "PLANT_Door_AX01SE", "Door_2" );
+		Util.AddUseWp( "PLANT_Door_AL01NW", "Door_5" );
+		Util.AddUseWp( "PLANT_Door_AL01NW", "Door_6" );
+		Util.AddUseWp( "PLANT_Fence_AL16NW", "Fence_1" );
+		Util.AddUseWp( "PLANT_Fence_AL16NW", "Fence_3" );
+		Util.AddUseWp( "PLANT_Fence_AX16SE", "Fence_5" );
+		Util.AddUseWp( "PLANT_Fence_AX16SE", "Fence_6" );
+		Util.AddUseWp( "PLANT_Wall_AL18NE", "Wall_1" );
+		Util.AddUseWp( "PLANT_Wall_AL18NE", "Wall_2" );
+		Util.AddUseWp( "PLANT_Wall_AX18SW", "Wall_5" );
+		Util.AddUseWp( "PLANT_Wall_AX18SW", "Wall_6" );
+	}
+
+	
+	Wp.SetWaypointFlag( "Door_3", "door", true );
+	Wp.SetWaypointFlag( "Door_4", "door", true );
+	Wp.SetWaypointFlag( "Door_3", "allies", true );
+	Wp.SetWaypointFlag( "Door_4", "allies", true );
+	Wp.SetWaypointFlag( "Door_3", "axis", false );
+	Wp.SetWaypointFlag( "Door_4", "axis", false );
+	
+	Wp.SetWaypointFlag( "Door_7", "door", true );
+	Wp.SetWaypointFlag( "Door_8", "door", true );
+	Wp.SetWaypointFlag( "Door_7", "axis", true );
+	Wp.SetWaypointFlag( "Door_8", "axis", true );
+	Wp.SetWaypointFlag( "Door_7", "allies", false );
+	Wp.SetWaypointFlag( "Door_8", "allies", false );
+	
+	Wp.SetWaypointFlag( "Fence_2", "allies", false );
+	Wp.SetWaypointFlag( "Fence_2", "axis", true );
+	Wp.SetWaypointFlag( "Fence_2", "door", true );
+	
+	Wp.SetWaypointFlag( "Fence_4", "allies", false );
+	Wp.SetWaypointFlag( "Fence_4", "axis", true );
+	Wp.SetWaypointFlag( "Fence_4", "door", true );
+	
+	Wp.SetWaypointFlag( "Wall_3", "allies", false );
+	Wp.SetWaypointFlag( "Wall_3", "axis", true );
+	Wp.SetWaypointFlag( "Wall_3", "door", true );
+	Wp.SetWaypointFlag( "A", "closed", false );
+	Wp.SetWaypointFlag( "A", "axis", true );
+	Wp.SetWaypointFlag( "A", "allies", false );
+	
+	Wp.SetWaypointFlag( "Wall_4", "allies", false );
+	Wp.SetWaypointFlag( "Wall_4", "axis", true );
+	Wp.SetWaypointFlag( "Wall_4", "door", true );
+	
+	Wp.SetWaypointFlag( "Fence_7", "allies", true );
+	Wp.SetWaypointFlag( "Fence_7", "axis", false );
+	Wp.SetWaypointFlag( "Fence_7", "door", true );
+	
+	Wp.SetWaypointFlag( "Fence_8", "allies", true );
+	Wp.SetWaypointFlag( "Fence_8", "axis", false );
+	Wp.SetWaypointFlag( "Fence_8", "door", true );
+	
+	Wp.SetWaypointFlag( "Wall_7", "allies", true );
+	Wp.SetWaypointFlag( "Wall_7", "axis", false );
+	Wp.SetWaypointFlag( "Wall_7", "door", true );
+	
+	Wp.SetWaypointFlag( "Wall_8", "allies", true );
+	Wp.SetWaypointFlag( "Wall_8", "axis", false );
+	Wp.SetWaypointFlag( "Wall_8", "door", true );
+	Wp.SetWaypointFlag( "B", "closed", false );
+	Wp.SetWaypointFlag( "B", "axis", false );
+	Wp.SetWaypointFlag( "B", "allies", true );
+
+	// Max users per goal
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+	Util.SetMaxUsers( 1, "BUILD_.*" );
+	Util.SetMaxUsers( 1, "PLANT_.*" );
+	
+	DCM1 = OnTriggerRegion(AABB( -2040.875,-2040.875,1.125,2040.875,2040.875,9602.875 ), RegionTrigger.DisableCombatMovement);	//trigger - right side of the hill above the entrance to the underwater tunnel (near Radar room)
+	NP1 = OnTriggerRegion(AABB( -2040.875,-2040.875,1.125,2040.875,2040.875,9602.875 ), RegionTrigger.DisableBotPush);
+	
+	MapRoutes =
+	{
+		CAPPOINT_Allies =
+		{
+			ROUTE_AL15NE =
+			{
+				ROUTE_Slider_1 =
+				{
+					
+				},
+				ROUTE_AL13SE =
+				{
+					
+				},
+			},
+			ROUTE_AL21SW =
+			{
+				ROUTE_Slider_1 =
+				{
+					
+				},
+				ROUTE_AL13SE =
+				{
+					
+				},
+				ROUTE_AL20NE =
+				{
+					Weight = 4,
+				},
+			},
+		},
+		CAPPOINT_Axis =
+		{
+			ROUTE_AX15SW =
+			{
+				ROUTE_Slider_2 =
+				{
+					
+				},
+				ROUTE_AX13NW =
+				{
+					
+				},
+			},
+			ROUTE_AX21NE =
+			{
+				ROUTE_Slider_2 =
+				{
+					
+				},
+				ROUTE_AX13NW =
+				{
+					
+				},
+				ROUTE_AX20SW =
+				{
+					Weight = 4,
+				},
+			},
+		},
+	};
+	
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	Server.MinClassCount[TEAM.ALLIES][CLASS.SOLDIER] = 0;
+	Server.MinClassCount[TEAM.AXIS][CLASS.SOLDIER] = 0;
+};

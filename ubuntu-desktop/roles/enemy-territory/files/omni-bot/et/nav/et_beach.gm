@@ -1,0 +1,716 @@
+global Map =
+{
+	Quiet = true,
+
+	Airstrike =
+	{
+		bridge =
+		{
+			Enabled = false,
+			Team = (1<<TEAM.AXIS),
+			Facing = Vector3(-0.774,-0.000,0.631),
+			NoPause = true,
+		},
+	},
+	
+	Navigation =
+	{
+		towerjump =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.PressButton(BTN.JUMP);
+				sleep(1);
+				_this.Bot.HoldButton(BTN.STRAFE_R, 1);
+				_this.Bot.HoldButton(BTN.JUMP, 2);
+				sleep(2);
+			},			
+		},
+		
+		trenchjump =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.PressButton(BTN.JUMP);
+				_this.Bot.HoldButton(BTN.STRAFE_L, 0.5);
+				_this.Bot.HoldButton(BTN.SPRINT, 1);
+				sleep(1);
+			},			
+		},
+		railjump =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.PressButton(BTN.JUMP);
+				sleep(0.25);
+			},
+		},		
+	},	
+
+	Checkpoint_beach_flag = "CHECKPOINT_beach_flag",
+	Flag_allied_obj2 = "FLAG_allied_obj2",
+	Cappoint_Transmitter = "CAPPOINT_Transmitter",
+	Plant_Door = "PLANT_Sea_Wall_Door",
+	Plant_Wall = "PLANT_Sea_Wall_breach",
+	Explode_t373 = "EXPLODE_t373",
+	Explode_t374 = "EXPLODE_t374",
+	Explode_t375 = "EXPLODE_t375",
+	Mount_mg42_1 = "MOUNTMG42_mg42_1",
+	Mount_mg42_2 = "MOUNTMG42_mg42_2",
+	Mount_mg42_3 = "MOUNTMG42_mg42_3",
+	Mount_t364 = "MOUNTMG42_t364",
+	Mount_t367 = "MOUNTMG42_t367",
+	Repair_mg42_1 = "REPAIRMG42_mg42_1",
+	Repair_mg42_2 = "REPAIRMG42_mg42_2",
+	Repair_mg42_3 = "REPAIRMG42_mg42_3",
+	Repair_t364 = "REPAIRMG42_t364",
+	Repair_t367 = "REPAIRMG42_t367",
+	Build_Command_Post = "BUILD_Command_Post",
+	Plant_Command_Post = "PLANT_Command_Post",
+	
+	DontDispenseAmmo = true,
+	
+	CompSettings = false, // don't set this for ET
+
+	//set status' for conditionals
+	FlagStatus = 0, //0 nobody, 1 axis, 2 allies
+	DocStatus = false, //home
+	DoorStatus = false, //intact
+	WallStatus = false, //intact
+	WarRoomShift = false,
+
+      //tables to hold current AS goals	
+	AxisASTable = {},
+	AlliesASTable = {},
+
+	//tables to copy to current AS goal tables
+	AxisASWall ={ "red_as1_p1", "red_as2_p1", "red_as3_p1", },
+	AlliesASWall = { "blue_as1_p1", "blue_as2_p1", "blue_as3_p1", },
+
+	BackStairsTrigger =
+	{
+		Name = "BackStairsTrigger",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{ 
+				Map.WarRoomShift = true;
+
+				if ( !Map.DocStatus )
+				{
+					SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rWar.*" );
+					
+					if ( Map.CompSettings )
+						{ ETUtil.SetTeamSuicide( TEAM.AXIS, 0, 0 ); }
+				}
+				else if ( Map.DocStatus )
+				{
+					if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+					{
+						// Martin - Let bots tell teammates where documents are going
+						b = Util.IsBot(ent);
+						if(b)
+						{
+							b.SayTeam("I'm going long!");
+						}
+					
+						Map.WarRoomShift = false;
+						SetGoalPriority( "DEFEND_rTransmit[123456]", 0.6 );
+						SetGoalPriority( "ATTACK_bTransmit[4567]", 0.6 );	//Allies focus on one side
+						SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rTransmit.*" );
+
+						foreach ( id and bot in BotTable )
+						{
+							if ( bot.GetTeam() == TEAM.AXIS )
+							{
+								bot.SayTeam("Docs are going long!");
+								break;
+							}
+						}						
+					}
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	RadioStairsTrigger =
+	{
+		Name = "RadioStairsTrigger",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if( GetEntTeam(ent) == TEAM.ALLIES )
+			{ 
+				Map.AlliesNearDocs = true;
+
+				if ( !Map.DocStatus )
+				{
+					Map.WarRoomShift = true;
+					SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+					SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rWar.*" );
+					
+					if ( Map.CompSettings )
+						{ ETUtil.SetTeamSuicide( TEAM.AXIS, 0, 0 ); }
+				}
+				else if ( Map.DocStatus )
+				{
+					if ( GetEntFlags( ent, ENTFLAG.CARRYINGGOAL ) )
+					{
+						// Martin - Let bots tell teammates where documents are going
+						b = Util.IsBot(ent);
+						if(b)
+						{
+							b.SayTeam("I'm going short!");
+						}
+					
+						Map.WarRoomShift = false;
+						SetGoalPriority( "DEFEND_rTransmit[789]", 0.6 );
+						SetGoalPriority( "DEFEND_rTransmit10", 0.6 );
+						SetGoalPriority( "ATTACK_bTransmit[1236]", 0.6 );	//Allies focus on one side
+						SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_.*" );
+						SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rTransmit.*" );
+
+						foreach ( id and bot in BotTable )
+						{
+							if ( bot.GetTeam() == TEAM.AXIS )
+							{
+								bot.SayTeam("Docs are going short!");
+								break;
+							}
+						}						
+					}
+				}				
+			}
+		},
+		OnExit = function(ent)
+		{
+		},
+	},
+
+	allied_obj1_1_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.DoorStatus = true;
+
+		if ( !Map.DocStatus )
+			{ Map.eval_beach_shift(); }
+		Map.DontDispenseAmmo = false;
+	},
+
+	allied_obj1_2_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.WallStatus = true;
+
+		if ( !Map.DocStatus )
+			{ Map.eval_beach_shift(); }
+		Map.DontDispenseAmmo = false;
+	},
+
+	eval_beach_shift = function()
+	{
+		if ( Map.WallStatus && Map.DoorStatus ) //both destroyed
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rUpper.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rAlt.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_Command_.*" );
+			
+			SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_Command_.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_Command_.*" );
+
+			SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_rBeach.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_bBeach.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_rWall.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_rDoor.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, Map.Mount_t367);
+			SetAvailableMapGoals( TEAM.AXIS, false, Map.Mount_mg42_2);
+			SetAvailableMapGoals( TEAM.AXIS, false, Map.Mount_mg42_1);
+			
+			//only axis soldiers should try and grab flag
+			ETUtil.LimitToClass( Map.Checkpoint_beach_flag, TEAM.AXIS, CLASS.SOLDIER );
+
+			//no more a/s here
+			Map.AxisASTable = {};
+			Map.AlliesASTable = {};
+		}
+		else if ( Map.WallStatus && !Map.DoorStatus ) //wall destroyed, door intact
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rWall.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, Map.Mount_t367);
+
+			//shift a/s focus
+			Map.AxisASTable = { "red_as1_p1", "red_as3_p1", };
+			Map.AlliesASTable = { "blue_as3_p1", };
+		}
+		else if ( !Map.WallStatus && Map.DoorStatus ) //door destroyed, wall intact
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rDoor.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, Map.Mount_mg42_2);
+			SetAvailableMapGoals( TEAM.AXIS, true, Map.Mount_mg42_1);
+
+			//shift a/s focus`
+			Map.AxisASTable = { "red_as2_p1", };
+			Map.AlliesASTable = { "blue_as1_p1", "blue_as2_p1", };
+		}
+
+		//set these if either has been destroyed
+		Util.EnableGoal( Map.Checkpoint_beach_flag );
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Mount_mg42_3);
+		SetAvailableMapGoals( TEAM.AXIS, false, Map.Mount_t364);
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_rBeach.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_bBeach.*" );
+		
+		Wp.SetWaypointFlag( "ladder", "closed", false );	// Open up the ladder
+	},
+
+ 	Allies_Capture_Flag = function( trigger )
+ 	{
+		if ( TestMap )
+			{ return; }
+
+		Map.FlagStatus = 2;
+
+		//did humans wall boost?
+		if ( Map.DoorStatus || Map.WallStatus )
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, Map.Flag_allied_obj2 );
+			Map.AlliesASTable = {}; 
+		}
+		
+		Map.EvalArty();
+		
+		if(Map.DocStatus == false)
+		{
+			Map.AxisASTable = {"rTrenchAS_1", "rTrenchAS_2",};
+		}
+		Map.Airstrike.bridge.Enabled = true;
+		SetGoalPriority( "CALL.*", 0.6 );
+		SetGoalPriority( "ARTILLLERY.*", 0.6 );
+
+		Util.SetMaxUsersInProgress( 1, "CHECKPOINT.*" );	// Martin - 1 axis at a time go for it
+		Wp.SetWaypointFlag( "pt_nav_towerjump", "closed", false );	// Open up the towerjump
+ 	},
+
+ 	Axis_Capture_Flag = function( trigger )
+ 	{
+		if ( TestMap )
+			{ return; }
+
+		Map.FlagStatus = 1;
+		Map.AxisASTable = {};
+		Map.EvalArty();
+		
+		Map.Airstrike.bridge.Enabled = false;
+		SetGoalPriority( "CALL.*", 1.2 );
+		SetGoalPriority( "ARTILLLERY.*", 1.2 );
+		
+		Util.SetMaxUsersInProgress( 3, "CHECKPOINT.*" );	// Martin - But let 3 allies go for it.
+ 	},
+
+ 	documents_stolen = function( trigger )
+ 	{
+		if ( TestMap )
+			{ return; }
+
+		if ( !Map.DocStatus )
+		{
+			Map.DocStatus = true;
+			
+			Map.EvalArty();	//Martin - Lets stop spamming sooner
+			
+			SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_rBeach.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "SNIPE_bBeach.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, Map.Mount_t367);
+			SetAvailableMapGoals( TEAM.AXIS, false, Map.Mount_mg42_2);
+			SetAvailableMapGoals( TEAM.AXIS, false, Map.Mount_mg42_1);
+
+			Util.DisableGoal(Map.Build_Command_Post);
+			Util.DisableGoal(Map.Plant_Command_Post);
+
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_bTransmit.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, Map.Checkpoint_beach_flag );
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rWar.*" ); //make sure
+			Map.AxisASTable = {};
+
+			timeout = 0;
+			while ( timeout <= 8 && Map.DocStatus == true )
+			{
+				timeout += 1;
+				sleep(1);
+			}
+			
+			SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_rWar.*" );
+			
+			if (Map.DocStatus)
+			{
+				SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rTransmit.*" );
+				
+				if ( Map.CompSettings )
+					{ ETUtil.SetTeamSuicide( TEAM.AXIS, 0, 0 ); }			
+			}
+		}
+		
+ 	},
+
+	EvalArty = function()
+	{		
+		if ( !Map.DocStatus && Map.FlagStatus ==1 )
+		{
+			//SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_ubase_spot_axis_[2]" );		
+			SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_rBeach.*" );
+		}
+		
+		if ( (!Map.WallStatus || !Map.DoorStatus) && !Map.DocStatus && Map.FlagStatus == 1)
+		{ 
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_bBeach.*" );	
+			SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_rFlag.*" );
+		}
+
+		if ( !Map.DocStatus && Map.FlagStatus == 2)
+		{
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_bTower.*" );
+			//SetAvailableMapGoals( TEAM.ALLIES, true, "CALLARTILLERY_trenches_spot_allies" );	//Martin - This should be paththrough		
+			//SetAvailableMapGoals( TEAM.ALLIES, false, "CALLARTILLERY_spot_beach_[12345678]");
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_bBeach.*" );		
+			//SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_ubase_spot_axis_[2]" );	
+			SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_rFlag.*" );
+			SetAvailableMapGoals( TEAM.AXIS, false, "ARTILLERY_S_rBeach.*" );
+		}
+
+		if ( Map.DocStatus )
+		{
+			//Util.DisableGoal( "CALLARTILLERY.*" );
+			Util.DisableGoal( "ARTILLERY.*" );
+		}	
+	},
+	
+ 	documents_returned = function( trigger )
+ 	{
+		if ( TestMap )
+			{ return; }
+
+		Map.DocStatus = false;
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rUpper.*");
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rAlt.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_bTransmit.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_rTransmit.*" );
+		
+		Util.EnableGoal(Map.Build_Command_Post);
+		Util.EnableGoal(Map.Plant_Command_Post);		
+
+		//set these back to default ( changed in the stairs triggers )
+		SetGoalPriority( "DEFEND_rTransmit.*", 0.5 );
+		if(Map.FlagStatus == 2)
+		{
+			Map.AxisASTable = {"rTrenchAS_1","rTrenchAS_2",};
+		}
+		
+		if ( Map.CompSettings )
+			{ ETUtil.SetTeamSuicide( TEAM.AXIS, 1, 1 ); }
+			
+		Map.EvalArty();		
+ 	},
+
+ 	documents_secured = function( trigger )
+ 	{
+		if ( TestMap )
+			{ return; }
+ 	},
+
+	door_planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Sea_Wall_door.*" );
+	},
+	
+	door_defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+	},
+
+	breach_planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFUSE_Sea_Wall_breach.*" );
+	},
+	
+	breach_defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+	},
+
+	two_minute = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, Map.Flag_allied_obj2 );
+	},
+	
+	TowerTrigger = 
+	{
+		Name = "TowerTrigger",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+			if ( TestMap )
+				{ return; }	
+				
+			if( GetEntTeam(ent) == TEAM.ALLIES )   
+			{ 
+				SetAvailableMapGoals( TEAM.ALLIES, false, "ARTILLERY_S_bTower.*" );
+			}
+		},
+		OnExit = function(ent)
+		{
+			if ( TestMap )
+				{ return; }
+			if (Map.DocStatus == true)   //Docs are stolen
+				   { return; }
+			if (Map.FlagStatus == 1)	//Axis still own flag
+				{ return; } 
+			if( GetEntTeam(ent) == TEAM.ALLIES )   
+			{ 
+				SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_bTower.*" );
+			}
+		},	
+	},
+};
+
+global OnMapLoad = function()
+{
+	Util.SetGoalPosition( 1489, 1142, 621, "PLANT_Sea_Wall_breach" );
+	
+	Util.AddUseWp("PLANT_Sea_Wall_Door", "door1");
+	Util.AddUseWp("PLANT_Sea_Wall_Door", "door2");
+	Util.AddUseWp("PLANT_Sea_Wall_breach", "breach1");
+	Util.AddUseWp("PLANT_Sea_Wall_breach", "breach2");
+	
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+ 
+	OnTrigger( "Sea Wall Door Destroyed.", Map.allied_obj1_1_Destroyed );
+	OnTrigger( "the Sea Wall breach Destroyed.", Map.allied_obj1_2_Destroyed );
+ 	OnTrigger( "Allies capture the Forward Bunker!", Map.Allies_Capture_Flag );
+ 	OnTrigger( "Axis captured the Forward Bunker!", Map.Axis_Capture_Flag );
+	OnTrigger( "Allies have stolen the War Documents!", Map.documents_stolen );
+	OnTrigger( "Flag returned allied_obj2!", Map.documents_returned );
+	OnTrigger( "Planted at the Sea Wall Door.", Map.door_planted );
+	OnTrigger( "Defused at the Sea Wall Door.", Map.door_defused );
+	OnTrigger( "Planted at the Sea Wall breach.", Map.breach_planted );
+	OnTrigger( "Defused at the Sea Wall breach.", Map.breach_defused );
+	OnTrigger( "Allies transmitted the documents!", Map.documents_secured );
+	OnTrigger( "two minute warning.", Map.two_minute );
+	
+	//some triggers to help bots know when to aggressively defend warroom
+	tOne = OnTriggerRegion(Vector3(3695,1483,896), 200, Map.BackStairsTrigger);
+	tTwo = OnTriggerRegion(Vector3(3614,3097,576), 200, Map.RadioStairsTrigger);
+	
+	tTower = OnTriggerRegion(AABB(2399,2431,1097,3264,2880,1225), Map.TowerTrigger);
+	//Martin - Traceboxes instead of vector
+	//tLongOne = OnTriggerRegion(AABB(3935.000,1660.000,671.000,4016.000,1699.000,780.000), Map.BackStairsTrigger);
+	//tShortOne = OnTriggerRegion(AABB(3516.000,2953.000,511.000,3554.000,3078.000,604.000), Map.RadioStairsTrigger);
+
+	SetMapGoalProperties( "ATTACK_.*", {MinCampTime=15, MaxCampTime=30});
+	SetMapGoalProperties( "DEFEND_.*", {MinCampTime=20, MaxCampTime=40});
+	SetMapGoalProperties( "ATTACK_bTransmit.*", {MinCampTime=5, MaxCampTime=10});
+	SetMapGoalProperties( "DEFEND_rTransmit.*", {MinCampTime=5, MaxCampTime=10});
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=45, MaxCampTime=60});
+	SetMapGoalProperties( "SNIPE_.*", {MinCampTime=60, MaxCampTime=90});
+	ETUtil.SetPrimaryGoals(1.0);
+	//SetGoalPriority( "DEFUSE_.*", 0.0, 0, CLASS.ENGINEER, true );	//Martin - Turned off via available goals when its planted
+	ETUtil.LimitToClass("MOUNT.*", 0, CLASS.ENGINEER, CLASS.MEDIC);
+	ETUtil.LimitToClass("PLANT_Command_.*", 0, CLASS.COVERTOPS);
+
+	Util.DisableGoal(".*", true); //all but routes
+	Util.EnableGoal("CAPPOINT_transmitter");
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_bBeach.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "SNIPE_bBeach.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT.*" );
+
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Mount_mg42_3);
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Mount_t364);
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_rBeach.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_rBeach.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, Map.Build_Command_Post );
+
+	// *** Artillery
+	//SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_ubase_spot_axis" );
+	//SetAvailableMapGoals( TEAM.AXIS, true, "CALLARTILLERY_spot_steps" );
+
+	// Now some targets...
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ARTILLERY_S_bBeach.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ARTILLERY_S_rBeach.*" );
+	// *** End Arty
+
+	SetGoalPriority( "CALL.*", 1.2 );
+	SetGoalPriority( "ARTILLERY.*", 1.2 );
+	SetGoalPriority( "CHECKPOINT.*", 0.9 );
+	SetGoalPriority( "DEFEND_rAlt.*", 0.45 );
+	
+	Wp.SetWaypointFlag( "ladder", "closed", true );	// close up the ladder
+	//Wp.SetWaypointFlag( "pt_nav_towerjump", "closed", true );	// close up the towerjump
+
+	Util.SetMaxUsersInProgress( 1, "MOUNT.*" );
+	Util.SetMaxUsersInProgress( 1, "SNIPE.*" );
+
+	//copy the wall AS goal tables to the AS goal table to make them active
+	Map.AxisASTable = Map.AxisASWall;
+	Map.AlliesASTable = Map.AlliesASWall;
+
+	// Default Status'
+	Map.FlagStatus = 0; //nobody owns it
+	Map.DocStatus = false; //at home
+	Map.DoorStatus = false; //intact
+	Map.WallStatus = false; //intact
+
+	MapRoutes =
+	{
+		FLAG_allied_obj2 =
+		{
+			ROUTE_bunkerspawn =
+			{
+				ROUTE_lbunker =
+				{
+					ROUTE_ubunker =
+					{
+						ROUTE_radio = {},
+						ROUTE_ubase_stairs = 
+						{
+							ROUTE_back_stairs =
+							{
+								ROUTE_duct1 =
+								{
+									ROUTE_duct2 = {},
+									ROUTE_duct3 = {},
+								},
+								ROUTE_back_stairs2 = { Weight = 3, },
+							},
+						},
+					},
+				},
+				ROUTE_ubase =
+				{
+					ROUTE_back_stairs =
+					{
+						ROUTE_duct1 =
+						{
+							ROUTE_duct2 = {},
+							ROUTE_duct3 = {},
+						},
+						ROUTE_back_stairs2 = { Weight = 3, },
+					},
+				},
+				ROUTE_ubase_stairs = 
+				{
+					ROUTE_back_stairs =
+					{
+						ROUTE_duct1 =
+						{
+							ROUTE_duct2 = {},
+							ROUTE_duct3 = {},
+						},
+						ROUTE_back_stairs2 = { Weight = 3, },
+					},
+				},
+			},
+
+		},
+		CAPPOINT_Transmitter =
+		{
+			ROUTE_docgrab =
+			{
+				ROUTE_radio = {},
+				ROUTE_back_stairs = { ROUTE_back_stairs3 = {}, },
+			},
+		},
+		ATTACK_bTransmit1 = 
+		{
+			ROUTE_bunkerspawn =
+			{
+				ROUTE_lbunker =
+				{
+					ROUTE_ubunker =
+					{
+						ROUTE_radio = {},
+						ROUTE_ubase_stairs = {},
+					},
+				},
+				ROUTE_ubase =
+				{
+					ROUTE_back_stairs = {},
+				},
+				ROUTE_ubase_stairs = {},
+			},
+			ROUTE_beachspawn =
+			{
+				ROUTE_lbunker =
+				{
+					ROUTE_ubunker =
+					{
+						ROUTE_radio = {},
+						ROUTE_ubase_stairs = {},
+					},
+				},
+				ROUTE_ubase =
+				{
+					ROUTE_back_stairs = {},
+				},
+				ROUTE_ubase_stairs = {},
+			},
+			ROUTE_docgrab =
+			{
+				ROUTE_radio = {},
+				ROUTE_back_stairs = { ROUTE_back_stairs3 = {}, },
+			},
+		},
+		CHECKPOINT_beach_flag =
+		{
+			ROUTE_rspawn =
+			{
+				ROUTE_reclaim1 = {ROUTE_reclaim2 = {},},
+			},
+		},
+	};
+
+	MapRoutes.FLAG_allied_obj2.ROUTE_beachspawn = MapRoutes.FLAG_allied_obj2.ROUTE_bunkerspawn;
+	MapRoutes.ATTACK_bTransmit2 = MapRoutes.ATTACK_bTransmit1;
+	MapRoutes.ATTACK_bTransmit3 = MapRoutes.ATTACK_bTransmit1;
+	MapRoutes.ATTACK_bTransmit4 = MapRoutes.ATTACK_bTransmit1;
+	MapRoutes.ATTACK_bTransmit5 = MapRoutes.ATTACK_bTransmit1;
+	MapRoutes.ATTACK_bTransmit6 = MapRoutes.ATTACK_bTransmit1;
+	MapRoutes.ATTACK_bTransmit7 = MapRoutes.ATTACK_bTransmit1;
+	
+	Util.Routes(MapRoutes);
+	yield(); yield();
+	
+	if ( Map.CompSettings )
+		{ ETUtil.SetTeamSuicide( TEAM.AXIS, 1, 1 ); }
+                
+	Util.MapDebugPrint( "OnMapLoad" );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.MaxViewDistance = 2500;
+	bot.TargetBreakableDist = 100.0;
+
+	//default spawn
+	bot.ChangeSpawnPoint( 0 );
+};

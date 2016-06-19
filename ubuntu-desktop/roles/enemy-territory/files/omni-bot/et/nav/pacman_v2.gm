@@ -1,0 +1,202 @@
+//==========================================================================================
+//
+//	pacman_v2.gm
+//
+//	Who	When		What
+//------------------------------------------------------------------------------------------
+//	palota	11 November 2011	Initial Script
+//
+//==========================================================================================
+//
+
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+	monsterPos = 0,
+
+	//paththrough to avoid red monster
+	NavM = function(_this, x1,y1,z1, x2,y2,z2)
+	{
+		_this.Goto(Vec3(x1,y1,z1));
+		_this.Goto(Vec3(x2,y2,z2));
+	},
+
+	Navigation =
+	{
+		monster_sw = {
+			EvalFunc = function(_this)
+			{ 
+				return Map.monsterPos>=2 && Map.monsterPos<=5;
+			},
+			navigate=function(_this){
+				Map.NavM(_this, 794.601, 1880.551, 24.125,
+				2556.482, 1897.436, 24.125);
+			}
+		},
+		monster_s = {
+			EvalFunc = function(_this)
+			{ 
+				return Map.monsterPos>=3 && Map.monsterPos<=4;
+			},
+			navigate=function(_this){
+				Map.NavM(_this, 794.601, 1880.551, 24.125,
+				2556.482, 1897.436, 24.125);
+			}
+		},
+		monster_e = {
+			EvalFunc = function(_this)
+			{ 
+				return Map.monsterPos>=2 && Map.monsterPos<=3;
+			},
+			navigate=function(_this){
+				Map.NavM(_this, 2503.585, 1253.081, 28.125,
+				2519.882, 1798.793, 28.125);
+			}
+		},
+		monster_ne = {
+			EvalFunc = function(_this)
+			{ 
+				return Map.monsterPos>=1 && Map.monsterPos<=2;
+			},
+			navigate=function(_this){
+				Map.NavM(_this, 2556.482, 1897.436, 24.125,
+				794.601, 1880.551, 24.125);
+			}
+		},
+		monster_nw = {
+			EvalFunc = function(_this)
+			{ 
+				return Map.monsterPos>=6 && Map.monsterPos<=7;
+			},
+			navigate=function(_this){
+				Map.NavM(_this, 1098.783, 2567.899, 28.125,
+				810.520, 2330.407, 24.125);
+			}
+		},
+		monster_w = {
+			EvalFunc = function(_this)
+			{ 
+				return Map.monsterPos>=5 && Map.monsterPos<=6;
+			},
+			navigate=function(_this){
+				Map.NavM(_this, 794.601, 1880.551, 24.125,
+				804.725, 1248.878, 28.125);
+			}
+		},
+	},
+
+	monsterscript_goto = function( trigger )
+	{
+		v = ToVector(trigger.Action);
+		if(v.x>0){ sleep(1.5); Map.monsterPos=1; }
+		else if(v.y<0){ Map.monsterPos=2; sleep(2); Map.monsterPos=3; }
+		else if(v.x<0){ Map.monsterPos=4; sleep(3); Map.monsterPos=5; }
+		else if(v.y>0){ Map.monsterPos=6; sleep(1); Map.monsterPos=7; }
+		//Util.MapDebugPrint( "monsterPos=" + Map.monsterPos );
+	},
+
+	SetBarricade = function(b)
+	{
+		SetAvailableMapGoals( TEAM.ALLIES, b, "PLANT_cherry" );
+		SetAvailableMapGoals( TEAM.ALLIES, b, "ATTACK_cherry.*" );
+		SetAvailableMapGoals( TEAM.AXIS, b, "DEFEND_cherry.*" );
+	},
+
+	barricade_Destroyed = function( trigger )
+	{
+		Map.SetBarricade(true);
+		Util.MapDebugPrint( "barricade_Destroyed" );
+	},
+
+	barricade_Built = function( trigger )
+	{
+		Map.SetBarricade(false);
+		Util.MapDebugPrint( "barricade_Built" );
+	},
+
+	cherry_Destroyed = function( trigger )
+	{
+		ETUtil.WinningChat( TEAM.ALLIES );
+		ETUtil.LosingChat( TEAM.AXIS );
+		Util.MapDebugPrint( "cherry_Destroyed" );
+	},
+};
+
+global OnMapLoad = function()
+{
+	OnTrigger( "The Axis wall has been constructed.", Map.barricade_Built );
+	OnTrigger( "The Axis wall has been breached.", Map.barricade_Destroyed );
+	OnTrigger( "Allies have destroyed the cherry.", Map.cherry_Destroyed );
+	OnTrigger( "monsterscript_goto", Map.monsterscript_goto );
+
+	Util.DisableGoal( ".*", true );
+	Util.EnableGoal(".*cabinet.*");
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_barricade" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_barricade" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, ".*_l.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, ".*_x.*" );
+	Map.SetBarricade(true);
+
+	SetGoalPriority("ATTACK_cherry.*", 0.6);
+
+	WeaponTable.SetWeaponAvailability( CLASS.SOLDIER, WEAPON.PANZERFAUST, false );
+
+	MapRoutes =
+	{
+		BUILD_barricade = {
+			ROUTE_axis_spawn = {
+				ROUTE_n1 = {},
+				ROUTE_w3 = {},
+			}
+		},
+		PLANT_barricade = {
+			ROUTE_allied_spawn = {
+				ROUTE_a1 = {
+					ROUTE_e1 = {
+						ROUTE_w3 = {},
+						ROUTE_c2 = { Weight=0.5 },
+						ROUTE_e2 = {},
+					},
+					ROUTE_s3 = {},
+					ROUTE_c4 = {},
+				},
+				ROUTE_a2 = {
+					ROUTE_e1 = {},
+					ROUTE_c4 = {
+						ROUTE_c3 = { Weight=2 },
+						ROUTE_c2 = {},
+					},
+				},
+				ROUTE_a3 = { Weight=2,
+					ROUTE_s1 = {
+						ROUTE_s3 = {},
+						ROUTE_w2 = {
+							ROUTE_c3 = {},
+							ROUTE_w3 = {},
+						},
+					},
+					ROUTE_s2 = {
+						ROUTE_a1 = {},
+						ROUTE_s3 = {},
+						ROUTE_s4 = { ROUTE_c4 = {}},
+					},
+					ROUTE_w1 = { ROUTE_wcab = { ROUTE_w2 = {}}},
+				},
+			}
+		},
+	};
+	MapRoutes["DEFEND_x[3458]"] = {
+		ROUTE_axis_spawn = {
+			ROUTE_n2 = { ROUTE_ecab = {}},
+			ROUTE_n3 = { ROUTE_c2 = {}},
+		}
+	};
+	MapRoutes.PLANT_cherry = MapRoutes.PLANT_barricade;
+	MapRoutes["DEFEND_cherry.*"] = MapRoutes.BUILD_barricade;
+	MapRoutes["ATTACK_cherry.*"] = MapRoutes.PLANT_barricade;
+	MapRoutes["ATTACK_l[3456]"] = MapRoutes.PLANT_barricade;
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};

@@ -1,0 +1,164 @@
+this.Name = "CheckStuck";
+this.Parent = "LowLevel";
+this.AutoAdd = true;
+this.KillWhenStuck = true;
+this.LogStuckage = true;
+this.Interval = 0.6;
+this.KillTime = 5.0; // time before /killing
+this.BreakableTimeout = 10; // time to destroy breakables
+this.Debug = false;
+
+this.Initialize = function()
+{
+	this.JumpLimit = 1;
+
+	if ( GetGameState() != "Playing" ) {
+		this.Disable = true;
+	}
+};
+
+this.ResetStuck = function()
+{
+	this.Bot.StuckPos = null;
+	this.Bot.Stucktime = 0;
+	this.JumpAttempts = 0;
+};
+
+this.GetPriority = function()
+{
+	this.JumpAttempts = 0;
+
+	while(1)
+	{
+		if ( Server.SleepBots == true && Server.NumPlayers == Server.NumBots ) {
+			sleep(5);
+			return;
+		}
+
+		if ( this.JustSpawned ) {
+			for (i = 0; i < 3; i += 1) {
+				sleep(1.2);
+				// player cannot move while standing up after he is revived,
+				// reset stuck timer to prevent pathfailed errors immediately after revive
+				this.Bot.ResetStuckTime();
+			}
+			this.JustSpawned = false;
+		}
+
+		// cs: distance check overrides IsStuck if previously stuck. this is going to be bad in cases where
+		// the destination happens to be less than 100 units away from stuck pos.
+		if ( this.Bot.StuckPos || this.Bot.IsStuck(this.Interval) )
+		{
+			nearestPlayer = this.Bot.GetNearest(CAT.PLAYER);
+
+			if ( this.Debug && nearestPlayer ) {
+				DrawEntityAABB(nearestPlayer, 30.0, COLOR.RED);
+				DrawEntityAABB(this.Bot.GetGameEntity(), 30.0, COLOR.BLUE);
+			}
+
+			// is the bot blocked by a player?
+			if ( nearestPlayer && this.Bot.DistanceTo(nearestPlayer) < 65 && this.Bot.InFieldOfView(GetEntPosition(nearestPlayer), 180.0) )
+			{
+				if (GetEntFlags(nearestPlayer, ENTFLAG.PRONE))
+				{
+					this.Bot.PressButton(BTN.JUMP);
+
+					if ( this.Debug ) {
+						this.Bot.Say("jump over proned player");
+					}
+				}
+				else
+				{
+					this.Bot.HoldButton(BTN.STRAFE_L, 0.5);
+
+					if ( this.Debug ) {
+						this.Bot.Say("side stepping player");
+					}
+				}
+
+				// reset the stuck timer so they don't get a new goal
+				this.Bot.ResetStuckTime();
+
+				sleep(0.5);
+				return;
+			}
+			else
+			{
+				// stuck time gets reset for each new path, so lets accumulate our own
+				this.Bot.Stucktime += this.Interval;
+
+				if ( this.Debug ) {
+					this.Bot.Say("i've been stuck for " + this.Bot.Stucktime + " seconds");
+				}
+
+				if ( this.Bot.StuckPos && this.Bot.DistanceTo(this.Bot.StuckPos) > 100 ) {
+					this.ResetStuck();
+				}
+				else if ( this.Bot.HasTarget() && GetEntClass(this.Bot.GetTarget())==CLASS.BREAKABLE
+					&& this.Bot.Stucktime < this.BreakableTimeout + this.KillTime )
+				{
+					if (this.Bot.Stucktime < this.BreakableTimeout) {
+						this.Bot.ResetStuckTime();
+					}
+				}
+				else if ( this.Bot.Stucktime >= this.KillTime )
+				{
+					//if (this.Bot.Name=="testbot"){ return; }
+
+					if ( this.LogStuckage ) {
+						// write it to the omni-bot log
+						pos = this.Bot.GetPosition();
+						yield();
+						this.StuckageLog(pos);
+					}
+
+					yield();
+					if ( this.KillWhenStuck ) {
+						this.Bot.ExecCommand("kill");
+					}
+
+					this.ResetStuck();
+				}
+				else
+				{
+					if (!this.Bot.StuckPos) {
+						this.ResetStuck();
+					}
+					if ( this.JumpAttempts < this.JumpLimit)
+					{
+						this.Bot.StuckPos = this.Bot.GetPosition();
+						this.Bot.PressButton(BTN.JUMP);
+						this.JumpAttempts += 1;
+					}
+				}
+			}
+		}
+
+		sleep(this.Interval);
+	}
+};
+
+this.OnSpawn = function()
+{
+	this.JustSpawned = true;
+};
+
+// Note: this will write to ~/omni-bot/et/user. the file will need to be copied to ~/omni-bot/et/scripts
+this.StuckageLog = function(pos)
+{
+	gmfile = File();
+	fileName = GetMapName() + "_stuckages.gm";
+
+	if ( !System.FileExists(fileName) ) {
+		assert( gmfile.Open( fileName, "text", false ) );
+		head = "global Stuckages = {};";
+		assert( gmfile.Write( head, System.NewLine ) );
+	}
+	else {
+		assert( gmfile.Open( fileName, "text", false, true ) );
+	}
+
+	str = "Stuckages[ tableCount(Stuckages) ] = Vector3("+pos.x +","+pos.y+","+pos.z+");";
+	assert( gmfile.Write( str, System.NewLine ) );
+	gmfile.Close();
+};

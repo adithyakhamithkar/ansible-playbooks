@@ -1,0 +1,20 @@
+if (GetModName()!="noquarter") { return; }
+
+WEAPON.JOHNSON = 102; 		// Defined into g_etbot_interface.cpp
+
+//////////////////////////////////////////////////////////////////////////
+// Overall weapon properties.
+this.Name = "Johnson";
+this.WeaponId = WEAPON.JOHNSON;
+
+//////////////////////////////////////////////////////////////////////////
+// Set some weapon properties that affect some internal logic.
+this.PrimaryFire.WeaponType = "instant";
+this.PrimaryFire.ProjectileSpeed = 1000;
+this.PrimaryFire.RequiresAmmo = true;
+this.PrimaryFire.WaterProof = false;
+
+this.PrimaryFire.DefaultDesirability = 0.7;
+
+this.PrimaryFire.LowAmmoThreshold = 1;
+this.PrimaryFire.LowAmmoPriority = 0.8;

@@ -1,0 +1,23 @@
+if (GetModName()!="etpub" || GetCvar("g_etnamFlags")==0){ return; }
+
+//////////////////////////////////////////////////////////////////////////
+
+WEAPON.GPS = 109; 		// Defined into g_etbot_interface.cpp
+
+//////////////////////////////////////////////////////////////////////////
+// Overall weapon properties.
+this.Name = "GPS";
+this.WeaponId = WEAPON.GPS;
+this.PrimaryFire.AmmoType = WEAPON.GPS;
+this.MinUseTime = 0.0;
+
+//////////////////////////////////////////////////////////////////////////
+// Set some weapon properties that affect some internal logic.
+this.PrimaryFire.WeaponType = "instant";
+this.PrimaryFire.ProjectileSpeed = 1000;
+this.PrimaryFire.RequiresAmmo = true;
+this.PrimaryFire.WaterProof = true;
+this.PrimaryFire.InheritsVelocity = false;
+this.PrimaryFire.ProjectileGravity = 0.0;
+
+this.PrimaryFire.DefaultDesirability = 0.0;

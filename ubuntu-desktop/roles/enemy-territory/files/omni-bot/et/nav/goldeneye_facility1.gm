@@ -1,0 +1,510 @@
+//==========================================================================================
+//
+//	goldeneye_facility1.gm
+//
+//	Who  	When		What
+//------------------------------------------------------------------------------------------
+//	^4Tardis	27 June 2010	Initial Script
+//
+//==========================================================================================
+//    Warning ALLIES Can get Stuck In Spwan !! Including Bots.
+//==========================================================================================
+global Map =
+{
+	Debug = 0,
+	ShowMovers = false,
+
+	Allied_Command_Post_Dyno = 0,
+	Axis_Command_Post_Dyno = 0,
+	Fuel_Depot_Dyno = 0,
+	Fuel_Wall_Dyno = 0,
+	Plant_Fuel_Depot = "PLANT_Fuel_Depot",
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Allied_Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno += 1;
+		Util.MapDebugPrint( "Command_Post_Planted" );
+	},
+
+	Allied_Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno -= 1;
+		Util.MapDebugPrint( "Command_Post_Defused" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno = 0;
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Axis_Command_Post_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno += 1;
+		Util.MapDebugPrint( "Command_Post_Planted" );
+	},
+
+	Axis_Command_Post_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Command_Post_Dyno -= 1;
+		Util.MapDebugPrint( "Command_Post_Defused" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+			Map.Command_Post_Dyno = 0;
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+
+	Fuel_Wall_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.DisableGoal ( "ROUTE_Crouch_Hall" );
+
+		Util.MapDebugPrint( "Fuel_Wall_Built" );
+	},
+
+	Fuel_Wall_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Fuel_Wall_Dyno += 1;
+		Util.MapDebugPrint( "Fuel_Wall_Planted" );
+	},
+
+	Fuel_Wall_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Fuel_Wall_Dyno -= 1;
+		Util.MapDebugPrint( "Fuel_Wall_Defused" );
+	},
+
+	Fuel_Wall_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Fuel_Wall_Dyno = 0;
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_FLAG.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_FLAG.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_FLAG.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_FLAG.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_DEPOT.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_DEPOT.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_Fuel_Wall" );
+		SetGoalPriority( "BUILD_Fuel_Wall", 0.91, TEAM.AXIS, CLASS.ENGINEER, true);
+
+
+		Util.EnableGoal ( "ROUTE_Crouch_Hall" );
+
+		Util.MapDebugPrint( "Fuel_Wall_Destroyed" );
+	},
+
+	Fuel_Depot_Planted = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Fuel_Depot_Dyno += 1;
+
+		// randomize plant goal position
+		rand = RandInt( 1,4 );
+		if ( rand == 1 )
+			{ Util.SetGoalPosition( -86630,-9012,407, Map.Plant_Fuel_Dump ); }
+		else if ( rand == 2 )
+			{ Util.SetGoalPosition( -74125,-9315,373, Map.Plant_Fuel_Dump ); }
+		else if ( rand == 3 )
+			{ Util.SetGoalPosition( -87290,-9712,407, Map.Plant_Fuel_Dump ); }
+		else
+			{ Util.SetGoalPosition( -90612,-9333,407, Map.Plant_Fuel_Dump ); }
+
+
+		Util.MapDebugPrint( "Fuel_Depot_Planted" );
+	},
+
+	Fuel_Depot_Defused = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Fuel_Depot_Dyno -= 1;
+		Util.MapDebugPrint( "Fuel_Depot_Defused" );
+	},
+
+	Fuel_Depot_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.Fuel_Depot_Dyno = 0;
+
+		Util.MapDebugPrint( "Fuel_Depot_Destroyed" );
+	},
+
+	forwardspawn1_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.forwardspawn1_flag_Axis_Captured = true;
+		SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_FLAG.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_FLAG.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_FLAG.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_FLAG.*" );
+
+
+		Util.MapDebugPrint( "forwardspawn1_flag_Axis_Captured" );
+	},
+
+	forwardspawn1_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.forwardspawn1_flag_Allies_Captured = true;
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_FLAG.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "DEFEND_FLAG.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "DEFEND_FLAG.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_FLAG.*" );
+		Util.ChangeSpawn(TEAM.ALLIES, 3);
+
+
+		Util.MapDebugPrint( "forwardspawn1_flag_Allies_Captured" );
+	},
+
+	Stuckage =
+	{
+		Name = "stuck2",
+		TriggerOnClass = CLASS.ANYPLAYER,
+		OnEnter = function(ent)
+		{
+
+
+			b = Util.IsBot(ent);
+			if (b)
+			{
+				// cs: users can disable map script initiated chats like this with MAP_TALK set to false
+				if (MAP_TALK) {
+					b.Say( "Arg! I'm stuck in the Loo, stupid mapbug!!!" );
+				}
+				sleep(1);
+				b.ExecCommand("kill");
+
+				// cs: moved this here since the original 'else if' would never be reached.
+				if (Map.forwardspawn1_flag_Axis_Captured == true) {
+					Util.ChangeSpawn(TEAM.ALLIES, 3);
+				}
+			}
+		},
+		OnExit = function(ent)
+		{
+
+		},
+	},
+
+	Navigation =
+	{
+		wait =
+		{
+			navigate = function(_this)
+			{
+				timeout = 1;
+				while ( timeout > 1 ) {
+					_this.Goto(_this.Bot.GetPosition());
+					sleep(1);
+					timeout -= 1;
+				}
+
+				Util.MapDebugPrint( "navigation", true );
+			},
+
+		},
+	},
+};
+
+global OnMapLoad = function()
+{
+	Util.SetGoalPosition( -872.000,-936.000,-248.000, Map.Plant_Fuel_Depot );
+
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+// Register callback functions
+	OnTrigger( "1Axis have built the Wall!", Map.Fuel_Wall_Built );
+	OnTrigger( "Planted at the Fuel Wall!", Map.Fuel_Wall_Planted );
+	OnTrigger( "Defused at the Fuel Wall!", Map.Fuel_Wall_Defused );
+	OnTrigger( "^3Allies have destroyed the Fuel Wall!", Map.Fuel_Wall_Destroyed );
+
+	OnTrigger( "Planted at the Fuel Depot!", Map.Fuel_Depot_Planted );
+	OnTrigger( "Defused at the Fuel Depot!", Map.Fuel_Depot_Defused );
+	OnTrigger( "^3Allies have destroyed the Fuel Depot!", Map.Fuel_Depot_Destroyed );
+
+	OnTrigger( "Allied Command Post constructed. Charge speed increased!", Map.Allied_Command_Post_Built );
+	OnTrigger( "Planted at the Allied Command Post", Map.Allied_Command_Post_Planted );
+	OnTrigger( "Defused at the Allied Command Post", Map.Allied_Command_Post_Defused );
+	OnTrigger( "Axis team has destroyed the Allied Command Post!", Map.Allied_Command_Post_Destroyed );
+
+	OnTrigger( "Axis Command Post constructed. Charge speed increased!", Map.Axis_Command_Post_Built );
+	OnTrigger( "Planted at the Axis Command Post", Map.Axis_Command_Post_Planted );
+	OnTrigger( "Defused at the Axis Command Post", Map.Axis_Command_Post_Defused );
+	OnTrigger( "Allied team has destroyed the Axis Command Post!", Map.Axis_Command_Post_Destroyed );
+
+	OnTrigger( "Axis reclaim the Forward Spawn!", Map.forwardspawn1_flag_Axis_Captured );
+	OnTrigger( "Allies capture the Forward Spawn!", Map.forwardspawn1_flag_Allies_Captured );
+//Util.SetGoalOffset
+	Util.SetGoalOffset( 0, 0, -150, "PLANT_Fuel_Depot" );
+
+	Util.DisableGoal( ".*", true ); // all but routes
+	Util.DisableGoal ( "ROUTE_Crouch_Hall" );
+	Util.AddUseWp("PLANT_Fuel_Wall", "wall");
+//kill box
+killbox = OnTriggerRegion(AABB(-2779.856,-188.706,-304.485,-2399.275,12.498,-65.866),Map.Stuckage);
+//SetGoalPriority
+	SetGoalPriority( "DEFEND_DEPOT_8", 0.52, TEAM.AXIS, CLASS.COVERTOPS, true);
+	SetGoalPriority( "DEFEND_DEPOT_8", 0.52, TEAM.AXIS, CLASS.SOLDIER, true);
+//~SetAvailableMapGoals TEAM.AXIS
+	SetAvailableMapGoals( TEAM.AXIS, true, "AMMOCAB_cabinet_supply" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "HEALTHCAB_cabinet_health" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "BUILD_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "PLANT_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_FLAG.*" );
+	SetAvailableMapGoals( TEAM.AXIS, true, "DEFEND_DEPOT_8" );
+//~SetAvailableMapGoals TEAM.ALLIES
+	SetAvailableMapGoals( TEAM.ALLIES, true, "AMMOCAB_cabinet_supply" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "HEALTHCAB_cabinet_health" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "BUILD_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "PLANT_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_FLAG.*" );
+// Max users per goal
+	Util.SetMaxUsers( 1, "DEFEND_.*" );
+	Util.SetMaxUsers( 1, "GRENADE_.*" );
+	Util.SetMaxUsers( 1, "MOUNTMG42_.*" );
+// Camp times
+	SetMapGoalProperties( "MOUNTMG42_.*", {MinCampTime=15, MaxCampTime=90} );
+	SetMapGoalProperties( "MOBILEMG42_.*", {MinCampTime=10, MaxCampTime=60} );
+	SetMapGoalProperties( "ATTACK_.*", {mincamptime=30, maxcamptime=45});
+	SetMapGoalProperties( "DEFEND_.*", {mincamptime=60, maxcamptime=120});
+//MapRoutes
+	MapRoutes =
+	{
+		PLANT_Fuel_Depot =
+		{
+			ROUTE_Allies_SP  =
+			{
+				ROUTE_Stairs_HandA  =
+				{
+					ROUTE_FLAG  =
+					{
+						ROUTE_wall  =
+						{
+							ROUTE_Crouch_Hall  =
+							{
+							},
+						},
+						ROUTE_CP  =
+						{
+							ROUTE_Fuel_CP  =
+							{
+							},
+						},
+					},
+				},
+				ROUTE_Stairs_Flag  =
+				{
+					ROUTE_FLAG  =
+					{
+						ROUTE_wall  =
+						{
+							ROUTE_Crouch_Hall  =
+							{
+							},
+						},
+						ROUTE_CP  =
+						{
+							ROUTE_Fuel_CP  =
+							{
+							},
+						},
+					},
+				},
+			},
+		},
+		CHECKPOINT_forwardspawn1_flag =
+		{
+			ROUTE_AXIS_SP  =
+			{
+				ROUTE_CP  =
+				{
+					ROUTE_FLAG  =
+					{
+					},
+				},
+				ROUTE_Fuel_CP  =
+				{
+					ROUTE_Crouch_Hall  =
+					{
+						ROUTE_wall  =
+						{
+							ROUTE_FLAG  =
+							{
+							},
+						},
+					},
+				},
+			},
+			ROUTE_Allies_SP  =
+			{
+				ROUTE_Stairs_HandA  =
+				{
+					ROUTE_FLAG  =
+					{
+					},
+				},
+				ROUTE_Stairs_Flag  =
+				{
+					ROUTE_FLAG  =
+					{
+					},
+				},
+			},
+		},
+		BUILD_Fuel_Wall =
+		{
+			ROUTE_AXIS_SP  =
+			{
+				ROUTE_Fuel_CP  =
+				{
+					ROUTE_CP  =
+					{
+						ROUTE_wall  =
+						{
+						},
+					},
+					ROUTE_Crouch_Hall  =
+					{
+						ROUTE_wall  =
+						{
+						},
+					},
+				},
+			},
+		},
+		PLANT_Fuel_Wall =
+		{
+			ROUTE_Allies_SP  =
+			{
+				ROUTE_Stairs_Flag  =
+				{
+					ROUTE_FLAG  =
+					{
+						ROUTE_wall  =
+						{
+						},
+					},
+					ROUTE_wall  =
+					{
+					},
+				},
+				ROUTE_Stairs_HandA  =
+				{
+					ROUTE_FLAG  =
+					{
+						ROUTE_wall  =
+						{
+						},
+					},
+					ROUTE_wall  =
+					{
+					},
+				},
+			},
+		},
+	};
+
+	MapRoutes.ATTACK_DEPOT = MapRoutes.PLANT_Fuel_Depot;
+	MapRoutes.ATTACK_DEPOT_1 = MapRoutes.PLANT_Fuel_Depot;
+	MapRoutes.ATTACK_DEPOT_2 = MapRoutes.PLANT_Fuel_Depot;
+	MapRoutes.ATTACK_DEPOT_3 = MapRoutes.PLANT_Fuel_Depot;
+	MapRoutes.ATTACK_DEPOT_4 = MapRoutes.PLANT_Fuel_Depot;
+	MapRoutes.ATTACK_DEPOT_5 = MapRoutes.PLANT_Fuel_Depot;
+	MapRoutes.ATTACK_DEPOT_6 = MapRoutes.PLANT_Fuel_Depot;
+	MapRoutes.ATTACK_DEPOT_7 = MapRoutes.PLANT_Fuel_Depot;
+	MapRoutes.ATTACK_DEPOT_8 = MapRoutes.PLANT_Fuel_Depot;
+
+	MapRoutes.ATTACK_FLAG = MapRoutes.CHECKPOINT_forwardspawn1_flag;
+	MapRoutes.ATTACK_FLAG_1 = MapRoutes.CHECKPOINT_forwardspawn1_flag;
+	MapRoutes.ATTACK_FLAG_2 = MapRoutes.CHECKPOINT_forwardspawn1_flag;
+	MapRoutes.ATTACK_FLAG_3 = MapRoutes.CHECKPOINT_forwardspawn1_flag;
+	MapRoutes.ATTACK_FLAG_4 = MapRoutes.CHECKPOINT_forwardspawn1_flag;
+	MapRoutes.ATTACK_FLAG_5 = MapRoutes.CHECKPOINT_forwardspawn1_flag;
+	MapRoutes.ATTACK_FLAG_6 = MapRoutes.CHECKPOINT_forwardspawn1_flag;
+
+	MapRoutes.DEFEND_DEPOT = MapRoutes.PLANT_Fuel_Depot;
+	MapRoutes.DEFEND_DEPOT_1 = MapRoutes.PLANT_Fuel_Depot;
+	MapRoutes.DEFEND_DEPOT_2 = MapRoutes.PLANT_Fuel_Depot;
+	MapRoutes.DEFEND_DEPOT_3 = MapRoutes.PLANT_Fuel_Depot;
+	MapRoutes.DEFEND_DEPOT_4 = MapRoutes.PLANT_Fuel_Depot;
+	MapRoutes.DEFEND_DEPOT_5 = MapRoutes.PLANT_Fuel_Depot;
+	MapRoutes.DEFEND_DEPOT_6 = MapRoutes.PLANT_Fuel_Depot;
+	MapRoutes.DEFEND_DEPOT_7 = MapRoutes.PLANT_Fuel_Depot;
+	MapRoutes.DEFEND_DEPOT_8 = MapRoutes.PLANT_Fuel_Depot;
+
+	MapRoutes.DEFEND_FLAG = MapRoutes.CHECKPOINT_forwardspawn1_flag;
+	MapRoutes.DEFEND_FLAG_1 = MapRoutes.CHECKPOINT_forwardspawn1_flag;
+	MapRoutes.DEFEND_FLAG_2 = MapRoutes.CHECKPOINT_forwardspawn1_flag;
+	MapRoutes.DEFEND_FLAG_3 = MapRoutes.CHECKPOINT_forwardspawn1_flag;
+	MapRoutes.DEFEND_FLAG_4 = MapRoutes.CHECKPOINT_forwardspawn1_flag;
+
+	Util.Routes(MapRoutes);
+
+	Util.MapDebugPrint( "Omni-bot map script for " + GetMapName() + " executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	// Uncomment for shootable breakables
+	bot.TargetBreakableDist = 60.0;
+	// Only set MaxViewDistance on maps with limited sight (e.g. fog)
+	//~bot.MaxViewDistance = 2400;
+};

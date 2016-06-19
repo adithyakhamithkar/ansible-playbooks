@@ -1,0 +1,644 @@
+global Map =
+{
+	Navigation =
+	{
+		spawnladder =
+		{
+			navigate = function(_this)
+			{
+				_this.Bot.HoldButton(BTN.FORWARD, 3);
+				//_this.Bot.SayVoice(VOICE.CLEAR_PATH);
+				sleep(3.0);
+				_this.Bot.HoldButton(BTN.STRAFE_R, 0.8);
+			},
+		},
+	},
+
+	Ammo_Cabinet_armoury_trigger_ammo = "AMMOCAB_armoury_trigger_ammo",
+	Checkpoint_allied_east_fwd_flag = "CHECKPOINT_allied_east_fwd_flag",
+	Checkpoint_allied_west_fwd_flag = "CHECKPOINT_allied_west_fwd_flag",
+	Flag_axis_fuel = "FLAG_axis_fuel",
+	Build_Allied_Command_Post = "BUILD_Allied_Command_Post",
+	Build_Armoury_Door = "BUILD_Armoury_Door",
+	Build_Assault_Ramp = "BUILD_Assault_Ramp",
+	Build_Axis_Command_Post = "BUILD_Axis_Command_Post",
+	Build_Radio_Mast = "BUILD_Radio_Mast",
+	Build_Tiger = "BUILD_Tiger",
+	Build_Truck = "BUILD_Truck:_it_moves_if_an_Engineer_of_either_team_gets_in_the_back",
+	Build_communication_cables = "BUILD_communication_cables",
+	Plant_Allied_Command_Post = "PLANT_Allied_Command_Post",
+	Plant_Armoury_Door = "PLANT_Armoury_Door",
+	Plant_Assault_Ramp = "PLANT_Assault_Ramp",
+	Plant_Axis_Command_Post = "PLANT_Axis_Command_Post",
+	Plant_Radio_Mast = "PLANT_Radio_Mast",
+	Plant_Town_Hall_Rear_Door = "PLANT_Town_Hall_Rear_Door",
+	Plant_communication_cables = "PLANT_communication_cables",
+	Mover_tank = "MOVER_tank",
+	Mover_truck = "MOVER_truck",
+
+	Debug = 0,
+
+	// Some initial status settings for conditionals
+	TankGunIsEnabled = true,
+	RadioIsIntact = true,
+	EastRouteIsActive = false,
+	WestRouteIsActive = false,
+	FuelPouredWest = false,
+	ShowMovers = false,
+	TruckNearWestFireWall = false,
+
+	Movers =
+	{
+		"MOVER_petrol_west",
+		"MOVER_petrol_east",
+		"MOVER_truck",
+		"MOVER_tank",
+	},
+
+	Switches =
+	{
+		radio =
+		{
+			Enabled = true,
+			Priority = 1.0,
+			//Debug = true,
+			WaypointName = "radio_switch",
+			LimitTeam = (1<<TEAM.ALLIES),
+			LimitClass = (1<<CLASS.FIELDOPS),
+			LimitBots = 1,
+			Timeout = 10000
+		},
+
+		gun_switch =
+		{
+			Enabled = false,
+			Priority = 0.8,
+			//Debug = true,
+			WaypointName = "gun_switch",
+			LimitTeam = (1<<TEAM.AXIS),
+			LimitClass = Util.AllClasses,
+			LimitDistance = 1000,
+			LimitBots = 1,
+			AimPosition = Vector3(6680.347,5978.513,116.125),
+		},
+
+		gun_switch2 =
+		{
+			Enabled = false,
+			Priority = 1.1,
+			//Debug = true,
+			WaypointName = "gun_switch2",
+			LimitTeam = (1<<TEAM.AXIS),
+			LimitClass = Util.AllClasses,
+			LimitDistance = 100,
+			LimitBots = 1,
+			AimPosition = Vector3(5496.875,4927.973,116.125),
+		},
+	},
+
+	radioTriggerTable =
+	{
+		Name="RadioTrigger",
+		TriggerOnClass = CLASS.FIELDOPS,
+		OnEnter = function(ent)
+		{
+			//Util.MapDebugPrint(GetEntName(ent) + " entered aabb trigger", true);
+			if (Map.TankGunIsEnabled)
+			{
+				Map.Switches.gun_switch.Enabled = true;
+			}
+		},
+		OnExit = function(ent)
+		{
+			//Util.MapDebugPrint(GetEntName(ent) + " exited aabb trigger", true);
+			Map.Switches.gun_switch.Enabled = false;
+		},
+	},
+
+	gunTriggerTable =
+	{
+		Name="GunTrigger",
+		TriggerOnCategory = CAT.PLAYER,
+		OnEnter = function(ent)
+		{
+			//Util.MapDebugPrint(GetEntName(ent) + " entered gun trigger", true);
+			if (GetEntTeam(ent) == TEAM.ALLIES)
+			{
+				Map.Switches.gun_switch2.Enabled = true;
+			}
+			else if (GetEntTeam(ent) == TEAM.AXIS)
+			{
+				Map.Switches.gun_switch2.Enabled = false;
+			}
+		},
+		OnExit = function(ent)
+		{
+			//Util.MapDebugPrint(GetEntName(ent) + " exited gun trigger", true);
+			if (GetEntTeam(ent) == TEAM.ALLIES)
+			{
+				Map.Switches.gun_switch2.Enabled = false;
+			}
+		},
+	},
+
+	Allied_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Built" );
+	},
+
+	Armoury_Door_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Armoury_Door_Built" );
+	},
+
+	Assault_Ramp_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Assault_Ramp_Built" );
+	},
+
+	Axis_Command_Post_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_command_post.*" );
+		Util.MapDebugPrint( "Axis_Command_Post_Built" );
+	},
+
+	Radio_Mast_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.RadioIsIntact = true;
+		if (Map.TankGunIsEnabled)
+		{
+			Map.Switches.radio.LimitTeam = (1<<TEAM.ALLIES);
+		}
+		else
+		{
+			Map.Switches.radio.LimitTeam = (1<<TEAM.AXIS);
+		}
+
+		Util.MapDebugPrint( "Radio_Mast_Built" );
+	},
+
+	Tiger_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Tiger_Built" );
+	},
+
+	communication_cables_Built = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Wp.SetWaypointFlag("cables1", "closed", false);
+		Util.MapDebugPrint( "communication_cables_Built" );
+	},
+
+	Allied_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Allied_Command_Post_Destroyed" );
+	},
+
+	Armoury_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Armoury_Door_Destroyed" );
+	},
+
+	Assault_Ramp_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Assault_Ramp_Destroyed" );
+	},
+
+	Axis_Command_Post_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_command_post.*" );
+		Util.MapDebugPrint( "Axis_Command_Post_Destroyed" );
+	},
+
+	Radio_Mast_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.RadioIsIntact = false;
+		Map.Switches.radio.LimitTeam = 0;
+		Util.MapDebugPrint( "Radio_Mast_Destroyed" );
+	},
+
+	Town_Hall_Rear_Door_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "Town_Hall_Rear_Door_Destroyed" );
+	},
+
+	communication_cables_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Wp.SetWaypointFlag("cables1", "closed", true);
+		Util.MapDebugPrint( "communication_cables_Destroyed" );
+	},
+
+	axis_fuel_Taken = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "axis_fuel_Taken" );
+	},
+
+	allied_east_fwd_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "allied_east_fwd_flag_Axis_Captured" );
+	},
+
+	allied_east_fwd_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "allied_east_fwd_flag_Allies_Captured" );
+	},
+
+	allied_west_fwd_flag_Axis_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "allied_west_fwd_flag_Axis_Captured" );
+	},
+
+	allied_west_fwd_flag_Allies_Captured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Util.MapDebugPrint( "allied_west_fwd_flag_Allies_Captured" );
+	},
+
+	allied_west_fwd_flag_Available = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_allied_east_fwd_flag" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_allied_west_fwd_flag" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_west_phase.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_west_phase2" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "FLAG_axis_fuel" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_west" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_allied_east_fwd_flag" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_allied_west_fwd_flag" );
+		Util.MapDebugPrint( "allied_west_fwd_flag_Available" );
+	},
+
+	allied_east_fwd_flag_Available = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "CHECKPOINT_allied_east_fwd_flag" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_allied_west_fwd_flag" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_east_phase1.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_east_phase2.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "SNIPE_east_escape.*" );
+
+		SetAvailableMapGoals( TEAM.ALLIES, true, "CHECKPOINT_allied_east_fwd_flag" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_allied_west_fwd_flag" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_east_phase1.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_east_phase2.*" );
+
+		SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_east" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "FLAG_axis_fuel" );
+		Util.MapDebugPrint( "allied_east_fwd_flag_Available" );
+	},
+
+	fuel_east_poured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_east" );
+		Util.MapDebugPrint( "fuel_east_poured" );
+	},
+
+	fuel_east_ignited = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "GRENADE_EastFireWall" );
+		Util.MapDebugPrint( "fuel_east_ignited" );
+	},
+
+	fuel_west_poured = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.FuelPouredWest = true;
+		if ( Map.TruckNearWestFireWall == true )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "GRENADE_WestFireWall" );
+		}
+		SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_west" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "FLAG_axis_fuel" );
+		Util.MapDebugPrint( "fuel_west_poured" );
+	},
+
+	fuel_west_ignited = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.FuelPouredWest = false;
+		SetAvailableMapGoals( TEAM.AXIS, false, "GRENADE_WestFireWall" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_west" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "FLAG_axis_fuel" );
+		Util.MapDebugPrint( "fuel_west_ignited" );
+	},
+
+	fuel_west_burnt_out = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		if ( Map.TruckNearWestFireWall == true )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_west" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "FLAG_axis_fuel" );
+		}
+		Map.FuelPouredWest = false;
+		SetAvailableMapGoals( TEAM.AXIS, false, "GRENADE_WestFireWall" );
+		Util.MapDebugPrint( "fuel_west_burnt_out" );
+	},
+
+	truck_west_Arrived = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.WestRouteIsActive = true;
+		Map.EastRouteIsActive = false;
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_east_escape.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_west_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_east_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_west_phase1.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_west_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_east_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_west_phase1.*" );
+		Util.OnTriggerPosition( "MOVER_truck", "west_trigger", 100.0, Map.truck_near_firewall );
+		Util.MapDebugPrint( "truck_west_Arrived" );
+	},
+
+	truck_near_firewall = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_west_phase1.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_west_phase2.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "FLAG_axis_fuel" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "CAPPOINT_west" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_west_phase1.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_west_phase2.*" );
+		Map.TruckNearWestFireWall = true;
+		if ( Map.FuelPouredWest == true )
+		{
+			SetAvailableMapGoals( TEAM.AXIS, true, "GRENADE_WestFireWall" );
+		}
+		Util.MapDebugPrint( "truck_near_firewall" );
+	},
+
+	truck_past_firewall = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_allied_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_allied_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "FLAG_axis_fuel" );
+
+		if(Map.WestRouteIsActive)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_west_phase2.*" );
+			SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_west_phase3.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_west_phase2.*" );
+			SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_west_phase3.*" );
+			Map.TruckNearWestFireWall = false;
+			SetAvailableMapGoals( TEAM.AXIS, false, "GRENADE_WestFireWall" );
+		}
+
+		if(Map.EastRouteIsActive)
+		{
+			SetAvailableMapGoals( TEAM.AXIS, false, "GRENADE_EastFireWall" );
+		}
+		Util.MapDebugPrint( "truck_past_firewall" );
+	},
+
+	truck_east_Arrived = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_east_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_west_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_east_escape.*" );
+		SetAvailableMapGoals( TEAM.AXIS, true, "ATTACK_east_phase1.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_west_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_east_.*" );
+		SetAvailableMapGoals( TEAM.ALLIES, true, "ATTACK_east_phase1.*" );
+		Map.WestRouteIsActive = false;
+		Map.EastRouteIsActive = true;
+		Util.MapDebugPrint( "truck_east_Arrived" );
+	},
+
+	truck_Destroyed = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.WestRouteIsActive = false;
+		Map.EastRouteIsActive = false;
+		Map.TruckNearWestFireWall = false;
+		SetAvailableMapGoals( TEAM.AXIS, false, "GRENADE_WestFireWall" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_west" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "FLAG_axis_fuel" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_east_.*" );
+		SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_west_.*" );
+		Util.MapDebugPrint( "truck_Destroyed" );
+	},
+
+	tank_gun_Disabled = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.TankGunIsEnabled = false;
+		if (Map.RadioIsIntact)
+		{
+			Map.Switches.radio.LimitTeam = (1<<TEAM.AXIS);
+		}
+		else
+		{
+			Map.Switches.radio.LimitTeam = 0;
+		}
+		Util.MapDebugPrint( "tank_gun_Disabled" );
+	},
+
+	tank_gun_Loaded = function( trigger )
+	{
+		if ( TestMap )
+			{ return; }
+
+		Map.TankGunIsEnabled = true;
+		if (Map.RadioIsIntact)
+		{
+			Map.Switches.radio.LimitTeam = (1<<TEAM.ALLIES);
+		}
+		else
+		{
+			Map.Switches.radio.LimitTeam = 0;
+		}
+		Util.MapDebugPrint( "tank_gun_Loaded" );
+	},
+
+};
+
+global OnMapLoad = function()
+{
+	if ( TestMapOn )
+		{ Util.AutoTestMap(); }
+
+	// *** TRIGGERS ***
+	OnTrigger( "MISSING_STRING", Map.Allied_Command_Post_Built );
+	OnTrigger( "MISSING_STRING", Map.Allied_Command_Post_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Armoury_Door_Built );
+	OnTrigger( "MISSING_STRING", Map.Armoury_Door_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Assault_Ramp_Built );
+	OnTrigger( "MISSING_STRING", Map.Assault_Ramp_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.Tiger_Built );
+	OnTrigger( "MISSING_STRING", Map.Town_Hall_Rear_Door_Destroyed );
+	OnTrigger( "MISSING_STRING", Map.axis_fuel_Taken );
+	OnTrigger( "axis_hq_compost_constructed", Map.Axis_Command_Post_Built );
+	OnTrigger( "axis_hq_compost_damaged", Map.Axis_Command_Post_Destroyed );
+	OnTrigger( "goldrush_axis_truck_barrier1", Map.truck_past_firewall );
+	OnTrigger( "axis_tank_gun_loaded", Map.tank_gun_Loaded );
+	OnTrigger( "axis_tank_gun_disabled", Map.tank_gun_Disabled );
+	OnTrigger( "^1*** ^7Axis have repaired the Radio Mast! ^1***", Map.Radio_Mast_Built );
+	OnTrigger( "^4*** ^7The Allies have destroyed the Radio Mast! ^4***", Map.Radio_Mast_Destroyed );
+	OnTrigger( "^3*** ^7Axis have repaired the communication cables - Axis respawn time improved by 5 seconds! ^3***", Map.communication_cables_Built );
+	OnTrigger( "^3*** ^7Axis have repaired the communication cables - Axis respawn time", Map.communication_cables_Built );
+	OnTrigger( "^3*** ^7Allies have destroyed the communication cables - Axis respawn time delayed by 5 seconds! ^3***", Map.communication_cables_Destroyed );
+	OnTrigger( "^3*** ^7Allies have destroyed the communication cables - Axis respawn t", Map.communication_cables_Destroyed );
+	OnTrigger( "^3*** ^7An Allied truck has arrived on the southeast route, heading north ^3***", Map.truck_east_Arrived );
+	OnTrigger( "^3*** ^7An Allied truck has arrived on the southeast route, heading nor", Map.truck_east_Arrived );
+	OnTrigger( "^3*** ^7An Allied truck has arrived on the southwest route, heading north ^3***", Map.truck_west_Arrived );
+	OnTrigger( "^3*** ^7An Allied truck has arrived on the southwest route, heading nor", Map.truck_west_Arrived );
+	OnTrigger( "^1*** ^7The Truck has been destroyed! ^1***", Map.truck_Destroyed );
+	OnTrigger( "^3*** ^7Fuel has been poured into the western firewall hollow!  A spark will set it off! ^3***", Map.fuel_west_poured );
+	OnTrigger( "^3*** ^7Fuel has been poured into the western firewall hollow!  A spark", Map.fuel_west_poured );
+	OnTrigger( "^3*** ^7Fuel has been poured into the eastern firewall hollow!  A spark will set it off! ^3***", Map.fuel_east_poured );
+	OnTrigger( "^3*** ^7Fuel has been poured into the eastern firewall hollow!  A spark", Map.fuel_east_poured );
+	OnTrigger( "^3*** ^7Eastern firewall ignited!  It will burn for 60 seconds! ^3***", Map.fuel_east_ignited );
+	OnTrigger( "^3*** ^7Western firewall ignited!  It will burn for 60 seconds! ^3***", Map.fuel_west_ignited );
+	OnTrigger( "^3*** ^7The western firewall has burnt out! ^3***", Map.fuel_west_burnt_out );
+	OnTrigger( "^3*** ^7Allied east forward spawn flag now available! ^3***", Map.allied_east_fwd_flag_Available );
+	OnTrigger( "^3*** ^7Allied west forward spawn flag now available! ^3***", Map.allied_west_fwd_flag_Available );
+	OnTrigger( "^1*** ^7Axis have taken the Allied East Forward Spawn! ^1***", Map.allied_east_fwd_flag_Axis_Captured );
+	OnTrigger( "^4*** ^7Allies have captured the Allied East Forward Spawn! ^4***", Map.allied_east_fwd_flag_Allies_Captured );
+	OnTrigger( "^1*** ^7Axis have taken the Allied West Forward Spawn! ^1***", Map.allied_west_fwd_flag_Axis_Captured );
+	OnTrigger( "^4*** ^7Allies have captured the Allied West Forward Spawn! ^4***", Map.allied_west_fwd_flag_Allies_Captured );
+
+	Map.serial1 = OnTriggerRegion( Vector3(4610,5415,280), 800, Map.radioTriggerTable );
+	bnds = AABB();
+	bnds.Set( Vector3(3400,4850,5), Vector3(5400,5020,200) );
+	Map.serial2 = OnTriggerRegion(bnds, Map.gunTriggerTable );
+ 	//DrawDebugAABB(bnds, COLOR.GREEN, 0.5);
+
+	// *** AXIS GOALS ***
+	SetAvailableMapGoals( TEAM.AXIS, false, "CHECKPOINT_allied_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "FLAG_axis_fuel" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_east" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "CAPPOINT_west" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_west_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "ATTACK_east_.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_command_post.*" );
+	SetAvailableMapGoals( TEAM.AXIS, false, "SNIPE_east_escape.*" );
+
+	// *** ALLIED GOALS ***
+	SetAvailableMapGoals( TEAM.ALLIES, false, "DEFEND_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_west_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "ATTACK_east_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "CHECKPOINT_allied_.*" );
+	SetAvailableMapGoals( TEAM.ALLIES, false, "CAPPOINT_.*" );
+	//SetAvailableMapGoals( TEAM.ALLIES, false, "BUILD_Assault_Ramp" );
+	ETUtil.LimitToClass( "RIDE_truck", TEAM.ALLIES, CLASS.ENGINEER );
+
+	// Flag communication cable waypoint closed until cables are built
+	Wp.SetWaypointFlag("cables1", "closed", true);
+
+	Util.SetMaxUsersInProgress( 1, "BUILD_.*" );
+	Util.SetMaxUsersInProgress( 1, "PLANT_Command_Post" );
+	Util.SetMaxUsersInProgress( 1, "FLAG_axis_fuel" );
+	Util.SetMaxUsersInUse( 1, "FLAG_axis_fuel" );
+	Util.SetMaxUsersInProgress( 2, "CHECKPOINT_allied_.*" );
+	Util.SetMaxUsersInUse( 1, "DEFEND_gun_switch.*" );
+	Util.SetMaxUsersInProgress( 1, "DEFEND_gun_switch.*" );
+
+	// Make some goals easier to reach
+	Util.SetGoalPosition( 6548, 6548, 688, "BUILD_communication_cables" );
+	Util.SetGoalOffset( 0, 0, -60, Map.Build_Armoury_Door );
+	Util.SetGoalOffset( 0, 70, 0, "MOVER_petrol_west" );
+	Util.SetGoalOffset( 0, 40, 0, Map.Build_Axis_Command_Post );
+	Util.SetGoalOffset( 0, 40, 0, Map.Build_Allied_Command_Post );
+
+	SetGoalPriority( "RIDE_truck", 0.9 );
+	SetGoalPriority( "BUILD_Assault_Ramp", 0.8 );
+	SetGoalPriority( "BUILD_communication_cables", 1.1 );
+	SetGoalPriority( "DEFEND_gun_switch2", 0.6 );
+	Util.UpdateSwitchData();
+
+	Util.MapDebugPrint( "Omni-bot map script for Tiger executed." );
+};
+
+global OnBotJoin = function( bot )
+{
+	bot.TargetBreakableDist = 90.0;
+	bot.IgnoreTarget( GetGoal("MOVER_petrol_east").GetEntity(), 9999 );
+	bot.IgnoreTarget( GetGoal("MOVER_petrol_west").GetEntity(), 9999 );
+};
