@@ -10,7 +10,7 @@ case "$1" in
   start)
         # Start daemon.
         echo "Starting $DAEMON_NAME";
-        nohup etded +set dedicated 2 +set fs_game silent +set fs_homepath /usr/share/games/enemy-territory +exec silent.cfg  > /var/log/et.log 2>&1 &
+        nohup etded +set dedicated 2 +set fs_game silent +set fs_homepath /usr/share/games/enemy-territory +exec silent.cfg +exec bot.cfg  > /var/log/et.log 2>&1 &
         ;;
   stop)
         # Stop daemons.
