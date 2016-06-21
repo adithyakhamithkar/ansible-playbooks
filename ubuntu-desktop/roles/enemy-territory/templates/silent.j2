@@ -102,19 +102,21 @@ set g_XPSave 4
 //set g_XPSaveMaxAge "90d"	// keep KR and PRW saved for longer time
 
 // XP is reset after 90 days
-/set g_XPSaveMaxAge_xp "30d"	// for the XP
-/set g_XPSaveMaxAge "90d"	// keep KR and PRW saved for longer time
+//set g_XPSaveMaxAge_xp "30d"	// for the XP
+//set g_XPSaveMaxAge "90d"	// keep KR and PRW saved for longer time
 
 // Never reset XP (it's not really an option, but a huge value (30 months) will do instead)
 // Do note that g_dbUserMaxAge should be set to "-1" to disable player record deletions
-set g_g_XPSaveMaxAge_xp "30o"
-set g_XPSaveMaxAge "30o"
+//set g_g_XPSaveMaxAge_xp "30o"
+//set g_XPSaveMaxAge "30o"
 
 //**************************************************
 // Player Statistics, Rating and Team Balance
 //**************************************************
 
+set g_stats 2
 set g_playerRating 1	// Enable only if the players on your server remain consistently the same
+set g_shuffle_rating 3
 
 //**************************************************
 // Class and Weapon Restrictions
@@ -260,10 +262,12 @@ set g_cheatLog "cheat.log"
 //**************************************************
 // Omni-Bots
 //**************************************************
+exec omnibot.cfg
 exec bot.cfg
 set omnibot_enable 1
 set omnibot_path "/usr/share/games/enemy-territory/omni-bot"  // set this path manually if the auto-search does not find the Omni-bot files
-set g_bot_maxXP -1
+set g_bot_maxXP 1000
+set g_bot_minPlayers 8
 set omnibot_flags 262148
 
 //**************************************************

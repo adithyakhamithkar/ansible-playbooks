@@ -37,6 +37,9 @@
     - { src: 'silent.j2', dest: '/usr/share/games/enemy-territory/etmain/silent.cfg' }
     - { src: 'silent-banner.j2', dest: '/usr/share/games/enemy-territory/silent/banner.cfg' }
     - { src: 'bot.j2', dest: '/usr/share/games/enemy-territory/etmain/bot.cfg' }
+    - { src: 'silent-default.j2', dest: '/usr/share/games/enemy-territory/silent/default.cfg' }
+    - { src: 'silent-shrubbot.j2', dest: '/usr/share/games/enemy-territory/silent/shrubbot.cfg' }
+    - { src: 'omnibot.j2', dest: '/usr/share/games/enemy-territory/etmain/omnibot.cfg' }
 #    - { src: 'jaymod.j2', dest: '/usr/share/games/enemy-territory/etmain/jaymod.cfg' }
 #    - { src: 'nitmod.j2', dest: '/usr/share/games/enemy-territory/etmain/nitmod.cfg' }
 
