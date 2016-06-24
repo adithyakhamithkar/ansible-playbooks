@@ -12,19 +12,13 @@
   - lib32stdc++6
 
 - name: Copy etpro binaries
-  unarchive: src=etpro-3_2_6.zip dest=/usr/share/games/enemy-territory copy=yes
-
-- name: Copy silent binaries
-  unarchive: src=silent.zip dest=/usr/share/games/enemy-territory copy=yes
-
-#- name: Copy jaymod binaries
-#  unarchive: src=jaymod-2.0.3-linux.tar.gz dest=/usr/share/games/enemy-territory copy=yes
-
-#- name: Copy nitmod binaries
-#  unarchive: src=nitmod_2.3.1.zip dest=/usr/share/games/enemy-territory copy=yes
-
-#- name: Copy wolfzone binaries
-#  unarchive: src=http://www.wolfzone.eu/download/wolfzone-linux64-160207.zip dest=/usr/share/games/enemy-territory copy=no
+  unarchive: src={{item}} dest=/usr/share/games/enemy-territory copy=yes
+  with_items:
+  - etpro-3_2_6.zip
+  - silent.zip
+#  - jaymod-2.0.3-linux.tar.gz
+#  - nitmod_2.3.1.zip
+#  - http://www.wolfzone.eu/download/wolfzone-linux64-160207.zip
 
 - name: Copy omni-bot binaries
   unarchive: src=omni-bot_0_831_ET_linux.zip dest=/usr/share/games/enemy-territory copy=yes
@@ -40,9 +34,46 @@
     - { src: 'silent-default.j2', dest: '/usr/share/games/enemy-territory/silent/default.cfg' }
     - { src: 'silent-shrubbot.j2', dest: '/usr/share/games/enemy-territory/silent/shrubbot.cfg' }
     - { src: 'omnibot.j2', dest: '/usr/share/games/enemy-territory/etmain/omnibot.cfg' }
+    - { src: 'objectivecycle.j2', dest: '/usr/share/games/enemy-territory/etmain/objectivecycle.cfg' }
 #    - { src: 'jaymod.j2', dest: '/usr/share/games/enemy-territory/etmain/jaymod.cfg' }
 #    - { src: 'nitmod.j2', dest: '/usr/share/games/enemy-territory/etmain/nitmod.cfg' }
 
+- name: Copy maps
+  copy: src={{item}} dest=/usr/share/games/enemy-territory/etmain/
+  with_items:
+    - 2hide.pk3
+    - 2tanks_171.pk3
+    - 1944_beach.pk3
+    - 1944_cherbourg2.pk3
+    - adlernest_2b.pk3
+    - adlernest.pk3
+    - airassault_fp1.pk3
+    - alpine_assault_final.pk3
+    - am_hydro_dam.pk3
+    - venice.pk3
+    - v2base.pk3
+    - supplydepot2.pk3
+  tags:
+    - copy-maps
+
+- name: Extract maps
+  shell: cd /usr/share/games/enemy-territory/etmain && unzip {{item}}
+  with_items:
+    - 2hide.pk3
+    - 2tanks_171.pk3
+    - 1944_beach.pk3
+    - 1944_cherbourg2.pk3
+    - adlernest_2b.pk3
+    - adlernest.pk3
+    - airassault_fp1.pk3
+    - alpine_assault_final.pk3
+    - am_hydro_dam.pk3
+    - venice.pk3
+    - v2base.pk3
+    - supplydepot2.pk3
+  ignore_errors: True
+  tags:
+    - copy-maps
 
 - name: Copy init.d script
   template: src={{item.src}} dest={{item.dest}} mode=0755

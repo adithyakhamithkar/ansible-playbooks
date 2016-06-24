@@ -31,9 +31,9 @@ set sv_dl_maxRate 50000
 set sv_allowDownload 1
 //
 // Uncomment below once you have the www downloads set
-//set sv_wwwDownload 1
-//set sv_wwwDlDisconnected 1
-//set sv_wwwBaseURL ""			// This is the URL where players are directed while running the game
+set sv_wwwDownload 1
+set sv_wwwDlDisconnected 1
+set sv_wwwBaseURL "http://{{ansible_ssh_host}}"			// This is the URL where players are directed while running the game
 //set sv_wwwFallbackURL ""		// This is the URL where players are directed to download using external internet browser
 
 set sv_pure 1
@@ -93,7 +93,16 @@ set g_autoTempBan 6
 // XP Save
 //**************************************************
 
-set g_XPSave 4
+set g_XPSave 31  //changed from 21
+set g_XPSaveMaxAge_xp "90d"  //changed from "30d"
+set g_damageXP "0"  //changed from "1"
+set g_damageXPLevel "50"
+set g_maxXP -1  //changed from "90000"
+set g_xpdecay "0"
+set g_xpdecayrate "0"
+set g_xpdecayfloor "0"  //changed from "1"
+
+//set g_XPSave 4
 
 // Enable disable preferred style
 
@@ -232,6 +241,7 @@ set g_intermissionReadyPercent 100
 // Miscellaneous
 //**************************************************
 
+set g_ipcomplaintlimit 20
 set g_dropHealth 2
 set g_dropAmmo 2
 set g_misc 1024
