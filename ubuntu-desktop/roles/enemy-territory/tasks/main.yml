@@ -11,11 +11,12 @@
   - enemy-territory
   - lib32stdc++6
 
-- name: Copy etpro binaries
+- name: Copy mod binaries
   unarchive: src={{item}} dest=/usr/share/games/enemy-territory copy=yes
   with_items:
-  - etpro-3_2_6.zip
   - silent.zip
+  - pb.zip
+#  - etpro-3_2_6.zip
 #  - jaymod-2.0.3-linux.tar.gz
 #  - nitmod_2.3.1.zip
 #  - http://www.wolfzone.eu/download/wolfzone-linux64-160207.zip
@@ -29,12 +30,13 @@
   with_items:
     - { src: 'server.j2', dest: '/usr/share/games/enemy-territory/etmain/server.cfg' }
     - { src: 'silent.j2', dest: '/usr/share/games/enemy-territory/etmain/silent.cfg' }
-    - { src: 'silent-banner.j2', dest: '/usr/share/games/enemy-territory/silent/banner.cfg' }
+    - { src: 'silent-banner.j2', dest: '/usr/share/games/enemy-territory/etmain/banner.cfg' }
     - { src: 'bot.j2', dest: '/usr/share/games/enemy-territory/etmain/bot.cfg' }
     - { src: 'silent-default.j2', dest: '/usr/share/games/enemy-territory/silent/default.cfg' }
     - { src: 'silent-shrubbot.j2', dest: '/usr/share/games/enemy-territory/silent/shrubbot.cfg' }
-    - { src: 'omnibot.j2', dest: '/usr/share/games/enemy-territory/etmain/omnibot.cfg' }
+    - { src: 'omnibot.j2', dest: '/usr/share/games/enemy-territory/omni-bot/et/user/omnibot.cfg' }
     - { src: 'objectivecycle.j2', dest: '/usr/share/games/enemy-territory/etmain/objectivecycle.cfg' }
+    - { src: 'admin.j2', dest: '/usr/share/games/enemy-territory/silent/database/admin.cfg' }
 #    - { src: 'jaymod.j2', dest: '/usr/share/games/enemy-territory/etmain/jaymod.cfg' }
 #    - { src: 'nitmod.j2', dest: '/usr/share/games/enemy-territory/etmain/nitmod.cfg' }
 
@@ -76,11 +78,11 @@
 - name: Copy init.d script
   template: src={{item.src}} dest={{item.dest}} mode=0755
   with_items:
-    - { src: 'etded-main-obj.j2', dest: '/etc/init.d/etded-main-obj' }
-    - { src: 'etded-pro-obj.j2', dest: '/etc/init.d/etded-pro-obj' }
-    - { src: 'etded-main-camp.j2', dest: '/etc/init.d/etded-main-camp' }
-    - { src: 'etded-pro-camp.j2', dest: '/etc/init.d/etded-pro-camp' }
     - { src: 'etded-silent.j2', dest: '/etc/init.d/etded-silent' }
+#    - { src: 'etded-main-obj.j2', dest: '/etc/init.d/etded-main-obj' }
+#    - { src: 'etded-pro-obj.j2', dest: '/etc/init.d/etded-pro-obj' }
+#    - { src: 'etded-main-camp.j2', dest: '/etc/init.d/etded-main-camp' }
+#    - { src: 'etded-pro-camp.j2', dest: '/etc/init.d/etded-pro-camp' }
 #    - { src: 'etded-jaymod.j2', dest: '/etc/init.d/etded-jaymod' }
 #    - { src: 'etded-wolfzone.j2', dest: '/etc/init.d/etded-wolfzone' }
 #    - { src: 'etded-nitmod.j2', dest: '/etc/init.d/etded-nitmod' }

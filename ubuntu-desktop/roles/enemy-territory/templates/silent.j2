@@ -6,7 +6,7 @@
 
 set dedicated "2"				// 1: dedicated server for lan 2: dedicated server for internet
 set net_ip "{{ansible_ssh_host}}"				// set to override the default IP ET uses
-set net_port "8080"				// set to override the default port ET uses
+//set net_port "8080"				// set to override the default port ET uses
 
 set sv_hostname "^>M^1e^2o^zw^7!" 			// name of server here
 set server_motd0 " ^NsilEnT ^7MOTD "
@@ -23,7 +23,7 @@ set sv_privateclients 0			// Number of private slots
 set sv_privatepassword ""		// Password to access private slots
 set sv_fullmsg "Server is full."
 
-set rconpassword ""
+set rconpassword "123"
 set refereePassword ""
 
 set sv_maxRate 50000
@@ -41,9 +41,9 @@ set sv_minping 0
 set sv_maxping 0
 
 // Uncomment the sv_master settings when you're ready for the server to go public
-set sv_master1 ""
-//set sv_master1 "etmaster.idsoftware.com"
-//set sv_master2 "master0.etmaster.net
+// MASTER SERVERS TO REPORT TO
+set sv_master1 "etmaster.idsoftware.com"
+set sv_master2 "master0.etmaster.net"
 
 // generic logging
 set g_log "server.log"
@@ -241,7 +241,7 @@ set g_intermissionReadyPercent 100
 // Miscellaneous
 //**************************************************
 
-set g_ipcomplaintlimit 20
+set g_maxConnsPerIP 10
 set g_dropHealth 2
 set g_dropAmmo 2
 set g_misc 1024
@@ -272,8 +272,7 @@ set g_cheatLog "cheat.log"
 //**************************************************
 // Omni-Bots
 //**************************************************
-exec omnibot.cfg
-exec bot.cfg
+
 set omnibot_enable 1
 set omnibot_path "/usr/share/games/enemy-territory/omni-bot"  // set this path manually if the auto-search does not find the Omni-bot files
 set g_bot_maxXP 1000
