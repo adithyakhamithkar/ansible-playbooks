@@ -1,0 +1,14 @@
+---
+#- shell: gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 && curl -sSL https://get.rvm.io | bash -s stable
+
+#- shell: rvm install ruby-2.3.0
+
+#- shell: gem install bundler
+
+#- shell: rvm use 2.3.0 -- default
+
+- name: Deploy beef
+  git: repo=git://github.com/beefproject/beef.git dest=/home/{{ansible_ssh_user}}/beef accept_hostkey=yes
+
+- name: Run bundler
+  bundler: state=present gemfile=/home/{{ansible_ssh_user}}/beef/Gemfile
