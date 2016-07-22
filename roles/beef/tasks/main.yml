@@ -8,7 +8,7 @@
     executable: /bin/bash
 
 - name: Install rvm 2.1.5
- shell: /usr/local/rvm/scripts/rvm install 2.1.5
+  shell: /usr/local/rvm/scripts/rvm install 2.1.5
   args:
     executable: /bin/bash
 
