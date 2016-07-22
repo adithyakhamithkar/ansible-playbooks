@@ -16,6 +16,7 @@ Vagrant.configure(2) do |config|
   config.vm.define "test_box" do |test_box|
     test_box.vm.box = "ubuntu/trusty64"
     test_box.vm.network "private_network", ip: "192.168.33.10"
+    test_box.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"
     #test_box.ssh.username = "vagrant"
     #test_box.ssh.password = "vagrant"
     config.vm.provider "virtualbox" do |test_box|

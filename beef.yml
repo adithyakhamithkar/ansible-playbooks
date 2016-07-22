@@ -3,5 +3,6 @@
 #
 ---
 - hosts: '{{inventory}}'
+  become: yes
   roles:
   - beef
