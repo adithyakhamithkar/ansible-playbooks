@@ -17,6 +17,7 @@
     - { src: nginx-noproxy.j2, dest: /etc/fail2ban/filter.d/nginx-noproxy.conf }
     - { src: nginx-noscript.j2, dest: /etc/fail2ban/filter.d/nginx-noscript.conf }
     - { src: nginx-ddos.j2, dest: /etc/fail2ban/filter.d/nginx-ddos.conf }
+    - { src: jails-status.j2, dest: /etc/fail2ban/jails-status.sh }
 
 - name: Start fail2ban
   service: name=fail2ban state=started
