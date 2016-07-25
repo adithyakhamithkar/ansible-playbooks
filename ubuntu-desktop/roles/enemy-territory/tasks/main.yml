@@ -44,7 +44,6 @@
   copy: src={{item}} dest=/usr/share/games/enemy-territory/etmain/
   with_items:
     - 2hide.pk3
-    - 2tanks_171.pk3
     - 1944_beach.pk3
     - adlernest_2b.pk3
     - adlernest.pk3
@@ -60,7 +59,6 @@
   shell: cd /usr/share/games/enemy-territory/etmain && unzip {{item}}
   with_items:
     - 2hide.pk3
-    - 2tanks_171.pk3
     - 1944_beach.pk3
     - adlernest_2b.pk3
     - adlernest.pk3
