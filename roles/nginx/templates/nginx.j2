@@ -78,4 +78,11 @@ http {
 	##
 	proxy_cache_path /tmp/nginx levels=1:2 keys_zone=STATIC:10m inactive=24h max_size=1g;
 	proxy_cache_key "$scheme$request_method$host$request_uri";
+
+	##
+	#GeoIP
+	##
+ 	geoip_country /etc/nginx/geoip/GeoIP.dat; # the country IP database
+ 	geoip_city /etc/nginx/geoip/GeoLiteCity.dat; # the city IP database
+	
 }
