@@ -1,0 +1,14 @@
+---
+- name: Add the runescape APT key
+  apt_key: url=https://content.runescape.com/downloads/ubuntu/runescape.gpg.key state=present
+
+- name: Add playdeb repository
+  apt_repository: repo="deb https://content.runescape.com/downloads/ubuntu trusty non-free" state=present
+
+- name: Update cache
+  apt: update_cache=yes
+
+- name: Install enemy-territory
+  apt: name={{item}} state=present
+  with_items:
+  - runescape-launcher

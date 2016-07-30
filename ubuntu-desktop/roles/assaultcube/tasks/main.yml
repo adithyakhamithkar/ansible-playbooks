@@ -1,0 +1,14 @@
+---
+- name: Add the playdeb APT key
+  apt_key: url=http://archive.getdeb.net/getdeb-archive.key state=present
+
+- name: Add playdeb repository
+  apt_repository: repo="deb http://archive.getdeb.net/ubuntu trusty-getdeb games" state=present
+
+- name: Install assault cube
+  apt: name={{item}} state=present
+  with_items:
+  - assaultcube
+
+- name: Setup init script
+  template: src=assaultcube.j2 dest=/etc/init.d/assaultcube mode=0755
