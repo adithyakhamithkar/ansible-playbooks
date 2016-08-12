@@ -49,7 +49,9 @@ http {
 	##
 	# Logging Settings
 	##
-
+	#log_format  main  '$remote_addr $upstream_addr - $remote_user [$time_local] "$request" '
+  #                    '$status $body_bytes_sent "$http_referer" '
+  #                    '"$http_user_agent" "$http_x_forwarded_for"';
 	access_log /var/log/nginx/access.log;
 	error_log /var/log/nginx/error.log;
 
@@ -84,5 +86,5 @@ http {
 	##
  	geoip_country /etc/nginx/geoip/GeoIP.dat; # the country IP database
  	geoip_city /etc/nginx/geoip/GeoLiteCity.dat; # the city IP database
-	
+
 }

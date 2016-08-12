@@ -1,7 +1,7 @@
 # Server Block for Virtual host start
 upstream app_server_ssl {
-    server 10.130.27.20;
-    server 10.130.27.135;
+    server 192.168.33.11 max_fails=1  fail_timeout=3s;
+    server 192.168.33.12 max_fails=1  fail_timeout=3s;
 }
 
 server {
@@ -24,6 +24,9 @@ server {
             proxy_cache STATIC;
             add_header X-Proxy-Cache $upstream_cache_status;
             proxy_pass http://app_server_ssl;
+            #proxy_set_header X-Forwarded-For $remote_addr;
+            #add_header  X-Upstream  $upstream_addr;
+            proxy_next_upstream error timeout invalid_header http_404 http_500 http_502 http_503 http_504;
         }
         #Define custom error pages
         error_page 404 /error-page-404.html;
