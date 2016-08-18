@@ -3,6 +3,6 @@
   apt_repository: repo="deb http://archive.canonical.com/ubuntu trusty partner" state=present
 
 - name: Install adobe-flashplugin
-  apt: name={{item}} state=present
+  apt: name={{item}} state=latest
   with_items:
   - adobe-flashplugin
