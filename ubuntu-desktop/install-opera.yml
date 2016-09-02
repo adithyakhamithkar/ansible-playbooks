@@ -1,0 +1,5 @@
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - opera
