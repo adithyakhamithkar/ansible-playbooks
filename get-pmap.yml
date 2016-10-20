@@ -1,0 +1,19 @@
+---
+- hosts: '{{inventory}}'
+  become: yes
+
+  tasks:
+  - name: Get PID
+    shell: "ps -ef | grep {{process}} | grep -v ansible | grep -v grep | awk '{print $2}'"
+    register: pid
+
+  - debug: var=pid
+
+  - name: Take jstack
+    shell: pmap -x {{pid.stdout}} >> /tmp/pmap-{{hostname}}.txt
+
+  - name: Copy jstack
+    fetch: src=/tmp/pmap-{{hostname}}.txt dest={{destination}}/ flat=yes
+
+  - name: Clean up
+    file: path=/tmp/pmap-{{hostname}}.txt state=absent
