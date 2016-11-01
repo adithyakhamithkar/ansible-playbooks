@@ -1,0 +1,15 @@
+---
+- name: Add the openra APT key
+  apt_key: url=http://deb.opera.com/archive.key state=present
+
+- name: Add openra repository
+  apt_repository: repo="deb http://deb.opera.com/opera-stable/ stable non-free" state=present
+
+- name: Install openra
+  apt: name={{item}} state=present
+  with_items:
+  - openra
+  - mono-complete
+
+#- name: Setup init script
+#  template: src=assaultcube.j2 dest=/usr/share/games/openra/launch-dedicated.sh mode=0755
