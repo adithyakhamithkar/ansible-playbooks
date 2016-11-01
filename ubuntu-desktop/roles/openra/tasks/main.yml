@@ -11,5 +11,8 @@
   - openra
   - mono-complete
 
-#- name: Setup init script
-#  template: src=assaultcube.j2 dest=/usr/share/games/openra/launch-dedicated.sh mode=0755
+- name: Setup dedicated script
+  template: src=launch-dedicated.j2 dest=/usr/share/games/openra/launch-dedicated.sh mode=0755
+
+- name: Setup init script
+  template: src=openra.j2 dest=/etc/init.d/openra mode=0755

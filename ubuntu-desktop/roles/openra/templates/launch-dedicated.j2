@@ -14,9 +14,10 @@ ListenPort="${ListenPort:-"1234"}"
 ExternalPort="${ExternalPort:-"1234"}"
 AdvertiseOnline="${AdvertiseOnline:-"True"}"
 AllowPortForward="${AllowPortForward:-"False"}"
+Server.DisableSinglePlayer="${DisableSinglePlayer:="True"}"
 
 while true; do
      mono --debug OpenRA.Game.exe Game.Mod=$Mod Server.Dedicated=$Dedicated Server.DedicatedLoop=$DedicatedLoop \
      Server.Name="$Name" Server.ListenPort=$ListenPort Server.ExternalPort=$ExternalPort \
-     Server.AdvertiseOnline=$AdvertiseOnline Server.AllowPortForward=$AllowPortForward
+     Server.AdvertiseOnline=$AdvertiseOnline Server.AllowPortForward=$AllowPortForward Server.DisableSinglePlayer=$DisableSinglePlayer
 done
