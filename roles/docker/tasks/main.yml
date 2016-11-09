@@ -18,3 +18,8 @@
 - name: Update UFW
   template: src=ufw.j2 dest=/etc/default/ufw
   notify: ufw restart
+
+- name: Install docker python packages
+  pip: name={{item.name}} version={{item.version}} state=present
+  with_items:
+  - { name: docker-py, version: 1.9 }

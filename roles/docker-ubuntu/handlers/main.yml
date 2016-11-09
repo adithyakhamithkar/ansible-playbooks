@@ -1,0 +1,3 @@
+---
+- name: ufw restart
+  service: name=ufw state=restarted
