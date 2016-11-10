@@ -9,7 +9,7 @@
     - set-hostname
 
 - name: Replace default hosts file
-  lineinfile: dest=/etc/hosts line='{{ansible_default_ipv4.address}} {{hostname}}.{{domain_name}} {{hostname}}'
+  lineinfile: dest=/etc/hosts line='{{ansible_ssh_host}} {{hostname}}.{{domain_name}} {{hostname}}'
   tags:
     - set-hostname
 
