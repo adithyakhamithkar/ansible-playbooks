@@ -15,7 +15,7 @@
   - nscd
 
 - name: Set locale
-  shell: locale-gen UTF-8
+  shell: locale-gen "en_US.UTF-8"
 
 - name: Install pip modules
   pip: name={{item}} state=present
