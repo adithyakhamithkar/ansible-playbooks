@@ -15,12 +15,13 @@
 
 - name: Adding ipa server in hosts
   lineinfile: dest=/etc/hosts line='{{ipa_server_ip}} {{ipa_server}}.{{domain_name}} {{ipa_server}}'
+
 - name: Uninstall existing configuration
   shell: ipa-client-install --uninstall --unattended
   ignore_errors: True
 
 - name: make sure the client is not present in IPA Server already
-  shell: 'echo {{ipa_admin_password}} | kinit admin; ipa host-del {{hostname}}.{{domain_name}}'
+  shell: 'echo {{ipa_admin_password}} | kinit admin; ipa host-del {{hostname}}'
   ignore_errors: True
   #delegate_to: "{{ipa_server_ip}}"
 

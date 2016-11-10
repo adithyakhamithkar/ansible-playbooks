@@ -20,9 +20,13 @@ Vagrant.configure(2) do |config|
     #test_box.ssh.username = "vagrant"
     #test_box.ssh.password = "vagrant"
     config.vm.provider "virtualbox" do |test_box|
-      test_box.memory = 1024
-      test_box.cpus = 1
+      test_box.memory = 2048
+      test_box.cpus = 2
     end
+    config.vm.provision "shell", inline: <<-SHELL
+       sudo apt-get update
+       sudo apt-get install -y python
+     SHELL
   end
   # test_box1 configuration
   config.vm.define "test_box1" do |test_box1|
