@@ -8,8 +8,10 @@
 - name: Install openra
   apt: name={{item}} state=present
   with_items:
-  - openra
   - mono-complete
+  - mono-devel
+  - mono-reference-assemblies-2.0
+  - openra
 
 - name: Setup dedicated script
   template: src=launch-dedicated.j2 dest=/usr/share/games/openra/launch-dedicated.sh mode=0755

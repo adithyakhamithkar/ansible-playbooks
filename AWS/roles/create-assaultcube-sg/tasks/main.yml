@@ -5,13 +5,13 @@
         aws_access_key: "{{aws_access_key}}"
         aws_secret_key: "{{aws_secret_key}}"
         name: "SG-AssaultCube"
-        description: "AssaultCube-Server security group - open ports 28760"
+        description: "AssaultCube-Server security group - open ports 28763"
         vpc_id: "{{vpc_id}}"
         region: "{{aws_region}}"
         rules:
-          - proto: tcp
-            from_port: 28760
-            to_port: 28760
+          - proto: udp
+            from_port: 28762
+            to_port: 28764
             cidr_ip: 0.0.0.0/0
   register: sg
 
