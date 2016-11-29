@@ -5,12 +5,16 @@
 - name: Add openra repository
   apt_repository: repo="deb http://deb.opera.com/opera-stable/ stable non-free" state=present
 
+- name: Add the mono APT key
+  apt_key: keyserver=hkp://keyserver.ubuntu.com:80 id=3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF state=present
+
+- name: Add mono repository
+  apt_repository: repo="deb http://download.mono-project.com/repo/debian wheezy main" state=present
+
 - name: Install openra
   apt: name={{item}} state=present
   with_items:
   - mono-complete
-  - mono-devel
-  - mono-reference-assemblies-2.0
   - openra
 
 - name: Setup dedicated script

@@ -10,7 +10,7 @@ case "$1" in
   start)
         # Start daemon.
         echo "Starting $DAEMON_NAME";
-        nohup sh /usr/share/games/openra/launch-dedicated.sh > /var/log/openra.log 2>&1 &
+        cd /usr/share/games/openra/ && nohup sh launch-dedicated.sh > /var/log/openra.log 2>&1 &
         ;;
   stop)
         # Stop daemons.
