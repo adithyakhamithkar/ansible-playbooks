@@ -1,0 +1,13 @@
+[Unit]
+Description=OpenRA Service
+After=network.target
+
+[Service]
+User=root
+Restart=always
+Type=forking
+ExecStart=/etc/init.d/openra start
+ExecStart=/etc/init.d/openra stop
+
+[Install]
+WantedBy=multi-user.targe

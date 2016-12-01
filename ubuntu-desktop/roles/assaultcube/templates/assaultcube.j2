@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -
 #
 # example AssaultCube-Server launch script
 # by MeatROme - see http://assault.cubers.net/wiki/Server_setup
@@ -35,7 +35,7 @@ case "$1" in
   start)
         # Start daemon.
         echo "Starting $DAEMON_NAME";
-        assaultcube-server -x$ADMINPASS -k$KILLLIMIT -c$CLIENTS -n"$DESC" -o"$MOTD" -massault.cubers.net> /var/log/assaultcube-server.log 2>&1 &
+        assaultcube-server -x$ADMINPASS -k$KILLLIMIT -c$CLIENTS -n"$DESC" -o"$MOTD" -massault.cubers.net > /var/log/assaultcube-server.log 2>&1 &
         ;;
   stop)
         # Stop daemons.

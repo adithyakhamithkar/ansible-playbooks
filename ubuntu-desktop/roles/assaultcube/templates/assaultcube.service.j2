@@ -1,0 +1,14 @@
+[Unit]
+Description=AssaultCube Service
+After=network.target
+
+[Service]
+User=root
+Restart=always
+Type=forking
+WorkingDirectory=/usr/lib/games/assaultcube
+Environment= "DESC={{hostname}}" "MOTD='Enjoy the game!'" "CLIENTS=20" "ADMINPASS={{assaultcube_admin_password}}" "KILLLIMIT=-1"
+ExecStart=/bin/echo assaultcube-server -x$ADMINPASS -k$KILLLIMIT -c$CLIENTS -n"$DESC" -o"$MOTD" -massault.cubers.net
+
+[Install]
+WantedBy=multi-user.targe

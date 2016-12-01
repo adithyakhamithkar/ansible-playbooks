@@ -22,3 +22,9 @@
 
 - name: Setup init script
   template: src=openra.j2 dest=/etc/init.d/openra mode=0755
+
+#- name: Setup init script
+#  template: src=openra.service.j2 dest=/etc/systemd/system/openra.service mode=0755
+
+#- name: Start openra
+#  service: name=openra state=started enabled=yes
