@@ -13,6 +13,9 @@
 - name: Setup init script
   template: src=assaultcube.j2 dest=/etc/init.d/assaultcube mode=0755
 
+- name: Set assaultcube to start up by default
+  shell: update-rc.d assaultcube defaults 95 10
+
 #- name: Setup systemd file
 #  template: src=assaultcube.service.j2 dest=/etc/systemd/system/assaultcube.service mode=0755
 
