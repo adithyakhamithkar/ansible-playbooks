@@ -22,8 +22,8 @@ http {
 
 	#Hides the web server information
 	server_tokens off;
-	more_clear_headers 'Server';
-	more_clear_headers 'X-Powered-By';
+	#more_clear_headers 'Server';
+	#more_clear_headers 'X-Powered-By';
 
 	##
 	client_body_buffer_size 10K;
@@ -84,7 +84,7 @@ http {
 	##
 	#GeoIP
 	##
- 	geoip_country /etc/nginx/geoip/GeoIP.dat; # the country IP database
- 	geoip_city /etc/nginx/geoip/GeoLiteCity.dat; # the city IP database
+ 	#geoip_country /etc/nginx/geoip/GeoIP.dat; # the country IP database
+ 	#geoip_city /etc/nginx/geoip/GeoLiteCity.dat; # the city IP database
 
 }

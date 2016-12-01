@@ -1,6 +1,6 @@
 ---
 - name: Add the Nginx source to the APT source list
-  apt_repository: repo="ppa:nginx/development" state=present
+  apt_repository: repo="ppa:nginx/stable" state=present
   tags:
     - nginx-installation
 
@@ -29,7 +29,7 @@
     - { src: roles/nginx/files/GeoIP.dat.zip, dest: /etc/nginx/geoip }
     - { src: roles/nginx/files/GeoLiteCity.dat.zip, dest: /etc/nginx/geoip }
   tags:
-    - nginx-configuration
+    - nginx-gioip-configuration
 
 - name: Configure GeoIP
   lineinfile: dest=/etc/nginx/fastcgi_params line="{{item}}"
@@ -49,6 +49,8 @@
     - fastcgi_param GEOIP_CITY_CONTINENT_CODE $geoip_city_continent_code;
     - fastcgi_param GEOIP_LATITUDE $geoip_latitude;
     - fastcgi_param GEOIP_LONGITUDE $geoip_longitude;
+  tags:
+    - nginx-gioip-configuration
 
 - name: Copy default index, error_pages & ssl certificates
   copy: src={{item.src}} dest={{item.dest}}
