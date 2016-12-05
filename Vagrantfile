@@ -55,6 +55,10 @@ Vagrant.configure(2) do |config|
       test_box2.memory = 1014
       test_box2.cpus = 1
     end
+    config.vm.provision "shell", inline: <<-SHELL
+       sudo apt-get update
+       sudo apt-get install -y python
+     SHELL
   end
   # Run commission-new-server.yml playbook
   #config.vm.provision "ansible" do |ansible|
