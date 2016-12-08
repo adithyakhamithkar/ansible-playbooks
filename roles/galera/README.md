@@ -13,3 +13,7 @@ test-box2  ansible_ssh_host=192.168.33.12 hostname=test-box2
 cluster_name=test_cluster
 cluster_address=gcomm://192.168.33.10,192.168.33.11,192.168.33.12
 ```
+####To connect to the cluster
+```
+garbd –a gcomm://192.168.33.10,192.168.33.11,192.168.33.12 –g cluster_name
+```

@@ -3,7 +3,7 @@
   apt_key: keyserver=hkp://keyserver.ubuntu.com id=BC19DDBA state=present
 
 - name: Add the galera source to the APT source list
-  apt_repository: repo='deb http://releases.galeracluster.com/ubuntu/ trusty main' state=present
+  apt_repository: repo='deb http://releases.galeracluster.com/ubuntu/ xenial main' state=present
 
 - name: Install galera
   apt: name={{item}} state=latest update_cache=yes
