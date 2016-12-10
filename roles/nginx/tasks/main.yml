@@ -31,26 +31,26 @@
   tags:
     - nginx-gioip-configuration
 
-- name: Configure GeoIP
-  lineinfile: dest=/etc/nginx/fastcgi_params line="{{item}}"
-  with_items:
-    - " "
-    - "### SET GEOIP Variables ###"
-    - fastcgi_param GEOIP_COUNTRY_CODE $geoip_country_code;
-    - fastcgi_param GEOIP_COUNTRY_CODE3 $geoip_country_code3;
-    - fastcgi_param GEOIP_COUNTRY_NAME $geoip_country_name;
-    - "#"
-    - fastcgi_param GEOIP_CITY_COUNTRY_CODE $geoip_city_country_code;
-    - fastcgi_param GEOIP_CITY_COUNTRY_CODE3 $geoip_city_country_code3;
-    - fastcgi_param GEOIP_CITY_COUNTRY_NAME $geoip_city_country_name;
-    - fastcgi_param GEOIP_REGION $geoip_region;
-    - fastcgi_param GEOIP_CITY $geoip_city;
-    - fastcgi_param GEOIP_POSTAL_CODE $geoip_postal_code;
-    - fastcgi_param GEOIP_CITY_CONTINENT_CODE $geoip_city_continent_code;
-    - fastcgi_param GEOIP_LATITUDE $geoip_latitude;
-    - fastcgi_param GEOIP_LONGITUDE $geoip_longitude;
-  tags:
-    - nginx-gioip-configuration
+#- name: Configure GeoIP
+#  lineinfile: dest=/etc/nginx/fastcgi_params line="{{item}}"
+#  with_items:
+#    - " "
+#    - "### SET GEOIP Variables ###"
+#    - fastcgi_param GEOIP_COUNTRY_CODE $geoip_country_code;
+#    - fastcgi_param GEOIP_COUNTRY_CODE3 $geoip_country_code3;
+#    - fastcgi_param GEOIP_COUNTRY_NAME $geoip_country_name;
+#    - "#"
+#    - fastcgi_param GEOIP_CITY_COUNTRY_CODE $geoip_city_country_code;
+#    - fastcgi_param GEOIP_CITY_COUNTRY_CODE3 $geoip_city_country_code3;
+#    - fastcgi_param GEOIP_CITY_COUNTRY_NAME $geoip_city_country_name;
+#    - fastcgi_param GEOIP_REGION $geoip_region;
+#    - fastcgi_param GEOIP_CITY $geoip_city;
+#    - fastcgi_param GEOIP_POSTAL_CODE $geoip_postal_code;
+#    - fastcgi_param GEOIP_CITY_CONTINENT_CODE $geoip_city_continent_code;
+#    - fastcgi_param GEOIP_LATITUDE $geoip_latitude;
+#    - fastcgi_param GEOIP_LONGITUDE $geoip_longitude;
+#  tags:
+#    - nginx-gioip-configuration
 
 - name: Copy default index, error_pages & ssl certificates
   copy: src={{item.src}} dest={{item.dest}}
