@@ -1,0 +1,25 @@
+---
+- name: Launch rds
+  rds:
+    command: create
+    instance_name: "{{rds_instance_name}}"
+    db_engine: "{{rds_db_engine}}"
+    size: "{{rds_db_size}}"
+    instance_type: "{{rds_instance_size}}"
+    username: "{{rds_db_user_name}}"
+    password: "{{rds_db_password}}"
+    tags:
+      Name: "{{rds_instance_name}}"
+    aws_access_key: "{{aws_access_key}}"
+    aws_secret_key: "{{aws_secret_key}}"
+    region: "{{aws_region}}"
+    vpc_security_groups: "{{sg_group}}"
+    multi_zone: yes
+    wait: yes
+    wait_timeout: 500
+    subnet: "{{vpc_subnet}}"
+    zone: "{{zone}}"
+  register: rdsinfo
+
+- name: Print rdsinfo
+  debug: var=rdsinfo
