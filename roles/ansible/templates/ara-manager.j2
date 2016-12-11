@@ -1,0 +1,43 @@
+#!/bin/sh -
+DAEMON_NAME=ara-manager
+# Check that networking is up.
+#[ ${NETWORKING} = "no" ] && exit 0
+
+# See how we were called.
+case "$1" in
+  start)
+        # Start daemon.
+        echo "Starting $DAEMON_NAME";
+        nohup ara-manage runserver -h 0.0.0.0 -p 8080 > /mnt1/.ara/ara-manager.log 2>&1 &
+        ;;
+  stop)
+        # Stop daemons.
+        echo "Shutting down $DAEMON_NAME";
+        pid=`ps ax | grep -i 'ara-manage' | grep -v grep | awk '{print $1}'`
+        if [ -n "$pid" ]
+          then
+          kill -9 $pid
+        else
+          echo "ara-manager was not Running"
+        fi
+        ;;
+  restart)
+        $0 stop
+        sleep 2
+        $0 start
+        ;;
+  status)
+        pid=`ps ax | grep -i 'ara-manage' | grep -v grep | awk '{print $1}'`
+        if [ -n "$pid" ]
+          then
+          echo "ara-manager is Running as PID: $pid"
+        else
+          echo "ara-manager is not Running"
+        fi
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        exit 1
+esac
+
+exit 0

@@ -2,18 +2,42 @@
 - name: Adding Ansible repository
   apt_repository: repo="ppa:ansible/ansible"
 
-- name: Install Ansible
+- name: Install Ansible and support packages
   apt: name={{item}} state=present
   with_items:
   - python-pip
   - python-software-properties
   - ansible
+  - gcc
+  - python-dev
+  - libffi-dev
+  - libssl-dev
+  - sqlite3
+  - libsqlite3-dev
 
 - name: Install pip modules
   pip: name={{item}} state=present
   with_items:
   - boto
   - doto
+  - tox
+  - ara
 
 - name: Set host_key_checking to false
-  lineinfile: dest=/etc/ansible/ansible.cfg regexp='#host_key_checking = False' line="host_key_checking = False"
+  lineinfile: dest=/etc/ansible/ansible.cfg regexp={{item.regexp}} line={{item.line}} state=present backrefs=yes
+  with_items:
+    - { regexp: '#host_key_checking = False', line: "host_key_checking = False" }
+    - { regexp: '#callback_plugins', line: "callback_plugins = /usr/local/lib/python2.7/dist-packages/ara/plugins/callbacks" }
+    - { regexp: '#action_plugins', line: "action_plugins = /usr/local/lib/python2.7/dist-packages/ara/plugins/actions" }
+    - { regexp: '#library', line: "library = /usr/local/lib/python2.7/dist-packages/ara/plugins/modules" }
+
+- name: Add ara parameters
+  lineinfile: dest=/etc/ansible/ansible.cfg line="{{item}}" state=present
+  with_items:
+  - "[ara]"
+  - dir = /mnt1/.ara
+  - logfile = /mnt1/.ara/logs
+  - database = sqlite:////mnt1/.ara/ansible.sqlite
+
+- name: Copy ara-manager init scripts
+  template: src=ara-manager.j2 dest=/etc/init.d/ara-manager mode=0755
