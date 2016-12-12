@@ -2,7 +2,7 @@
     "sensu": [
         {
             "name": "{{env}}",
-            "host": "{{ansible_eth0["ipv4"]["address"]}}",
+            "host": "{{ansible_ssh_host}}",
             "ssl": false,
             "port": 4567,
             "path": "",

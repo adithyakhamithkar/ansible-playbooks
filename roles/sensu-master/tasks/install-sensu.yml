@@ -1,9 +1,9 @@
 ---
 - name: Add the Sensu APT key
-  apt_key: url=http://repos.sensuapp.org/apt/pubkey.gpg state=present
+  apt_key: url=https://sensu.global.ssl.fastly.net/apt/pubkey.gpg state=present
 
 - name: Add the Sensu source to the APT source list
-  apt_repository: repo="deb http://repos.sensuapp.org/apt sensu main" state=present
+  apt_repository: repo="deb https://sensu.global.ssl.fastly.net/apt sensu main" state=present
 
 - name: Install Sensu
   apt: name={{item}} state=present
@@ -69,17 +69,17 @@
 - name: Create handlers directory for Sensu
   file: path=/etc/sensu/handlers state=directory
 
-- name: Adding mailer.rb
-  template: src=mailer.j2 dest=/etc/sensu/handlers/mailer.rb
+#- name: Adding mailer.rb
+#  template: src=mailer.j2 dest=/etc/sensu/handlers/mailer.rb
 
-- name: Adding mailer.json
-  template: src=mailer-json.j2 dest=/etc/sensu/conf.d/mailer.json
+#- name: Adding mailer.json
+#  template: src=mailer-json.j2 dest=/etc/sensu/conf.d/mailer.json
 
-- name: Adding slack-handler.json
-  template: src=slack-handler.j2 dest=/etc/sensu/conf.d/slack.json
+#- name: Adding slack-handler.json
+#  template: src=slack-handler.j2 dest=/etc/sensu/conf.d/slack.json
 
-- name: Adding slack.rb
-  template: src=slack.j2 dest=/etc/sensu/handlers/slack.rb
+#- name: Adding slack.rb
+#  template: src=slack.j2 dest=/etc/sensu/handlers/slack.rb
 
 - name: Restart all services
   service: name={{item}} state=restarted

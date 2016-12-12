@@ -43,19 +43,6 @@
                    "subscribers": ["ALL"]
        },
 
-    "psad_check": {
-                  "handlers": ["default"],
-                  "command": "/opt/sensu/embedded/bin/ruby /etc/sensu-community-plugins/plugins/processes/check-procs.rb -p psad -C 1",
-                  "interval": 120,
-                  "subscribers": ["ALL"]
-      },
-
-      "postfix_check": {
-                    "handlers": ["default"],
-                    "command": "/opt/sensu/embedded/bin/ruby /etc/sensu-community-plugins/plugins/processes/check-procs.rb -p postfix -C 1",
-                    "interval": 120,
-                    "subscribers": ["ALL"]
-        },
 
      "ntp_check": {
                 "handlers": ["default"],

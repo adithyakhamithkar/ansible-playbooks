@@ -1,9 +1,9 @@
 ---
 - name: Add the Sensu APT key
-  apt_key: url=http://repos.sensuapp.org/apt/pubkey.gpg state=present
+  apt_key: url=https://sensu.global.ssl.fastly.net/apt/pubkey.gpg state=present
 
 - name: Add the Sensu source to the APT source list
-  apt_repository: repo="deb http://repos.sensuapp.org/apt sensu main" state=present
+  apt_repository: repo="deb https://sensu.global.ssl.fastly.net/apt sensu main" state=present
 
 - name: Install Sensu
   apt: name={{item}} state=present
@@ -42,6 +42,12 @@
   with_items:
   - sensu-client
   changed_when: False
+
+- name: Disable the sensu-server service
+  template: src=sensu-server.j2 dest=/etc/init/sensu-server.override
+
+- name: Disable the sensu-api service
+  template: src=sensu-api.j2 dest=/etc/init/sensu-api.override
 
 - name: Adding api.json
   template: src=api.j2 dest=/etc/sensu/conf.d/api.json
