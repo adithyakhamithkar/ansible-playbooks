@@ -10,7 +10,7 @@
     - create-user-sudo
 
 - name: Adding public key to authorized_keys
-  file: src=/home/{{user_name}}/.ssh/id_rsa.pub dest=/home/{{user_name}}/.ssh/authorized_key state=link
+  file: src=/home/{{user_name}}/.ssh/id_rsa.pub dest=/home/{{user_name}}/.ssh/authorized_keys state=link
   tags:
     - create-user-authorized-keys
 
