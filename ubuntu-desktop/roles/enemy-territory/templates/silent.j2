@@ -8,8 +8,8 @@ set dedicated "2"				// 1: dedicated server for lan 2: dedicated server for inte
 set net_ip "{{ansible_ssh_host}}"				// set to override the default IP ET uses
 //set net_port "8080"				// set to override the default port ET uses
 
-set sv_hostname "^>M^1e^2o^zw^7!" 			// name of server here
-set server_motd0 " ^NsilEnT ^7MOTD "
+set sv_hostname "{{hostname}}" 			// name of server here
+set server_motd0 "{{hostname}}"	// message in right corner of join screen here
 set server_motd1 ""
 set server_motd2 ""
 set server_motd3 ""
