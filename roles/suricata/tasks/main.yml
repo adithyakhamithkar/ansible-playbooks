@@ -1,0 +1,8 @@
+---
+- name: Add the Suricata source to the APT source list
+  apt_repository: repo="ppa:oisf/suricata-stable" state=present
+
+- name: Install Suricata
+  apt: name={{item}} state=present
+  with_items:
+   - suricata

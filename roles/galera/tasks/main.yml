@@ -1,0 +1,31 @@
+---
+- name: Add the galera APT key
+  apt_key: keyserver=hkp://keyserver.ubuntu.com id=BC19DDBA state=present
+
+- name: Add the galera source to the APT source list
+  apt_repository: repo='deb http://releases.galeracluster.com/ubuntu/ xenial main' state=present
+
+- name: Install galera
+  apt: name={{item}} state=latest update_cache=yes
+  with_items:
+   - galera-3
+   - galera-arbitrator-3
+   - mysql-wsrep-5.6
+   - rsync
+
+- name: Stop MySql
+  service: name=mysql state=stopped
+
+- name: Configure galera
+  template: src=galera.j2 dest=/etc/mysql/conf.d/galera.cnf
+
+- name: Configure MySql
+  template: src=my.j2 dest=/etc/mysql/my.cnf
+
+- name: Start the cluster
+  shell: /etc/init.d/mysql start --wsrep-new-cluster
+  when: mysql_primary == "primary"
+  ignore_errors: True
+
+- name: Start MySql
+  service: name=mysql state=started

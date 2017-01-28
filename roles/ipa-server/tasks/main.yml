@@ -1,0 +1,24 @@
+---
+- name: Adding Freeipa repository
+  apt_repository: repo="ppa:freeipa/ppa"
+
+- name: Install Freeipa
+  apt: name={{item}} state=present
+  with_items:
+  - freeipa-server
+  - sssd
+
+- name: Create home directory on login
+  lineinfile: dest=/etc/pam.d/sshd line="{{item}}"
+  with_items:
+    - session         required        pam_mkhomedir.so skel=/etc/skel/
+
+- name: Configure Freeipa
+  shell: ipa-server-install --realm {{realm_name}} -n {{domain_name}} -p {{ipa_admin_password}} -P {{ipa_admin_password}} -a {{ipa_admin_password}} --hostname={{hostname}}.{{domain_name}} -N -U
+  ignore_errors: True
+
+- name: Initialize the admin command line and change default shell for users
+  shell: 'echo {{ipa_admin_password}} | kinit admin; ipa config-mod --defaultshell=/bin/bash'
+  ignore_errors: True
+
+- include: user-config.yml

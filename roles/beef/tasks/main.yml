@@ -1,0 +1,33 @@
+---
+- name: Install rvm
+  shell: gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 && curl -sSL https://get.rvm.io | bash -s stable
+
+- name: Refresh
+  shell: source /usr/local/rvm/scripts/rvm
+  args:
+    executable: /bin/bash
+
+- name: Install rvm 2.1.5
+  shell: /usr/local/rvm/scripts/rvm install 2.1.5
+  args:
+    executable: /bin/bash
+
+- name: Make 2.1.5 defauly
+  shell: /usr/local/rvm/scripts/rvm use 2.1.5 -- default
+  args:
+    executable: /bin/bash
+
+- name: Install bundler
+  shell: gem install bundler
+  args:
+    executable: /bin/bash
+
+- name: Deploy beef
+  git: repo=git://github.com/beefproject/beef.git dest=/opt/beef accept_hostkey=yes
+
+- name: Run bundler
+  bundler: state=present gemfile=/opt/beef/Gemfile
+  ignore_errors: True
+
+- name: Copy init scripts
+  template: src=beef.j2 dest=/etc/init.d/beef mode=0755

@@ -9,7 +9,7 @@
     - set-hostname
 
 - name: Replace default hosts file
-  template: src=hosts.j2 dest=/etc/hosts
+  lineinfile: dest=/etc/hosts line='{{ansible_ssh_host}} {{hostname}}.{{domain_name}} {{hostname}}'
   tags:
     - set-hostname
 

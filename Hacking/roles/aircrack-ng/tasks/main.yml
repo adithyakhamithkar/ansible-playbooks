@@ -1,0 +1,5 @@
+---
+- name: Install aircrack-ng
+  apt: name={{item}} state=present
+  with_items:
+    - aircrack-ng

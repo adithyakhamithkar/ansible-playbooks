@@ -1,0 +1,19 @@
+# Server Block for Virtual host start
+upstream galera_cluster {
+    server 127.0.0.1:33061; # node1
+    server 127.0.0.1:33062; # node2
+    server 127.0.0.1:33063; # node3
+    zone tcp_mem 64k;
+}
+
+match mysql_handshake {
+    send \x00;
+    expect ~* \x00\x00; # NullNull "filler" in handshake response packet
+}
+
+server {
+    listen 3306; # MySQL default
+    proxy_pass galera_cluster;
+    proxy_connect_timeout 2s;
+}
+# Server Block for Virtual host end

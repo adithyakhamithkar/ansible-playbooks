@@ -23,19 +23,22 @@
   tags:
     - deployment
 
+- name: Configure phpmyadmin
+  template: src=config.inc.php.j2 dest=/opt/{{phpmyadmin_version}}/config.inc.php
+
 - name: Stop Nginx
   service: name=nginx state=stopped
 
 - name: Update Nginx configuration
   template: src={{item.src}} dest={{item.dest}}
   with_items:
-    - { src: virtualhost_phpmyadmin.j2, dest: /etc/nginx/sites-available/virtualhost_phpmyadmin }
-    - { src: virtualhost_phpmyadmin.j2, dest: /etc/nginx/sites-enabled/virtualhost_phpmyadmin }
+    #- { src: virtualhost_phpmyadmin.j2, dest: /etc/nginx/sites-available/virtualhost_phpmyadmin }
+    #- { src: virtualhost_phpmyadmin.j2, dest: /etc/nginx/sites-enabled/virtualhost_phpmyadmin }
     - { src: virtualhost_phpmyadmin_ssl.j2, dest: /etc/nginx/sites-available/virtualhost_phpmyadmin-ssl }
     - { src: virtualhost_phpmyadmin_ssl.j2, dest: /etc/nginx/sites-enabled/virtualhost_phpmyadmin-ssl }
   tags:
     - nginx-virtualhost-configuration
-    
+
 - name: Start Nginx
   service: name=nginx state=started
 

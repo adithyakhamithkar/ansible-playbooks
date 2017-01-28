@@ -1,0 +1,36 @@
+---
+- name: Install luarocks
+  apt: name={{item}} state=present
+  with_items:
+   - luarocks
+   - libssl-dev
+   - git
+
+- name: Install dependancies
+  shell: luarocks install luaossl CRYPTO_LIBDIR=/usr/lib/x86_64-linux-gnu OPENSSL_LIBDIR=/usr/lib/x86_64-linux-gnu
+
+- name: Install nginx-oauth
+  shell: luarocks install --server=http://luarocks.org/dev ngx-oauth
+
+- name: Stop Nginx
+  service: name=nginx state=stopped
+  tags:
+    - nginx-configuration
+    
+- name: Configure Nginx
+  template: src=nginx.j2 dest=/etc/nginx/nginx.conf
+  tags:
+    - nginx-configuration
+
+- name: Configure Nginx virtualhost
+  template: src={{item.src}} dest={{item.dest}}
+  with_items:
+  - { src: virtualhost_ssl.j2, dest: /etc/nginx/sites-available/default-ssl }
+  - { src: virtualhost_ssl.j2, dest: /etc/nginx/sites-enabled/default-ssl }
+  tags:
+    - nginx-virtualhost-configuration
+
+- name: Start Nginx
+  service: name=nginx state=started
+  tags:
+    - nginx-configuration

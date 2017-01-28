@@ -19,8 +19,8 @@
 - name: Copy ssl cert and configuration
   template: src={{item.src}} dest={{item.dest}}
   with_items:
-    - { src: sslcert.j2, dest: /var/ossec/etc/sslmanager.cert }
-    - { src: sslkey.j2, dest: /var/ossec/etc/sslmanager.key }
+    - { src: '{{ossec_sslcert}}', dest: /var/ossec/etc/sslmanager.cert }
+    - { src: '{{ossec_sslkey}}', dest: /var/ossec/etc/sslmanager.key }
     - { src: ossec.j2, dest: /var/ossec/etc/ossec.conf }
   tags:
     - ossec-server-configuration

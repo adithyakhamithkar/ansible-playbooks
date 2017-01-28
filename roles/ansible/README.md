@@ -13,3 +13,9 @@ The playbooks are written in YAML(Yet Another Markup Language) which is very hum
 [Wiki](http://docs.ansible.com/)
 
 [Ansible support group](https://groups.google.com/forum/#!forum/ansible-project)
+
+###![ara documentation](http://ara.readthedocs.io/en/latest/index.html)
+Start ara
+```
+ara-manage runserver -h 0.0.0.0 -p 81
+```

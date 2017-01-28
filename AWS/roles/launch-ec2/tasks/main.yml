@@ -1,7 +1,7 @@
 ---
 - name: Launch ec2
   ec2:
-    key_name: "{{ec2_key}}"
+    key_name: "{{ec2_key_name}}"
     instance_type: "{{instance_type}}"
     image: "{{ami}}"
     group: "{{sg_group}}"

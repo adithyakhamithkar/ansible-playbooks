@@ -1,0 +1,8 @@
+#
+#About: This will install freeipa
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - ipa-server

@@ -6,9 +6,8 @@
   apt_repository: repo="deb http://www.rabbitmq.com/debian/ testing main" state=present
 
 - name: Install RabbitMQ
-  apt: name={{item}} state=present
+  apt: name={{item}} state=present force=yes
   with_items:
-   - erlang-nox
    - rabbitmq-server
 
 - name: Enable RabbitMQ management
@@ -29,6 +28,9 @@
 - name: Configure RabbitMQ
   template: src=rabbitmq.conf dest=/etc/rabbitmq/rabbitmq.config
   notify: restart rabbitmq-server
+
+- name: Enable rabbitmq_management
+  shell: rabbitmq-plugins enable rabbitmq_management
 
 - name: Enable the RabbitMQ services to start automatically
   shell: update-rc.d rabbitmq-server defaults

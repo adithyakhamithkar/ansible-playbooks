@@ -1,18 +1,21 @@
 # Server Block for Virtual host start
 upstream app_server {
-    server 10.130.27.20;
-    server 10.130.27.135;
+    server 192.168.33.11 max_fails=1  fail_timeout=3s;
+    server 192.168.33.12 max_fails=1  fail_timeout=3s;
 }
 
 server {
         listen  80;
         server_name {{hostname}}.{{domain_name}};
         #Uncomment the below line to force redirect to https
-        rewrite ^ https://$http_host$request_uri? permanent;
+        #rewrite ^ https://$http_host$request_uri? permanent;
         location / {
             proxy_cache STATIC;
             add_header X-Proxy-Cache $upstream_cache_status;
+            #proxy_set_header X-Forwarded-For $remote_addr;
+            #add_header  X-Upstream  $upstream_addr;
             proxy_pass http://app_server;
+            proxy_next_upstream error timeout invalid_header http_404 http_500 http_502 http_503 http_504;
         }
         #Define custom error pages
         error_page 404 /error-page-404.html;

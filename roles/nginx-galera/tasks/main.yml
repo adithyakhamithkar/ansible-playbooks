@@ -1,0 +1,12 @@
+---
+- name: Stop Nginx
+  service: name=nginx state=stopped
+
+- name: Configure virtual host for
+  template: src=virtualhost_lb.j2 dest=/etc/nginx/sites-available/default
+
+- name: Configure Nginx virtualhost
+  template: src=virtualhost_lb.j2 dest=/etc/nginx/sites-enabled/default
+
+- name: Start Nginx
+  service: name=nginx state=started

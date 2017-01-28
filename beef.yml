@@ -1,0 +1,8 @@
+#
+#About: This will beef
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - beef

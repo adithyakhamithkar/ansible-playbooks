@@ -1,0 +1,8 @@
+---
+- name: Add vokoscreen repository
+  apt_repository: repo="ppa:vokoscreen-dev/vokoscreen" state=present
+
+- name: Install vokoscreen
+  apt: name={{item}} state=present
+  with_items:
+  - vokoscreen

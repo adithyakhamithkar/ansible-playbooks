@@ -1,7 +1,7 @@
 {
   "client": {
     "name": "{{hostname}}",
-    "address": "{{ansible_eth0["ipv4"]["address"]}}",
+    "address": "{{ansible_ssh_host}}",
     "subscriptions": ["ALL","nginx"],
     "safe_mode": true,
     "distribution": "{{ansible_distribution}}",

@@ -1,0 +1,11 @@
+---
+- name: Add opera repo
+  apt_repository: repo="deb http://deb.opera.com/opera/ stable non-free" state=present
+
+- name: Add the opera APT key
+  apt_key: url=http://deb.opera.com/archive.key state=present
+
+- name: Install opera
+  apt: name={{item}} state=latest
+  with_items:
+  - opera

@@ -1,0 +1,9 @@
+#
+#About: This will create a db security group
+#
+---
+- hosts: localhost
+  connection: local
+  gather_facts: True
+  roles:
+  - create-openra-sg

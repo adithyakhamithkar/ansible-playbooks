@@ -1,0 +1,9 @@
+- hosts: localhost
+  become: yes
+
+  tasks:
+  - name: Get PID
+    shell: "ps -ef | grep {{process}} | grep -v ansible | grep -v grep | awk '{print $2}'"
+    register: pid
+
+  - debug: var=pid.stdout

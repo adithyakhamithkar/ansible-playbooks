@@ -1,4 +1,7 @@
 ---
+- name: Adding Do not disture repository
+  apt_repository: repo="ppa:vlijm/nonotifs"
+
 - name: Install essensuals packages
   apt: name={{item}} state=present
   with_items:
@@ -17,3 +20,4 @@
   - bleachbit
   - youtube-dl
   - clipit
+  - nonotifs

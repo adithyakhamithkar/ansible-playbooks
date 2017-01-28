@@ -12,7 +12,7 @@
   apt_key: keyserver=pgp.mit.edu id=0353B12C state=present
 
 - name: Install Cassandra
-  apt: name={{item}} state=present
+  apt: name={{item}} state=present update_cache=yes
   with_items:
    - cassandra
 

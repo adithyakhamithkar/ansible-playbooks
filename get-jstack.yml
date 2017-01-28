@@ -1,6 +1,7 @@
 ---
 - hosts: '{{inventory}}'
-
+  become: yes
+  
   tasks:
   - name: Get PID
     shell: "ps -ef | grep {{process}} | grep -v ansible | grep -v grep | awk '{print $2}'"

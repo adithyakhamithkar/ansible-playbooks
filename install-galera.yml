@@ -1,0 +1,10 @@
+#
+#About: This will install MySql
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - galera
+  - nginx
+  - nginx-galera

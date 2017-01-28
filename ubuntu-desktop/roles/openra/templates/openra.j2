@@ -1,0 +1,46 @@
+#!/bin/sh -
+DAEMON_PATH=/usr/share/games/openra
+DAEMON_NAME=OpenRA
+# Check that networking is up.
+#[ ${NETWORKING} = "no" ] && exit 0
+
+PATH=$PATH:$DAEMON_PATH
+
+# See how we were called.
+case "$1" in
+  start)
+        # Start daemon.
+        echo "Starting $DAEMON_NAME";
+        cd /usr/share/games/openra/ && nohup sh launch-dedicated.sh > /var/log/openra.log 2>&1 &
+        ;;
+  stop)
+        # Stop daemons.
+        echo "Shutting down $DAEMON_NAME";
+        pid=`ps ax | grep -i 'OpenRA' | grep -v grep | awk '{print $1}'`
+        if [ -n "$pid" ]
+          then
+          kill -9 $pid
+        else
+          echo "$DAEMON_NAME was not Running"
+        fi
+        ;;
+  restart)
+        $0 stop
+        sleep 2
+        $0 start
+        ;;
+  status)
+        pid=`ps ax | grep -i 'OpenRA' | grep -v grep | awk '{print $1}'`
+        if [ -n "$pid" ]
+          then
+          echo "$DAEMON_NAME is Running as PID: $pid"
+        else
+          echo "$DAEMON_NAME is not Running"
+        fi
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        exit 1
+esac
+
+exit 0

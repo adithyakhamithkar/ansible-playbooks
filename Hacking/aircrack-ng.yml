@@ -1,0 +1,8 @@
+#
+#aircrack-ng
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - aircrack-ng

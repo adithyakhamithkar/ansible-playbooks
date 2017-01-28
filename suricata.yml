@@ -1,0 +1,8 @@
+#
+#About:
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - suricata

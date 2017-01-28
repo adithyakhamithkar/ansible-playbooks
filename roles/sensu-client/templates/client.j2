@@ -1,8 +1,8 @@
 {
   "client": {
     "name": "{{hostname}}",
-    "address": "{{ansible_eth0["ipv4"]["address"]}}",
-    "subscriptions": ["ALL"],
+    "address": "{{ansible_ssh_host}}",
+    "subscriptions": ["ALL","{{hostname}}","{{group_names|join(',')}}"],
     "safe_mode": true,
     "distribution": "{{ansible_distribution}}",
     "os_version": "{{ansible_distribution_release}}"

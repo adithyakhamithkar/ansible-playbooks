@@ -1,0 +1,11 @@
+---
+- name: Add the rvm APT repository
+  apt_repository: repo="ppa:rael-gc/rvm" state=present
+
+- name: Install rvm
+  apt: name={{item}} state=present force=yes
+  with_items:
+  - rvm
+
+- name: Install bundler
+  gem: name=bundler state=present

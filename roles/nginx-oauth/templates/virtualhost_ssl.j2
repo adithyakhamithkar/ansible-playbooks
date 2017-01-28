@@ -1,0 +1,94 @@
+server {
+        listen 443 ssl http2;
+        server_name {{domain_name}};
+
+        ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+        ssl_ciphers EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;
+        ssl_prefer_server_ciphers On;
+        ssl_certificate /etc/nginx/ssl/ssl_crt.pem;
+        ssl_certificate_key /etc/nginx/ssl/ssl_key.pem;
+        ssl_dhparam /etc/nginx/ssl/dhparam.pem;
+        ssl_session_cache shared:SSL:128m;
+        add_header Strict-Transport-Security "max-age=31557600; includeSubDomains";
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Xss-Protection "1";
+        ssl_stapling on;
+        ssl_stapling_verify on;
+
+        set $oauth_client_id '{{oauth_client_id}}';
+        set $oauth_client_secret '{{oauth_client_secret}}';
+        set $oauth_redirect_uri '/_oauth/callback';
+        set $oauth_oaas_uri '{{oauth_oaas_uri}}/oauth';
+
+        location /_oauth/login {
+            content_by_lua_file '/usr/local/share/lua/5.1/ngx-oauth-login.lua';
+        }
+
+        location /_oauth/callback {
+            content_by_lua_file '/usr/local/share/lua/5.1/ngx-oauth-redirect-handler.lua';
+        }
+
+        location /_oauth/logout {
+            content_by_lua_file '/usr/local/share/lua/5.1/ngx-oauth-logout.lua';
+        }
+
+        location /_proxy {
+            access_by_lua_file '/usr/local/share/lua/5.1/ngx-oauth-proxy.lua';
+
+            rewrite ^/_proxy/(.*)$ /$1 break;
+            proxy_pass {{oauth_oaas_uri}};
+        }
+
+        location / {
+                try_files $uri $uri/ /index.php?$args;
+                proxy_cache STATIC;
+        }
+        #pass the PHP scripts to FastCGI server listening on 127.0.0.1:9$
+        location ~ \.php$ {
+                try_files $uri =404;
+                fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
+                fastcgi_index index.php;
+                fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+                include fastcgi_params;
+        }
+        # Expire rules for static content
+        # cache.appcache, your document html and data
+        location ~* \.(?:manifest|appcache|html?|xml|json)$ {
+                expires -1;
+              # access_log logs/static.log; # I don't usually include a static log
+        }
+        # Feed
+        location ~* \.(?:rss|atom)$ {
+                expires 1h;
+                add_header Cache-Control "public";
+        }
+        # Media: images, icons, video, audio, HTC
+                location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc)$ {
+                expires 1M;
+                access_log off;
+                add_header Cache-Control "public";
+        }
+        # CSS and Javascript
+        location ~* \.(?:css|js)$ {
+                expires 1y;
+                access_log off;
+                add_header Cache-Control "public";
+        }
+        #Define custom error pages
+        error_page 404 /error-page-404.html;
+        location = /error-page-404.html {
+                root /usr/share/nginx/error_pages;
+                internal;
+        }
+        error_page 403 /error-page-403.html;
+        location = /error-page-403.html {
+                root /usr/share/nginx/error_pages;
+                internal;
+        }
+        error_page 500 502 503 504 /error-page-50x.html;
+        location = /error-page-50x.html {
+                root /usr/share/nginx/error_pages;
+                internal;
+        }
+}

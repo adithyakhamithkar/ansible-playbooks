@@ -1,0 +1,34 @@
+---
+- name: add users group
+  shell: ipa group-add users --desc="default user group"
+  ignore_errors: true
+
+- name: add superusers group
+  shell: ipa group-add superusers --desc="admin group"
+  tags: configure_users
+  ignore_errors: true
+
+- name: set default group of users
+  shell: ipa config-mod --defaultgroup users
+  tags: configure_users
+  ignore_errors: true
+
+- name: add sudo rule for superusers
+  shell: ipa sudorule-add allow-sudo-superusers
+  tags: configure_users
+  ignore_errors: true
+
+- name: allow all commands as sudo for superusers
+  shell: ipa sudorule-add-allow-command --sudocmds=all allow-sudo-superusers
+  tags: configure_users
+  ignore_errors: true
+
+- name: allow sudo on all hosts for allow-sudo-superusers
+  shell: ipa sudorule-add-host --hosts=all allow-sudo-superusers
+  tags: configure_users
+  ignore_errors: true
+
+- name: add superusers group to allow-sudo rule
+  shell: ipa sudorule-add-user --group superusers allow-sudo-superusers
+  tags: configure_users
+  ignore_errors: true

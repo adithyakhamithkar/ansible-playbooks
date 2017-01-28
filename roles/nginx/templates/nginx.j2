@@ -22,8 +22,8 @@ http {
 
 	#Hides the web server information
 	server_tokens off;
-	more_clear_headers 'Server';
-	more_clear_headers 'X-Powered-By';
+	#more_clear_headers 'Server';
+	#more_clear_headers 'X-Powered-By';
 
 	##
 	client_body_buffer_size 10K;
@@ -49,7 +49,9 @@ http {
 	##
 	# Logging Settings
 	##
-
+	#log_format  main  '$remote_addr $upstream_addr - $remote_user [$time_local] "$request" '
+  #                    '$status $body_bytes_sent "$http_referer" '
+  #                    '"$http_user_agent" "$http_x_forwarded_for"';
 	access_log /var/log/nginx/access.log;
 	error_log /var/log/nginx/error.log;
 
@@ -78,4 +80,11 @@ http {
 	##
 	proxy_cache_path /tmp/nginx levels=1:2 keys_zone=STATIC:10m inactive=24h max_size=1g;
 	proxy_cache_key "$scheme$request_method$host$request_uri";
+
+	##
+	#GeoIP
+	##
+ 	#geoip_country /etc/nginx/geoip/GeoIP.dat; # the country IP database
+ 	#geoip_city /etc/nginx/geoip/GeoLiteCity.dat; # the city IP database
+
 }

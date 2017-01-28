@@ -1,0 +1,32 @@
+---
+- name: Adding Freeipa repository
+  apt_repository: repo="ppa:freeipa/ppa"
+
+- name: Install Freeipa
+  apt: name={{item}} state=present
+  with_items:
+  - freeipa-client
+  - sssd
+
+- name: Create home directory on login
+  lineinfile: dest=/etc/pam.d/sshd line="{{item}}"
+  with_items:
+    - session         required        pam_mkhomedir.so skel=/etc/skel/
+
+- name: Adding ipa server in hosts
+  lineinfile: dest=/etc/hosts line='{{ipa_server_ip}} {{ipa_server}}.{{domain_name}} {{ipa_server}}'
+
+- name: Uninstall existing configuration
+  shell: ipa-client-install --uninstall --unattended
+  ignore_errors: True
+
+- name: make sure the client is not present in IPA Server already
+  shell: 'echo {{ipa_admin_password}} | kinit admin; ipa host-del {{hostname}}'
+  ignore_errors: True
+  #delegate_to: "{{ipa_server_ip}}"
+
+- name: make sure the ca cert file is not present from previous installation
+  file: path=/etc/ipa/ca.crt state=absent
+
+- name: Configure Freeipa
+  shell: ipa-client-install --domain={{domain_name}} --server={{ipa_server}}.{{domain_name}} --realm={{realm_name}} -p admin --password={{ipa_admin_password}} --mkhomedir --hostname={{hostname}}.{{domain_name}} --unattended

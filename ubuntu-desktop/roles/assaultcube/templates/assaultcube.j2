@@ -1,0 +1,70 @@
+#!/bin/sh -
+#
+# example AssaultCube-Server launch script
+# by MeatROme - see http://assault.cubers.net/wiki/Server_setup
+# naturally also check your local documentation (docs) folder in the game-installation directory
+
+# how many clients can connect?
+CLIENTS=20
+
+# password for admin access:
+ADMINPASS={{assaultcube_admin_password}}
+
+# disconnect when frag-count is ..
+KILLLIMIT=-1
+
+# server description
+DESC="{{hostname}}"
+
+# MOTD definition - WYSIWYG :)
+MOTD='Enjoy the game!'
+
+TS=$(date +%Y%m%d_%H%M%S)
+TSH=$(date +%H:%M:%S\ %d.%m.%y)
+
+DAEMON_NAME=assaultcube-server
+
+#
+# run the server:
+#
+#bin_unix/linux_server -x$ADMINPASS -k$KILLLIMIT -c$CLIENTS -f$SERVERPORT -n"$DESC" -o"$MOTD" > /var/log/assaultcube-ServerLog_$TS 2>&1
+
+
+# See how we were called.
+case "$1" in
+  start)
+        # Start daemon.
+        echo "Starting $DAEMON_NAME";
+        assaultcube-server -x$ADMINPASS -k$KILLLIMIT -c$CLIENTS -n"$DESC" -o"$MOTD" -massault.cubers.net > /var/log/assaultcube-server.log 2>&1 &
+        ;;
+  stop)
+        # Stop daemons.
+        echo "Shutting down $DAEMON_NAME";
+        pid=`ps ax | grep -i 'assaultcube-se' | grep -v grep | awk '{print $1}'`
+        if [ -n "$pid" ]
+          then
+          kill -9 $pid
+        else
+          echo "$DAEMON_NAME was not Running"
+        fi
+        ;;
+  restart)
+        $0 stop
+        sleep 2
+        $0 start
+        ;;
+  status)
+        pid=`ps ax | grep -i 'assaultcube-se' | grep -v grep | awk '{print $1}'`
+        if [ -n "$pid" ]
+          then
+          echo "$DAEMON_NAME is Running as PID: $pid"
+        else
+          echo "$DAEMON_NAME is not Running"
+        fi
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        exit 1
+esac
+
+exit 0

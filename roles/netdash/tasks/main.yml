@@ -10,6 +10,7 @@
    - autogen
    - automake
    - pkg-config
+   - uuid-dev
 
 - name: Clone netdash repo
   git: repo=git@github.com:firehol/netdata.git dest=/opt/netdash accept_hostkey=yes force=yes

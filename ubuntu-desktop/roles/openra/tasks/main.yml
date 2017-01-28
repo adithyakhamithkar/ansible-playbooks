@@ -1,0 +1,30 @@
+---
+- name: Add the openra APT key
+  apt_key: url=http://deb.opera.com/archive.key state=present
+
+- name: Add openra repository
+  apt_repository: repo="deb http://deb.opera.com/opera-stable/ stable non-free" state=present
+
+- name: Add the mono APT key
+  apt_key: keyserver=hkp://keyserver.ubuntu.com:80 id=3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF state=present
+
+- name: Add mono repository
+  apt_repository: repo="deb http://download.mono-project.com/repo/debian wheezy main" state=present
+
+- name: Install openra
+  apt: name={{item}} state=present
+  with_items:
+  - mono-complete
+  - openra
+
+- name: Setup dedicated script
+  template: src=launch-dedicated.j2 dest=/usr/share/games/openra/launch-dedicated.sh mode=0755
+
+- name: Setup init script
+  template: src=openra.j2 dest=/etc/init.d/openra mode=0755
+
+- name: Set openra to start up by default
+  shell: update-rc.d openra defaults 95 10
+
+- name: Start openra
+  service: name=openra state=started

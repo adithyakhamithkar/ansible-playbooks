@@ -2,9 +2,6 @@
 - name: Create Jenkins directory
   file: path=/home/jenkins/cli state=directory
 
-- name: Download Jenkins CLI
-  get_url: url=http://localhost:8080/jnlpJars/jenkins-cli.jar dest=/home/jenkins/cli/jenkins-cli.jar
-
 - name: Copy install jenkins plugins shell script
   template: src=install-jenkins-plugin.sh.j2 dest=/home/jenkins/install-jenkins-plugins.sh
 
@@ -48,6 +45,7 @@
   - windows-slaves
   - workflow-step-api
   - matrix-auth
+  - extended-choice-parameter 
 
 - name: Stop Jenkins
   service: name=jenkins state=stopped
