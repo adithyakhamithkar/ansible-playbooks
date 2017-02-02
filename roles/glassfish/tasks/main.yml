@@ -12,7 +12,7 @@
   get_url: url={{glassfish_url}} dest=/opt
 
 - name: Extract glassfish
-  unarchive: src=/opt/glassfish-4.1.zip dest=/opt owner=glassfish group=glassfish copy=no
+  unarchive: src=/opt/glassfish-4.1.1.zip dest=/opt owner=glassfish group=glassfish copy=no
 
 - name: Copy init.d script
   template: src=glassfish.j2 dest=/etc/init.d/glassfish owner=root group=root
