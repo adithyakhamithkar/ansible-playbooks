@@ -1,0 +1,9 @@
+#
+#About: This will install rancher
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - docker
+  - rancher

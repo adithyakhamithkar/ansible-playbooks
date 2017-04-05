@@ -1,0 +1,18 @@
+---
+- name: Pull and run the Rancher/server contianer
+  docker_container:
+      name: "{{rancher_name}}"
+      image: rancher/server:{{rancher_version}}
+      restart_policy: always
+      ports:
+        - "{{rancher_port}}:8080"
+
+- name: Wait for the Rancher server to start
+  action: command docker logs {{rancher_name}}
+  register: rancher_logs
+  until: rancher_logs.stdout.find("Listening on") != -1
+  retries: 30
+  delay: 10
+
+- name: Print Rancher's URL
+  debug: msg="You can connect to rancher server http://{{ansible_ssh_host}}:{{rancher_port}}"
