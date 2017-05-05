@@ -2,9 +2,6 @@
 - name: Create docker data directory
   file: path={{docker_data}} state=directory
 
-- name: Create a link
-  file: src={{docker_data}} dest=/var/lib/docker state=link force=yes
-
 - name: Make sure aufs support is available
   apt: name={{item}} state=latest
   with_items:
@@ -19,7 +16,7 @@
 - name: Install docker
   apt: name={{item}} state=present
   with_items:
-  - docker-engine
+  - docker-engine={{docker_engine_version}}
 
 - name: Update UFW
   template: src=ufw.j2 dest=/etc/default/ufw
@@ -29,3 +26,11 @@
   pip: name={{item.name}} version={{item.version}} state=present
   with_items:
   - { name: docker-py, version: '{{docker_py_version}}' }
+
+- name: Change docker directory
+  lineinfile: dest=/lib/systemd/system/docker.service regexp={{item.regexp}} line={{item.line}} state=present backrefs=yes
+  with_items:
+    - { regexp: 'ExecStart=', line: "ExecStart=/usr/bin/dockerd -g {{docker_data}} -H fd://" }
+
+- name: Restart docker
+  systemd: name=docker state=restarted daemon_reload=yes
