@@ -1,11 +1,11 @@
 ---
-- name: Add the mongodb APT key
+- name: Add the dropbox APT key
   apt_key: keyserver=pgp.mit.edu id=75044912E state=present
 
-- name: Add moka repository
+- name: Add dropbox repository
   apt_repository: repo="deb http://linux.dropbox.com/ubuntu/ trusty main" state=present
 
-- name: Install moka
+- name: Install dropbox
   apt: name={{item}} state=present
   with_items:
-  - dropbox 
+  - dropbox
