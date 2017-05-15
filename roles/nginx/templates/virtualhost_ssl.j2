@@ -11,6 +11,11 @@ server {
         ssl_certificate_key /etc/nginx/ssl/ssl_key.pem;
         ssl_dhparam /etc/nginx/ssl/dhparam.pem;
         ssl_session_cache shared:SSL:128m;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header REFERER $http_referer;
+        add_header  X-Upstream  $upstream_addr;
         add_header Strict-Transport-Security "max-age=31557600; includeSubDomains";
         add_header X-Frame-Options "SAMEORIGIN" always;
         add_header X-Content-Type-Options "nosniff" always;

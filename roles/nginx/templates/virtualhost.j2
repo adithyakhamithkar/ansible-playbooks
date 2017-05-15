@@ -6,6 +6,11 @@ server {
         #Uncomment the below line to force redirect to https
         #rewrite ^ https://$http_host$request_uri? permanent;
         server_name {{hostname}}.{{domain_name}};
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header REFERER $http_referer;
+        add_header  X-Upstream  $upstream_addr;
         location / {
 		            try_files $uri $uri/ /index.php?$args;
                 proxy_cache STATIC;

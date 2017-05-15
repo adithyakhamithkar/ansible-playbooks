@@ -6,6 +6,6 @@
    - mysql-client
    - python-mysqldb
 
-- name: Configure MySql
-  template: src=my.j2 dest=/etc/mysql/my.cnf
-  notify: Restart mysql
+#- name: Configure MySql
+#  template: src=my.j2 dest=/etc/mysql/my.cnf
+#  notify: Restart mysql
