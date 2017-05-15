@@ -1,0 +1,12 @@
+---
+- name: cleanup exited containers
+  shell: docker rm -v $(docker ps -q -a -f status=exited -f status=created)
+  ignore_errors: yes
+
+- name: remove all images
+  shell: docker rmi $(docker images -q -a)
+  ignore_errors: yes
+
+- name: remove unwanted volumes
+  shell: docker volume rm $(docker volume ls -q)
+  ignore_errors: yes
