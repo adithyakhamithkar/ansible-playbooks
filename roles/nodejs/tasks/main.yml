@@ -1,0 +1,17 @@
+---
+- name: install other packages
+  apt: name={{item}} state=present
+  with_items:
+    - libssl-dev
+    - build-essential
+    - git
+
+- name: Install nodejs
+  shell: curl -sL https://deb.nodesource.com/{{node_version}} | sudo -E bash -
+  ignore_errors: True
+
+- name: install nodejs
+  apt: name={{item}} state=present
+  with_items:
+    - nodejs
+    - npm

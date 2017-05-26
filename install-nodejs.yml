@@ -1,0 +1,8 @@
+#
+#About: This will install nodejs
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - nodejs
