@@ -13,7 +13,8 @@
 - name: Docker repo login
   shell: docker login --username {{repo_username}} --password {{repo_password}}
 
-- docker_image:
+- name: Push image
+  docker_image:
     name: {{docker_image_name}}
     repository: {{docker_repo}}
     tag: {{tag}}
