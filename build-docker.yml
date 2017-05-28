@@ -1,0 +1,9 @@
+#
+#About: This will run any role
+#
+---
+- hosts: localhost
+  connection: local
+  become: yes
+  roles:
+  - build-docker-image
