@@ -1,8 +1,0 @@
-#
-#About: This will install Nginx
-#
----
-- hosts: '{{inventory}}'
-  become: yes
-  roles:
-  - '{{role_name}}'
