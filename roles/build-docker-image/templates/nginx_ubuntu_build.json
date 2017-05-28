@@ -30,7 +30,7 @@
     {
       "type": "ansible",
       "user": "root",
-      "playbook_file": "vagrant/install-nginx.yml",
+      "playbook_file": "./install-nginx.yml",
       "extra_arguments": [
         "--extra-vars",
         "ansible_host={{user `ansible_host`}} ansible_connection={{user `ansible_connection`}} inventory={{user `ansible_host`}}"
@@ -42,7 +42,7 @@
       {
         "type": "docker-tag",
         "repository": "{{docker_nginx_repo}}",
-        "tag": "0.1"
+        "tag": "{{tag}}"
       }
     ]
   ]
