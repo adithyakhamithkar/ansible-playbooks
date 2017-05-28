@@ -1,7 +1,7 @@
 # Server Block for Virtual host start
 server {
         listen  80;
-        root {{doc_root}};
+        root {{nginx_doc_root}};
         index index.php index.html index.htm;
         #Uncomment the below line to force redirect to https
         #rewrite ^ https://$http_host$request_uri? permanent;
@@ -49,17 +49,17 @@ server {
         #Define custom error pages
         error_page 404 /error-page-404.html;
         location = /error-page-404.html {
-                root /usr/share/nginx/error_pages;
+                root {{nginx_error_pages_dir}};
                 internal;
         }
         error_page 403 /error-page-403.html;
         location = /error-page-403.html {
-                root /usr/share/nginx/error_pages;
+                root {{nginx_error_pages_dir}};
                 internal;
         }
         error_page 500 502 503 504 /error-page-50x.html;
         location = /error-page-50x.html {
-                root /usr/share/nginx/error_pages;
+                root {{nginx_error_pages_dir}};
                 internal;
         }
 }

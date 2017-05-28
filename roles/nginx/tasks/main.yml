@@ -16,51 +16,23 @@
 - name: Create directories for ssl, error_pages & deployment_info
   file: path={{item}} state=directory
   with_items:
-   - /usr/share/nginx/deployment_info
-   - /usr/share/nginx/error_pages
-   - /etc/nginx/ssl
-   - /etc/nginx/geoip
+   - '{{nginx_deployment_info_dir}}'
+   - '{{nginx_logs_dir}}'
+   - '{{nginx_error_pages_dir}}'
+   - '{{nginx_ssl_dir}}'
+   - '{{nginx_doc_root}}'
   tags:
     - nginx-configuration
-
-- name: Copy and extraxt geoip
-  unarchive: src={{item.src}} dest={{item.dest}} copy=yes
-  with_items:
-    - { src: roles/nginx/files/GeoIP.dat.zip, dest: /etc/nginx/geoip }
-    - { src: roles/nginx/files/GeoLiteCity.dat.zip, dest: /etc/nginx/geoip }
-  tags:
-    - nginx-gioip-configuration
-
-#- name: Configure GeoIP
-#  lineinfile: dest=/etc/nginx/fastcgi_params line="{{item}}"
-#  with_items:
-#    - " "
-#    - "### SET GEOIP Variables ###"
-#    - fastcgi_param GEOIP_COUNTRY_CODE $geoip_country_code;
-#    - fastcgi_param GEOIP_COUNTRY_CODE3 $geoip_country_code3;
-#    - fastcgi_param GEOIP_COUNTRY_NAME $geoip_country_name;
-#    - "#"
-#    - fastcgi_param GEOIP_CITY_COUNTRY_CODE $geoip_city_country_code;
-#    - fastcgi_param GEOIP_CITY_COUNTRY_CODE3 $geoip_city_country_code3;
-#    - fastcgi_param GEOIP_CITY_COUNTRY_NAME $geoip_city_country_name;
-#    - fastcgi_param GEOIP_REGION $geoip_region;
-#    - fastcgi_param GEOIP_CITY $geoip_city;
-#    - fastcgi_param GEOIP_POSTAL_CODE $geoip_postal_code;
-#    - fastcgi_param GEOIP_CITY_CONTINENT_CODE $geoip_city_continent_code;
-#    - fastcgi_param GEOIP_LATITUDE $geoip_latitude;
-#    - fastcgi_param GEOIP_LONGITUDE $geoip_longitude;
-#  tags:
-#    - nginx-gioip-configuration
 
 - name: Copy default index, error_pages & ssl certificates
   copy: src={{item.src}} dest={{item.dest}}
   with_items:
-    - { src: '{{default_index}}', dest: '{{doc_root}}' }
-    - { src: '{{error_page_404}}', dest: /usr/share/nginx/error_pages }
-    - { src: '{{error_page_50x}}', dest: /usr/share/nginx/error_pages }
-    - { src: '{{error_page_403}}', dest: /usr/share/nginx/error_pages }
-    - { src: '{{ssl_crt_file}}', dest: /etc/nginx/ssl/ssl_crt.pem }
-    - { src: '{{ssl_key_file}}', dest: /etc/nginx/ssl/ssl_key.pem }
+    - { src: '{{default_index}}', dest: '{{nginx_doc_root}}' }
+    - { src: '{{error_page_404}}', dest: '{{nginx_error_pages_dir}}' }
+    - { src: '{{error_page_50x}}', dest: '{{nginx_error_pages_dir}}' }
+    - { src: '{{error_page_403}}', dest: '{{nginx_error_pages_dir}}' }
+    - { src: '{{ssl_crt_file}}', dest: '{{nginx_ssl_dir}}/ssl_crt.pem' }
+    - { src: '{{ssl_key_file}}', dest: '{{nginx_ssl_dir}}/ssl_key.pem' }
   tags:
     - nginx-configuration
 
