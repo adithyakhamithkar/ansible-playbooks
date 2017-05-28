@@ -1,0 +1,11 @@
+---
+- name: Create build directory
+  file: path='{{build_dir}}' state=directory
+
+- name: Copy template file to build
+  template: src='{{docker_template}}' dest='{{build_dir}}' 
+
+- name: Build docker image
+  shell : packer build '{{docker_template}}'
+  args:
+    chdir: '{{build_dir}}'

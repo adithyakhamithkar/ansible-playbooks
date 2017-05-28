@@ -1,0 +1,8 @@
+#
+#About: This will install packer
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - packer

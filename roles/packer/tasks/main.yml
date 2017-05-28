@@ -1,0 +1,6 @@
+---
+- name: Download packer binaries
+  unarchive: src={{packer_download_url}} remote_src=True dest=/usr/local/bin
+
+- name: Set environment
+  lineinfile: dest=/root/.bashrc line='export PATH="$PATH:/usr/local/bin/packer"' state=present

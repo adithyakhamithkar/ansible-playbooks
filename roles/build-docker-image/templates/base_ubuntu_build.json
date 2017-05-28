@@ -1,0 +1,22 @@
+{
+  "builders": [{
+    "type": "docker",
+    "image": "ubuntu:16.04",
+    "commit": "true"
+  }],
+ "provisioners": [
+    {
+      "type": "shell",
+      "inline": ["echo 'hello!' > /tmp/foo"]
+    }
+  ],
+  "post-processors": [
+    [
+      {
+        "type": "docker-tag",
+        "repository": "{{docker_ubuntu_repo}}",
+        "tag": "0.1"
+      }
+    ]
+  ]
+}
