@@ -1,5 +1,8 @@
 ---
 pl_teamcity_url : "https://download.jetbrains.com/teamcity/TeamCity-{{pl_teamcity_version}}.tar.gz"
 pl_teamcity_version : "2017.1.4"
-pl_teamcity_path : "/opt/TeamCity"
-pl_teamcity_data_path : "/mnt1/TeamCity-data"
+pl_teamcity_user : "teamcity-user"
+pl_teamcity_path : "/opt"
+pl_teamcity_data_path : "/mnt1/BuildServer"
+pl_teamcity_logs_path : "/opt/TeamCity/logs"
+pl_teamcity_lib_path : "{{pl_teamcity_data_path}}/lib"

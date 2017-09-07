@@ -12,18 +12,18 @@
 
 
 #  Ensure you enter the  right  user name that  TeamCity will run  under
-USER="agentuser"
+USER="{{pl_teamcity_user}}"
 
 
-export TEAMCITY_DATA_PATH="{{pl_teamcity_data_path}}/.BuildServer"
+export TEAMCITY_DATA_PATH="{{pl_teamcity_data_path}}"
 
 case $1 in
 
 start)
-  start-stop-daemon --start  -c $USER --exec {{pl_teamcity_path}}/bin/runAll.sh start
+  start-stop-daemon --start  -c $USER --exec {{pl_teamcity_path}}/TeamCity/bin/runAll.sh start
  ;;
 stop)
-  start-stop-daemon --start -c $USER  --exec  {{pl_teamcity_path}}/bin/runAll.sh stop
+  start-stop-daemon --start -c $USER  --exec  {{pl_teamcity_path}}/TeamCity/bin/runAll.sh stop
  ;;
  esac
 

@@ -2,17 +2,23 @@
 - name: Download TeamCity
   get_url: url={{pl_teamcity_url}} dest=/tmp
 
-- name: Extract TeamCity
-  unarchive: src=/tmp/TeamCity-{{pl_teamcity_version}}.tar.gz dest=/opt copy=no
-
 - name: Create TeamCity folder
-  file: path={{item}} state=directory
+  file: path={{item}} state=directory owner={{pl_teamcity_user}} group={{pl_teamcity_user}}
   with_items:
-    - "{{pl_teamcity_path}}/logs"
     - "{{pl_teamcity_data_path}}"
+    - "{{pl_teamcity_logs_path}}"
+
+- name: Extract TeamCity
+  unarchive: src=/tmp/TeamCity-{{pl_teamcity_version}}.tar.gz dest={{pl_teamcity_path}} copy=no owner={{pl_teamcity_user}} group={{pl_teamcity_user}}
+
+- name: Adding teamcity user
+  user: name={{pl_teamcity_user}} groups=sudo,shadow shell=/bin/bash append=yes generate_ssh_key=yes ssh_key_file=.ssh/id_rsa
+
+- name: Adding teamcity user to sudoers
+  lineinfile: dest=/etc/sudoers state=present regexp='^%{{pl_teamcity_user}}' line='%{{pl_teamcity_user}} ALL=(ALL) NOPASSWD:ALL' validate='visudo -cf %s'
 
 - name: Configure TeamCity
-  template: src=teamcity.j2 dest=/etc/init.d/teamcity.sh owner=root group=root mode=755
+  template: src=teamcity.j2 dest=/etc/init.d/teamcity owner=root group=root mode=755
 
 #- name: Start TeamCity
 #  shell: sudo nohup /opt/TeamCity/bin/startup.sh
