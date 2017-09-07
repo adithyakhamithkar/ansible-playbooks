@@ -5,11 +5,6 @@
 - name: Adding Jenkins user to sudoers
   lineinfile: dest=/etc/sudoers state=present regexp='^%jenkins' line='%jenkins ALL=(ALL) NOPASSWD:ALL' validate='visudo -cf %s'
 
-- name: Set JAVA_HOME
-  lineinfile: dest=/home/jenkins/.bashrc line="{{item}}"
-  with_items:
-  - export JAVA_HOME=/usr/lib/jvm/java-9-oracle
-
 - name: Add the Jenkins APT repository key
   apt_key: url=http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key state=present
 
@@ -17,7 +12,7 @@
   apt_repository: repo="deb http://pkg.jenkins-ci.org/debian binary/" state=present
 
 - name: Install Jenkins
-  apt: name={{item}} state=latest update_cache=yes
+  apt: name={{item}} state=latest
   with_items:
   - jenkins
 

@@ -5,5 +5,4 @@
 - hosts: '{{inventory}}'
   become: yes
   roles:
-  - jdk
   - teamcity

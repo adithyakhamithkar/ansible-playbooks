@@ -1,0 +1,30 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          TeamCity autostart
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start teamcity daemon at boot time
+# Description:       Enable service provided by daemon.
+# /etc/init.d/teamcity -  startup script for teamcity
+### END INIT INFO
+
+
+#  Ensure you enter the  right  user name that  TeamCity will run  under
+USER="agentuser"
+
+
+export TEAMCITY_DATA_PATH="{{pl_teamcity_data_path}}/.BuildServer"
+
+case $1 in
+
+start)
+  start-stop-daemon --start  -c $USER --exec {{pl_teamcity_path}}/bin/runAll.sh start
+ ;;
+stop)
+  start-stop-daemon --start -c $USER  --exec  {{pl_teamcity_path}}/bin/runAll.sh stop
+ ;;
+ esac
+
+exit 0

@@ -9,10 +9,10 @@
 - name: Install Oracle Java
   apt: name={{item}} state=present force=yes
   with_items:
-  - oracle-java9-installer
+  - oracle-java{{pl_jdk_version}}-installer
 
 - name: Set JAVA_HOME
   lineinfile: dest=/root/.bashrc line="{{item}}"
   with_items:
-  - export JAVA_HOME=/usr/lib/jvm/java-9-oracle
+  - export JAVA_HOME=/usr/lib/jvm/java-{{pl_jdk_version}}-oracle
   - export PATH=$PATH:$JAVA_HOME/bin

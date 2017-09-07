@@ -1,0 +1,49 @@
+{
+  "variables": {
+    "ansible_host": "default",
+    "ansible_connection": "docker"
+  },
+  "builders": [
+    {
+      "type": "docker",
+      "image": "ubuntu:16.04",
+      "commit": "true",
+      "run_command": [
+        "-d",
+        "-i",
+        "-t",
+        "--name",
+        "{{user `ansible_host`}}",
+        "{{.Image}}",
+        "/bin/bash"
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "apt-get update",
+        "apt-get install python -yq"
+      ]
+    },
+    {
+      "type": "ansible",
+      "user": "root",
+      "playbook_file": "./commission-new-server.yml",
+      "extra_arguments": [
+        "--extra-vars",
+        "ansible_host={{user `ansible_host`}} ansible_connection={{user `ansible_connection`}} inventory={{user `ansible_host`}}"
+      ]
+    }
+  ],
+  "post-processors": [
+    [
+      {
+        "type": "docker-tag",
+        "repository": "{{docker_nginx_repo}}",
+        "tag": "{{tag}}"
+      }
+    ]
+  ]
+}
