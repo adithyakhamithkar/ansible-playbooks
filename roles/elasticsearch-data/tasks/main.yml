@@ -1,6 +1,6 @@
 ---
 - name: Configure elasticsearch
-  lineinfile: dest="/etc/elasticsearch/elasticsearch.yml" regexp="{{item.regexp}}" line="{{item.line}}" state=present backrefs=yes backup=yes
+  lineinfile: dest="/etc/elasticsearch/elasticsearch.yml" regexp="{{item.regexp}}" line="{{item.line}}" state=present backup=yes
   with_items:
     - { regexp: 'node.master', line: 'node.master: false' }
     - { regexp: 'node.data', line: 'node.data: true' }

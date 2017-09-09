@@ -34,7 +34,9 @@
     - { regexp: 'node.name', line: 'node.name: {{hostname}}' }
     - { regexp: 'path.data', line: 'path.data: {{ht_data_path}}' }
     - { regexp: 'path.logs', line: 'path.logs: {{ht_logs_path}}' }
-    - { regexp: 'network.host', line: 'network.host: 0.0.0.0' }
+    - { regexp: 'network.host', line: 'network.host: {{ansible_ssh_host}}' }
+    - { regexp: 'discovery.zen.ping.unicast.hosts', line: 'discovery.zen.ping.unicast.hosts: {{ht_master_nodes_ips_with_port}}' }
+    - { regexp: 'discovery.zen.minimum_master_nodes', line: 'discovery.zen.minimum_master_nodes: 1' }
   notify: elasticsearch restart
 
 - name: Configure jvm options
