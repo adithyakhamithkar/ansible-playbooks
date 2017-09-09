@@ -5,6 +5,4 @@
 - hosts: '{{inventory}}'
   become: yes
   roles:
-  - jdk
-  - elasticsearch
   - elasticsearch-data

@@ -3,14 +3,43 @@
   apt_key: url=http://packages.elasticsearch.org/GPG-KEY-elasticsearch state=present
 
 - name: Add the elasticsearch APT repository
-  apt_repository: repo="deb https://artifacts.elastic.co/packages/5.x/apt stable main" state=present
+  apt_repository: repo="deb https://artifacts.elastic.co/packages/{{pl_elasticsearch_version}}/apt stable main" state=present
 
 - name: Install elasticsearch
   apt: name={{item}} state=present force=yes
   with_items:
   - elasticsearch
-  notify: Start elasticsearch
 
 - name: Set elasticsearch to start up by default
   shell: update-rc.d elasticsearch defaults 95 10
   changed_when: false
+
+- name: Create directories for ssl, error_pages & deployment_info
+  file: path={{item}} state=directory group=elasticsearch owner=elasticsearch
+  with_items:
+    - "{{ht_data_path}}"
+    - "{{ht_logs_path}}"
+
+- name: Configure elasticsearch service
+  lineinfile: dest="/usr/lib/systemd/system/elasticsearch.service" regexp="{{item.regexp}}" line="{{item.line}}" state=present backup=yes
+  with_items:
+    - { regexp: 'Environment=DATA_DIR', line: 'Environment=DATA_DIR={{ht_data_path}}' }
+    - { regexp: 'Environment=LOG_DIR=/var/log/elasticsearch', line: 'Environment=LOG_DIR={{ht_logs_path}}' }
+  notify: reload deamon
+
+- name: Configure elasticsearch
+  lineinfile: dest="/etc/elasticsearch/elasticsearch.yml" regexp="{{item.regexp}}" line="{{item.line}}" state=present backrefs=yes backup=yes
+  with_items:
+    - { regexp: 'cluster.name', line: 'cluster.name: {{ht_cluster_name}}' }
+    - { regexp: 'node.name', line: 'node.name: {{hostname}}' }
+    - { regexp: 'path.data', line: 'path.data: {{ht_data_path}}' }
+    - { regexp: 'path.logs', line: 'path.logs: {{ht_logs_path}}' }
+    - { regexp: 'network.host', line: 'network.host: 0.0.0.0' }
+  notify: elasticsearch restart
+
+- name: Configure jvm options
+  lineinfile: dest="/etc/elasticsearch/jvm.options" regexp="{{item.regexp}}" line="{{item.line}}" state=present backrefs=yes backup=yes
+  with_items:
+    - { regexp: '-Xms', line: '-Xms{{ht_xms}}' }
+    - { regexp: '-Xmx', line: '-Xmx{{ht_xmx}}' }
+  notify: elasticsearch restart

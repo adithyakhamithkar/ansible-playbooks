@@ -1,4 +1,0 @@
----
-#- name: Configure elasticsearch-master
-#  template: src=elasticsearch-master.j2 dest=/etc/elasticsearch/elasticsearch.yml
-#  notify: Restart elasticsearch

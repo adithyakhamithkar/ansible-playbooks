@@ -36,7 +36,7 @@ Vagrant.configure(2) do |config|
     #test_box.ssh.username = "vagrant"
     #test_box.ssh.password = "vagrant"
     config.vm.provider "virtualbox" do |test_box1|
-      test_box1.memory = 1024
+      test_box1.memory = 2048
       test_box1.cpus = 1
     end
     config.vm.provision "shell", inline: <<-SHELL
@@ -52,7 +52,7 @@ Vagrant.configure(2) do |config|
     #test_box.ssh.username = "vagrant"
     #test_box.ssh.password = "vagrant"
     config.vm.provider "virtualbox" do |test_box2|
-      test_box2.memory = 1014
+      test_box2.memory = 2048
       test_box2.cpus = 1
     end
     config.vm.provision "shell", inline: <<-SHELL

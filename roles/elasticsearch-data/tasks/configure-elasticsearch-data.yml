@@ -1,4 +1,0 @@
----
-- name: Configure elasticsearch-data
-  template: src=elasticsearch-data.j2 dest=/etc/elasticsearch/elasticsearch.yml
-  notify: Restart elasticsearch
