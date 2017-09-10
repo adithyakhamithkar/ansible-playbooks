@@ -20,6 +20,6 @@
     - { regexp: 'server.port', line: 'server.port: {{pl_kibana_port}}' }
     - { regexp: 'server.host', line: 'server.host: {{ansible_ssh_host}}' }
     - { regexp: 'server.name', line: 'server.name: {{ht_cluster_name}}' }
-    - { regexp: 'elasticsearch.url', line: 'elasticsearch.url: http://{{ht_elasticsearch_url}}' }
+    - { regexp: 'elasticsearch.url', line: 'elasticsearch.url: {{ht_elasticsearch_url}}' }
     - { regexp: 'kibana.index', line: 'kibana.index: .{{pl_kibana_index}}' }
   notify: kibana restart

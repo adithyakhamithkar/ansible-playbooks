@@ -3,31 +3,25 @@
   apt_key: url=https://packages.elasticsearch.org/GPG-KEY-elasticsearch state=present
 
 - name: Add the logstash APT repository
-  apt_repository: repo="deb http://packages.elasticsearch.org/logstash/2.0/debian stable main" state=present
+  apt_repository: repo="deb https://artifacts.elastic.co/packages/{{pl_logstash_major_version}}/apt stable main" state=present
 
 - name: Install logstash
   apt: name={{item}} state=present force=yes
   with_items:
   - logstash
 
+- name: Set logstash to start up by default
+  systemd: name=logstash enabled=yes
+
 - name: Create SSL directory for postfix
   file: path=/etc/pki/tls/certs state=directory
 
 - name: Copy logstash-forwarder.crt
-  template: src=logstash_forwarder_crt.j2 dest=/etc/pki/tls/certs/logstash-forwarder.crt
-
-- name: Copy logstash-forwarder.key
-  template: src=logstash_forwarder_key.j2 dest=/etc/pki/tls/certs/logstash-forwarder.key
-
-- name: Configure logstash
-  template: src=logstash.j2 dest=/etc/logstash/conf.d/logstash.conf
-
-- name: Configure openssl.conf
-  template: src=openssl.j2 dest=/etc/ssl/openssl.cnf
-
-- name: Restart logstash
-  service: name=logstash state=restarted
-
-- name: Set logstash to start up by default
-  shell: sudo update-rc.d logstash defaults 95 10
-  changed_when: false
+  template: src={{item.src}} dest={{item.dest}}
+  with_items:
+    - { src: 'logstash_forwarder_crt.j2', dest: '/etc/pki/tls/certs/logstash-forwarder.crt' }
+    - { src: 'logstash_forwarder_key.j2', dest: '/etc/pki/tls/certs/logstash-forwarder.key' }
+    - { src: '02-beats-input.conf.j2', dest: '/etc/logstash/conf.d/02-beats-input.conf' }
+    - { src: '10-syslog-filter.conf.j2', dest: '/etc/logstash/conf.d/10-syslog-filter.conf' }
+    - { src: '30-elasticsearch-output.conf.j2', dest: '/etc/logstash/conf.d/30-elasticsearch-output.conf' }
+  notify: logstash restart

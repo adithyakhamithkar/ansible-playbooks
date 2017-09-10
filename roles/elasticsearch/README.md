@@ -66,7 +66,7 @@ ht_xms=1g
 ht_xmx=1g
 ht_master_nodes_ips="{{ groups['elasticsearch-master'] | map('extract', hostvars, ['ansible_ssh_host']) | join(',') }}"
 ht_master_nodes_ips_with_port="{{ groups['elasticsearch-master'] | map('extract', hostvars, ['ansible_ssh_host']) | join(':9300,') }}:9300"
-ht_elasticsearch_url="{{ groups['elasticsearch-master'] | map('extract', hostvars, ['ansible_ssh_host']) | join(':9200,') }}:9200"
+ht_elasticsearch_url="http://{{ groups['elasticsearch-master'] | map('extract', hostvars, ['ansible_ssh_host']) | join(':9200,') }}:9200"
 ht_data_nodes_ips="{{ groups['elasticsearch-data'] | map('extract', hostvars, ['ansible_ssh_host']) | join('\n') }}"
 
 [elasticsearch-master]

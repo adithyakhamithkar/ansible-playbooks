@@ -1,0 +1,3 @@
+---
+pl_logstash_major_version : "{{logstash_major_version|default('5.x')}}"
+pl_logstash_minor_version : "{{logstash_minor_version|default('5.4.0')}}"
