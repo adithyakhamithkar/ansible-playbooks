@@ -17,10 +17,10 @@ Get index level cluster-health
 curl 'http://localhost:9200/_cluster/health?level=indices&pretty=true'
 
 Get Cluster Settings
-curl 'localhost:9200/_cluster/settings?pretty=true’
+curl 'localhost:9200/_cluster/settings?pretty=true'
 
 Get Cluster State
-curl 'localhost:9200/_cluster/settings?pretty=true’
+curl 'localhost:9200/_cluster/settings?pretty=true'
 
 Get Thread Pool info for cluster
 curl 'localhost:9200/_cat/thread_pool?v'
@@ -29,7 +29,7 @@ Get cluster allocation (disk allocation, shards etc.,)
 curl -s 'localhost:9200/_cat/allocation?v' | sort -rnk2
 
 Get node info, like uptime and other node specific info
-curl 'localhost:9200/_cat/nodes?v&h=h,name,uptime,version’
+curl 'localhost:9200/_cat/nodes?v&h=h,name,uptime,version'
 
 Get all indices on this cluster
 curl 'http://localhost:9200/_cat/indices?pretty
@@ -38,12 +38,12 @@ Get list of unassigned shard
 curl 'localhost:9200/_cat/shards?v' | grep UNASSIGNED
 
 Get list of all indices with size
-curl 'localhost:9200/_cat/indices?v&h=index,store.size’
+curl 'localhost:9200/_cat/indices?v&h=index,store.size'
 
 Delete an indic
-curl -XDELETE 'http://localhost:9200/twitter/‘
+curl -XDELETE 'http://localhost:9200/twitter/'
 
-curl -XGET 'http://localhost:9200/_cluster/pending_tasks’
+curl -XGET 'http://localhost:9200/_cluster/pending_tasks'
 ```
 
 #### Example hosts:
