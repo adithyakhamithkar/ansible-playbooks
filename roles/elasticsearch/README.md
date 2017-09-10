@@ -44,6 +44,12 @@ Delete an indic
 curl -XDELETE 'http://localhost:9200/twitter/'
 
 curl -XGET 'http://localhost:9200/_cluster/pending_tasks'
+
+curl -XPUT 'localhost:9200/<index>/_settings' -d '{
+    "index" : {
+        "number_of_replicas" : 1
+     }
+}'
 ```
 
 #### Example hosts:
@@ -60,9 +66,11 @@ ht_xms=1g
 ht_xmx=1g
 ht_master_nodes_ips="{{ groups['elasticsearch-master'] | map('extract', hostvars, ['ansible_ssh_host']) | join(',') }}"
 ht_master_nodes_ips_with_port="{{ groups['elasticsearch-master'] | map('extract', hostvars, ['ansible_ssh_host']) | join(':9300,') }}:9300"
+ht_elasticsearch_url="{{ groups['elasticsearch-master'] | map('extract', hostvars, ['ansible_ssh_host']) | join(':9200,') }}:9200"
+ht_data_nodes_ips="{{ groups['elasticsearch-data'] | map('extract', hostvars, ['ansible_ssh_host']) | join('\n') }}"
 
 [elasticsearch-master]
-elasticsearch-master-01 ansible_ssh_host=192.168.33.10 hostname=elasticsearch-master-01 ansible_ssh_private_key_file=~/Personal/Projects/ansible/.vagrant/machines/test_box/virtualbox/private_key
+elasticsearch-master-01 ansible_ssh_host=192.168.33.10 hostname=elasticsearch-master-01
 
 [elasticsearch-data]
 elasticsearch-data-01 ansible_ssh_host=192.168.33.11 hostname=elasticsearch-data-01
