@@ -6,9 +6,10 @@
   apt_repository: repo="deb https://artifacts.elastic.co/packages/{{pl_elasticsearch_major_version}}/apt stable main" state=present
 
 - name: Install elasticsearch
-  apt: name={{item}} state=present force=yes
+  apt: name={{item}} state=present
   with_items:
   - elasticsearch={{pl_elasticsearch_minor_version}}
+  notify: elasticsearch restart
 
 - name: Set elasticsearch to start up by default
   shell: update-rc.d elasticsearch defaults 95 10
