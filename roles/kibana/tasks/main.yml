@@ -1,32 +1,25 @@
 ---
 - name: Add the elasticsearch APT repository key
-  apt_key: url=https://packages.elasticsearch.org/GPG-KEY-elasticsearch state=present
+  apt_key: url=http://packages.elasticsearch.org/GPG-KEY-elasticsearch state=present
 
 - name: Add the Kibana APT repository
-  apt_repository: repo="deb http://packages.elastic.co/kibana/4.1/debian stable main" state=present
+  apt_repository: repo="deb https://artifacts.elastic.co/packages/{{pl_kiban_major_version}}/apt stable main" state=present
 
 - name: Install kibana
-  apt: name={{item}} state=present force=yes
+  apt: name={{item}} state=present
   with_items:
-  - kibana
-
-#- name: Download Kibana
-#  get_url: url={{kibana_url}} dest=/opt
-
-#- name: Extract Kibana
-#  unarchive: src=/opt/kibana-4.1.2-linux-x64.tar.gz dest=/opt copy=no
-
-- name: Configure Kibana
-  template: src=kibana.j2 dest=/opt/kibana/config/kibana.yml
-
-#- name: Configure Kibana
-#  template: src=kibana_service.j2 dest=/etc/init.d/kibana
-#
-#- name: Chmod +x
-#  shell: sudo chmod +x /etc/init.d/kibana
+  - kibana={{pl_kiban_minor_version}}
+  notify: kibana restart
 
 - name: Put Kibana on startup
-  shell: sudo update-rc.d kibana defaults 96 9
+  systemd: name=kibana enabled=yes daemon_reload=yes
 
-- name: Start Kibana
-  service: name=kibana state=restarted
+- name: Configure kibana
+  lineinfile: dest="/etc/kibana/kibana.yml" regexp="{{item.regexp}}" line="{{item.line}}" state=present backrefs=yes backup=yes
+  with_items:
+    - { regexp: 'server.port', line: 'server.port: {{pl_kibana_port}}' }
+    - { regexp: 'server.host', line: 'server.host: {{ansible_ssh_host}}' }
+    - { regexp: 'server.name', line: 'server.name: {{ht_cluster_name}}' }
+    - { regexp: 'elasticsearch.url', line: 'elasticsearch.url: http://{{ht_elasticsearch_url}}' }
+    - { regexp: 'kibana.index', line: 'kibana.index: .{{pl_kibana_index}}' }
+  notify: kibana restart

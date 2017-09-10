@@ -1,0 +1,5 @@
+---
+pl_kiban_major_version : "{{kibana_major_version|default('5.x')}}"
+pl_kiban_minor_version : "{{kibana_minor_version|default('5.4.0')}}"
+pl_kibana_port : "{{kibana_port|default('5601')}}"
+pl_kibana_index : "{{kibana_index|default('kibana')}}"
