@@ -1,8 +1,0 @@
-#
-#About: This will install logstash
-#
----
-- hosts: '{{inventory}}'
-  become: yes
-  roles:
-  - logstash-forwarder

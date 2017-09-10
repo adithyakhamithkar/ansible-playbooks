@@ -1,0 +1,23 @@
+---
+- name: Add the elasticsearch APT repository key
+  apt_key: url=https://packages.elasticsearch.org/GPG-KEY-elasticsearch state=present
+
+- name: Add the filebeat APT repository
+  apt_repository: repo="deb https://artifacts.elastic.co/packages/{{pl_elasticsearch_major_version}}/apt stable main" state=present
+
+- name: Install filebeat
+  apt: name={{item}} state=present force=yes
+  with_items:
+  - filebeat
+
+- name: Create SSL directory for postfix
+  file: path=/etc/pki/tls/certs state=directory
+
+- name: Copy logstash-forwarder.crt
+  template: src={{item.src}} dest={{item.dest}}
+  with_items:
+    - { src: 'logstash_forwarder_crt.j2', dest: '/etc/pki/tls/certs/logstash-forwarder.crt' }
+    - { src: 'logstash_forwarder_key.j2', dest: '/etc/pki/tls/certs/logstash-forwarder.key' }
+
+#- name: Configure logstash-forwarder
+#  template: src=logstash_forwarder.j2 dest=/etc/logstash-forwarder.conf
