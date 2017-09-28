@@ -1,6 +1,6 @@
 ---
 - name: Add the dropbox APT key
-  apt_key: keyserver=pgp.mit.edu id=75044912E state=present
+  apt_key: keyserver=pgp.mit.edu id=1C61A2656FB57B7E4DE0F4C1FC918B335044912E state=present
 
 - name: Add dropbox repository
   apt_repository: repo="deb http://linux.dropbox.com/ubuntu/ trusty main" state=present
@@ -9,3 +9,4 @@
   apt: name={{item}} state=present
   with_items:
   - dropbox
+  - python-gpgme
