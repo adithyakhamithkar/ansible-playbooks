@@ -6,6 +6,8 @@
    - mysql-client
    - python-mysqldb
 
-#- name: Configure MySql
-#  template: src=my.j2 dest=/etc/mysql/my.cnf
-#  notify: Restart mysql
+- name: Configure MySql
+  lineinfile: dest="/etc/mysql/mysql.conf.d/mysqld.cnf" regexp="{{item.regexp}}" line="{{item.line}}" state=present backup=yes
+  with_items:
+    - { regexp: 'bind-address', line: '#bind-address           = 0.0.0.0' }
+  notify: restart mysql
