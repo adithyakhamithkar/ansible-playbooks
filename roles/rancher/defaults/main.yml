@@ -1,5 +1,10 @@
 ---
 # defaults file for rancher
-rancher_name: '{{hostname}}'
-rancher_port: 8080
-rancher_version: v1.5.3
+pl_rancher_name: '{{hostname}}'
+pl_rancher_port: '8080'
+pl_rancher_version: 'v1.6.10'
+pl_cattle_db_mysql_host: '192.168.33.10'
+pl_cattle_db_mysql_port: '3306'
+pl_cattle_db_mysql_db_name: 'cattle'
+pl_cattle_db_mysql_db_user: 'cattle'
+pl_cattle_db_mysql_db_password: 'cattle'
