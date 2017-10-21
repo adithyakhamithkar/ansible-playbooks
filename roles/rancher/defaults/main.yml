@@ -1,8 +1,8 @@
 ---
 # defaults file for rancher
-pl_rancher_name: '{{hostname}}'
+pl_rancher_name: "{{rancher_cluster_name|default(hostname)}}"
 pl_rancher_port: '8080'
-pl_rancher_version: 'v1.6.10'
+pl_rancher_version: "{{rancher_version|default('v1.6.10')}}"
 pl_cattle_db_mysql_host: '192.168.33.10'
 pl_cattle_db_mysql_port: '3306'
 pl_cattle_db_mysql_db_name: 'cattle'

@@ -5,18 +5,21 @@
       image: rancher/server:{{pl_rancher_version}}
       restart_policy: always
       ports:
-        - "{{pl_rancher_port}}:8080"
+        - "{{pl_rancher_port}}:{{pl_rancher_port}}"
       env:
         CATTLE_DB_CATTLE_MYSQL_HOST="{{pl_cattle_db_mysql_host}}"
         CATTLE_DB_CATTLE_MYSQL_PORT="{{pl_cattle_db_mysql_port}}"
         CATTLE_DB_CATTLE_MYSQL_NAME="{{pl_cattle_db_mysql_db_name}}"
         CATTLE_DB_CATTLE_USERNAME="{{pl_cattle_db_mysql_db_user}}"
         CATTLE_DB_CATTLE_PASSWORD="{{pl_cattle_db_mysql_db_password}}"
+      pull: true
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
 
 - name: Wait for the Rancher server to start
   action: command docker logs {{pl_rancher_name}}
   register: rancher_logs
-  until: rancher_logs.stdout.find("Listening on") != -1
+  until: rancher_logs.stdout.find("Listening on") != -1 or rancher_logs.stdout.find("Waiting to become master") != -1
   retries: 30
   delay: 10
 
