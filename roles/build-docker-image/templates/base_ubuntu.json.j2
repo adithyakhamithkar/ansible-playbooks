@@ -7,15 +7,15 @@
  "provisioners": [
     {
       "type": "shell",
-      "inline": ["echo 'hello!' > /tmp/foo"]
+      "inline": ["echo 'hello!' > /tmp/foo1"]
     }
   ],
   "post-processors": [
     [
       {
         "type": "docker-tag",
-        "repository": "{{docker_ubuntu_repo}}",
-        "tag": "{{tag}}"
+        "repository": "{{pl_docker_repo_username}}/{{pl_docker_template}}",
+        "tag": "{{pl_tag}}"
       }
     ]
   ]

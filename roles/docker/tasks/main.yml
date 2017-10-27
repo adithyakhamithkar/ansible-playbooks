@@ -1,9 +1,9 @@
 ---
 - name: Create docker data directory
-  file: path={{docker_data}} state=directory
+  file: path={{pl_docker_data}} state=directory
 
 - name: Make sure aufs support is available
-  apt: name={{item}} state=latest
+  apt: name={{item}} state=present
   with_items:
   - linux-image-extra-{{ansible_kernel}}
 
@@ -16,17 +16,15 @@
 - name: Install docker
   apt: name={{item}} state=present
   with_items:
-  - docker-engine={{docker_engine_version}}
+  - docker-engine={{pl_docker_engine_version}}
 
 - name: Install docker python packages
   pip: name={{item.name}} version={{item.version}} state=present
   with_items:
-  - { name: docker-py, version: '{{docker_py_version}}' }
+  - { name: docker-py, version: '{{pl_docker_py_version}}' }
 
 - name: Change docker directory
   lineinfile: dest=/lib/systemd/system/docker.service regexp={{item.regexp}} line={{item.line}} state=present backrefs=yes
   with_items:
-    - { regexp: 'ExecStart=', line: "ExecStart=/usr/bin/dockerd -g {{docker_data}} -H fd://" }
-
-- name: Restart docker
-  systemd: name=docker state=restarted daemon_reload=yes
+    - { regexp: 'ExecStart=', line: "ExecStart=/usr/bin/dockerd -g {{pl_docker_data}} -H fd://" }
+  notify: restart docker

@@ -1,21 +1,20 @@
 ---
 - name: Create build directory
-  file: path='{{build_dir}}' state=directory
+  file: path='{{pl_docker_packer_build_dir}}' state=directory
 
 - name: Copy template file to build
-  template: src='{{docker_template}}' dest='{{build_dir}}'
+  template: src='{{pl_docker_template}}.json.j2' dest='{{pl_docker_packer_build_dir}}/{{pl_docker_template}}.json'
 
 - name: Build docker image
-  shell : packer build '{{docker_template}}'
+  shell : packer build '{{pl_docker_template}}.json'
   args:
-    chdir: '{{build_dir}}'
+    chdir: '{{pl_docker_packer_build_dir}}'
 
 - name: Docker repo login
-  shell: docker login --username {{repo_username}} --password {{repo_password}}
+  shell: docker login '{{pl_docker_repo}}' --username '{{pl_docker_repo_username}}' --password '{{pl_docker_repo_password}}'
 
 - name: Push image
-  docker_image:
-    name: '{{docker_image_name}}'
-    repository: '{{docker_repo}}'
-    tag: '{{tag}}'
-    push: yes
+  shell: docker push '{{pl_docker_repo_username}}/{{pl_docker_template}}:{{pl_tag}}'
+
+- name: Docker repo logout
+  shell: docker logout '{{pl_docker_repo}}'

@@ -2,8 +2,7 @@
 #About: This will run any role
 #
 ---
-- hosts: localhost
-  connection: local
+- hosts: '{{inventory}}'
   become: yes
   roles:
   - build-docker-image
