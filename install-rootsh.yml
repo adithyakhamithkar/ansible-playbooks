@@ -1,0 +1,8 @@
+#
+#About: This will install rootsh
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - rootsh

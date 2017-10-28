@@ -1,0 +1,15 @@
+---
+- name: Download rootsh
+  get_url: url={{pl_rootsh_url}} dest=/tmp validate_certs=no timeout=360
+
+- name: Create logs directory
+  file: path={{pl_rootsh_log_path}} state=directory
+
+- name: Install rootsh
+  apt:
+    deb: '{{pl_rootsh_directory}}/rootsh_{{pl_rootsh_version}}_amd64.deb'
+
+- name: Run Rootsh
+  command: ./rootsh
+  args:
+    chdir: /usr/local/bin
