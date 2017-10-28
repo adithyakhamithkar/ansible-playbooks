@@ -11,10 +11,10 @@
     chdir: '{{pl_docker_packer_build_dir}}'
 
 - name: Docker repo login
-  shell: docker login '{{pl_docker_repo}}' --username '{{pl_docker_repo_username}}' --password '{{pl_docker_repo_password}}'
+  shell: docker login '{{pl_docker_repo_url}}' --username '{{pl_docker_repo_username}}' --password '{{pl_docker_repo_password}}'
 
 - name: Push image
-  shell: docker push '{{pl_docker_repo_username}}/{{pl_docker_template}}:{{pl_tag}}'
+  shell: docker push '{{pl_docker_repo_url}}/{{pl_docker_repo_username}}/{{pl_docker_repo_name}}/{{pl_docker_template}}:{{pl_tag}}'
 
 - name: Docker repo logout
-  shell: docker logout '{{pl_docker_repo}}'
+  shell: docker logout '{{pl_docker_repo_url}}'
