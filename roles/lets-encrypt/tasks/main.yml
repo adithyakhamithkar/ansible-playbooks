@@ -5,6 +5,11 @@
 - name: Copy webroot.ini configuration
   template: src=webroot.j2 dest=/opt/letsencrypt/{{domain_name}}-webroot.ini
 
+- name: Create directories for letsencrypt
+  file: path={{item}} state=directory
+  with_items:
+   - '/etc/letsencrypt'
+
 #Execute this manually
 - name: Configure
   shell: /opt/letsencrypt/letsencrypt-auto certonly --agree-tos --config /opt/letsencrypt/{{domain_name}}-webroot.ini
