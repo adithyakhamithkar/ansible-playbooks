@@ -16,7 +16,7 @@
 - name: Install docker
   apt: name={{item}} state=present
   with_items:
-  - docker-engine={{pl_docker_engine_version}}
+  - docker-engine
 
 - name: Install docker python packages
   pip: name={{item.name}} version={{item.version}} state=present
