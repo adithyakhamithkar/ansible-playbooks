@@ -10,10 +10,13 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $remote_addr;
         proxy_set_header REFERER $http_referer;
-        add_header  X-Upstream  $upstream_addr;
+        #add_header  X-Upstream  $upstream_addr;
         location / {
 		            try_files $uri $uri/ /index.php?$args;
                 proxy_cache STATIC;
+                proxy_hide_header Cache-Control;
+                expires 60M;
+                add_header Cache-Control "public";
         }
         #pass the PHP scripts to FastCGI server listening on 127.0.0.1:9$
         location ~ \.php$ {
@@ -22,6 +25,7 @@ server {
                 fastcgi_index index.php;
                 fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
                 include fastcgi_params;
+
         }
         # Expire rules for static content
         # cache.appcache, your document html and data

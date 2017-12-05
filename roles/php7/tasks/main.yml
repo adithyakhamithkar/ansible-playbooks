@@ -19,8 +19,11 @@
   tags:
     - php7-installation
 
+- name: Create /etc/php/7.0/fpm/conf.d/custom.ini
+  file: path=/etc/php/7.0/fpm/conf.d/custom.ini state=touch
+
 - name: Configure Php
-  template: src=php.ini dest=/etc/php/7.0/fpm/php.ini
+  lineinfile: path=/etc/php/7.0/fpm/conf.d/custom.ini line="expose_php = off"
   notify: Restart Php
   tags:
     - php7-configuration
