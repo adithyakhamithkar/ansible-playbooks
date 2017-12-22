@@ -1,0 +1,8 @@
+#
+#About: This will install docker
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - kubernetes-master
