@@ -16,11 +16,11 @@ Vagrant.configure(2) do |config|
   config.vm.define "test_box" do |test_box|
     test_box.vm.box = "ubuntu/xenial64"
     test_box.vm.network "private_network", ip: "192.168.33.10"
-    test_box.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"
+    #test_box.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"
     #test_box.ssh.username = "vagrant"
     #test_box.ssh.password = "vagrant"
     config.vm.provider "virtualbox" do |test_box|
-      test_box.memory = 2048
+      test_box.memory = 4096
       test_box.cpus = 2
     end
     config.vm.provision "shell", inline: <<-SHELL
@@ -32,7 +32,7 @@ Vagrant.configure(2) do |config|
   config.vm.define "test_box1" do |test_box1|
     test_box1.vm.box = "ubuntu/xenial64"
     test_box1.vm.network "private_network", ip: "192.168.33.11"
-    test_box1.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"
+    #test_box1.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"
     #test_box.ssh.username = "vagrant"
     #test_box.ssh.password = "vagrant"
     config.vm.provider "virtualbox" do |test_box1|
@@ -48,7 +48,7 @@ Vagrant.configure(2) do |config|
   config.vm.define "test_box2" do |test_box2|
     test_box2.vm.box = "ubuntu/xenial64"
     test_box2.vm.network "private_network", ip: "192.168.33.12"
-    test_box2.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"
+    #test_box2.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"
     #test_box.ssh.username = "vagrant"
     #test_box.ssh.password = "vagrant"
     config.vm.provider "virtualbox" do |test_box2|
