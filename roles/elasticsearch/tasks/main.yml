@@ -14,7 +14,7 @@
 - name: Set elasticsearch to start up by default
   systemd: name=elasticsearch enabled=yes
 
-- name: Create directories for ssl, error_pages & deployment_info
+- name: Create directories
   file: path={{item}} state=directory group=elasticsearch owner=elasticsearch
   with_items:
     - "{{ht_data_path}}"

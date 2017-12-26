@@ -9,6 +9,9 @@
   apt: name={{item}} state=present force=yes
   with_items:
   - filebeat
+  - packetbeat
+  - metricbeat
+  - heartbeat
 
 - name: Create SSL directory for postfix
   file: path=/etc/pki/tls/certs state=directory
@@ -19,5 +22,8 @@
     - { src: 'logstash_forwarder_crt.j2', dest: '/etc/pki/tls/certs/logstash-forwarder.crt' }
     - { src: 'logstash_forwarder_key.j2', dest: '/etc/pki/tls/certs/logstash-forwarder.key' }
 
-#- name: Configure logstash-forwarder
-#  template: src=logstash_forwarder.j2 dest=/etc/logstash-forwarder.conf
+- name: Configure filebeat
+  lineinfile: path=/etc/filebeat/filebeat.yml regexp="{{item.regexp}}" line="{{item.replace}}" backup=yes state=present
+  with_items:
+    - {regexp: '   hosts{{":"}} ["localhost:9200"]', replace: 'hosts{{":"}} ["{{ht_logstash_server_ips_with_port}}"]'}
+  notify: restart filebeat

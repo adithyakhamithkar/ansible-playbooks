@@ -5,3 +5,4 @@
     - { regexp: 'node.master', line: 'node.master: false' }
     - { regexp: 'node.data', line: 'node.data: true' }
   notify: elasticsearch restart
+  when: "'elasticsearch-data' in group_names"

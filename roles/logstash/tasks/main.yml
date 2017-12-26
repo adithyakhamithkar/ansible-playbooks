@@ -25,3 +25,16 @@
     - { src: '10-syslog-filter.conf.j2', dest: '/etc/logstash/conf.d/10-syslog-filter.conf' }
     - { src: '30-elasticsearch-output.conf.j2', dest: '/etc/logstash/conf.d/30-elasticsearch-output.conf' }
   notify: logstash restart
+
+- name: Create directories
+  file: path={{item}} state=directory group=logstash owner=logstash
+  with_items:
+    - "{{pl_logstash_logs}}"
+    - "{{pl_logstash_data}}"
+
+- name: Configure logstash
+  replace: path=/etc/logstash/logstash.yml regexp="{{item.regexp}}" replace="{{item.replace}}" backup=yes
+  with_items:
+    - {regexp: "path.data{{':'}} /var/lib/logstash", replace: "path.data{{':'}} {{pl_logstash_data}}"}
+    - {regexp: "path.logs: /var/log/logstash", replace: "path.logs{{':'}} {{pl_logstash_logs}}"}
+  notify: logstash restart
