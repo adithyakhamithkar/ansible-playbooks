@@ -5,9 +5,9 @@ By default, your cluster will not schedule pods on the master for security reaso
 kubectl taint nodes --all node-role.kubernetes.io/master-
 ```
 
-# Create an appl
+# Create an app
 ```
-kubectl create -f app_name.yml
+kubectl create -f app_name.yml --record
 ```
 
 # List the pods
@@ -94,7 +94,7 @@ Get the status of the rollout
 kubectl rollout status deployment/app_name
 ```
 
-Get the history of the rollout
+Get the history of the rollout (the app should have a revisionHistoryLimit set)
 ```
 kubectl rollout history deployment/app_name
 ```
@@ -123,3 +123,20 @@ Describe an app
 ```
 kubectl describe service app_name
 ```
+
+Execute a command on pod (this will help you login to the pod)
+```
+kubectl exec pod_name -i -t -- /bin/bash
+```
+
+# Services
+> Pods are very dynamic, they come and go on the kubernetes cluster
+> When using a replication controller, pods are terminated and created during scaling operations
+> When using deployments, when updating the images version, pods are terminated and new pods take the place of the older Pods
+> That's why pods should never be accessed directory, but always through service
+> A service is the logical bride between the mortal pods and other services or end-users
+> When using the "kubectl expose" command, you can create a new service for a pod, so that it could be accessed externally
+> Creating a service will create an endpoint for your pod(s)
+> A ClusterIP: a virtual IP address only reachable from within the cluster
+> A NodePort: a port that is the same on each node that is also reachable externally
+> A LoadBancer: a LoadBancer created by the cloud provider that will route external traffic to every node on the NodePort
