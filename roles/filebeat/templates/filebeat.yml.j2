@@ -98,10 +98,10 @@ output.logstash:
   #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
 
   # Certificate for SSL client authentication
-  ssl.certificate: "/etc/pki/tls/certs/logstash-forwarder.crt"
+  ssl.certificate: "{{pl_logstash_crt_dest}}"
 
   # Client Certificate Key
-  ssl.key: "/etc/pki/tls/private/logstash-forwarder.key"
+  ssl.key: "{{pl_logstash_key_dest}}"
 
 #================================ Logging =====================================
 
