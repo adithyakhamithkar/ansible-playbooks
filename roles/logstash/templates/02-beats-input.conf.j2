@@ -2,7 +2,7 @@ input {
   beats {
     port => 5044
     ssl => true
-    ssl_certificate => "/etc/pki/tls/certs/logstash-forwarder.crt"
-    ssl_key => "/etc/pki/tls/certs/logstash-forwarder.key"
+    ssl_certificate => "{{pl_logstash_crt_dest}}"
+    ssl_key => "{{pl_logstash_key_dest}}"
   }
 }

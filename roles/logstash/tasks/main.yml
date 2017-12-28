@@ -14,13 +14,16 @@
   systemd: name=logstash enabled=yes
 
 - name: Create SSL directory for postfix
-  file: path=/etc/pki/tls/certs state=directory
+  file: path={{item}} state=directory
+  with_items:
+    - /etc/pki/tls/certs
+    - /etc/pki/tls/private
 
 - name: Copy logstash-forwarder.crt
   template: src={{item.src}} dest={{item.dest}}
   with_items:
-    - { src: 'logstash_forwarder_crt.j2', dest: '/etc/pki/tls/certs/logstash-forwarder.crt' }
-    - { src: 'logstash_forwarder_key.j2', dest: '/etc/pki/tls/certs/logstash-forwarder.key' }
+    - { src: '{{pl_logstash_crt_src}}', dest: '{{pl_logstash_crt_dest}}' }
+    - { src: '{{pl_logstash_key_src}}', dest: '{{pl_logstash_key_dest}}' }
     - { src: '02-beats-input.conf.j2', dest: '/etc/logstash/conf.d/02-beats-input.conf' }
     - { src: '10-syslog-filter.conf.j2', dest: '/etc/logstash/conf.d/10-syslog-filter.conf' }
     - { src: '30-elasticsearch-output.conf.j2', dest: '/etc/logstash/conf.d/30-elasticsearch-output.conf' }

@@ -5,6 +5,10 @@
 - name: Add the filebeat APT repository
   apt_repository: repo="deb https://artifacts.elastic.co/packages/{{pl_elasticsearch_major_version}}/apt stable main" state=present
 
+- name: Add the filebeat APT repository
+  apt_repository: repo="deb https://packages.elastic.co/beats/apt stable main" state=present
+
+
 - name: Install filebeat
   apt: name={{item}} state=present force=yes
   with_items:
@@ -12,18 +16,29 @@
   - packetbeat
   - metricbeat
   - heartbeat
+  - topbeat
 
 - name: Create SSL directory for postfix
-  file: path=/etc/pki/tls/certs state=directory
+  file: path={{item}} state=directory group=root owner=root
+  with_items:
+    - /etc/pki/tls/certs
+    - /etc/pki/tls/private
+    - "{{pl_filebeat_logs}}"
+    - "{{pl_filebeat_data}}"
 
 - name: Copy logstash-forwarder.crt
   template: src={{item.src}} dest={{item.dest}}
   with_items:
-    - { src: 'logstash_forwarder_crt.j2', dest: '/etc/pki/tls/certs/logstash-forwarder.crt' }
-    - { src: 'logstash_forwarder_key.j2', dest: '/etc/pki/tls/certs/logstash-forwarder.key' }
+    - { src: '{{pl_logstash_crt_src}}', dest: '{{pl_logstash_crt_dest}}' }
+    - { src: '{{pl_logstash_key_src}}', dest: '{{pl_logstash_key_dest}}' }
+    - { src: 'filebeat.yml.j2', dest: '/etc/filebeat/filebeat.yml' }
+    - { src: 'metricbeat.yml.j2', dest: '/etc/metricbeat/metricbeat.yml' }
+    - { src: 'topbeat.yml.j2', dest: '/etc/topbeat/topbeat.yml' }
+  notify: restart filebeat
 
-- name: Configure filebeat
-  lineinfile: path=/etc/filebeat/filebeat.yml regexp="{{item.regexp}}" line="{{item.replace}}" backup=yes state=present
+- name: Configure filebeat logs directory
+  lineinfile: path="{{item.path}}" regexp="{{item.regexp}}" line="{{item.line}}" backup=yes state=present backrefs=yes
   with_items:
-    - {regexp: '   hosts{{":"}} ["localhost:9200"]', replace: 'hosts{{":"}} ["{{ht_logstash_server_ips_with_port}}"]'}
+    - { path: '/etc/init.d/filebeat', regexp: 'DAEMON_ARGS="-c /etc/filebeat/filebeat.yml -path.home /usr/share/filebeat -path.config /etc/filebeat -path.data /var/lib/filebeat -path.logs /var/log/filebeat"', line: 'DAEMON_ARGS="-c /etc/filebeat/filebeat.yml -path.home /usr/share/filebeat -path.config /etc/filebeat -path.data {{pl_filebeat_data}} -path.logs {{pl_filebeat_logs}}"' }
+    - { path: '/lib/systemd/system/filebeat.service', regexp: 'ExecStart=/usr/share/filebeat/bin/filebeat -c /etc/filebeat/filebeat.yml -path.home /usr/share/filebeat -path.config /etc/filebeat -path.data /var/lib/filebeat -path.logs /var/log/filebeat', line: 'ExecStart=/usr/share/filebeat/bin/filebeat -c /etc/filebeat/filebeat.yml -path.home /usr/share/filebeat -path.config /etc/filebeat -path.data {{pl_filebeat_data}} -path.logs {{pl_filebeat_logs}}' }
   notify: restart filebeat
