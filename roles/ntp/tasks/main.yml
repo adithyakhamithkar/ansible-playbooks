@@ -8,7 +8,7 @@
 
 - name: Configure ntp
   template: src=ntp.j2 dest=/etc/ntp.conf
-  notify: Restart ntp
+#  notify: Restart ntp
   tags:
     - ntp-configuration
 
@@ -19,7 +19,7 @@
     - ntp-configuration
 
 - name: Set local time
-  file: src=/usr/share/zoneinfo/{{timezone}} dest=/etc/localtime state=link
+  file: src=/usr/share/zoneinfo/{{pl_timezone}} dest=/etc/localtime state=link
   changed_when: False
   tags:
     - ntp-configuration

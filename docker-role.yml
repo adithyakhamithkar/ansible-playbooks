@@ -1,0 +1,8 @@
+#
+#About: This will call any role
+#
+---
+- hosts: all
+  become: yes
+  roles:
+  - nodejs

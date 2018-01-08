@@ -1,7 +1,7 @@
 ---
 - name: Gather ec2 facts
   ec2_facts:
-  when: dc_env == "aws"
+  when: pl_dc_env == "aws"
 
 - name: Set Host name
   hostname: name={{hostname}}

@@ -30,10 +30,10 @@
     {
       "type": "ansible",
       "user": "root",
-      "playbook_file": "./commission-new-server.yml",
+      "playbook_file": "/vagrant/docker-role.yml",
       "extra_arguments": [
         "--extra-vars",
-        "ansible_host={{user `ansible_host`}} ansible_connection={{user `ansible_connection`}} inventory={{user `ansible_host`}}"
+        "ansible_host={{user `ansible_host`}} ansible_connection={{user `ansible_connection`}}"
       ]
     }
   ],
@@ -41,8 +41,8 @@
     [
       {
         "type": "docker-tag",
-        "repository": "{{docker_nginx_repo}}",
-        "tag": "{{tag}}"
+        "repository": ,
+        "tag": "
       }
     ]
   ]
