@@ -8,10 +8,18 @@ PATH=$PATH:$DAEMON_PATH
 # See how we were called.
 case "$1" in
   start)
-        # Start daemon.
-        echo "Starting $DAEMON_NAME";
-        rm -rf {{agar_directory}}/RUNNING_PID
-        cd $DAEMON_PATH && nohup npm start > $DAEMON_PATH/logs/$DAEMON_NAME.log 2>&1 &
+        # Check if daemons is running.
+        echo "Check if $DAEMON_NAME" is running;
+        pid=`ps ax | grep -i 'node' | grep -v grep | awk '{print $1}'`
+        if [ -n "$pid" ]
+          then
+            echo "Can't start $DAEMON_NAME as its already is running with PID: $pid";
+          else
+          # Start daemon.
+            echo "Starting $DAEMON_NAME";
+            rm -rf $DAEMON_PATH/RUNNING_PID
+            cd $DAEMON_PATH && nohup npm start > $DAEMON_PATH/logs/$DAEMON_NAME.log 2>&1 &
+          fi
         ;;
   stop)
         # Stop daemons.
@@ -20,7 +28,7 @@ case "$1" in
         if [ -n "$pid" ]
           then
           kill -9 $pid
-          rm -rf {{agar_directory}}/RUNNING_PID
+          rm -rf $DAEMON_PATH/RUNNING_PID
         else
           echo "$DAEMON_NAME was not Running"
         fi
