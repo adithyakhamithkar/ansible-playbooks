@@ -35,7 +35,7 @@ Calculating primary and replica shards
 ## versions
 Every document has a `_version` field
 Elasticsearch documents are immutable
-When you update an existing document a new document is created with an incremented `_version` the old document is marked for deletion
+When you update an existing document a new document is created with an incremented `_version` the old document is marked for deletion.
 
 # concurrency control
 Use `retry_on_conflict=N`
