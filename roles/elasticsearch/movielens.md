@@ -245,7 +245,7 @@ curl -H 'Content-Type: application/json' -XGET 'localhost:9200/movies/movie/_sea
   }
 }'
 ```
-Whildcard works only on un analyzed
+Wildcard works only on un analyzed
 ```
 curl -H 'Content-Type: application/json' -XGET 'localhost:9200/movies/movie/_search?pretty' -d '
 {
