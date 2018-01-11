@@ -112,3 +112,146 @@ curl -H 'Content-Type: application/json' -XGET 'localhost:9200/series/_search?pr
   }
 }'
 ```
+Using phrase search
+```
+curl -H 'Content-Type: application/json' -XGET 'localhost:9200/movies/movie/_search?pretty' -d '
+{
+"query" : {
+            "match_phrase":{
+              "title":{"query":"star beyond", "slop":100}
+            }
+  }
+}'
+```
+Using boolean conditions
+```
+curl -H 'Content-Type: application/json' -XGET 'localhost:9200/movies/movie/_search?pretty' -d '
+{
+"query" : {
+            "bool":{
+              "must":{"term":{"title":"trek"}},
+              "filter":{"range":{"year":{"gte":2010}}}
+            }
+  }
+}'
+```
+Combination query
+```
+curl -H 'Content-Type: application/json' -XGET 'localhost:9200/movies/movie/_search?pretty' -d '
+{
+"query" : {
+            "bool":{
+              "must":{"match_phrase":{"title":"Star Wars"}},
+              "filter":{"range":{"year":{"gte":2010}}}
+            }
+  }
+}'
+```
+
+Pagination (search starts from 0)
+Gives first 2 results
+```
+curl -H 'Content-Type: application/json' -XGET 'localhost:9200/movies/movie/_search?size=2&pretty'
+```
+Gives the results after first 2 and will displace only the next 2 results
+```
+curl -H 'Content-Type: application/json' -XGET 'localhost:9200/movies/movie/_search?pretty' -d '
+{
+"from":2,
+"size":2,
+"query" : {"match":{"genre":"Sci-Fi"}}
+  }
+}'
+```
+
+Sorting
+You can't sort based on string else you will have to reindex the data
+```
+curl -H 'Content-Type: application/json' -XGET 'localhost:9200/movies/movie/_search?sort=year&pretty'
+```
+
+New mapping to sort strings
+```
+{
+  "mappings": {
+    "movie": {
+      "_all": {
+        "enabled": false
+      },
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "year": {
+          "type": "date"
+        },
+        "genre": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "title": {
+          "type": "string",
+          "fields": {
+            "raw": {
+              "type": "string",
+              "index": "not_analyzed"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+Query to get the sorted version of title
+```
+curl -H 'Content-Type: application/json' -XGET 'localhost:9200/movies/movie/_search?sort=title.raw&pretty'
+```
+
+More on filters
+```
+curl -H 'Content-Type: application/json' -XGET 'localhost:9200/movies/movie/_search?pretty' -d '
+{
+"query" : {
+            "bool":{
+              "must":{"match":{"genre":"Sci-Fi"}},
+              "must_not":{"match":{"title":"trek"}},
+              "filter":{"range":{"year":{"gte":2010,"lt":2015}}}
+            }
+  }
+}'
+```
+
+Fuzziness
+```
+curl -H 'Content-Type: application/json' -XGET 'localhost:9200/movies/movie/_search?pretty' -d '
+{
+"query" : {
+            "fuzzy":{
+              "title":{"value":"intrsteller", "fuzziness":2}
+            }
+  }
+}'
+```
+
+Prefix works only on un analyzed
+```
+curl -H 'Content-Type: application/json' -XGET 'localhost:9200/movies/movie/_search?pretty' -d '
+{
+"query" : {
+            "prefix":{
+              "title.raw":"Sta"
+            }
+  }
+}'
+```
+Whildcard works only on un analyzed
+```
+curl -H 'Content-Type: application/json' -XGET 'localhost:9200/movies/movie/_search?pretty' -d '
+{
+"query" : {
+            "wildcard":{
+              "title.raw":"S*"
+            }
+  }
+}'

@@ -61,8 +61,47 @@ curl -H 'Content-Type: application/json' -XGET 'localhost:9200/<index>/_search?p
 "query" : {
 
   }
-}' 
+}'
 ```
+Types of filters
+`term` filters by exact value
+```
+{"term":{"year":2014}}
+
+```
+`terms` match if any exact values in a list of match
+```
+{"terms":{"genre":["Sci-Fi","Adventure"]}}}
+```
+`range` finds numbers or date in a given range(gt, gte, lt, lte)
+```
+{"range":{"year: {"gte":2010}"}}
+```
+`exists` find documents where a filed exists
+```
+{"exists":{"field":"tags"}}
+```
+`missing` find documents where a field is missing
+```
+{"missing":{"filed":"tags"}}
+```
+`bool` combine filters with boolean logic(must, must_name, should)
+
+types of queries
+`match_all` returns all documents and is the default. Normall used with a filter
+```
+{"match_all":{}}
+```
+`match` searches analyzed results such as full text search
+```
+{"match":{"title":"star"}}
+```
+`multi_match` run the same query on multiple fiends
+```
+{"multi_match":{"query":"star","fields":["title","synopsis"]}}
+```
+`bool` works like a book filter, but results are scored by relevance
+
 
 #### Example hosts:
 ```
