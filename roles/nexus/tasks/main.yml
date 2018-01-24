@@ -1,6 +1,6 @@
 ---
 - name: Adding nexus user
-  user: name={{pl_nexus_user}} groups=sudo,shadow shell=/bin/bash append=yes generate_ssh_key=yes ssh_key_file=.ssh/id_rsa move_home=yes home={{pl_nexus_dir}}
+  user: name={{pl_nexus_user}} shell=/bin/bash append=yes generate_ssh_key=yes ssh_key_file=.ssh/id_rsa move_home=yes home={{pl_nexus_dir}}
 
 - name: Download nexus
   unarchive: src='{{pl_nexus_download_url}}' dest='{{pl_nexus_dir}}' remote_src=yes group=nexus owner=nexus
