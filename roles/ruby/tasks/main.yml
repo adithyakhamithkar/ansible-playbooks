@@ -1,0 +1,49 @@
+---
+- name: Install Dependancies
+  apt: name={{item}} state=present force=yes
+  with_items:
+  - build-essential
+  - openssl
+  - libreadline6
+  - libreadline6-dev
+  - curl
+  - git-core
+  - zlib1g
+  - zlib1g-dev
+  - libssl-dev
+  - libyaml-dev
+  - libsqlite3-dev
+  - sqlite3
+  - libxml2-dev
+  - libxslt-dev
+  - autoconf
+  - libc6-dev
+  - ncurses-dev
+  - automake
+  - libtool
+  - bison
+
+- name: Download ruby
+  unarchive: src='{{pl_download_ruby_url}}' dest='{{pl_ruby_dir}}' remote_src=yes
+
+- name: Configure ruby
+  command: ./configure
+  args:
+    chdir: "{{pl_ruby_dir}}/ruby-{{pl_ruby_version}}"
+
+- name: Make ruby
+  make:
+    chdir: "{{pl_ruby_dir}}/ruby-{{pl_ruby_version}}"
+    target: install
+
+- name: Clean up
+  file: path={{item}} state=absent
+  with_items:
+    - /bin/ruby
+    - /bin/gem
+
+- name: Create symlink
+  file: src={{item.src}} dest={{item.dest}} state=link
+  with_items:
+    - { src: '/usr/local/bin/ruby', dest: '/bin/ruby' }
+    - { src: '/usr/local/bin/gem', dest: '/bin/gem' }

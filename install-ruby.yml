@@ -1,0 +1,8 @@
+#
+#About: This will install ruby
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - ruby
