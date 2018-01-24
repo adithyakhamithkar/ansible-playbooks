@@ -1,5 +1,5 @@
 ---
-pl_nexus_download_url: 'https://sonatype-download.global.ssl.fastly.net/nexus/3/nexus-3.7.1-02-unix.tar.gz'
+pl_nexus_download_url: 'https://sonatype-download.global.ssl.fastly.net/nexus/{{pl_nexus_major_version}}/nexus-{{pl_nexus_version}}-unix.tar.gz'
 pl_nexus_major_version: '3'
 pl_nexus_minor_version: '7.1-02'
 pl_nexus_version: '{{pl_nexus_major_version}}.{{pl_nexus_minor_version}}'
