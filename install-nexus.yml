@@ -1,0 +1,8 @@
+#
+#About: This will install nexus
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - nexus
