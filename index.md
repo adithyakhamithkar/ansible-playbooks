@@ -1,7 +1,7 @@
-#Project Ansible [![Build Status](https://travis-ci.org/adithyakhamithkar/ansible-playbooks.svg?branch=master)](https://travis-ci.org/adithyakhamithkar/ansible-playbooks)
-This is my pet project writing ansible playbooks. If you like my work please share your feedback and send me a Tip from [Instamojo](https://www.instamojo.com/@adithyakhamithkar) for send me Bitcoins @ `13iVZiQCQvsZZPwChd22rLnr7kappN2HpN`
+# Project Ansible [![Build Status](https://travis-ci.org/adithyakhamithkar/ansible-playbooks.svg?branch=master)](https://travis-ci.org/adithyakhamithkar/ansible-playbooks)
+This is my pet project writing ansible playbooks. If you like my work please share your feedback.
 
-##Index
+## Index
 + AWS
     - assign-eip
     - create-ec2-key
@@ -28,29 +28,44 @@ This is my pet project writing ansible playbooks. If you like my work please sha
 + List of Roles
     - [agar](https://github.com/adithyakhamithkar/ansible/blob/master/roles/agar)
     - [ansible](https://github.com/adithyakhamithkar/ansible/blob/master/roles/ansible)
+    - beef
     - bitcoin (WIP)
     - bittorrentsync
+    - build-docker-image
     - cachethq (Not working)
     - [cassandra](https://github.com/adithyakhamithkar/ansible/blob/master/roles/cassandra)
     - common
+    - create-user
     - datadog-agent
     - deployment-nginx
+    - deployment-phpmyadmin
     - docker
-    + elasticsearch
+    - docker-clean
+    + [elasticsearch](https://github.com/adithyakhamithkar/ansible-playbooks/blob/master/roles/elasticsearch/README.md)
         - elasticsearch-data
         - elasticsearch-master
+    - epoch
+    - fail2ban
+    - filebeat
+    - galera
+    - gitlab
     - glassfish
+    - gradle
+    - grafana-server
+    - hadoop
     - hostname
+    - ipa-client
+    - ipa-server
     - jdk
     - jenkins
         - jenkins-configure
     - [kafka](https://github.com/adithyakhamithkar/ansible/blob/master/roles/kafka)
         - [kafka-manager](https://github.com/adithyakhamithkar/ansible/tree/master/roles/kafka-manager)
     - kibana
+    - kubernetes
     - ldap-server
     - lets-encrypt
     - logstash
-    - logstash-forwarder
     - [mesos](https://github.com/adithyakhamithkar/ansible/blob/master/roles/mesos)
         - mesos-master
         - mesos-slave
@@ -61,21 +76,25 @@ This is my pet project writing ansible playbooks. If you like my work please sha
         - new-relic-java-agent (WIP)
         - new-relic-php-agent
         - new-relic-server-agent
+    - nexus
     - nginx (Configured to support http 2.0)
         - nginx-jenkins
         - nginx-load-balancer
         - nginx-sensu-master
+    - nodejs
     - [ntp](https://github.com/adithyakhamithkar/ansible/tree/master/roles/ntp)
     - odoo
     + [ossec](https://github.com/adithyakhamithkar/ansible/blob/master/roles/ossec-server)
         - ossec-server
-        - ossec-agent  
+        - ossec-agent
+    - packer  
     - [phabricator](https://github.com/adithyakhamithkar/ansible/blob/master/roles/phabricator)
     - php
     - php7
     - [postfix](https://github.com/adithyakhamithkar/ansible/tree/master/roles/postfix)
     - psad
     - rabbit-mq
+    - rancher
     - redis
     - roles-template
     - rootkit-scanners
