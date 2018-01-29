@@ -10,5 +10,35 @@
   with_items:
   - grafana
 
+- name: Create folders
+  file: path={{item}} state=directory group=grafana owner=grafana
+  with_items:
+    - "{{pl_grafana_home}}"
+    - "{{pl_grafana_data}}"
+    - "{{pl_grafana_logs}}"
+    - "{{pl_grafana_plugins}}"
+
+- name: Configure grafana
+  template: src=grafana.ini.j2 dest=/etc/grafana/grafana.ini backup=yes
+  notify: grafana restart
+
+- name: Configure grafana service
+  lineinfile: dest="/etc/init.d/grafana-server" regexp="{{item.regexp}}" line="{{item.line}}" state=present backup=yes
+  with_items:
+    - { regexp: 'GRAFANA_HOME=', line: 'GRAFANA_HOME={{pl_grafana_home}}' }
+    - { regexp: 'DATA_DIR=', line: 'DATA_DIR={{pl_grafana_data}}' }
+    - { regexp: 'PLUGINS_DIR=', line: 'PLUGINS_DIR={{pl_grafana_plugins}}' }
+    - { regexp: 'LOG_DIR=', line: 'LOG_DIR={{pl_grafana_logs}}' }
+  notify: grafana restart
+
+- name: Configure grafana service
+  lineinfile: dest="/etc/default/grafana-server" regexp="{{item.regexp}}" line="{{item.line}}" state=present backup=yes
+  with_items:
+    - { regexp: 'GRAFANA_HOME=', line: 'GRAFANA_HOME={{pl_grafana_home}}' }
+    - { regexp: 'DATA_DIR=', line: 'DATA_DIR={{pl_grafana_data}}' }
+    - { regexp: 'PLUGINS_DIR=', line: 'PLUGINS_DIR={{pl_grafana_plugins}}' }
+    - { regexp: 'LOG_DIR=', line: 'LOG_DIR={{pl_grafana_logs}}' }
+  notify: grafana restart
+
 - name: Put grafana on startup
   shell: update-rc.d grafana-server defaults 95 10
