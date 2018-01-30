@@ -255,3 +255,55 @@ curl -H 'Content-Type: application/json' -XGET 'localhost:9200/movies/movie/_sea
             }
   }
 }'
+
+# Importing data from MySql
+```
+mysql> create database movielens;
+Query OK, 1 row affected (0.00 sec)
+
+mysql> use movielens;
+Database changed
+mysql> create table movielens.movies;
+ERROR 1113 (42000): A table must have at least 1 column
+mysql> create table movielens.movies (
+    -> movieID INT PRIMARY KEY NOT NULL,
+    -> title TEXT,
+    -> releaseDate DATE
+    -> );
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> LOAD DATA LOCAL INFILE 'ml-100k/u.item' INTO TABLE movielens.movies FIELDS TERMINATED BY '|'
+    -> (movieID, title, @var3)
+    -> set releaseDate = STR_TO_DATE(@var3, '%d-%M-%Y');
+```
+Download the 100k data
+```
+wget http://files.grouplens.org/datasets/movielens/ml-100k.zip
+```
+
+Install logstash
+```
+apt-get install logstash
+```
+Download the mysql jdbc connector 
+Logstash configure mysql.conf
+```
+input {
+        jdbc {
+                jdbc_connection_string => "jdbc:mysql://localhost:3306/movielens"
+                jdbc_user => "user"
+                jdbc_password => "password"
+                jdbc_driver_library => "/home/vagrant/mysql-connector-java-5.1.45/mysql-connector-java-5.1.45-bin.jar"
+                jdbc_driver_class => "com.mysql.jdbc.Driver"
+                statement => "SELECT * from movielens.movies"
+        }
+}
+
+output {
+        elasticsearch {
+                "hosts" => "localhost:9200"
+                "index" => "movielens_sql"
+                "document_type" => "movielens"
+        }
+}
+```
