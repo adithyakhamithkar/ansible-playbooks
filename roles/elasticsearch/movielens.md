@@ -255,8 +255,9 @@ curl -H 'Content-Type: application/json' -XGET 'localhost:9200/movies/movie/_sea
             }
   }
 }'
-
+```
 # Importing data from MySql
+
 ```
 mysql> create database movielens;
 Query OK, 1 row affected (0.00 sec)
@@ -276,17 +277,22 @@ mysql> LOAD DATA LOCAL INFILE 'ml-100k/u.item' INTO TABLE movielens.movies FIELD
     -> (movieID, title, @var3)
     -> set releaseDate = STR_TO_DATE(@var3, '%d-%M-%Y');
 ```
+
 Download the 100k data
+
 ```
 wget http://files.grouplens.org/datasets/movielens/ml-100k.zip
 ```
 
 Install logstash
+
 ```
 apt-get install logstash
 ```
-Download the mysql jdbc connector 
+
+Download the mysql jdbc connector
 Logstash configure mysql.conf
+
 ```
 input {
         jdbc {

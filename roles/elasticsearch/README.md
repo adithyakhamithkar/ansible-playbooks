@@ -51,6 +51,13 @@ curl -XPUT 'localhost:9200/<index>/_settings' -d '{
      }
 }'
 
+To make setting permanent 
+curl -XPUT 'localhost:9200/_template/priority1' -d '
+{
+"template" : "*",
+"settings" : {"number_of_replicas" : 0 }
+} '
+
 Import a json file
 curl -XPUT localhost:9200/<index_name> --data-binary @file_name.json
 curl -XPOST 'localhost:9200/<index_name>/_bulk' --data-binary @file_name.json
