@@ -1,0 +1,54 @@
+#/bin/bash
+DAEMON_PATH={{pl_flink_dir}}/flink-{{pl_flink_version}}
+DAEMON_NAME=flink
+# Check that networking is up.
+#[ ${NETWORKING} = "no" ] && exit 0
+
+PATH=$PATH:$DAEMON_PATH
+
+# See how we were called.
+case "$1" in
+  start)
+        # Check if daemons is running.
+        echo "Check if $DAEMON_NAME" is running;
+        pid=`ps ax | grep -e 'org.apache.flink.runtime.jobmanager.JobManager\|org.apache.flink.runtime.taskmanager.TaskManager' | grep -v grep | awk '{print $1}'`
+        if [ -n "$pid" ]
+          then
+            echo "Cant start $DAEMON_NAME as its already is running with PID: $pid";
+          else
+          # Start daemon.
+            echo "Starting $DAEMON_NAME";
+            cd $DAEMON_PATH && bin/start-local.sh
+          fi
+        ;;
+  stop)
+        # Stop daemons.
+        echo "Shutting down $DAEMON_NAME";
+        pid=`ps ax | grep -e 'org.apache.flink.runtime.jobmanager.JobManager\|org.apache.flink.runtime.taskmanager.TaskManager' | grep -v grep | awk '{print $1}'`
+        if [ -n "$pid" ]
+          then
+          cd $DAEMON_PATH && bin/stop-local.sh
+        else
+          echo "$DAEMON_NAME was not Running"
+        fi
+        ;;
+  restart)
+        $0 stop
+        sleep 2
+        $0 start
+        ;;
+  status)
+        pid=`ps ax | grep -e 'org.apache.flink.runtime.jobmanager.JobManager\|org.apache.flink.runtime.taskmanager.TaskManager' | grep -v grep | awk '{print $1}'`
+        if [ -n "$pid" ]
+          then
+          echo "$DAEMON_NAME is Running as PID: $pid"
+        else
+          echo "$DAEMON_NAME is not Running"
+        fi
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        exit 1
+esac
+
+exit 0

@@ -1,0 +1,6 @@
+---
+- name: Download flink
+  unarchive: src='{{pl_flink_url}}' dest='{{pl_flink_dir}}' remote_src=yes group=root owner=root
+
+- name: Copy flink init script
+  template: src=flink.j2 dest=/etc/init.d/flink backup=yes mode=0755 group=root owner=root

@@ -1,0 +1,8 @@
+#
+#About: This will install flink
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - flink
