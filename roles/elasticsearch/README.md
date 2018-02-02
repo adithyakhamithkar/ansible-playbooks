@@ -51,7 +51,7 @@ curl -XPUT 'localhost:9200/<index>/_settings' -d '{
      }
 }'
 
-To make setting permanent 
+To make setting permanent
 curl -XPUT 'localhost:9200/_template/priority1' -d '
 {
 "template" : "*",
