@@ -1,9 +1,9 @@
 #/bin/bash
 #A script to check for long running jenkins jobs and send an email
 #dependencies 'jq'
-jenkins_url_prefix=$1
-alert_email=$2
-ignore_node=$3
+jenkins_url_prefix=$1 # Mandatory
+alert_email=$2 # Mandatory to send an Email
+ignore_node=$3 # Optional if you want to ignore multiple please use 'foo*\|boo*'
 
 echo "Printing the number of jenkins nodes with executors"
 for jenkins_node_name in `curl -f --silent http://${jenkins_url_prefix}/jenkins/computer/api/json?pretty=true | jq -r .computer[].displayName`; do
