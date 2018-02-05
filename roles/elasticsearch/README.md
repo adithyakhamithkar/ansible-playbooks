@@ -45,17 +45,18 @@ curl -XDELETE 'http://localhost:9200/twitter/'
 
 curl -XGET 'http://localhost:9200/_cluster/pending_tasks'
 
-curl -XPUT 'localhost:9200/<index>/_settings' -d '{
+curl -XPUT -H 'Content-Type: application/json' 'localhost:9200/<index>/_settings' -d '{
     "index" : {
-        "number_of_replicas" : 1
+        "number_of_shards" : 1,
+        "number_of_replicas" : 0
      }
 }'
 
 To make setting permanent
-curl -XPUT 'localhost:9200/_template/priority1' -d '
+curl -XPUT -H 'Content-Type: application/json' 'http://localhost:9200/_template/priority1' -d '
 {
 "template" : "*",
-"settings" : {"number_of_replicas" : 0 }
+"settings" : {"number_of_shards" : 1, "number_of_replicas" : 0 }
 } '
 
 Import a json file

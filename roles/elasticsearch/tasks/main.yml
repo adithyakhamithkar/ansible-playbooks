@@ -27,6 +27,18 @@
     - { regexp: 'Environment=LOG_DIR', line: 'Environment=LOG_DIR={{ht_logs_path}}' }
   notify: reload deamon
 
+- name: Install x-pack
+  elasticsearch_plugin: name=x-pack state=present
+
+- name: Test for if xpack.security.enabled is present
+  shell: grep "^xpack.security.enabled" /etc/elasticsearch/elasticsearch.yml
+  register: checkxpack
+  ignore_errors: yes
+
+- name: Add xpack.security.enabled to properties
+  lineinfile: dest=/etc/elasticsearch/elasticsearch.yml line='xpack.security.enabled{{':'}} false' state=present backup=yes
+  when: checkxpack.rc == 1
+
 - name: Configure elasticsearch
   lineinfile: dest="/etc/elasticsearch/elasticsearch.yml" regexp="{{item.regexp}}" line="{{item.line}}" state=present backrefs=yes backup=yes
   with_items:
@@ -37,6 +49,7 @@
     - { regexp: 'network.host', line: 'network.host: {{ansible_ssh_host}}' }
     - { regexp: 'discovery.zen.ping.unicast.hosts', line: 'discovery.zen.ping.unicast.hosts: {{ht_master_nodes_ips_with_port}}' }
     - { regexp: 'discovery.zen.minimum_master_nodes', line: 'discovery.zen.minimum_master_nodes: 1' }
+    - { regexp: 'xpack.security.enabled', line: 'xpack.security.enabled: false' }
   notify: elasticsearch restart
 
 - name: Configure jvm options
