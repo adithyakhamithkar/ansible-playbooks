@@ -1,6 +1,6 @@
 ---
-pl_elasticsearch_major_version : "{{elasticsearch_major_version|default('5.x')}}"
-pl_elasticsearch_minor_version : "{{elasticsearch_minor_version|default('5.4.0')}}"
+pl_elasticsearch_major_version : "{{elasticsearch_major_version|default('6.x')}}"
+pl_elasticsearch_minor_version : "{{elasticsearch_minor_version|default('6.1.3')}}"
 pl_filebeat_logs : "{{filebeat_logs|default('/mnt1/filebeat-logs')}}"
 pl_filebeat_data : "{{filebeat_data|default('/mnt1/filebeat-data')}}"
 pl_logstash_key_src: "{{logstash_key_src}}"

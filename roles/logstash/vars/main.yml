@@ -1,6 +1,6 @@
 ---
-pl_logstash_major_version : "{{logstash_major_version|default('5.x')}}"
-pl_logstash_minor_version : "{{logstash_minor_version|default('5.4.0')}}"
+pl_logstash_major_version : "{{logstash_major_version|default('6.x')}}"
+pl_logstash_minor_version : "{{logstash_minor_version|default('6.1.3')}}"
 pl_logstash_data: "{{logstash_logs_path|default('/mnt1/logstash-data')}}"
 pl_logstash_logs: "{{logstash_logs_path|default('/mnt1/logstash-logs')}}"
 pl_logstash_key_src: "{{logstash_key_src}}"

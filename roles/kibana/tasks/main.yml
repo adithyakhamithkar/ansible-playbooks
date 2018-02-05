@@ -11,6 +11,11 @@
   - kibana={{pl_kiban_minor_version}}
   notify: kibana restart
 
+- name: Install x-pack
+#This is failing
+#  kibana_plugin: state=present name=x-pack plugin_bin=/usr/share/kibana/bin/kibana-plugin
+  shell: /usr/share/kibana/bin/kibana-plugin install x-pack
+
 - name: Put Kibana on startup
   systemd: name=kibana enabled=yes daemon_reload=yes
 
