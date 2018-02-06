@@ -38,7 +38,10 @@ Get list of all indices with size
 curl -XGET -H 'Content-Type: application/json' 'http://localhost:9200/_cat/indices?v&h=index,store.size'
 
 Delete an indic
-curl -XDELETE -H 'Content-Type: application/json' 'http://localhost:9200/twitter/'
+curl -XDELETE -H 'Content-Type: application/json' 'http://localhost:9200/<index_name>/'
+
+Close an index
+curl -XPOST -H 'Content-Type: application/json' 'http://localhost:9200/<index_name>/_close'
 
 curl -XGET -H 'Content-Type: application/json 'http://localhost:9200/_cluster/pending_tasks'
 

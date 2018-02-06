@@ -27,13 +27,14 @@
     - "{{pl_filebeat_data}}"
 
 - name: Copy logstash-forwarder.crt
-  template: src={{item.src}} dest={{item.dest}}
+  template: src={{item.src}} dest={{item.dest}} backup=yes
   with_items:
-    - { src: '{{pl_logstash_crt_src}}', dest: '{{pl_logstash_crt_dest}}' }
-    - { src: '{{pl_logstash_key_src}}', dest: '{{pl_logstash_key_dest}}' }
+    #- { src: '{{pl_logstash_crt_src}}', dest: '{{pl_logstash_crt_dest}}' }
+    #- { src: '{{pl_logstash_key_src}}', dest: '{{pl_logstash_key_dest}}' }
     - { src: 'filebeat.yml.j2', dest: '/etc/filebeat/filebeat.yml' }
     - { src: 'metricbeat.yml.j2', dest: '/etc/metricbeat/metricbeat.yml' }
     - { src: 'topbeat.yml.j2', dest: '/etc/topbeat/topbeat.yml' }
+    - { src: 'packetbeat.yml.j2', dest: '/etc/packetbeat/packetbeat.yml' }
   notify: restart filebeat
 
 - name: Configure filebeat logs directory

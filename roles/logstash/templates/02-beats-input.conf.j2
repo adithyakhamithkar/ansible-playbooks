@@ -1,8 +1,8 @@
 input {
   beats {
     port => 5044
-    ssl => true
-    ssl_certificate => "{{pl_logstash_crt_dest}}"
-    ssl_key => "{{pl_logstash_key_dest}}"
+    ssl => false
+    #ssl_certificate => "{{pl_logstash_crt_dest}}"
+    #ssl_key => "{{pl_logstash_key_dest}}"
   }
 }

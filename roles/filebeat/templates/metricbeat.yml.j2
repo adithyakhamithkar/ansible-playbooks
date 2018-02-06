@@ -1,52 +1,30 @@
 ###################### Metricbeat Configuration Example #######################
 
 # This file is an example configuration file highlighting only the most common
-# options. The metricbeat.full.yml file from the same directory contains all the
+# options. The metricbeat.reference.yml file from the same directory contains all the
 # supported options with more comments. You can use it as a reference.
 #
 # You can find the full configuration reference here:
 # https://www.elastic.co/guide/en/beats/metricbeat/index.html
 
 #==========================  Modules configuration ============================
-metricbeat.modules:
 
-#------------------------------- System Module -------------------------------
-- module: system
-  metricsets:
-    # CPU stats
-    - cpu
+metricbeat.config.modules:
+  # Glob pattern for configuration loading
+  path: ${path.config}/modules.d/*.yml
 
-    # System Load stats
-    - load
+  # Set to true to enable config reloading
+  reload.enabled: false
 
-    # Per CPU core stats
-    #- core
+  # Period on which files under path should be checked for changes
+  #reload.period: 10s
 
-    # IO stats
-    #- diskio
+#==================== Elasticsearch template setting ==========================
 
-    # Per filesystem stats
-    - filesystem
-
-    # File system summary stats
-    - fsstat
-
-    # Memory stats
-    - memory
-
-    # Network stats
-    - network
-
-    # Per process stats
-    - process
-
-    # Sockets (linux only)
-    #- socket
-  enabled: true
-  period: 10s
-  processes: ['.*']
-
-
+setup.template.settings:
+  index.number_of_shards: 1
+  index.codec: best_compression
+  #_source.enabled: false
 
 #================================ General =====================================
 
@@ -63,15 +41,52 @@ metricbeat.modules:
 #fields:
 #  env: staging
 
+
+#============================== Dashboards =====================================
+# These settings control loading the sample dashboards to the Kibana index. Loading
+# the dashboards is disabled by default and can be enabled either by setting the
+# options here, or by using the `-setup` CLI flag or the `setup` command.
+setup.dashboards.enabled: true
+
+# The URL from where to download the dashboards archive. By default this URL
+# has a value which is computed based on the Beat name and version. For released
+# versions, this URL points to the dashboard archive on the artifacts.elastic.co
+# website.
+#setup.dashboards.url:
+
+#============================== Kibana =====================================
+
+# Starting with Beats version 6.0.0, the dashboards are loaded via the Kibana API.
+# This requires a Kibana endpoint configuration.
+setup.kibana:
+
+  # Kibana Host
+  # Scheme and port can be left out and will be set to the default (http and 5601)
+  # In case you specify and additional path, the scheme is required: http://localhost:5601/path
+  # IPv6 addresses should always be defined as: https://[2001:db8::1]:5601
+  host: "{{ht_kibana_server_ips_with_port}}"
+
+#============================= Elastic Cloud ==================================
+
+# These settings simplify using metricbeat with the Elastic Cloud (https://cloud.elastic.co/).
+
+# The cloud.id setting overwrites the `output.elasticsearch.hosts` and
+# `setup.kibana.host` options.
+# You can find the `cloud.id` in the Elastic Cloud web UI.
+#cloud.id:
+
+# The cloud.auth setting overwrites the `output.elasticsearch.username` and
+# `output.elasticsearch.password` settings. The format is `<user>:<pass>`.
+#cloud.auth:
+
 #================================ Outputs =====================================
 
-# Configure what outputs to use when sending the data collected by the beat.
-# Multiple outputs may be used.
+# Configure what output to use when sending the data collected by the beat.
 
 #-------------------------- Elasticsearch output ------------------------------
-#output.elasticsearch:
+output.elasticsearch:
   # Array of hosts to connect to.
-  #hosts: ["{{ht_master_nodes_ips}}"]
+  hosts: ["{{ht_master_nodes_ips_with_port}}"]
 
   # Optional protocol and basic auth credentials.
   #protocol: "https"
@@ -79,9 +94,9 @@ metricbeat.modules:
   #password: "changeme"
 
 #----------------------------- Logstash output --------------------------------
-output.logstash:
+#output.logstash:
   # The Logstash hosts
-  hosts: ["{{ht_logstash_server_ips_with_port}}"]
+  #hosts: ["{{ht_logstash_server_ips_with_port}}"]
 
   # Optional SSL. By default is off.
   # List of root certificates for HTTPS server verifications

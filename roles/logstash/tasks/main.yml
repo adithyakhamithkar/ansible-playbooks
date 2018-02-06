@@ -22,8 +22,8 @@
 - name: Copy logstash-forwarder.crt
   template: src={{item.src}} dest={{item.dest}}
   with_items:
-    - { src: '{{pl_logstash_crt_src}}', dest: '{{pl_logstash_crt_dest}}' }
-    - { src: '{{pl_logstash_key_src}}', dest: '{{pl_logstash_key_dest}}' }
+    #- { src: '{{pl_logstash_crt_src}}', dest: '{{pl_logstash_crt_dest}}' }
+    #- { src: '{{pl_logstash_key_src}}', dest: '{{pl_logstash_key_dest}}' }
     - { src: '02-beats-input.conf.j2', dest: '/etc/logstash/conf.d/02-beats-input.conf' }
     - { src: '10-syslog-filter.conf.j2', dest: '/etc/logstash/conf.d/10-syslog-filter.conf' }
     - { src: '30-elasticsearch-output.conf.j2', dest: '/etc/logstash/conf.d/30-elasticsearch-output.conf' }
