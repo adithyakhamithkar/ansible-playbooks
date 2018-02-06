@@ -8,44 +8,41 @@ Stop/Start a node
 /etc/init.d/elasticsearch stop/start
 
 Check status of cluster
-curl 'http://localhost:9200/_cluster/health?pretty=true'
+curl -XGET -H 'Content-Type: application/json' 'http://localhost:9200/_cluster/health?pretty=true'
 
 Watch
-watch curl -s 'http://localhost:9200/_cluster/health?pretty=true'
+watch curl -s -XGET -H 'Content-Type: application/json' 'http://localhost:9200/_cluster/health?pretty=true'
 
 Get index level cluster-health
-curl 'http://localhost:9200/_cluster/health?level=indices&pretty=true'
+curl -XGET -H 'Content-Type: application/json' 'http://localhost:9200/_cluster/health?level=indices&pretty=true'
 
 Get Cluster Settings
-curl 'localhost:9200/_cluster/settings?pretty=true'
-
-Get Cluster State
-curl 'localhost:9200/_cluster/settings?pretty=true'
+curl -XGET -H 'Content-Type: application/json' 'http://localhost:9200/_cluster/settings?pretty=true'
 
 Get Thread Pool info for cluster
-curl 'localhost:9200/_cat/thread_pool?v'
+curl -XGET -H 'Content-Type: application/json' 'http://localhost:9200/_cat/thread_pool?v'
 
 Get cluster allocation (disk allocation, shards etc.,)
-curl -s 'localhost:9200/_cat/allocation?v' | sort -rnk2
+curl -s -XGET -H 'Content-Type: application/json' 'http://localhost:9200/_cat/allocation?v' | sort -rnk2
 
 Get node info, like uptime and other node specific info
-curl 'localhost:9200/_cat/nodes?v&h=h,name,uptime,version'
+curl -XGET -H 'Content-Type: application/json' 'http://localhost:9200/_cat/nodes?v&h=h,name,uptime,version'
 
 Get all indices on this cluster
-curl 'http://localhost:9200/_cat/indices?pretty
+curl -XGET -H 'Content-Type: application/json' 'http://localhost:9200/_cat/indices?pretty'
 
 Get list of unassigned shard
-curl 'localhost:9200/_cat/shards?v' | grep UNASSIGNED
+curl -XGET -H 'Content-Type: application/json' 'http://localhost:9200/_cat/shards?v' | grep UNASSIGNED
 
 Get list of all indices with size
-curl 'localhost:9200/_cat/indices?v&h=index,store.size'
+curl -XGET -H 'Content-Type: application/json' 'http://localhost:9200/_cat/indices?v&h=index,store.size'
 
 Delete an indic
-curl -XDELETE 'http://localhost:9200/twitter/'
+curl -XDELETE -H 'Content-Type: application/json' 'http://localhost:9200/twitter/'
 
-curl -XGET 'http://localhost:9200/_cluster/pending_tasks'
+curl -XGET -H 'Content-Type: application/json 'http://localhost:9200/_cluster/pending_tasks'
 
-curl -XPUT -H 'Content-Type: application/json' 'localhost:9200/<index>/_settings' -d '{
+curl -XPUT -H 'Content-Type: application/json' 'http://localhost:9200/<index>/_settings' -d '{
     "index" : {
         "number_of_shards" : 1,
         "number_of_replicas" : 0
@@ -56,15 +53,15 @@ To make setting permanent
 curl -XPUT -H 'Content-Type: application/json' 'http://localhost:9200/_template/priority1' -d '
 {
 "template" : "*",
-"settings" : {"number_of_shards" : 1, "number_of_replicas" : 0 }
+"settings" : { "number_of_replicas" : 0 }
 } '
 
 Import a json file
-curl -XPUT localhost:9200/<index_name> --data-binary @file_name.json
-curl -XPOST 'localhost:9200/<index_name>/_bulk' --data-binary @file_name.json
+curl -XPUT 'Content-Type: application/json' 'http://localhost:9200/<index_name>' --data-binary @file_name.json
+curl -XPOST 'Content-Type: application/json' 'http://localhost:9200/<index_name>/_bulk' --data-binary @file_name.json
 
 Search query
-curl -H 'Content-Type: application/json' -XGET 'localhost:9200/<index>/_search?pretty' -d '
+curl -H 'Content-Type: application/json' -XGET 'http://localhost:9200/<index>/_search?pretty' -d '
 {
 "query" : {
 

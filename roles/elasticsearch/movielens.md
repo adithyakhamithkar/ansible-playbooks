@@ -7,22 +7,34 @@ Create a mapping using the below json in movies-mapping.json
 
 ```
 {
-        "mappings" : {
-                "movie" : {
-                        "_all":{"enabled": false},
-                        "properties":{
-                          "id":{"type":"integer"},
-                          "year":{"type":"date"},
-                          "genre":{"type":"string", "index": "not_analyzed"},
-                          "title":{"type":"string", "analyzer":"english"}
-                        }                        
-                }
+  "mappings": {
+    "movie": {
+      "_all": {
+        "enabled": false
+      },
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "year": {
+          "type": "date"
+        },
+        "genre": {
+          "type": "text",
+          "index": false
+        },
+        "title": {
+          "type": "text",
+          "analyzer": "english"
         }
+      }
+    }
+  }
 }
 ```
 Import the mapping
 ```
-curl -XPUT localhost:9200/movies --data-binary @movies-mapping.json
+curl -XPUT -H 'Content-Type: application/json' localhost:9200/movies --data-binary @movies-mapping.json
 ```
 Verify mapping
 ```
@@ -38,11 +50,11 @@ curl -XPUT 'localhost:9200/movies/movie/109487' -d '{
 ```
 Import build from wget http://media.sundog-soft.com/es/movies.json
 ```
-curl -XPOST 'localhost:9200/movies/_bulk' --data-binary @movies.json
+curl -XPOST -H 'Content-Type: application/json' 'localhost:9200/movies/_bulk' --data-binary @movies.json
 ```
 Update an existing document
 ```
-curl -XPOST localhost:9200/movies/movie/109487/_update -d '
+curl -XPOST -H 'Content-Type: application/json' localhost:9200/movies/movie/109487/_update -d '
 {
   "doc":{
     "title":"Intersteller 2"
@@ -52,7 +64,7 @@ curl -XPOST localhost:9200/movies/movie/109487/_update -d '
 ```
 Delete a document
 ```
-curl -XDELETE localhost:9200/movies/movie/109487
+curl -XDELETE -H 'Content-Type: application/json' localhost:9200/movies/movie/109487
 ```
 
 # Parent child
@@ -74,11 +86,11 @@ Create a mapping using the below json in series-matching.json
 ```
 Import the mapping
 ```
-curl -XPUT localhost:9200/series --data-binary @series-matching.json
+curl -XPUT -H 'Content-Type: application/json' http://localhost:9200/series --data-binary @series-matching.json
 ```
 Import build from wget http://media.sundog-soft.com/es/series.json
 ```
-curl -XPOST 'localhost:9200/movies/_bulk' --data-binary @series.json
+curl -XPOST -H 'Content-Type: application/json' 'localhost:9200/movies/_bulk' --data-binary @series.json
 ```
 Search based on Parent
 ```
@@ -165,12 +177,12 @@ curl -H 'Content-Type: application/json' -XGET 'localhost:9200/movies/movie/_sea
 ```
 
 Sorting
-You can't sort based on string else you will have to reindex the data
+You can't sort based on text else you will have to reindex the data
 ```
 curl -H 'Content-Type: application/json' -XGET 'localhost:9200/movies/movie/_search?sort=year&pretty'
 ```
 
-New mapping to sort strings
+New mapping to sort texts
 ```
 {
   "mappings": {
@@ -186,15 +198,15 @@ New mapping to sort strings
           "type": "date"
         },
         "genre": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": false
         },
         "title": {
-          "type": "string",
+          "type": "text",
           "fields": {
             "raw": {
-              "type": "string",
-              "index": "not_analyzed"
+              "type": "text",
+              "index": false
             }
           }
         }
@@ -296,7 +308,7 @@ Logstash configure mysql.conf
 ```
 input {
         jdbc {
-                jdbc_connection_string => "jdbc:mysql://localhost:3306/movielens"
+                jdbc_connection_text => "jdbc:mysql://localhost:3306/movielens"
                 jdbc_user => "user"
                 jdbc_password => "password"
                 jdbc_driver_library => "/home/vagrant/mysql-connector-java-5.1.45/mysql-connector-java-5.1.45-bin.jar"
