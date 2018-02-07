@@ -35,12 +35,12 @@ input:
 output:
 
   ### Elasticsearch as output
-  #elasticsearch:
+  elasticsearch:
     # Array of hosts to connect to.
     # Scheme and port can be left out and will be set to the default (http and 9200)
     # In case you specify and additional path, the scheme is required: http://localhost:9200/path
     # IPv6 addresses should always be defined as: https://[2001:db8::1]:9200
-    #hosts: ["{{ht_master_nodes_ips_with_port}}"]
+    hosts: ["{{ht_elasticsearch_url}}"]
 
     # Optional protocol and basic auth credentials.
     #protocol: "https"
@@ -130,9 +130,9 @@ output:
 
 
   ### Logstash as output
-  logstash:
+  #logstash:
     # The Logstash hosts
-    hosts: ["{{ht_logstash_server_ips_with_port}}"]
+    #hosts: ["{{ht_logstash_server_ips_with_port}}"]
 
     # Number of workers per Logstash host.
     #worker: 1

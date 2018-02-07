@@ -165,7 +165,7 @@ setup.kibana:
 #-------------------------- Elasticsearch output ------------------------------
 output.elasticsearch:
   # Array of hosts to connect to.
-  hosts: ["{{ht_master_nodes_ips_with_port}}"]
+  hosts: ["{{ht_elasticsearch_url}}"]
 
   # Optional protocol and basic auth credentials.
   #protocol: "https"

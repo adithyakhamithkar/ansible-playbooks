@@ -50,7 +50,7 @@ curl -XPUT 'localhost:9200/movies/movie/109487' -d '{
 ```
 Import build from wget http://media.sundog-soft.com/es/movies.json
 ```
-curl -XPOST -H 'Content-Type: application/json' 'localhost:9200/movies/_bulk' --data-binary @movies.json
+curl -XPOST -H 'Content-Type: application/json' 'http://localhost:9200/movies/_bulk' --data-binary @movies.json
 ```
 Update an existing document
 ```
