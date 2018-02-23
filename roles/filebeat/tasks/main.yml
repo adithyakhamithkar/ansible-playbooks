@@ -43,3 +43,19 @@
     - { path: '/etc/init.d/filebeat', regexp: 'DAEMON_ARGS="-c /etc/filebeat/filebeat.yml -path.home /usr/share/filebeat -path.config /etc/filebeat -path.data /var/lib/filebeat -path.logs /var/log/filebeat"', line: 'DAEMON_ARGS="-c /etc/filebeat/filebeat.yml -path.home /usr/share/filebeat -path.config /etc/filebeat -path.data {{pl_filebeat_data}} -path.logs {{pl_filebeat_logs}}"' }
     - { path: '/lib/systemd/system/filebeat.service', regexp: 'ExecStart=/usr/share/filebeat/bin/filebeat -c /etc/filebeat/filebeat.yml -path.home /usr/share/filebeat -path.config /etc/filebeat -path.data /var/lib/filebeat -path.logs /var/log/filebeat', line: 'ExecStart=/usr/share/filebeat/bin/filebeat -c /etc/filebeat/filebeat.yml -path.home /usr/share/filebeat -path.config /etc/filebeat -path.data {{pl_filebeat_data}} -path.logs {{pl_filebeat_logs}}' }
   notify: restart filebeat
+
+- name: Set beats to start up by default
+  service: name={{item}} enabled=yes state=started
+  with_items:
+    - filebeat
+    - metricbeat
+    - topbeat
+    - packetbeat
+
+- name: Set beats to start up by default
+  systemd: name={{item}} enabled=yes
+  with_items:
+    - filebeat
+    - metricbeat
+    - topbeat
+    - packetbeat

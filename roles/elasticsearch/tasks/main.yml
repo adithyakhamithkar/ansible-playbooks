@@ -19,6 +19,7 @@
   with_items:
     - "{{ht_data_path}}"
     - "{{ht_logs_path}}"
+    - "{{pl_elasticsearch_backup_path}}"
 
 - name: Configure elasticsearch service
   lineinfile: dest="/usr/lib/systemd/system/elasticsearch.service" regexp="{{item.regexp}}" line="{{item.line}}" state=present backup=yes
@@ -38,6 +39,17 @@
 - name: Add xpack.security.enabled to properties
   lineinfile: dest=/etc/elasticsearch/elasticsearch.yml line='xpack.security.enabled{{':'}} false' state=present backup=yes
   when: checkxpack.rc == 1
+  notify: elasticsearch restart
+
+- name: Test for if path.repo is present
+  shell: grep "^path.repo" /etc/elasticsearch/elasticsearch.yml
+  register: checkrepo_path
+  ignore_errors: yes
+
+- name: Add path.repo to properties
+  lineinfile: dest=/etc/elasticsearch/elasticsearch.yml line='path.repo{{':'}} ["{{pl_elasticsearch_backup_path}}"]' state=present backup=yes
+  when: checkrepo_path.rc == 1
+  notify: elasticsearch restart
 
 - name: Configure elasticsearch
   lineinfile: dest="/etc/elasticsearch/elasticsearch.yml" regexp="{{item.regexp}}" line="{{item.line}}" state=present backrefs=yes backup=yes
@@ -50,6 +62,7 @@
     - { regexp: 'discovery.zen.ping.unicast.hosts', line: 'discovery.zen.ping.unicast.hosts: {{ht_master_nodes_ips_with_port}}' }
     - { regexp: 'discovery.zen.minimum_master_nodes', line: 'discovery.zen.minimum_master_nodes: 1' }
     - { regexp: 'xpack.security.enabled', line: 'xpack.security.enabled: false' }
+    - { regexp: 'path.repo', line: 'path.repo: ["{{pl_elasticsearch_backup_path}}"]' }
   notify: elasticsearch restart
 
 - name: Configure jvm options

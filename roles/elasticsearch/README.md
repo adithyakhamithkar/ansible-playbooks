@@ -57,7 +57,7 @@ curl -XPUT -H 'Content-Type: application/json' 'http://localhost:9200/_template/
 {
 "template" : "*",
 "settings" : { "number_of_replicas" : 0 }
-} '
+}'
 
 Import a json file
 curl -XPUT 'Content-Type: application/json' 'http://localhost:9200/<index_name>' --data-binary @file_name.json
@@ -70,6 +70,28 @@ curl -H 'Content-Type: application/json' -XGET 'http://localhost:9200/<index>/_s
 
   }
 }'
+
+Take a backup
+curl -XPUT 'http://localhost:9200/_snapshot/elasticsearch-backup/snapshot-1?pretty' -H 'Content-Type: application/json' -d'
+{
+  "type": "fs",
+  "settings": {
+    "location": "/mnt1/elasticsearch-backup"
+  }
+}'
+
+Check backup
+curl -XGET 'http://localhost:9200/_snapshot/elasticsearch-backup/snapshot-1?pretty' -H 'Content-Type: application/json'
+
+Monitor backup status
+curl -XGET 'http://localhost:9200/_snapshot/elasticsearch-backup/snapshot-1/_status?pretty' -H 'Content-Type: application/json'
+
+Restore a backup for all indices
+First close all indices
+curl -XPOST 'http://localhost:9200/_all/_close?pretty' -H 'Content-Type: application/json'
+Restore
+curl -XPOST 'http://localhost:9200/_snapshot/elasticsearch-backup/snapshot-1/_restore?pretty' -H 'Content-Type: application/json'
+
 ```
 Types of filters
 `term` filters by exact value
