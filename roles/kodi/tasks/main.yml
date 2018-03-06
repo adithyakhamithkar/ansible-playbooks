@@ -1,0 +1,8 @@
+---
+- name: Add the kodi repo
+  apt_repository: repo="ppa:team-xbmc/ppa" state=present
+
+- name: Install kodi
+  apt: name={{item}} state=present
+  with_items:
+   - kodi

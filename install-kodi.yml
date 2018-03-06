@@ -1,0 +1,8 @@
+#
+#About: This will install kodi
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - kodi
