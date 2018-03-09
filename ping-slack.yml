@@ -2,7 +2,8 @@
 #About: This will ping slack
 #
 ---
-- hosts: '{{inventory}}'
-  become: yes
+- hosts: localhost
+  connection: local
+  gather_facts: False
   roles:
-  - ping-slack
+  - {role: ping-slack, slack_message: 'Boo from Ansible', slack_channel: random, slack_username: Ghost}
