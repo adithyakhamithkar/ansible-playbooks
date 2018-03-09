@@ -1,0 +1,9 @@
+---
+- name: Send notification message via Slack all options
+  slack:
+    token: '{{pl_slack_token}}'
+    msg: '{{pl_slack_message}}'
+    channel: '{{pl_slack_channel}}'
+    username: '{{pl_slack_username}}'
+    icon_url: '{{pl_slack_icon_url}}'
+  #delegate_to: localhost
