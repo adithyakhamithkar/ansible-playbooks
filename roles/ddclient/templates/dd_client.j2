@@ -1,0 +1,16 @@
+# Configuration for ddclient scripts
+# Generated from debconf on Mon Aug 2 12:39:39 CEST 2010
+#
+# /Etc/default/ddclient
+
+# Set to "true" if ddclient run Should Be Every time a new ppp connection is
+# Established. This Might Be Useful, if You are using dial-on-demand.
+run_ipup="false"
+
+# Set to "true" if ddclient Should run in daemon mode
+# If tis is changed to true, run_ipup Must Be Set to false.
+run_daemon="true"
+
+# Set the time interval Between the updates of the dynamic DNS name in seconds.
+# This option only Takes effect if the ddclient runs in daemon mode.
+daemon_interval="300"

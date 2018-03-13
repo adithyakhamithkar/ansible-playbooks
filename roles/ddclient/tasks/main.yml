@@ -1,0 +1,15 @@
+---
+- name: Install DDclient
+  apt: name={{item}} state=present
+  with_items:
+  - ssh
+  - libio-socket-ssl-perl
+  - ddclient
+
+- name: Configure DDclient
+  template: src=ddclient.j2 dest=/etc/ddclient.conf
+  notify: Restart ddclient
+
+- name: Configure DDclient
+  template: src=dd_client.j2 dest=/etc/default/ddclient
+  notify: Restart ddclient
