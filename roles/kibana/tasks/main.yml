@@ -13,8 +13,8 @@
 
 - name: Install x-pack
 #This is failing
-#  kibana_plugin: state=present name=x-pack plugin_bin=/usr/share/kibana/bin/kibana-plugin
-  shell: /usr/share/kibana/bin/kibana-plugin install x-pack
+  kibana_plugin: state=present name=x-pack plugin_bin=/usr/share/kibana/bin/kibana-plugin
+#  shell: /usr/share/kibana/bin/kibana-plugin install x-pack
 
 - name: Put Kibana on startup
   systemd: name=kibana enabled=yes daemon_reload=yes
@@ -25,6 +25,6 @@
     - { regexp: 'server.port', line: 'server.port: {{pl_kibana_port}}' }
     - { regexp: 'server.host', line: 'server.host: {{ansible_ssh_host}}' }
     - { regexp: 'server.name', line: 'server.name: {{ht_cluster_name}}' }
-    - { regexp: 'elasticsearch.url', line: 'elasticsearch.url: {{ht_elasticsearch_url}}' }
+    - { regexp: 'elasticsearch.url', line: 'elasticsearch.url: http://{{ht_elasticsearch_url}}' }
     - { regexp: 'kibana.index', line: 'kibana.index: .{{pl_kibana_index}}' }
   notify: kibana restart
