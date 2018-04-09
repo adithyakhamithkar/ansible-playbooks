@@ -1,0 +1,8 @@
+---
+- name: Adding linotp repository
+  apt_repository: repo="ppa:linotp/stable"
+
+- name: Install linotp and support packages
+  apt: name={{item}} state=present
+  with_items:
+  - linotp
