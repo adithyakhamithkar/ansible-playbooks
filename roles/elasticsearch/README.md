@@ -71,6 +71,17 @@ curl -H 'Content-Type: application/json' -XGET 'http://localhost:9200/<index>/_s
   }
 }'
 
+curl -H 'Content-Type: application/json' -XGET 'http://localhost:9200/<index_name>/<doc_type>/_search?pretty' -d '
+{
+  "query":
+     {
+        "query_string" :
+          {
+                "query" : ""
+           }
+      }
+}'
+
 Take a backup
 curl -XPUT 'http://localhost:9200/_snapshot/elasticsearch-backup/snapshot-1?pretty' -H 'Content-Type: application/json' -d'
 {
