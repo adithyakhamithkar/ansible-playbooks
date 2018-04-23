@@ -1,0 +1,20 @@
+---
+- name: Download jdk archive
+  get_url: url='{{pl_jdk_download_url}}' dest='{{pl_jdk_directory}}/{{pl_jdk_version}}.tar.gz' validate_certs=no headers='{{pl_jdk_download_headers}}'
+
+- name: Extract jdk archive
+  unarchive: src="{{pl_jdk_directory}}/{{pl_jdk_version}}.tar.gz" dest="{{pl_jdk_directory}}" remote_src=yes
+
+- name: Create java symlinks
+  file: src="{{item.src}}" dest="{{item.dest}}" state=link
+  with_items:
+  - {src: "{{pl_jdk_directory}}/{{pl_jdk_version}}", dest: "{{pl_jdk_directory}}/java_home"}
+  - {src: "{{pl_jdk_directory}}/java_home/bin/java", dest: "/usr/bin/java"}
+  - {src: "{{pl_jdk_directory}}/java_home/bin/javac", dest: "/usr/bin/javac"}
+  - {src: "{{pl_jdk_directory}}/java_home/bin/jar", dest: "/usr/bin/jar"}
+
+- name: Set environment variables
+  template: src=java_home.sh.j2 dest=/etc/profile.d/java_home.sh
+
+#- name: Clean up
+#  file: path="{{pl_jdk_directory}}/{{pl_jdk_version}}.tar.gz" state=absent
