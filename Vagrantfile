@@ -56,8 +56,22 @@ Vagrant.configure(2) do |config|
       test_box2.cpus = 1
     end
     config.vm.provision "shell", inline: <<-SHELL
-       sudo apt-get update
-       sudo apt-get install -y python
+       sudo yum install -y python
+     SHELL
+  end
+  # test_box3 configuration
+  config.vm.define "test_box3" do |test_box2|
+    test_box2.vm.box = "centos/7"
+    test_box2.vm.network "private_network", ip: "192.168.33.12"
+    #test_box2.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"
+    #test_box.ssh.username = "vagrant"
+    #test_box.ssh.password = "vagrant"
+    config.vm.provider "virtualbox" do |test_box2|
+      test_box2.memory = 2048
+      test_box2.cpus = 1
+    end
+    config.vm.provision "shell", inline: <<-SHELL
+       sudo yum install -y python
      SHELL
   end
   # Run commission-new-server.yml playbook
