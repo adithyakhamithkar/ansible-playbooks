@@ -1,4 +1,17 @@
 ---
+- name: Remove existing java from ubuntu
+  apt: name={{item}} state=absent
+  with_items:
+  - oracle-java8-installer
+  - openjdk-8-jdk
+  when: ansible_distribution == "Ubuntu"
+
+- name: Remove existing java from centos
+  yum: name={{item}} state=absent
+  with_items:
+  - java-1.8.0-openjdk-devel
+  when: ansible_distribution == "CentOS"
+
 - name: Download jdk archive
   get_url: url='{{pl_jdk_download_url}}' dest='{{pl_jdk_directory}}/{{pl_jdk_version}}.tar.gz' validate_certs=no headers='{{pl_jdk_download_headers}}'
 
@@ -16,5 +29,5 @@
 - name: Set environment variables
   template: src=java_home.sh.j2 dest=/etc/profile.d/java_home.sh
 
-#- name: Clean up
-#  file: path="{{pl_jdk_directory}}/{{pl_jdk_version}}.tar.gz" state=absent
+- name: Clean up
+  file: path="{{pl_jdk_directory}}/{{pl_jdk_version}}.tar.gz" state=absent
