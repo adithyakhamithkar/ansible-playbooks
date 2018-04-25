@@ -1,5 +1,5 @@
 ---
-- name: Install Dependancies
+- name: Install Dependancies for ubuntu
   apt: name={{item}} state=present force=yes
   with_items:
   - build-essential
@@ -22,6 +22,11 @@
   - automake
   - libtool
   - bison
+  when: ansible_distribution == "Ubuntu"
+
+- name: Install Dependancies for centos
+  yum: name="@Development tools" state=present
+  when: ansible_distribution == "CentOS"
 
 - name: Download ruby
   unarchive: src='{{pl_download_ruby_url}}' dest='{{pl_ruby_dir}}' remote_src=yes
