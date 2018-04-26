@@ -1,10 +1,10 @@
 #
-#
+# This file is managed by Ansible
 #
 
 user nginx;
 worker_processes 1;
-pid {{pl_nginx_cache_directory}}/nginx.pid;
+pid {{pl_nginx_home_directory}}/nginx.pid;
 
 events {
 		worker_connections 1024;
