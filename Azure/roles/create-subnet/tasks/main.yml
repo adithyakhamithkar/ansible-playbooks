@@ -1,0 +1,15 @@
+---
+- name: Add subnet
+  azure_rm_subnet:
+    resource_group: '{{pl_resource_group_name}}'
+    name: "{{pl_subnet_name}}"
+    address_prefix: "{{pl_address_prefix}}"
+    virtual_network: '{{pl_virtualnetwork_name}}'
+    security_group_name: "{{pl_security_group_name}}"
+    state: present
+    auth_source: env
+  environment:
+    AZURE_SUBSCRIPTION_ID: '{{pl_azure_subscription_id}}'
+    AZURE_CLIENT_ID: '{{pl_azure_client_id}}'
+    AZURE_SECRET: '{{pl_azure_secret}}'
+    AZURE_TENANT: '{{pl_azure_tenant}}'

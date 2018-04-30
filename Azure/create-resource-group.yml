@@ -1,0 +1,9 @@
+#
+#About: This will create a resource group in azure
+#
+---
+- hosts: localhost
+  connection: local
+  gather_facts: True
+  roles:
+  - create-resource-group

@@ -1,0 +1,12 @@
+---
+- name: Create a resource group
+  azure_rm_resourcegroup:
+    name: '{{pl_resource_group_name}}'
+    location: '{{pl_location}}'
+    state: present
+    auth_source: env
+  environment:
+    AZURE_SUBSCRIPTION_ID: '{{pl_azure_subscription_id}}'
+    AZURE_CLIENT_ID: '{{pl_azure_client_id}}'
+    AZURE_SECRET: '{{pl_azure_secret}}'
+    AZURE_TENANT: '{{pl_azure_tenant}}'

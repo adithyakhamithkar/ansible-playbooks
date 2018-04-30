@@ -1,0 +1,8 @@
+---
+pl_azure_subscription_id: "{{azure_subscription_id}}"
+pl_azure_client_id: "{{azure_client_id}}"
+pl_azure_secret: "{{azure_secret}}"
+pl_azure_tenant: "{{azure_tenant}}"
+pl_virtualnetwork_name: "{{virtualnetwork_name|default('Network_1')}}"
+pl_resource_group_name: "{{resource_group_name|default('Resource_group_1')}}"
+pl_cidr_range: "{{cidr_range|default('10.1.0.0/16')}}"

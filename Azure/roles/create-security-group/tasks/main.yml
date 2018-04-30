@@ -1,0 +1,20 @@
+---
+- name: Create security group
+  azure_rm_securitygroup:
+    resource_group: "{{pl_resource_group_name}}"
+    name: "{{pl_security_group_name}}"
+    purge_rules: yes
+    rules:
+      - name: ALLOW_SSH
+        protocol: Tcp
+        destination_port_range: 22
+        access: Allow
+        priority: 100
+        direction: Inbound
+    state: present
+    auth_source: env
+  environment:
+    AZURE_SUBSCRIPTION_ID: '{{pl_azure_subscription_id}}'
+    AZURE_CLIENT_ID: '{{pl_azure_client_id}}'
+    AZURE_SECRET: '{{pl_azure_secret}}'
+    AZURE_TENANT: '{{pl_azure_tenant}}'

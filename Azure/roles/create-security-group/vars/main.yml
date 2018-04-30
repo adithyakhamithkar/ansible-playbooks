@@ -1,0 +1,7 @@
+---
+pl_azure_subscription_id: "{{azure_subscription_id}}"
+pl_azure_client_id: "{{azure_client_id}}"
+pl_azure_secret: "{{azure_secret}}"
+pl_azure_tenant: "{{azure_tenant}}"
+pl_resource_group_name: "{{resource_group_name|default('Resource_group_1')}}"
+pl_security_group_name: "{{security_group_name|default('Security_group_1')}}"
