@@ -22,6 +22,7 @@
   - doto
   - tox
   - ara
+  - azure==2.0.0rc5
 
 - name: Set host_key_checking to false
   lineinfile: dest=/etc/ansible/ansible.cfg regexp={{item.regexp}} line={{item.line}} state=present backrefs=yes
