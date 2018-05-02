@@ -8,7 +8,7 @@ case "$1" in
   start)
         # Start daemon.
         echo "Starting $DAEMON_NAME";
-        nohup ara-manage runserver -h 0.0.0.0 -p 81 > /mnt1/.ara/ara-manager.log 2>&1 &
+        nohup ara-manage runserver -h 0.0.0.0 -p {{pl_ara_port}} > {{pl_ara_dir}}/logs/ara-manager.log 2>&1 &
         ;;
   stop)
         # Stop daemons.

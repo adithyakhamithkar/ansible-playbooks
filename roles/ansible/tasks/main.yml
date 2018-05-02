@@ -24,8 +24,14 @@
   - ara
   - azure==2.0.0rc5
 
+- name: Create directories
+  file: path={{item}} state=directory
+  with_items:
+    - "{{pl_ara_dir}}"
+    - "{{pl_ara_dir}}/logs"
+
 - name: Set host_key_checking to false
-  lineinfile: dest=/etc/ansible/ansible.cfg regexp={{item.regexp}} line={{item.line}} state=present backrefs=yes
+  lineinfile: dest=/etc/ansible/ansible.cfg regexp={{item.regexp}} line={{item.line}} state=present backrefs=yes backup=yes
   with_items:
     - { regexp: '#host_key_checking = False', line: "host_key_checking = False" }
     - { regexp: '#callback_plugins', line: "callback_plugins = /usr/local/lib/python2.7/dist-packages/ara/plugins/callbacks" }
@@ -33,12 +39,12 @@
     - { regexp: '#library', line: "library = /usr/local/lib/python2.7/dist-packages/ara/plugins/modules" }
 
 - name: Add ara parameters
-  lineinfile: dest=/etc/ansible/ansible.cfg line="{{item}}" state=present
+  lineinfile: dest=/etc/ansible/ansible.cfg line="{{item}}" state=present backup=yes
   with_items:
   - "[ara]"
-  - dir = /mnt1/.ara
-  - logfile = /mnt1/.ara/logs
-  - database = sqlite:////mnt1/.ara/ansible.sqlite
+  - dir = {{pl_ara_dir}}
+  - logfile = {{pl_ara_dir}}/logs/ara.log
+  - database = sqlite:////{{pl_ara_dir}}/ansible.sqlite
 
 - name: Copy ara-manager init scripts
   template: src=ara-manager.j2 dest=/etc/init.d/ara-manager mode=0755
