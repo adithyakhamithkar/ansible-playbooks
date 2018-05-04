@@ -5,17 +5,27 @@
     - "{{pl_elastichq_directory}}"
     - "{{pl_elastichq_directory}}/logs"
 
-- name: Install python3
+- name: Install python3 for ubuntu
   apt: name={{item}} state=present
   with_items:
   - python3
   - python3-pip
+  when: ansible_distribution == "Ubuntu"
 
 - name: Check out repo
   git: repo='{{pl_elastichq_repo}}' dest='{{pl_elastichq_directory}}'
 
 - name: Install pip packages
-  pip: requirements='{{pl_elastichq_directory}}/requirements.txt' executable=pip3 #virtualenv='{{pl_elastichq_virtualenv}}'
+  pip: requirements='{{pl_elastichq_directory}}/requirements.txt' executable=pip3
 
 - name: Copy elastichq init scripts
   template: src=elastichq.j2 dest=/etc/init.d/elastichq mode=0755
+
+- name: Copy elastichq service scripts
+  template: src=elastichq.service.j2 dest=/etc/systemd/system/elastichq.service
+
+- name: Adding elastichq on start up
+  systemd: name=elastichq state=started enabled=yes daemon_reload=yes
+
+- name: Adding elastichq on start up
+  service: name=elastichq state=started enabled=yes

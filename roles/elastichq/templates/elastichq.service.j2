@@ -1,0 +1,18 @@
+#
+# This file is managed by Ansible
+#
+
+[Unit]
+Description=A monitoring tool for elasticsearch
+After=network.target
+
+[Service]
+Type = forking
+ExecStart = /etc/init.d/elastichq start
+ExecStop = /etc/init.d/elastichq stop
+ExecReload = /etc/init.d/elastichq stop
+Restart=always
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target

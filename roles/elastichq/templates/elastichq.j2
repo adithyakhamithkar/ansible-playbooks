@@ -1,4 +1,17 @@
-#!/bin/sh -
+#!/bin/bash
+#
+# /etc/init.d/elastichq -- startup script for ElasticHQ
+#
+### BEGIN INIT INFO
+# Provides:          ElasticHQ
+# Required-Start:    $network $remote_fs $named
+# Required-Stop:     $network $remote_fs $named
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Starts ElasticHQ
+# Description:       Starts ElasticHQ using start-stop-daemon
+### END INIT INFO
+
 DAEMON_NAME=elastichq
 # Check that networking is up.
 #[ ${NETWORKING} = "no" ] && exit 0
