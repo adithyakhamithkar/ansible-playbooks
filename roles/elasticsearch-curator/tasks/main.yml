@@ -1,0 +1,5 @@
+---
+- name: Install pip modules
+  pip: name={{item}} state=present
+  with_items:
+  - elasticsearch-curator

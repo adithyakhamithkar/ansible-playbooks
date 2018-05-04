@@ -1,0 +1,14 @@
+---
+actions:
+  1:
+    action: delete_indices
+    description: Delete indices with %Y.%m.%d in the name where that date is older than 30 days
+    options:
+      ignore_empty_list: True
+    filters:
+      - filtertype: age
+        source: name
+        timestring: '%Y.%m.%d'
+        unit: days
+        unit_count: 30
+        direction: older
