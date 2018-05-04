@@ -1,0 +1,8 @@
+#
+#About: This will install elastichq
+#
+---
+- hosts: '{{inventory}}'
+  become: yes
+  roles:
+  - elastichq

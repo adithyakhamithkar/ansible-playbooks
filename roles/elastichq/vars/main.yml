@@ -1,0 +1,4 @@
+---
+pl_elastichq_directory: "{{elasticsearch_backup_path|default('/mnt/elastichq')}}"
+pl_elastichq_repo: "https://github.com/ElasticHQ/elasticsearch-HQ.git"
+pl_elastichq_virtualenv: "elastichq"
