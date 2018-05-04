@@ -10,7 +10,7 @@ After=network.target
 Type = forking
 ExecStart = /etc/init.d/elastichq start
 ExecStop = /etc/init.d/elastichq stop
-ExecReload = /etc/init.d/elastichq stop
+ExecReload = /etc/init.d/elastichq restart
 Restart=always
 KillMode=mixed
 
