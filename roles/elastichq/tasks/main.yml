@@ -1,10 +1,4 @@
 ---
-- name: Create directories
-  file: path={{item}} state=directory
-  with_items:
-    - "{{pl_elastichq_directory}}"
-    - "{{pl_elastichq_directory}}/logs"
-
 - name: Install python3 for ubuntu
   apt: name={{item}} state=present
   with_items:
@@ -12,18 +6,52 @@
   - python3-pip
   when: ansible_distribution == "Ubuntu"
 
+- name: Install repo for centos
+  shell: yum install -y https://centos7.iuscommunity.org/ius-release.rpm
+  when: ansible_distribution == "CentOS"
+  ignore_errors: yes
+
+- name: Install python3 for centos
+  yum: name={{item}} state=present
+  with_items:
+  - python36u
+  - python36u-libs
+  - python36u-devel
+  - python36u-pip
+  when: ansible_distribution == "CentOS"
+
 - name: Check out repo
   git: repo='{{pl_elastichq_repo}}' dest='{{pl_elastichq_directory}}'
 
-- name: Install pip packages
+- name: Install pip packages for ubuntu
   pip: requirements='{{pl_elastichq_directory}}/requirements.txt' executable=pip3
+  when: ansible_distribution == "Ubuntu"
+
+- name: Install pip packages for centos
+  pip: requirements='{{pl_elastichq_directory}}/requirements.txt' executable=pip3.6
+  when: ansible_distribution == "CentOS"
+
+- name: Create directories
+  file: path={{item}} state=directory
+  with_items:
+    - "{{pl_elastichq_directory}}/logs"
 
 - name: Copy elastichq init scripts
   template: src=elastichq.j2 dest=/etc/init.d/elastichq mode=0755
 
-- name: Copy elastichq service scripts
+- name: Change python version for centos
+  lineinfile: dest=/etc/init.d/elastichq regexp={{item.regexp}} line={{item.line}} state=present backrefs=yes backup=yes
+  with_items:
+    - { regexp: 'nohup /usr/bin/python3', line: "nohup /bin/python3.6 application.py > {{pl_elastichq_directory}}/logs/elastichq.log 2>&1 &" }
+  when: ansible_distribution == "CentOS"
+
+- name: Copy elastichq service scripts for ubuntu
   template: src=elastichq.service.j2 dest=/etc/systemd/system/elastichq.service
   when: ansible_distribution == "Ubuntu"
+
+- name: Copy elastichq service scripts for centos
+  template: src=elastichq.service.j2 dest=/usr/lib/systemd/system/elastichq.service
+  when: ansible_distribution == "CentOS"
 
 - name: Adding elastichq on start up
   systemd: name=elastichq state=started enabled=yes daemon_reload=yes

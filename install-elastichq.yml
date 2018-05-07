@@ -4,5 +4,6 @@
 ---
 - hosts: '{{inventory}}'
   become: yes
+  strategy: free
   roles:
   - elastichq
