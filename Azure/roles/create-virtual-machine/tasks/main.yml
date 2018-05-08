@@ -19,9 +19,11 @@
 - name: Create a virtual machine
   azure_rm_virtualmachine:
     resource_group: "{{pl_resource_group_name}}"
-    name: "{{pl_virtualmachine_name}}"
+    name: "{{pl_virtualmachine_name}}-{{pl_availabilityset_name}}"
     vm_size: "{{pl_virtualmachine_size}}"
     admin_username: "{{pl_virtualmachine_username}}"
+    availability_set: "{{pl_availabilityset_name}}"
+    managed_disk_type: "{{pl_managed_disk_type}}"
     ssh_password_enabled: false
     ssh_public_keys:
       - path: "/home/{{pl_virtualmachine_username}}/.ssh/authorized_keys"

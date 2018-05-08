@@ -34,3 +34,9 @@ pip install ansible[azure]
 2. Create a virtual network
 3. Create a security group
 4. Create a subnet
+5. Create a availability set
+
+Creating a virtual machine with public Static IP
+```
+ansible-playbook -i inventory/hosts Azure/create-virtual-machine.yml -e "public_ip_allocation_method=Static"
+```
