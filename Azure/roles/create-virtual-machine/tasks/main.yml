@@ -7,6 +7,7 @@
     subnet: "{{pl_subnet_name}}"
     public_ip_name: "{{pl_public_ip_name}}"
     security_group: "{{pl_security_group_name}}"
+    public_ip_allocation_method: "{{pl_public_ip_allocation_method}}"
     state: present
     auth_source: env
   environment:
