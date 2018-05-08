@@ -1,0 +1,40 @@
+---
+- name: Create a virtual network inteface card
+  azure_rm_networkinterface:
+    resource_group: "{{pl_resource_group_name}}"
+    name: "{{pl_virtualmachine_network_name}}"
+    virtual_network: "{{pl_virtualnetwork_name}}"
+    subnet: "{{pl_subnet_name}}"
+    public_ip_name: "{{pl_public_ip_name}}"
+    security_group: "{{pl_security_group_name}}"
+    state: present
+    auth_source: env
+  environment:
+    AZURE_SUBSCRIPTION_ID: '{{pl_azure_subscription_id}}'
+    AZURE_CLIENT_ID: '{{pl_azure_client_id}}'
+    AZURE_SECRET: '{{pl_azure_secret}}'
+    AZURE_TENANT: '{{pl_azure_tenant}}'
+
+- name: Create a virtual machine
+  azure_rm_virtualmachine:
+    resource_group: "{{pl_resource_group_name}}"
+    name: "{{pl_virtualmachine_name}}"
+    vm_size: "{{pl_virtualmachine_size}}"
+    admin_username: "{{pl_virtualmachine_username}}"
+    ssh_password_enabled: false
+    ssh_public_keys:
+      - path: "/home/{{pl_virtualmachine_username}}/.ssh/authorized_keys"
+        key_data: "{{lookup('file', '{{pl_azure_ssh_public_key}}' )}}"
+    network_interfaces: "{{pl_virtualmachine_network_name}}"
+    image:
+      offer: "{{pl_image_name}}"
+      publisher: "{{pl_image_publisher}}"
+      sku: "{{pl_image_sku}}"
+      version: "{{pl_image_version}}"
+    state: present
+    auth_source: env
+  environment:
+      AZURE_SUBSCRIPTION_ID: '{{pl_azure_subscription_id}}'
+      AZURE_CLIENT_ID: '{{pl_azure_client_id}}'
+      AZURE_SECRET: '{{pl_azure_secret}}'
+      AZURE_TENANT: '{{pl_azure_tenant}}'

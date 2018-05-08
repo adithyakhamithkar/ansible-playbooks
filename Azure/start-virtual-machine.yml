@@ -1,0 +1,9 @@
+#
+#About: This will start a virtual machine in azure
+#
+---
+- hosts: localhost
+  connection: local
+  gather_facts: True
+  roles:
+  - {role: stop-start-virtual-machine, virtualmachine_status=yes}

@@ -1,0 +1,9 @@
+#
+#About: This will create a virtual machine in azure
+#
+---
+- hosts: localhost
+  connection: local
+  gather_facts: True
+  roles:
+  - create-virtual-machine
