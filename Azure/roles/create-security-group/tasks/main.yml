@@ -2,15 +2,18 @@
 - name: Create security group
   azure_rm_securitygroup:
     resource_group: "{{pl_resource_group_name}}"
-    name: "{{pl_security_group_name}}"
+    name: "{{item.security_group_name}}"
     purge_rules: yes
     rules:
-      - name: ALLOW_SSH
-        protocol: Tcp
-        destination_port_range: 22
-        access: Allow
-        priority: 100
+      - name: "{{item.rule_name}}"
+        protocol: "{{item.protocol}}"
+        source_address_prefix: "{{item.source_address_prefix}}"
+        description: "{{item.description}}"
+        priority: "{{item.priority}}"
+        source_port_range: "{{item.source_port}}"
+        destination_port_range: "{{item.destination_port}}"
         direction: Inbound
+        access: Allow
     state: present
     auth_source: env
   environment:
@@ -18,3 +21,5 @@
     AZURE_CLIENT_ID: '{{pl_azure_client_id}}'
     AZURE_SECRET: '{{pl_azure_secret}}'
     AZURE_TENANT: '{{pl_azure_tenant}}'
+  with_items:
+  - { "security_group_name" : "{{pl_security_group_name}}", "description" : "Inbound SSH Access", "rule_name" : "ALLOW_SSH", "source_address_prefix" : "0.0.0.0/0", "protocol" : "Tcp", "source_port" : "0-65535", "destination_port" : "22", "priority" : "100" }

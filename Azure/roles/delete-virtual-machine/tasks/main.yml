@@ -1,4 +1,16 @@
 ---
+- name: Delete security group
+  azure_rm_securitygroup:
+    resource_group: "{{pl_resource_group_name}}"
+    name: "{{pl_virtualmachine_network_name}}"
+    state: absent
+    auth_source: env
+  environment:
+    AZURE_SUBSCRIPTION_ID: '{{pl_azure_subscription_id}}'
+    AZURE_CLIENT_ID: '{{pl_azure_client_id}}'
+    AZURE_SECRET: '{{pl_azure_secret}}'
+    AZURE_TENANT: '{{pl_azure_tenant}}'
+
 - name: Delete a virtual machine
   azure_rm_virtualmachine:
     resource_group: "{{pl_resource_group_name}}"
