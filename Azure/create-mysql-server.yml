@@ -1,0 +1,9 @@
+#
+#About: This will create a MySQL Database in azure
+#
+---
+- hosts: localhost
+  connection: local
+  gather_facts: True
+  roles:
+  - create-mysql-server

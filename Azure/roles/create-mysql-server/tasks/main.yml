@@ -1,0 +1,20 @@
+---
+- name: Create a MySQL server
+  azure_rm_mysqlserver:
+    resource_group: '{{pl_resource_group_name}}'
+    name: '{{pl_mysql_server_name}}'
+    sku:
+      name: '{{pl_mysql_server_type}}'
+      tier: '{{pl_mysql_server_tire}}'
+      capacity: '{{pl_mysql_server_capacity}}'
+    location: '{{pl_location}}'
+    storage_mb: '{{pl_mysql_storage}}'
+    enforce_ssl: '{{pl_mysql_ssl}}'
+    admin_username: '{{pl_mysql_username}}'
+    admin_password: '{{pl_mysql_password}}'
+    auth_source: env
+  environment:
+    AZURE_SUBSCRIPTION_ID: '{{pl_azure_subscription_id}}'
+    AZURE_CLIENT_ID: '{{pl_azure_client_id}}'
+    AZURE_SECRET: '{{pl_azure_secret}}'
+    AZURE_TENANT: '{{pl_azure_tenant}}'    

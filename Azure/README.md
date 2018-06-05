@@ -40,3 +40,6 @@ Creating a virtual machine with public Static IP
 ```
 ansible-playbook -i inventory/hosts Azure/create-virtual-machine.yml -e "public_ip_allocation_method=Static"
 ```
+
+Azure VM sizes
+https://docs.microsoft.com/en-us/azure/virtual-machines/windows/sizes
