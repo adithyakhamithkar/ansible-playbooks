@@ -1,16 +1,28 @@
-# Server Block for Virtual host start
+# Server Block for Virtual host with SSL start
 server {
-        listen  80;
+        listen  443 ssl http2;
         root {{pl_nginx_home_directory}};
         index index.php index.html index.htm;
-        #Uncomment the below line to force redirect to https
-        #rewrite ^ https://$http_host$request_uri? permanent;
         server_name {{hostname}}.{{domain_name}};
+        ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+        ssl_ciphers EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;
+        ssl_prefer_server_ciphers On;
+        ssl_certificate {{pl_nginx_home_directory}}/ssl_crt.pem;
+        ssl_certificate_key {{pl_nginx_home_directory}}/ssl_key.pem;
+        ssl_dhparam {{pl_nginx_home_directory}}/dhparam.pem;
+        ssl_session_cache shared:SSL:128m;
         proxy_set_header Host $http_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $remote_addr;
         proxy_set_header REFERER $http_referer;
         #add_header  X-Upstream  $upstream_addr;
+        add_header Strict-Transport-Security "max-age=31557600; includeSubDomains";
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Xss-Protection "1";
+        ssl_stapling on;
+        ssl_stapling_verify on;
+
         location / {
 		            try_files $uri $uri/ =404;
                 proxy_cache STATIC;
@@ -31,7 +43,6 @@ server {
                 CheckRule "$EVADE >= 4" BLOCK;
                 CheckRule "$XSS >= 8" BLOCK;
         }
-
         # Uncomment for php
         #pass the PHP scripts to FastCGI server listening on 127.0.0.1:9$
         #location ~ \.php$ {
@@ -82,4 +93,4 @@ server {
                 internal;
         }
 }
-# Server Block for Virtual host end
+# Server Block for Virtual host with SSL end

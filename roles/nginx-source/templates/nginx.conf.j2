@@ -94,4 +94,10 @@ http {
  	#geoip_country /etc/nginx/geoip/GeoIP.dat; # the country IP database
  	#geoip_city /etc/nginx/geoip/GeoLiteCity.dat; # the city IP database
 
+	# nginx-naxsi config
+	##
+	# Uncomment it if you installed nginx-naxsi
+	##
+	include /etc/nginx/naxsi_core_default.rules;
+
 }
