@@ -35,7 +35,7 @@ server {
                 #Enable learning mode
                 LearningMode;
                 #Define where blocked requests go
-                DeniedUrl "/50x.html";
+                DeniedUrl "/error-page-50x.html";
                 #CheckRules, determining when naxsi needs to take action
                 CheckRule "$SQL >= 8" BLOCK;
                 CheckRule "$RFI >= 8" BLOCK;
