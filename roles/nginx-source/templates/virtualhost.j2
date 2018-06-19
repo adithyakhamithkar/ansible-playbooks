@@ -1,7 +1,10 @@
+#
+# This file is managed by Ansible
+#
 # Server Block for Virtual host start
 server {
         listen  80;
-        root {{pl_nginx_home_directory}};
+        root {{pl_nginx_home_directory}}/html;
         index index.php index.html index.htm;
         #Uncomment the below line to force redirect to https
         #rewrite ^ https://$http_host$request_uri? permanent;
@@ -68,17 +71,17 @@ server {
         #Define custom error pages
         error_page 404 /error-page-404.html;
         location = /error-page-404.html {
-                root {{pl_nginx_home_directory}};
+                root {{pl_nginx_home_directory}}/html;
                 internal;
         }
         error_page 403 /error-page-403.html;
         location = /error-page-403.html {
-                root {{pl_nginx_home_directory}};
+                root {{pl_nginx_home_directory}}/html;
                 internal;
         }
         error_page 500 502 503 504 /error-page-50x.html;
         location = /error-page-50x.html {
-                root {{pl_nginx_home_directory}};
+                root {{pl_nginx_home_directory}}/html;
                 internal;
         }
 }
