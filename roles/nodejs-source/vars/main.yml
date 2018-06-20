@@ -1,0 +1,4 @@
+---
+pl_nodejs_version : "{{nodejs_version|default('v8.11.3')}}"
+pl_nodejs_url : "{{nodejs_url|default('https://nodejs.org/dist/{{pl_nodejs_version}}/node-{{pl_nodejs_version}}-linux-x64.tar.gz')}}"
+pl_nodejs_directory: "{{nodejs_directory|default('/opt')}}"

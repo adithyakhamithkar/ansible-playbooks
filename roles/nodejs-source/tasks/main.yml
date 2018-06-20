@@ -1,0 +1,22 @@
+---
+- name: Download archives
+  get_url: url='{{item.url}}' dest='{{item.dest}}' validate_certs=no
+  with_items:
+  - { url: '{{pl_nodejs_url}}', dest: '{{pl_nodejs_directory}}/node-{{pl_nodejs_version}}-linux-x64.tar.gz' }
+
+- name: Extract archives
+  unarchive: src='{{item.src}}' dest='{{item.dest}}' remote_src=yes
+  with_items:
+  - { src: '{{pl_nodejs_directory}}/node-{{pl_nodejs_version}}-linux-x64.tar.gz', dest: '/usr/local' }
+
+- name: Rename node directory
+  command: 'mv /usr/local/node-{{pl_nodejs_version}}-linux-x64 /usr/local/node'
+
+- name: Set environment variables
+  template: src=node_home.sh.j2 dest=/etc/profile.d/node_home.sh
+
+- name: Create node symlinks
+  file: src="{{item.src}}" dest="{{item.dest}}" state=link
+  with_items:
+  - {src: "/usr/local/node/bin/node", dest: "/usr/bin/node"}
+  - {src: "/usr/local/node/bin/npm", dest: "/usr/bin/npm"}
