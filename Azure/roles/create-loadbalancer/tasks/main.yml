@@ -1,0 +1,40 @@
+---
+- name: Create a public ip address
+  azure_rm_publicipaddress:
+    resource_group: "{{pl_resource_group_name}}"
+    name: "{{pl_virtualmachine_network_name}}"
+    allocation_method: Static
+    state: present
+    auth_source: env
+  environment:
+    AZURE_SUBSCRIPTION_ID: '{{pl_azure_subscription_id}}'
+    AZURE_CLIENT_ID: '{{pl_azure_client_id}}'
+    AZURE_SECRET: '{{pl_azure_secret}}'
+    AZURE_TENANT: '{{pl_azure_tenant}}'
+
+- name: Create a load balancer
+  azure_rm_loadbalancer:
+    name: "{{pl_loadbalancer_name}}"
+    location: "{{pl_location}}"
+    resource_group: "{{pl_resource_group_name}}"
+    public_ip: "{{pl_public_ip_name}}"
+    protocol: "{{pl_protocol}}"
+    load_distribution: "{{pl_load_distribution}}"
+    frontend_port: "{{pl_frontend_port}}"
+    backend_port: "{{pl_backend_port}}"
+    idle_timeout: "{{pl_idle_timeout}}"
+    natpool_frontend_port_start: 1030
+    natpool_frontend_port_end: 1040
+    natpool_backend_port: 80
+    probe_protocol: "{{pl_protocol}}"
+    probe_protocol: "{{pl_protocol}}"
+    probe_port: "{{pl_frontend_port}}"
+    probe_interval: "{{pl_probe_interval}}"
+    probe_fail_count: 3
+    state: present
+    auth_source: env
+  environment:
+    AZURE_SUBSCRIPTION_ID: '{{pl_azure_subscription_id}}'
+    AZURE_CLIENT_ID: '{{pl_azure_client_id}}'
+    AZURE_SECRET: '{{pl_azure_secret}}'
+    AZURE_TENANT: '{{pl_azure_tenant}}'

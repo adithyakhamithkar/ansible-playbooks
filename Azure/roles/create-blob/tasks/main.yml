@@ -1,0 +1,27 @@
+---
+- name: Create a storage account
+  azure_rm_storageaccount:
+    resource_group: '{{pl_resource_group_name}}'
+    name: '{{pl_blob_name}}'
+    type: '{{pl_storage_type}}'
+    state: present
+    auth_source: env
+  environment:
+    AZURE_SUBSCRIPTION_ID: '{{pl_azure_subscription_id}}'
+    AZURE_CLIENT_ID: '{{pl_azure_client_id}}'
+    AZURE_SECRET: '{{pl_azure_secret}}'
+    AZURE_TENANT: '{{pl_azure_tenant}}'
+
+- name: Create a blob
+  azure_rm_storageblob:
+    resource_group: '{{pl_resource_group_name}}'
+    storage_account_name: '{{pl_blob_name}}'
+    container: '{{pl_blob_name}}'
+    blob: '{{pl_blob_name}}'
+    state: present
+    auth_source: env
+  environment:
+    AZURE_SUBSCRIPTION_ID: '{{pl_azure_subscription_id}}'
+    AZURE_CLIENT_ID: '{{pl_azure_client_id}}'
+    AZURE_SECRET: '{{pl_azure_secret}}'
+    AZURE_TENANT: '{{pl_azure_tenant}}'
