@@ -24,7 +24,7 @@ http {
 	tcp_nopush on;
 	tcp_nodelay on;
 	keepalive_timeout 65;
-	types_hash_max_size 204
+	types_hash_max_size 204;
 
 	#Hides the web server information
 	server_tokens off;
@@ -90,8 +90,9 @@ http {
 	##
 	#GeoIP
 	##
- 	#geoip_country /etc/nginx/geoip/GeoIP.dat; # the country IP database
- 	#geoip_city /etc/nginx/geoip/GeoLiteCity.dat; # the city IP database
+ 	geoip_country /usr/share/GeoIP/GeoIP.dat; # the country IP database
+ 	geoip_city /usr/share/GeoIP/GeoLiteCity.dat; # the city IP database
+	include /etc/nginx/proxy.conf;
 
 	# nginx-naxsi config
 	##

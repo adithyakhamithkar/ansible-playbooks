@@ -20,6 +20,7 @@
   - { name: "geoipupdate", state: "present" }
   - { name: "zip", state: "present" }
   - { name: "unzip", state: "present" }
+  - { name: "libgeoip-dev", state: "present" }
   when: ansible_distribution == "Ubuntu"
 
 - name: Packages for centos
@@ -76,6 +77,9 @@
   - { url: '{{pl_zlib_download_url}}', dest: '{{pl_nginx_directory}}/zlib-{{pl_zlib_version}}.tar.gz' }
   - { url: '{{pl_openssl_download_url}}', dest: '{{pl_nginx_directory}}/openssl-{{pl_openssl_version}}.tar.gz' }
   - { url: '{{pl_naxsi_download_url}}', dest: '{{pl_naxsi_directory}}/naxsi-{{pl_naxsi_version}}.zip' }
+  - { url: 'http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz', dest: '/usr/share/GeoIP/GeoLiteCity.dat.gz' }
+  - { url: 'http://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz', dest: '/usr/share/GeoIP/GeoIP.dat.gz' }
+
   tags:
     - nginx-compilation
 
@@ -90,6 +94,14 @@
   tags:
     - nginx-compilation
 
+- name: Extract GeoIP
+  command: gunzip {{item}} -f
+  args:
+    chdir: /usr/share/GeoIP
+  with_items:
+  - 'GeoLiteCity.dat.gz'
+  - 'GeoIP.dat.gz'
+
 - name: Clear nginx headers
   lineinfile: dest='{{pl_nginx_directory}}/nginx-{{pl_nginx_version}}/src/http/ngx_http_header_filter_module.c' regexp='{{item.regexp}}' line='{{item.line}}' state=present backup=yes backrefs=yes
   with_items:
@@ -100,7 +112,7 @@
     - nginx-compilation
 
 - name: Compile nginx for ubuntu
-  command: ./configure --prefix=/usr/share/nginx --sbin-path=/usr/sbin/nginx --add-module={{pl_naxsi_directory}}/naxsi-{{pl_naxsi_version}}/naxsi_src/ --modules-path=/usr/lib/nginx/modules --conf-path=/etc/nginx/nginx.conf --error-log-path={{pl_nginx_log_directory}}/error.log --http-log-path={{pl_nginx_home_directory}}/access.log --pid-path={{pl_nginx_home_directory}}/nginx.pid --lock-path={{pl_nginx_home_directory}}/nginx.lock --user=nginx --group=nginx --build={{ansible_distribution}} --http-client-body-temp-path={{pl_nginx_home_directory}}/body --http-fastcgi-temp-path={{pl_nginx_home_directory}}/fastcgi --http-proxy-temp-path={{pl_nginx_home_directory}}/proxy --http-scgi-temp-path={{pl_nginx_home_directory}}/scgi --http-uwsgi-temp-path={{pl_nginx_home_directory}}/uwsgi --with-openssl={{pl_nginx_directory}}/openssl-{{pl_openssl_version}} --with-openssl-opt=enable-ec_nistp_64_gcc_128 --with-openssl-opt=no-nextprotoneg --with-openssl-opt=no-weak-ssl-ciphers --with-openssl-opt=no-ssl3 --with-pcre={{pl_nginx_directory}}/pcre-{{pl_pcre_version}} --with-pcre-jit --with-zlib={{pl_nginx_directory}}/zlib-{{pl_zlib_version}} --with-compat --with-file-aio --with-threads --with-http_addition_module --with-http_auth_request_module --with-http_dav_module --with-http_flv_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_mp4_module --with-http_random_index_module --with-http_realip_module --with-http_slice_module --with-http_ssl_module --with-http_sub_module --with-http_stub_status_module --with-http_v2_module --with-http_secure_link_module --with-mail --with-mail_ssl_module --with-stream --with-stream_realip_module --with-stream_ssl_module --with-stream_ssl_preread_module --with-debug
+  command: ./configure --prefix=/usr/share/nginx --sbin-path=/usr/sbin/nginx --add-module={{pl_naxsi_directory}}/naxsi-{{pl_naxsi_version}}/naxsi_src/ --modules-path=/usr/lib/nginx/modules --conf-path=/etc/nginx/nginx.conf --error-log-path={{pl_nginx_log_directory}}/error.log --http-log-path={{pl_nginx_home_directory}}/access.log --pid-path={{pl_nginx_home_directory}}/nginx.pid --lock-path={{pl_nginx_home_directory}}/nginx.lock --user=nginx --group=nginx --build={{ansible_distribution}} --http-client-body-temp-path={{pl_nginx_home_directory}}/body --http-fastcgi-temp-path={{pl_nginx_home_directory}}/fastcgi --http-proxy-temp-path={{pl_nginx_home_directory}}/proxy --http-scgi-temp-path={{pl_nginx_home_directory}}/scgi --http-uwsgi-temp-path={{pl_nginx_home_directory}}/uwsgi --with-openssl={{pl_nginx_directory}}/openssl-{{pl_openssl_version}} --with-openssl-opt=enable-ec_nistp_64_gcc_128 --with-openssl-opt=no-nextprotoneg --with-openssl-opt=no-weak-ssl-ciphers --with-openssl-opt=no-ssl3 --with-pcre={{pl_nginx_directory}}/pcre-{{pl_pcre_version}} --with-pcre-jit --with-zlib={{pl_nginx_directory}}/zlib-{{pl_zlib_version}} --with-compat --with-file-aio --with-threads --with-http_addition_module --with-http_auth_request_module --with-http_dav_module --with-http_flv_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_mp4_module --with-http_random_index_module --with-http_realip_module --with-http_slice_module --with-http_ssl_module --with-http_sub_module --with-http_geoip_module --with-http_stub_status_module --with-http_v2_module --with-http_secure_link_module --with-mail --with-mail_ssl_module --with-stream --with-stream_realip_module --with-stream_ssl_module --with-stream_ssl_preread_module --with-debug
   args:
     chdir: '{{pl_nginx_directory}}/nginx-{{pl_nginx_version}}'
   when: ansible_distribution == "Ubuntu"
@@ -135,6 +147,11 @@
   - { src: 'virtualhost.j2', dest: '/etc/nginx/sites-enabled/default'}
   - { src: 'virtualhost-ssl.j2', dest: '/etc/nginx/sites-enabled/default-ssl'}
   - { src: 'naxsi_core_default.rules.j2', dest: '/etc/nginx/naxsi_core_default.rules'}
+  - { src: 'proxy.conf.j2', dest: '/etc/nginx/proxy.conf'}
+  - { src: 'fastcgi.conf.j2', dest: '/etc/nginx/fastcgi.conf'}
+  notify: nginx restart
+  tags:
+    - nginx-config
 
 - name: Nginx Service for ubuntu
   template: src=nginx.service.j2 dest=/etc/systemd/system/nginx.service backup=yes

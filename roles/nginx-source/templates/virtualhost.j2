@@ -33,6 +33,7 @@ server {
                 CheckRule "$TRAVERSAL >= 4" BLOCK;
                 CheckRule "$EVADE >= 4" BLOCK;
                 CheckRule "$XSS >= 8" BLOCK;
+                CheckRule "$XSS >= 4" BLOCK;
         }
 
         # Uncomment for php
@@ -69,7 +70,7 @@ server {
                 add_header Cache-Control "public";
         }
         #Define custom error pages
-        error_page 404 /error-page-404.html;
+        error_page 400 404 /error-page-404.html;
         location = /error-page-404.html {
                 root {{pl_nginx_home_directory}}/html;
                 internal;

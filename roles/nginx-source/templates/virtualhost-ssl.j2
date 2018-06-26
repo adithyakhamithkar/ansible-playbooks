@@ -45,6 +45,7 @@ server {
                 CheckRule "$TRAVERSAL >= 4" BLOCK;
                 CheckRule "$EVADE >= 4" BLOCK;
                 CheckRule "$XSS >= 8" BLOCK;
+                CheckRule "$XSS >= 4" BLOCK;
         }
         # Uncomment for php
         #pass the PHP scripts to FastCGI server listening on 127.0.0.1:9$
