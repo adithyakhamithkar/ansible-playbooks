@@ -16,6 +16,8 @@ azure_tenant:
 > Finding the `azure_subscription_id`
 > https://blogs.msdn.microsoft.com/mschray/2016/03/18/getting-your-azure-subscription-guid-new-portal/
 
+> https://medium.com/@pavithra_38952/building-infrastructure-with-microsoft-azure-and-ansible-e5245e5b33a8
+
 ## Install azure-cli
 ```
 curl -L https://aka.ms/InstallAzureCli | bash

@@ -24,6 +24,10 @@
     admin_username: "{{pl_virtualmachine_username}}"
     availability_set: "{{pl_availabilityset_name}}"
     managed_disk_type: "{{pl_managed_disk_type}}"
+    append_tags: True
+    tags:  
+      ansible_group: "{{pl_ansible_group_tag}}"
+      service: "{{pl_service}}"
     ssh_password_enabled: false
     ssh_public_keys:
       - path: "/home/{{pl_virtualmachine_username}}/.ssh/authorized_keys"
