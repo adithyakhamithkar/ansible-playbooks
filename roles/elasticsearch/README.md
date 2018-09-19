@@ -168,3 +168,22 @@ elasticsearch-master-01 ansible_ssh_host=192.168.33.10 hostname=elasticsearch-ma
 elasticsearch-data-01 ansible_ssh_host=192.168.33.11 hostname=elasticsearch-data-01
 elasticsearch-data-02 ansible_ssh_host=192.168.33.12 hostname=elasticsearch-data-02
 ```
+
+
+```
+curl -XGET localhost:9200/_cat/shards?h=index,shard,prirep,state,unassigned.reason| grep UNASSIGNED
+```
+
+Force assign shards
+```
+curl -q -s "http://localhost:9200/_cat/shards" | egrep "UNASSIGNED" | while read index shard type state; do if [ $type = "r" ]; then curl -X POST "http://localhost:9200/_cluster/reroute" -d "{ \"commands\" : [ { \"allocate_replica\": { \"index\": \"$index\", \"shard\": $shard, \"node\": \"node_name\" } } ] }"; fi; done
+
+ curl -q -s "http://localhost:9200/_cat/shards" | egrep "UNASSIGNED" | while read index shard type state; do if [ $type = "p" ]; then curl -X POST "http://localhost:9200/_cluster/reroute" -d "{ \"commands\" : [ { \"allocate_stale_primary\": { \"index\": \"$index\", \"shard\": $shard, \"node\": \"node_name\", \"accept_data_loss\": true } } ] }"; fi; done
+ ```
+
+Get list of closed indices
+```
+curl -s -XGET 'http://localhost:9200/_cat/indices?h=status,index' | awk '$1 == "close" {print $2}'
+```
+
+curl -s -XGET 'http://localhost:9200/_cat/indices?h=status,index' | awk '$1 == "close" {print $2}'
