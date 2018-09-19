@@ -20,9 +20,15 @@ DAEMON_NAME=elastichq
 case "$1" in
   start)
         # Start daemon.
-        echo "Starting $DAEMON_NAME";
-        cd {{pl_elastichq_directory}};
-        nohup /usr/bin/python3 application.py > {{pl_elastichq_directory}}/logs/elastichq.log 2>&1 &
+        pid=`ps ax | grep -i 'application.py' | grep -v grep | awk '{print $1}'`
+        if [ -n "$pid" ]
+          then
+            echo "elastichq is already Running"
+        else
+          echo "Starting $DAEMON_NAME";
+          cd {{pl_elastichq_directory}};
+          nohup /usr/bin/python3 application.py > {{pl_elastichq_directory}}/logs/elastichq.log 2>&1 &
+        fi
         ;;
   stop)
         # Stop daemons.

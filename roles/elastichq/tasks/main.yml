@@ -42,7 +42,7 @@
 - name: Change python version for centos
   lineinfile: dest=/etc/init.d/elastichq regexp={{item.regexp}} line={{item.line}} state=present backrefs=yes backup=yes
   with_items:
-    - { regexp: 'nohup /usr/bin/python3', line: "nohup /bin/python3.6 application.py > {{pl_elastichq_directory}}/logs/elastichq.log 2>&1 &" }
+    - { regexp: 'nohup /usr/bin/python3', line: "     nohup /bin/python3.6 application.py > {{pl_elastichq_directory}}/logs/elastichq.log 2>&1 &" }
   when: ansible_distribution == "CentOS"
 
 - name: Copy elastichq service scripts for ubuntu
