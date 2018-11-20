@@ -1,0 +1,32 @@
+---
+- name: Add the Influxdb APT repository
+  apt_repository: repo="deb https://repos.influxdata.com/ubuntu {{ansible_distribution_release}} stable" state=present
+
+- name: Add the Influxdb APT repository key
+  apt_key: url=https://repos.influxdata.com/influxdb.key state=present
+
+- name: Install Influxdb
+  apt: name={{item}} state=present update_cache=yes
+  with_items:
+    - influxdb
+  notify: Start Influxdb
+
+- name: Create directories
+  file: path={{item}} state=directory owner=influxdb group=influxdb
+  with_items:
+    - "{{pl_influxdb_dir}}"
+    - "{{pl_influxdb_meta_dir}}"
+    - "{{pl_influxdb_data_dir}}"
+    - "{{pl_influxdb_wal_dir}}"
+
+- name: Modify InfluxDB hostname
+  replace: dest=/etc/influxdb/influxdb.conf regexp="{{item.regexp}}" replace="{{item.replace}}" backup=yes
+  with_items:
+    - { regexp: 'hostname = "localhost"', replace: 'hostname = "{{ ansible_hostname }}"' }
+    - { regexp: 'dir = "/var/lib/influxdb/meta"', replace: 'dir = "{{pl_influxdb_meta_dir}}"' }
+    - { regexp: 'dir = "/var/lib/influxdb/data"', replace: 'dir = "{{pl_influxdb_data_dir}}"' }
+    - { regexp: 'wal-dir = "/var/lib/influxdb/wal"', replace: 'wal-dir = "{{pl_influxdb_wal_dir}}"' }
+  notify: Restart Influxdb
+
+- name: Set Influxdb to start up by default
+  systemd: name=influxdb enabled=yes

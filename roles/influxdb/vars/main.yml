@@ -1,0 +1,5 @@
+---
+pl_influxdb_dir : "{{influxdb_dir|default('/mnt/influxdb')}}"
+pl_influxdb_meta_dir : "{{pl_influxdb_dir}}/meta"
+pl_influxdb_data_dir : "{{pl_influxdb_dir}}/data"
+pl_influxdb_wal_dir : "{{pl_influxdb_dir}}/wal"
